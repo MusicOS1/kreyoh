@@ -1,0 +1,2 @@
+"use client";
+export default function Topbar(){return <header className="topbar"><div className="search"><span>⌕</span><input placeholder="Search tracks, people, sessions..."/><kbd>⌘ K</kbd></div><div className="top-actions"><button className="icon">♢<b></b></button><button className="new">＋ New</button><button className="profile"><span>JM</span><div><b>Joseph</b><small>Project Lead</small></div>⌄</button></div></header>}

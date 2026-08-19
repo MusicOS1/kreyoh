@@ -1,0 +1,4 @@
+"use client";
+const items=["Home","Project 001","People","Beats","Tracks","Studio Sessions","Tasks","Splits","Opportunities","Finance","Activity"];
+const icons=["⌂","◫","◎","♫","▤","◉","✓","▧","◇","◌","↻"];
+export default function Sidebar(){return <aside className="sidebar"><div className="brand"><div className="brandmark">K</div><div><b>KREYO</b><small>Music operations</small></div></div><div className="workspace-switch"><span>P1</span><div><small>WORKSPACE</small><b>Project 001</b></div></div><nav>{items.map((x,i)=><button className={i===0?"nav active":"nav"} key={x}><i>{icons[i]}</i><span>{x}</span>{x==="Tasks"&&<em>17</em>}</button>)}</nav><div className="sidebar-bottom"><button className="nav"><i>⚙</i><span>Settings</span></button><div className="miniuser"><span>JM</span><div><b>Joseph</b><small>Project Lead</small></div></div></div></aside>}
