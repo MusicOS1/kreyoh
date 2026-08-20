@@ -1,3 +1,32 @@
 import "./globals.css";
-export const metadata={title:"KREYO",description:"Music venture operating system"};
-export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body>{children}</body></html>}
+import "./v1.css";
+import "./polish.css";
+
+export const metadata = {
+  title: "KREYOH",
+  description: "Music Venture Operating System",
+  applicationName: "KREYOH",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/icons/kreyoh-192.png",
+    apple: "/icons/kreyoh-192.png",
+  },
+};
+
+export const viewport = {
+  themeColor: "#06101f",
+  width: "device-width",
+  initialScale: 1,
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}

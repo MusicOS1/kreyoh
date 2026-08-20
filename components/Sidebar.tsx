@@ -1,4 +1,131 @@
 "use client";
-const items=["Home","Project 001","People","Beats","Tracks","Studio Sessions","Tasks","Splits","Opportunities","Finance","Activity"];
-const icons=["⌂","◫","◎","♫","▤","◉","✓","▧","◇","◌","↻"];
-export default function Sidebar(){return <aside className="sidebar"><div className="brand"><div className="brandmark">K</div><div><b>KREYO</b><small>Music operations</small></div></div><div className="workspace-switch"><span>P1</span><div><small>WORKSPACE</small><b>Project 001</b></div></div><nav>{items.map((x,i)=><button className={i===0?"nav active":"nav"} key={x}><i>{icons[i]}</i><span>{x}</span>{x==="Tasks"&&<em>17</em>}</button>)}</nav><div className="sidebar-bottom"><button className="nav"><i>⚙</i><span>Settings</span></button><div className="miniuser"><span>JM</span><div><b>Joseph</b><small>Project Lead</small></div></div></div></aside>}
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  HomeIcon,
+  UsersIcon,
+  MusicIcon,
+  DiscIcon,
+  MicIcon,
+  CheckIcon,
+  LayersIcon,
+  BriefcaseIcon,
+  WalletIcon,
+  ActivityIcon,
+  SettingsIcon,
+  LogOutIcon,
+} from "./Icons";
+import { KreyohLogo } from "./Branding";
+import { signOut } from "../app/actions";
+
+const items = [
+  { label: "Home", href: "/", icon: HomeIcon },
+  { label: "People", href: "/people", icon: UsersIcon },
+  { label: "Beats", href: "/beats", icon: MusicIcon },
+  { label: "Tracks", href: "/tracks", icon: DiscIcon },
+  { label: "Studio Sessions", href: "/studio-sessions", icon: MicIcon },
+  { label: "Tasks", href: "/tasks", icon: CheckIcon },
+  { label: "Splits", href: "/splits", icon: LayersIcon },
+  { label: "Opportunities", href: "/opportunities", icon: BriefcaseIcon },
+  { label: "Finance", href: "/finance", icon: WalletIcon },
+  { label: "Activity", href: "/activity", icon: ActivityIcon },
+];
+
+export default function Sidebar({
+  userName,
+  primaryRole,
+}: {
+  userName: string;
+  primaryRole: string;
+}) {
+  const pathname = usePathname();
+
+  const initials = userName
+    .split(" ")
+    .map((part) => part[0])
+    .filter(Boolean)
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() || "K";
+
+  return (
+    <aside className="sidebar-desktop">
+      <div className="sidebar-inner">
+        <div className="brand-header">
+          <Link href="/" className="brand-link">
+            <KreyohLogo size={32} showTagline={true} />
+          </Link>
+        </div>
+
+        <div className="workspace-card">
+          <div className="workspace-avatar">
+            <span>P01</span>
+          </div>
+          <div className="workspace-info">
+            <span className="workspace-kicker">VENTURE WORKSPACE</span>
+            <span className="workspace-title">Project 001</span>
+          </div>
+          <div className="workspace-status-dot" />
+        </div>
+
+        <nav className="nav-container" aria-label="Main Navigation">
+          <div className="nav-section-label">OPERATING MODULES</div>
+          {items.map((item) => {
+            const active =
+              item.href === "/"
+                ? pathname === "/"
+                : pathname.startsWith(item.href);
+            const IconComp = item.icon;
+
+            return (
+              <Link
+                href={item.href}
+                key={item.label}
+                className={`nav-link ${active ? "active" : ""}`}
+              >
+                <span className="nav-icon-wrap">
+                  <IconComp size={16} />
+                </span>
+                <span className="nav-label">{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="sidebar-footer">
+          <Link
+            href="/settings"
+            className={`nav-link ${pathname.startsWith("/settings") ? "active" : ""}`}
+          >
+            <span className="nav-icon-wrap">
+              <SettingsIcon size={16} />
+            </span>
+            <span className="nav-label">Settings</span>
+          </Link>
+
+          <div className="user-profile-tile">
+            <div className="user-avatar-initials">
+              <span>{initials}</span>
+            </div>
+            <div className="user-meta">
+              <span className="user-name">{userName}</span>
+              <span className="user-role-badge">{primaryRole}</span>
+            </div>
+
+            <form action={signOut} className="user-signout-form">
+              <button
+                type="submit"
+                className="quick-signout-btn"
+                title="Sign Out"
+                aria-label="Sign Out"
+              >
+                <LogOutIcon size={14} />
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
