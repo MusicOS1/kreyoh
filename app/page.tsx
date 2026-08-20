@@ -1,319 +1,180 @@
-import React from "react";
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import AppShell from "../components/AppShell";
 import AmbientMusicAtmosphere from "../components/AmbientMusicAtmosphere";
-import { getWorkspace } from "../lib/workspace";
+import { KreyohLogo, KreyohMark } from "../components/Branding";
 import {
   ActivityIcon,
   ArrowUpRight,
+  BriefcaseIcon,
   CheckCircleIcon,
-  ClockIcon,
+  DiscIcon,
+  LayersIcon,
+  MicIcon,
   MusicIcon,
-  PlayIcon,
   UsersIcon,
+  WalletIcon,
 } from "../components/Icons";
 
-function first(value: any) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-function statusClass(status: string | null | undefined) {
-  return String(status || "available").toLowerCase().replaceAll(" ", "-");
-}
-
-function readableAction(action: string | null | undefined) {
-  return String(action || "Project activity")
-    .replaceAll("_", " ")
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
-
-function initialsFor(name: string) {
-  return (
-    name
-      .split(" ")
-      .map((part) => part[0])
-      .filter(Boolean)
-      .join("")
-      .slice(0, 2)
-      .toUpperCase() || "K"
-  );
-}
-
-const JOURNEY = [
-  { label: "Started", note: "The project takes shape", threshold: 0 },
-  { label: "Beats", note: "The sound finds its palette", threshold: 12 },
-  { label: "Writing", note: "Ideas become songs", threshold: 28 },
-  { label: "Sessions", note: "The room comes alive", threshold: 45 },
-  { label: "Production", note: "Details become direction", threshold: 62 },
-  { label: "Rights", note: "The record is protected", threshold: 80 },
-  { label: "Release", note: "The work meets the world", threshold: 94 },
+const records = [
+  { title: "People", detail: "The room, the roles, and the relationships behind the work.", icon: UsersIcon },
+  { title: "Beats", detail: "The catalog, the choices, and the next possible placement.", icon: MusicIcon },
+  { title: "Tracks", detail: "Songs moving from first idea to release-ready record.", icon: DiscIcon },
+  { title: "Studio Sessions", detail: "Every take, decision, and creative handoff in view.", icon: MicIcon },
+  { title: "Tasks", detail: "Clear ownership for the work that keeps momentum alive.", icon: CheckCircleIcon },
+  { title: "Splits", detail: "Rights and contribution records built into the project journey.", icon: LayersIcon },
+  { title: "Opportunities", detail: "The conversations and openings that move the venture forward.", icon: BriefcaseIcon },
+  { title: "Finance", detail: "The commercial record behind the creative ambition.", icon: WalletIcon },
 ];
 
-export default async function Home() {
-  const { supabase, user, project, roles } = await getWorkspace();
+const roles = ["Artist", "Producer", "Engineer", "A&R", "Project Lead", "Finance", "Admin"];
 
-  if (!project) {
-    return (
-      <AppShell>
-        <div className="content">
-          <div className="empty-state">
-            <h2>No active project access</h2>
-            <p>Your KREYOH account exists, but it has not yet been linked to Project 001.</p>
-          </div>
-        </div>
-      </AppShell>
-    );
-  }
+const journey = [
+  ["01", "Idea", "The spark gets a place to land."],
+  ["02", "Beats", "Sound and direction begin to converge."],
+  ["03", "Writing", "Ideas become songs with a shared record."],
+  ["04", "Sessions", "The room turns creative intent into material."],
+  ["05", "Production", "Details, decisions, and delivery get organised."],
+  ["06", "Rights", "Contributions and ownership stay visible."],
+  ["07", "Release", "The work is ready to meet the world."],
+];
 
-  const isArtist = roles.includes("Artist");
-  const isProducer = roles.includes("Producer");
-  const isEngineer = roles.includes("Engineer");
-  const isAR = roles.includes("A&R") || roles.includes("AR");
-  const isFinance = roles.includes("Finance");
-
-  const [membersResult, beatsResult, tracksResult, myAssignmentsResult, myInterestResult, activityResult, pipelineResult, peoplePreviewResult] = await Promise.all([
-    supabase
-      .from("project_members")
-      .select("*", { count: "exact", head: true })
-      .eq("project_id", project.id)
-      .eq("status", "active"),
-    supabase
-      .from("beats")
-      .select("*", { count: "exact", head: true })
-      .eq("project_id", project.id),
-    supabase
-      .from("tracks")
-      .select("*", { count: "exact", head: true })
-      .eq("project_id", project.id),
-    supabase
-      .from("beat_assignments")
-      .select(`
-        id,
-        beat_id,
-        beats ( id, beat_code, title, status, writing_deadline, external_url, producer_name )
-      `)
-      .eq("user_id", user.id)
-      .limit(6),
-    supabase
-      .from("beat_interest")
-      .select(`
-        id,
-        beat_id,
-        beats ( id, beat_code, title, status, producer_name, external_url )
-      `)
-      .eq("user_id", user.id)
-      .limit(6),
-    supabase
-      .from("activity_log")
-      .select("id, action, created_at, entity_type")
-      .eq("project_id", project.id)
-      .order("created_at", { ascending: false })
-      .limit(6),
-    supabase
-      .from("beats")
-      .select(`
-        id,
-        beat_code,
-        title,
-        producer_name,
-        status,
-        writing_deadline,
-        external_url,
-        source_provider,
-        beat_interest ( id ),
-        beat_assignments ( id )
-      `)
-      .eq("project_id", project.id)
-      .order("created_at", { ascending: false })
-      .limit(5),
-    supabase
-      .from("project_members")
-      .select(`
-        id,
-        status,
-        joined_at,
-        profiles ( id, full_name, stage_name, email, avatar_url ),
-        member_roles ( roles ( name ) )
-      `)
-      .eq("project_id", project.id)
-      .order("joined_at", { ascending: true })
-      .limit(6),
-  ]);
-
-  const membersCount = membersResult.count ?? 0;
-  const beatsCount = beatsResult.count ?? 0;
-  const tracksCount = tracksResult.count ?? 0;
-  const myAssignments = myAssignmentsResult.data ?? [];
-  const myInterests = myInterestResult.data ?? [];
-  const activity = activityResult.data ?? [];
-  const pipeline = pipelineResult.data ?? [];
-  const peoplePreview = peoplePreviewResult.data ?? [];
-  const progressPercent = Math.max(0, Math.min(project.progress ?? 42, 100));
-  const currentJourneyIndex = JOURNEY.reduce(
-    (index, item, itemIndex) => (progressPercent >= item.threshold ? itemIndex : index),
-    0
-  );
-
-  const roleFocus = isArtist
-    ? `Your writing queue has ${myAssignments.length} assignment${myAssignments.length === 1 ? "" : "s"} and ${myInterests.length} saved beat${myInterests.length === 1 ? "" : "s"}.`
-    : isProducer
-      ? "Browse the catalog, follow artist interest, and keep the next placement moving."
-      : isEngineer
-        ? "Follow the work from writing room to session, production, and release readiness."
-        : isAR
-          ? "Keep the right people, songs, and next decisions close at hand."
-          : isFinance
-            ? "Stay close to the creative record while the project moves toward its next release milestone."
-            : "A shared creative home for the people, beats, sessions and work behind a music venture.";
+export default function PublicHomePage() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const closeMenu = () => setMenuOpen(false);
 
   return (
-    <AppShell>
-      <div className="content creative-home">
-        <header className="creative-intro enter">
-          <AmbientMusicAtmosphere variant="intro" />
-          <div className="creative-intro-copy">
-            <span className="creative-kicker">PROJECT 001</span>
-            <h1>Where the music is taking shape.</h1>
-            <p>KREYOH brings the people, beats, sessions and work behind a music venture into one shared space.</p>
-            <span className="creative-role-note">{roleFocus}</span>
-          </div>
-          <div className="creative-intro-actions">
-            <Link href="/activity" className="creative-primary-action">Explore Project <ArrowUpRight size={14} /></Link>
-            <Link href="/beats" className="creative-secondary-action">Browse Beats <MusicIcon size={14} /></Link>
-          </div>
-        </header>
+    <main className="public-site">
+      <header className="public-nav-wrap">
+        <div className="public-nav">
+          <Link href="/" className="public-brand" aria-label="KREYOH home" onClick={closeMenu}>
+            <KreyohLogo size={34} showTagline={false} />
+          </Link>
 
-        <section className="creative-section creative-sessions-section enter d1">
-          <div className="creative-section-heading">
-            <div><span className="creative-kicker">IN THE ROOM</span><h2>Featured Sessions</h2></div>
-            <span className="creative-section-aside">The work between takes</span>
-          </div>
-          <div className="session-empty-card">
-            <div className="session-empty-art"><span>001</span><div className="session-empty-wave"><i /><i /><i /><i /><i /><i /><i /></div></div>
-            <div className="session-empty-copy">
-              <span className="creative-kicker">SESSION SPACE</span>
-              <h3>No sessions yet</h3>
-              <p>Sessions will appear here once scheduled.</p>
-              <span className="preview-state"><ClockIcon size={13} /> Ready for the first session</span>
-            </div>
-          </div>
-        </section>
+          <nav className="public-nav-links" aria-label="Public navigation">
+            <a href="#product">Product</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#project-001">Project 001</a>
+            <a href="#about">About</a>
+            <a href="#contact">Contact</a>
+            <Link href="/login" className="public-nav-cta">Sign In <ArrowUpRight size={14} /></Link>
+          </nav>
 
-        <div className="creative-count-row enter d2" aria-label="Project overview">
-          <div><strong>{beatsCount}</strong><span>Beats</span></div>
-          <div><strong>{membersCount}</strong><span>People</span></div>
-          <div><strong>{tracksCount}</strong><span>Tracks</span></div>
-          <div><strong>—</strong><span>Sessions</span></div>
-          {myAssignments.length > 0 && <div className="creative-count-note"><CheckCircleIcon size={13} /> {myAssignments.length} active assignment{myAssignments.length === 1 ? "" : "s"}</div>}
+          <button
+            type="button"
+            className={menuOpen ? "public-menu-trigger is-open" : "public-menu-trigger"}
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={menuOpen}
+          >
+            <span /><span /><span />
+          </button>
         </div>
 
-        <section className="creative-section enter d3">
-          <div className="creative-section-heading">
-            <div><span className="creative-kicker">SOUND IN VIEW</span><h2>Featured Beats</h2></div>
-            <Link href="/beats" className="creative-section-link">Browse all beats <ArrowUpRight size={13} /></Link>
+        <nav className={menuOpen ? "public-mobile-menu is-open" : "public-mobile-menu"} aria-label="Mobile navigation">
+          <a href="#product" onClick={closeMenu}>Product</a>
+          <a href="#how-it-works" onClick={closeMenu}>How It Works</a>
+          <a href="#project-001" onClick={closeMenu}>Project 001</a>
+          <a href="#about" onClick={closeMenu}>About</a>
+          <a href="#contact" onClick={closeMenu}>Contact</a>
+          <Link href="/login" className="public-mobile-cta" onClick={closeMenu}>Sign In <ArrowUpRight size={15} /></Link>
+        </nav>
+      </header>
+
+      <section className="public-hero" id="top">
+        <AmbientMusicAtmosphere variant="intro" />
+        <div className="public-hero-grain" aria-hidden="true" />
+        <div className="public-hero-content">
+          <div className="public-eyebrow"><span className="public-live-dot" /> MUSIC VENTURE OPERATING SYSTEM</div>
+          <h1>Run your music venture <span>in one place.</span></h1>
+          <p className="public-hero-lead">KREYOH brings the people, music, sessions, tasks, rights, decisions, and business behind a music project into one shared operating system.</p>
+          <div className="public-hero-actions">
+            <a href="#product" className="public-button public-button-primary">Explore KREYOH <ArrowUpRight size={16} /></a>
+            <Link href="/login" className="public-button public-button-ghost">Sign In <ArrowUpRight size={16} /></Link>
           </div>
-          {pipeline.length === 0 ? (
-            <div className="creative-empty-state">
-              <div className="creative-empty-art"><MusicIcon size={22} /></div>
-              <div><strong>The beat wall is ready.</strong><span>Registered beats will become visual cards here as the catalog grows.</span></div>
-              <Link href="/beats" className="creative-secondary-action">Open beat library <ArrowUpRight size={13} /></Link>
+          <div className="public-hero-note"><span>Built for the whole room</span><span className="public-note-line" /><span>Run it on KREYOH.</span></div>
+        </div>
+        <div className="public-hero-stage" aria-label="KREYOH operating record preview">
+          <div className="public-stage-orbit public-stage-orbit-one" />
+          <div className="public-stage-orbit public-stage-orbit-two" />
+          <div className="public-console-preview">
+            <div className="public-console-top"><span className="public-console-label">PROJECT 001 / OPERATING RECORD</span><span className="public-console-status"><i /> LIVE</span></div>
+            <div className="public-console-title"><span>Where the music is taking shape.</span><b>42%</b></div>
+            <div className="public-progress"><span /></div>
+            <div className="public-console-grid">
+              <div><span>PEOPLE</span><strong>07</strong><small>whole room</small></div>
+              <div><span>BEATS</span><strong>24</strong><small>in catalogue</small></div>
+              <div><span>TRACKS</span><strong>08</strong><small>in motion</small></div>
             </div>
-          ) : (
-            <div className="featured-beats-grid">
-              {pipeline.map((beat: any, index: number) => {
-                const interestCount = beat.beat_interest?.length ?? 0;
-                const assignCount = beat.beat_assignments?.length ?? 0;
-                return (
-                  <article className="creative-beat-card" key={beat.id}>
-                    <div className={`creative-beat-art creative-beat-art-${(index % 4) + 1}`}>
-                      <span className="creative-beat-number">{String(index + 1).padStart(2, "0")}</span>
-                      <div className="creative-waveform" aria-hidden="true"><i /><i /><i /><i /><i /><i /><i /></div>
-                      <span className="creative-beat-source">{beat.source_provider || "Project source"}</span>
-                    </div>
-                    <div className="creative-beat-copy">
-                      <div className="creative-beat-title-row">
-                        <span className="beat-code-chip">{beat.beat_code}</span>
-                        <span className={`status-pill ${statusClass(beat.status)}`}>{beat.status || "available"}</span>
-                      </div>
-                      <h3>{beat.title || "Untitled beat"}</h3>
-                      <p>{beat.producer_name || "Uncredited producer"}</p>
-                      <div className="creative-beat-meta"><span>{interestCount} interested</span><span>{assignCount} assigned</span></div>
-                      {beat.external_url ? <a href={beat.external_url} target="_blank" rel="noreferrer" className="creative-inline-link"><PlayIcon size={12} /> Listen / Open Source <ArrowUpRight size={12} /></a> : <span className="creative-muted-link">Audio source not attached</span>}
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        <section className="creative-section enter d4">
-          <div className="creative-section-heading">
-            <div><span className="creative-kicker">THE PEOPLE</span><h2>Project People</h2></div>
-            <Link href="/people" className="creative-section-link">View All People <ArrowUpRight size={13} /></Link>
+            <div className="public-waveform" aria-hidden="true"><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /></div>
+            <div className="public-console-footer"><span><ActivityIcon size={14} /> Latest movement</span><b>Project 001 is in session</b></div>
           </div>
-          {peoplePreview.length === 0 ? (
-            <div className="creative-mini-empty">Contributor profiles will appear here when the roster is connected.</div>
-          ) : (
-            <div className="creative-people-row">
-              {peoplePreview.map((member: any) => {
-                const profile = first(member.profiles);
-                const memberRoles = member.member_roles?.map((row: any) => first(row.roles)?.name).filter(Boolean) ?? [];
-                const name = profile?.stage_name || profile?.full_name || profile?.email || "Project member";
-                return (
-                  <Link href="/people" className="creative-person-card" key={member.id}>
-                    <div className="creative-person-avatar">{profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : initialsFor(name)}</div>
-                    <strong>{name}</strong>
-                    <span>{memberRoles[0] || "Project member"}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </section>
+          <div className="public-floating-chip public-floating-chip-one"><span className="public-chip-mark"><MusicIcon size={14} /></span><span><b>Beats</b><small>sound in view</small></span></div>
+          <div className="public-floating-chip public-floating-chip-two"><span className="public-chip-mark orange"><CheckCircleIcon size={14} /></span><span><b>One shared record</b><small>nothing gets lost</small></span></div>
+        </div>
+      </section>
 
-        <section className="creative-split-grid creative-bottom-grid enter d5">
-          <article className="creative-section creative-activity-section">
-            <div className="creative-section-heading">
-              <div><span className="creative-kicker">RECENTLY</span><h2>Latest from Project 001</h2></div>
-              <Link href="/activity" className="creative-section-link">Open Activity <ArrowUpRight size={13} /></Link>
-            </div>
-            {activity.length === 0 ? (
-              <div className="creative-mini-empty">The project&apos;s latest notes and movements will gather here.</div>
-            ) : (
-              <div className="creative-activity-list">
-                {activity.map((item: any) => (
-                  <div className="creative-activity-item" key={item.id}>
-                    <span className="creative-activity-mark"><ActivityIcon size={13} /></span>
-                    <div><strong>{readableAction(item.action)}</strong><span>{item.entity_type || "Project 001"}</span></div>
-                    <time>{item.created_at ? new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(new Date(item.created_at)) : "Now"}</time>
-                  </div>
-                ))}
-              </div>
-            )}
-          </article>
+      <section className="public-section public-problem" id="product">
+        <div className="public-section-intro">
+          <div className="public-eyebrow">THE PROBLEM</div>
+          <h2>Great music should not be held together by memory.</h2>
+        </div>
+        <div className="public-problem-copy">
+          <p>Music projects are often fragmented across WhatsApp, Drive, spreadsheets, notebooks, and the heads of the people trying to keep everything moving.</p>
+          <p>KREYOH creates one shared operating record so the creative work and the venture behind it can move with clarity, context, and momentum.</p>
+          <a href="#records" className="public-text-link">See what comes together <ArrowUpRight size={15} /></a>
+        </div>
+      </section>
 
-          <article className="creative-section creative-journey-section">
-            <div className="creative-section-heading">
-              <div><span className="creative-kicker">THE LONG VIEW</span><h2>Project Journey</h2></div>
-              <span className="creative-section-aside">{JOURNEY[currentJourneyIndex].label} in progress</span>
-            </div>
-            <div className="project-journey">
-              {JOURNEY.map((item, index) => {
-                const complete = index < currentJourneyIndex;
-                const current = index === currentJourneyIndex;
-                return (
-                  <div className={`journey-step ${complete ? "complete" : ""} ${current ? "current" : ""}`} key={item.label}>
-                    <span className="journey-step-dot" />
-                    <span className="journey-step-label">{item.label}</span>
-                    <span className="journey-step-note">{item.note}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </article>
-        </section>
-      </div>
-    </AppShell>
+      <section className="public-section public-record-section" id="records">
+        <div className="public-section-heading">
+          <div><div className="public-eyebrow">ONE PROJECT. ONE SHARED RECORD.</div><h2>Everything behind the music, in view.</h2></div>
+          <p>KREYOH gives every contributor a clearer way to see the work, make the next decision, and keep the project moving.</p>
+        </div>
+        <div className="public-record-grid">
+          {records.map((record, index) => {
+            const Icon = record.icon;
+            return <article className="public-record-card" key={record.title}><span className="public-record-number">{String(index + 1).padStart(2, "0")}</span><span className="public-record-icon"><Icon size={20} /></span><h3>{record.title}</h3><p>{record.detail}</p><ArrowUpRight size={15} className="public-record-arrow" /></article>;
+          })}
+        </div>
+      </section>
+
+      <section className="public-section public-roles-section">
+        <div className="public-role-visual"><AmbientMusicAtmosphere variant="sessions" /><div className="public-role-ring ring-one" /><div className="public-role-ring ring-two" /><div className="public-role-mark"><KreyohMark size={86} /></div><span className="public-role-orbit-label">THE WHOLE ROOM</span></div>
+        <div className="public-roles-copy"><div className="public-eyebrow">BUILT FOR THE WHOLE ROOM</div><h2>Different roles. One shared way of working.</h2><p>Artists, producers, engineers, A&amp;R, project leads, finance, and admin can each see what matters to them without losing sight of the whole venture.</p><div className="public-role-list">{roles.map((role) => <span key={role}>{role}</span>)}</div></div>
+      </section>
+
+      <section className="public-section public-how-section" id="how-it-works">
+        <div className="public-section-heading"><div><div className="public-eyebrow">HOW IT WORKS</div><h2>From first spark to release.</h2></div><p>The project journey becomes a visible sequence of creative work, operating decisions, and protected contribution.</p></div>
+        <div className="public-journey-grid">{journey.map(([number, title, detail], index) => <div className={index === 0 ? "public-journey-step is-first" : "public-journey-step"} key={title}><span>{number}</span><div className="public-journey-line" /><h3>{title}</h3><p>{detail}</p></div>)}</div>
+      </section>
+
+      <section className="public-project-section" id="project-001">
+        <AmbientMusicAtmosphere variant="journey" />
+        <div className="public-project-copy"><div className="public-eyebrow">PROJECT 001</div><h2>The founding implementation and operating laboratory for KREYOH.</h2><p>Project 001 is where the system is being shaped in the real world — with real people, real records, real sessions, and the honest complexity of building a music venture from the ground up.</p><Link href="/login" className="public-button public-button-primary">Enter the workspace <ArrowUpRight size={16} /></Link></div>
+        <div className="public-project-stamp"><span>001</span><small>FOUNDING<br />IMPLEMENTATION</small></div>
+      </section>
+
+      <section className="public-section public-about-section" id="about">
+        <div><div className="public-eyebrow">ABOUT KREYOH</div><h2>Creative work deserves operating infrastructure.</h2></div>
+        <div className="public-about-copy"><p>KREYOH is a music venture operating system built for the space between an idea and a finished release. It helps creative teams turn movement into a record, a record into decisions, and decisions into a venture that can repeat.</p><div className="public-about-signature"><span>Part of</span><strong>FACKTS Africa Group</strong></div></div>
+            </section>
+
+      <footer className="public-footer">
+        <Link href="/" className="public-footer-brand">
+          <KreyohLogo size={30} showTagline={false} />
+        </Link>
+
+        <span>
+          © {new Date().getFullYear()} KREYOH · FACKTS Africa Group
+        </span>
+
+        <div>
+          <a href="#top">Back to top ↑</a>
+          <Link href="/login">Sign In</Link>
+        </div>
+      </footer>
+    </main>
   );
 }

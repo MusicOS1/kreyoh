@@ -20,7 +20,7 @@ import { KreyohLogo } from "./Branding";
 import { signOut } from "../app/actions";
 
 const items = [
-  { label: "Home", href: "/", icon: HomeIcon },
+  { label: "Workspace", href: "/workspace", icon: HomeIcon },
   { label: "People", href: "/people", icon: UsersIcon },
   { label: "Beats", href: "/beats", icon: MusicIcon },
   { label: "Tracks", href: "/tracks", icon: DiscIcon },
@@ -73,8 +73,8 @@ export default function Sidebar({
           <div className="nav-section-label">OPERATING MODULES</div>
           {items.map((item) => {
             const active =
-              item.href === "/"
-                ? pathname === "/"
+              item.href === "/workspace"
+                ? pathname === "/workspace"
                 : pathname.startsWith(item.href);
             const IconComp = item.icon;
 

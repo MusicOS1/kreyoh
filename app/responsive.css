@@ -1,0 +1,502 @@
+/* ==========================================================================
+   KREYOH — TEXT FIT SAFETY
+   Keeps the existing design.
+   Only prevents words/buttons from colliding with edges.
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+/* All important flex/grid children must be allowed to shrink */
+.kreyoh-main-canvas,
+.kreyoh-page-container,
+.content,
+.creative-home,
+.workspace-hero,
+.creative-intro-copy,
+.creative-intro-actions,
+.workspace-hero-meta,
+.creative-section,
+.creative-section-heading,
+.workspace-metric-card,
+.creative-beat-card,
+.creative-beat-copy,
+.creative-person-card,
+.session-empty-card,
+.session-empty-copy,
+.topbar,
+.topbar-left,
+.topbar-right,
+.workspace-card,
+.workspace-info,
+.user-profile-tile,
+.user-meta {
+  min-width: 0;
+}
+
+/* General text protection */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  max-width: 100%;
+  word-break: normal;
+}
+
+p {
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   PROJECT 001 HERO
+   ========================================================================== */
+
+.workspace-hero {
+  /*
+   * Keep the current cinematic card.
+   * Only create safe zones for copy + buttons.
+   */
+  display: grid !important;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(250px, 310px);
+
+  grid-template-areas:
+    "copy actions";
+
+  align-items: end;
+
+  column-gap: clamp(28px, 4vw, 48px);
+
+  /*
+   * Critical:
+   * enough breathing room on BOTH edges.
+   */
+  padding-left: clamp(34px, 4vw, 54px) !important;
+  padding-right: clamp(34px, 4vw, 54px) !important;
+
+  overflow: hidden;
+}
+
+
+/* COPY ZONE */
+
+.workspace-hero .creative-intro-copy {
+  grid-area: copy;
+
+  width: 100%;
+  min-width: 0;
+
+  /*
+   * This is the key.
+   * The words cannot expand endlessly across the hero.
+   */
+  max-width: 600px;
+
+  position: relative;
+  z-index: 3;
+}
+
+
+/* HERO META */
+
+.workspace-hero-meta {
+  display: flex;
+
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 9px;
+
+  width: 100%;
+  max-width: 100%;
+
+  margin-bottom: 14px;
+}
+
+.workspace-role-chip,
+.workspace-hero .creative-kicker {
+  max-width: 100%;
+
+  white-space: normal;
+}
+
+
+/* MAIN HEADING */
+
+.workspace-hero
+.creative-intro-copy
+h1 {
+  /*
+   * DO NOT allow previous CSS to force huge type.
+   */
+  width: 100% !important;
+  max-width: 570px !important;
+
+  margin:
+    0
+    0
+    16px !important;
+
+  /*
+   * Still cinematic.
+   * Just no longer oversized.
+   */
+  font-size:
+    clamp(
+      42px,
+      5vw,
+      64px
+    ) !important;
+
+  line-height:
+    0.98 !important;
+
+  letter-spacing:
+    -0.05em !important;
+
+  font-weight: 800;
+
+  /*
+   * Natural wrapping.
+   */
+  white-space:
+    normal !important;
+
+  word-break:
+    normal !important;
+
+  overflow-wrap:
+    normal !important;
+
+  text-wrap:
+    balance;
+}
+
+
+/* DESCRIPTION */
+
+.workspace-hero
+.creative-intro-copy
+> p {
+  width: 100%;
+  max-width: 570px;
+
+  margin:
+    0
+    0
+    12px;
+
+  font-size:
+    clamp(
+      12px,
+      1.15vw,
+      14px
+    );
+
+  line-height: 1.65;
+
+  white-space: normal;
+
+  overflow-wrap: anywhere;
+}
+
+
+/* ROLE MESSAGE */
+
+.workspace-hero
+.creative-role-note {
+  display: block;
+
+  width: 100%;
+  max-width: 570px;
+
+  font-size:
+    clamp(
+      11px,
+      1.05vw,
+      13px
+    );
+
+  line-height: 1.6;
+
+  white-space: normal;
+
+  overflow-wrap: anywhere;
+}
+
+
+/* ==========================================================================
+   HERO BUTTON SAFE ZONE
+   ========================================================================== */
+
+.workspace-hero
+.creative-intro-actions {
+  grid-area: actions;
+
+  width: 100%;
+  min-width: 0;
+  max-width: 310px;
+
+  justify-self: end;
+  align-self: end;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: flex-end;
+
+  flex-wrap: wrap;
+
+  gap: 10px;
+
+  position: relative;
+  z-index: 4;
+}
+
+.workspace-hero
+.creative-primary-action,
+.workspace-hero
+.creative-secondary-action {
+  min-width: 0;
+
+  min-height: 46px;
+
+  padding:
+    0
+    17px;
+
+  white-space: normal;
+
+  line-height: 1.2;
+
+  text-align: center;
+
+  flex:
+    1
+    1
+    130px;
+}
+
+
+/* ==========================================================================
+   DECORATIVE ART MUST STAY BEHIND TEXT
+   ========================================================================== */
+
+.workspace-hero-orb {
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+.workspace-hero
+.creative-intro-copy,
+.workspace-hero
+.creative-intro-actions {
+  position: relative;
+  z-index: 3;
+}
+
+
+/* ==========================================================================
+   OTHER TEXT SAFETY — NO LAYOUT CHANGES
+   ========================================================================== */
+
+.workspace-metric-head > span,
+.workspace-metric-head > small,
+.workspace-metric-card p,
+.creative-person-card strong,
+.creative-person-card span,
+.creative-beat-copy h3,
+.creative-beat-copy p,
+.creative-section-heading h2,
+.creative-section-link,
+.creative-section-aside {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.workspace-title,
+.user-name,
+.nav-label,
+.topbar-user-name,
+.topbar-user-role {
+  min-width: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+/* ==========================================================================
+   HERO COLLISION POINT
+   Once there is not enough room, buttons move underneath.
+   ========================================================================== */
+
+@media (max-width: 1050px) {
+
+  .workspace-hero {
+    grid-template-columns:
+      minmax(0, 1fr);
+
+    grid-template-areas:
+      "copy"
+      "actions";
+
+    row-gap: 24px;
+
+    align-items: start;
+  }
+
+  .workspace-hero
+  .creative-intro-copy {
+    max-width: 620px;
+  }
+
+  .workspace-hero
+  .creative-intro-copy
+  h1 {
+    max-width: 590px !important;
+
+    font-size:
+      clamp(
+        42px,
+        6vw,
+        60px
+      ) !important;
+  }
+
+  .workspace-hero
+  .creative-intro-actions {
+    width: auto;
+    max-width: 100%;
+
+    justify-self: start;
+
+    justify-content: flex-start;
+  }
+
+  .workspace-hero
+  .creative-primary-action,
+  .workspace-hero
+  .creative-secondary-action {
+    flex:
+      0
+      1
+      auto;
+  }
+}
+
+
+/* ==========================================================================
+   TABLET
+   ========================================================================== */
+
+@media (max-width: 760px) {
+
+  .workspace-hero {
+    padding-left:
+      28px !important;
+
+    padding-right:
+      28px !important;
+  }
+
+  .workspace-hero
+  .creative-intro-copy
+  h1 {
+    max-width: 100% !important;
+
+    font-size:
+      clamp(
+        40px,
+        8vw,
+        54px
+      ) !important;
+
+    line-height:
+      1 !important;
+  }
+}
+
+
+/* ==========================================================================
+   PHONE
+   ========================================================================== */
+
+@media (max-width: 520px) {
+
+  .workspace-hero {
+    padding-left:
+      21px !important;
+
+    padding-right:
+      21px !important;
+  }
+
+  .workspace-hero
+  .creative-intro-copy
+  h1 {
+    font-size:
+      clamp(
+        38px,
+        11vw,
+        48px
+      ) !important;
+  }
+
+  .workspace-hero
+  .creative-intro-actions {
+    width: 100%;
+  }
+
+  .workspace-hero
+  .creative-primary-action,
+  .workspace-hero
+  .creative-secondary-action {
+    flex:
+      1
+      1
+      140px;
+  }
+}
+
+
+/* ==========================================================================
+   VERY SMALL PHONE
+   ========================================================================== */
+
+@media (max-width: 390px) {
+
+  .workspace-hero
+  .creative-intro-actions {
+    display: grid;
+
+    grid-template-columns:
+      1fr;
+
+    width: 100%;
+  }
+
+  .workspace-hero
+  .creative-primary-action,
+  .workspace-hero
+  .creative-secondary-action {
+    width: 100%;
+  }
+}

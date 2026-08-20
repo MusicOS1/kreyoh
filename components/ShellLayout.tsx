@@ -88,7 +88,7 @@ export default function ShellLayout({
     <div className="sidebar-inner">
       {/* Brand Identity with Bespoke Logo */}
       <div className="brand-header">
-        <Link href="/" className="brand-link" onClick={() => isMobile && setMobileOpen(false)}>
+        <Link href="/workspace" className="brand-link" onClick={() => isMobile && setMobileOpen(false)}>
           <KreyohLogo size={32} showTagline={true} />
         </Link>
 

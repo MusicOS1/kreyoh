@@ -59,8 +59,8 @@ export default function PlaceholderModule({
           <p className="placeholder-lead">{description}</p>
 
           <div className="placeholder-actions">
-            <Link href="/" className="primary-button-inline">
-              Return to Project 001 Dashboard
+            <Link href="/workspace" className="primary-button-inline">
+              Return to Project 001 Workspace
             </Link>
             <Link href="/beats" className="secondary-button-inline">
               Explore Beat Library <ArrowUpRight size={14} />
