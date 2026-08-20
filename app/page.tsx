@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import AppShell from "../components/AppShell";
+import AmbientMusicAtmosphere from "../components/AmbientMusicAtmosphere";
 import { getWorkspace } from "../lib/workspace";
 import {
   ActivityIcon,
@@ -169,6 +170,7 @@ export default async function Home() {
     <AppShell>
       <div className="content creative-home">
         <header className="creative-intro enter">
+          <AmbientMusicAtmosphere variant="intro" />
           <div className="creative-intro-copy">
             <span className="creative-kicker">PROJECT 001</span>
             <h1>Where the music is taking shape.</h1>

@@ -28,6 +28,7 @@ import { signOut } from "../app/actions";
 import { getNavigationForRoles } from "../lib/roleNavigation";
 import ProfileMenu from "./ProfileMenu";
 import PwaRegister from "./PwaRegister";
+import AmbientMusicAtmosphere from "./AmbientMusicAtmosphere";
 
 type ShellLayoutProps = {
   userName: string;
@@ -187,6 +188,7 @@ export default function ShellLayout({
       <div className="app-backdrop-atmosphere" aria-hidden="true">
         <div className="backdrop-studio-overlay" />
         <div className="backdrop-ambient-glow" />
+        <AmbientMusicAtmosphere variant="shell" />
       </div>
 
       {/* Desktop Persistent Sidebar */}

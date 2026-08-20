@@ -55,7 +55,7 @@ export default function ProfileMenu({
 }: ProfileMenuProps) {
   const [open, setOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [theme, setTheme] = useState<ThemePreference>("light");
+  const [theme, setTheme] = useState<ThemePreference>("dark");
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [installed, setInstalled] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -63,7 +63,7 @@ export default function ProfileMenu({
 
   useEffect(() => {
     const saved = window.localStorage.getItem("kreyoh-theme");
-    const nextTheme: ThemePreference = saved === "dark" || saved === "system" || saved === "light" ? saved : "light";
+    const nextTheme: ThemePreference = saved === "dark" || saved === "system" || saved === "light" ? saved : "dark";
     setTheme(nextTheme);
     applyTheme(nextTheme);
 
@@ -196,8 +196,8 @@ export default function ProfileMenu({
                 onChange={(event) => handleThemeChange(event.target.value as ThemePreference)}
                 aria-label="Appearance preference"
               >
-                <option value="light">Light</option>
                 <option value="dark">Dark</option>
+                <option value="light">Light</option>
                 <option value="system">System</option>
               </select>
             </div>
