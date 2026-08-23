@@ -8,14 +8,7 @@ export default function PwaRegister() {
 
   useEffect(() => {
     const adminSurface = pathname.startsWith("/admin");
-    const manifest = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
     const theme = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-
-    if (manifest) {
-      manifest.href = adminSurface
-        ? "/admin-manifest.webmanifest"
-        : "/manifest.webmanifest";
-    }
 
     if (theme) {
       theme.content = adminSurface ? "#f3ecdf" : "#06101f";
@@ -26,6 +19,9 @@ export default function PwaRegister() {
         // Installation is progressive enhancement; auth and app navigation remain unaffected.
       });
     }
+    const installed=()=>localStorage.setItem("fackts-music-installed","1");
+    window.addEventListener("appinstalled",installed);
+    return()=>window.removeEventListener("appinstalled",installed);
   }, [pathname]);
 
   return null;

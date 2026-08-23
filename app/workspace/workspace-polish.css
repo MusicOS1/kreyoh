@@ -710,3 +710,8 @@
     animation: none !important;
   }
 }
+
+/* Authenticated FACKTS Music editorial hero */
+.workspace-hero{min-height:430px;padding:clamp(34px,5vw,64px)!important;background:linear-gradient(90deg,rgba(4,7,12,.98) 0%,rgba(4,7,12,.91) 43%,rgba(4,7,12,.32) 72%,rgba(4,7,12,.12) 100%),url('/branding/fackts-monnokid-workspace.jpg') center 61%/cover no-repeat!important}.workspace-hero::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(0deg,rgba(2,5,10,.6),transparent 50%);pointer-events:none}.workspace-hero .creative-intro-copy{max-width:650px}.workspace-hero .creative-intro-copy h1{max-width:620px;color:#fff}.workspace-hero .creative-intro-copy>p{max-width:590px;color:rgba(255,255,255,.72)}.workspace-hero .creative-role-note{max-width:620px;color:rgba(255,255,255,.58)}
+@media(max-width:820px){.workspace-hero{min-height:560px;padding:260px 23px 28px!important;background-position:54% 52%!important}.workspace-hero::after{background:linear-gradient(0deg,rgba(2,5,10,.98) 0%,rgba(2,5,10,.83) 45%,rgba(2,5,10,.12) 78%)}.workspace-hero .creative-intro-actions{width:100%;display:grid;grid-template-columns:1fr 1fr}.workspace-hero .creative-intro-actions a{justify-content:center}}
+@media(max-width:480px){.workspace-hero{min-height:600px;padding-top:285px!important;border-radius:20px!important}.workspace-hero .creative-intro-copy h1{font-size:clamp(40px,12vw,54px)!important}.workspace-hero .creative-intro-actions{grid-template-columns:1fr}}

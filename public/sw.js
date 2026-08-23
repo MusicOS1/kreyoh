@@ -1,4 +1,4 @@
-const CACHE_NAME = "fackts-music-shell-v3";
+const CACHE_NAME = "fackts-music-shell-v4";
 const SHELL_ASSETS = ["/", "/login", "/admin/login", "/branding/fackts-music-logo.png"];
 
 self.addEventListener("install", (event) => {
