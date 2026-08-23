@@ -1,0 +1,11 @@
+import type { Metadata } from "next";
+import PublicNavigation from "../../components/PublicNavigation";
+import PublicFooter from "../../components/PublicFooter";
+import { submitContact } from "./actions";
+
+export const metadata: Metadata = { title: "Contact", description: "Contact FACKTS Music in Westlands, Nairobi.", alternates: { canonical: "/contact" } };
+
+export default async function ContactPage({ searchParams }: { searchParams: Promise<{ success?: string; error?: string }> }) {
+  const notice = await searchParams;
+  return <main className="public-site"><PublicNavigation/><header className="public-page-hero"><span className="public-eyebrow">FIND THE ROOM</span><h1>Let’s talk about<br/><em>the work.</em></h1><p>Questions, project conversations and collaboration ideas are welcome.</p></header><section className="public-form-layout"><div className="public-contact-card"><span className="public-eyebrow">FACKTS MUSIC</span><h2>Nairobi-built.<br/>Open to the creative world.</h2><a href="mailto:info@facktsafrica.co.ke">info@facktsafrica.co.ke</a><a href="tel:+254711468303">+254 711 468 303</a><address>3rd Floor, Krishna Centre<br/>Westlands, Nairobi, Kenya</address><p>Monday–Saturday<br/>Closed Sundays</p><a className="public-map-link" href="https://www.google.com/maps/search/?api=1&query=Krishna+Centre+Westlands+Nairobi" target="_blank" rel="noreferrer">Open in Google Maps ↗</a></div><form action={submitContact} className="public-enquiry-form"><div className="public-form-heading"><span>CONTACT FACKTS MUSIC</span><h2>Send a message.</h2></div>{notice.success&&<p className="public-form-notice success">{notice.success}</p>}{notice.error&&<p className="public-form-notice error">{notice.error}</p>}<label>Name *<input name="name" required autoComplete="name"/></label><label>Email *<input name="email" type="email" required autoComplete="email"/></label><label>Phone<input name="phone" type="tel" autoComplete="tel"/></label><label>Subject *<input name="subject" required/></label><label className="public-form-wide">Message *<textarea name="message" required minLength={10} rows={6}/></label><button className="public-button public-button-primary public-form-wide" type="submit">Send Message →</button></form></section><PublicFooter/></main>;
+}

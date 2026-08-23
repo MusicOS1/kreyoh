@@ -8,7 +8,13 @@ const PUBLIC_TYPES: Record<string, string[]> = {
   Artist: ["Artist"],
   Producer: ["Producer"],
   "Artist + Producer": ["Artist", "Producer"],
+  "Songwriter / Composer": ["Songwriter", "Composer"],
   "Engineer / Technical": ["Engineer"],
+  Manager: ["Manager"],
+  "Videographer / Photographer": ["Videographer", "Photographer"],
+  "Designer / Visual Creative": ["Designer", "Visual Creative"],
+  "Content / Media": ["Content", "Media"],
+  "Session Musician": ["Session Musician"],
   "Other Creative": ["Other Creative"],
 };
 

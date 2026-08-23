@@ -9,8 +9,13 @@ import {
 
 const PUBLIC_ROUTES = [
   "/",
+  "/about",
+  "/contact",
+  "/partner",
   "/login",
   "/signup",
+  "/forgot-password",
+  "/set-password",
 ];
 
 function isPublicRoute(
@@ -155,9 +160,7 @@ export async function updateSession(
     /*
      * Public homepage always stays public.
      */
-    if (
-      pathname === "/"
-    ) {
+    if (isPublicRoute(pathname) && pathname !== "/login" && pathname !== "/signup") {
       return response;
     }
 
@@ -189,12 +192,7 @@ export async function updateSession(
      * Login and signup stay public
      * for visitors.
      */
-    if (
-      pathname ===
-        "/login" ||
-      pathname ===
-        "/signup"
-    ) {
+    if (isPublicRoute(pathname)) {
       return response;
     }
 
