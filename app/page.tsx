@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import AmbientMusicAtmosphere from "../components/AmbientMusicAtmosphere";
+import InstallAppButton from "../components/InstallAppButton";
 import { FacktsMusicLogo } from "../components/Branding";
 import { ArrowUpRight, CheckCircleIcon, DiscIcon, MicIcon, MusicIcon, UsersIcon } from "../components/Icons";
 
@@ -55,6 +56,7 @@ export default function PublicHomePage() {
           <div className="public-hero-actions">
             <Link href="/signup" className="public-button public-button-primary">Create Account <ArrowUpRight size={16} /></Link>
             <Link href="/login" className="public-button public-button-ghost">Sign In <ArrowUpRight size={16} /></Link>
+            <InstallAppButton />
           </div>
           <div className="public-hero-note"><span>Built in Nairobi</span><span className="public-note-line" /><span>Made for the whole creative room.</span></div>
         </div>

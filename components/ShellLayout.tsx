@@ -28,7 +28,6 @@ import { signOut } from "../app/actions";
 import { selectProject } from "../app/projects/actions";
 import { getNavigationForRoles } from "../lib/roleNavigation";
 import ProfileMenu from "./ProfileMenu";
-import PwaRegister from "./PwaRegister";
 import AmbientMusicAtmosphere from "./AmbientMusicAtmosphere";
 
 type ShellLayoutProps = {
@@ -289,7 +288,6 @@ export default function ShellLayout({
         {hasProject ? <><Link href="/beats" className={pathname.startsWith("/beats") ? "active" : ""}><MusicIcon size={19} /><span>Beats</span></Link><Link href="/tasks" className={pathname.startsWith("/tasks") ? "active" : ""}><CheckIcon size={19} /><span>Actions</span></Link><Link href="/studio-sessions" className={pathname.startsWith("/studio-sessions") ? "active" : ""}><MicIcon size={19} /><span>Sessions</span></Link></> : <><Link href="/projects" className={pathname.startsWith("/projects") ? "active" : ""}><BriefcaseIcon size={19}/><span>Explore</span></Link><Link href="/invitations" className={pathname.startsWith("/invitations") ? "active" : ""}><UsersIcon size={19}/><span>Invites</span></Link><Link href="/notifications" className={pathname.startsWith("/notifications") ? "active" : ""}><BellIcon size={19}/><span>Alerts</span></Link></>}
         <Link href="/settings" className={pathname.startsWith("/settings") ? "active" : ""}><SettingsIcon size={19} /><span>Profile</span></Link>
       </nav>
-      <PwaRegister />
     </div>
   );
 }

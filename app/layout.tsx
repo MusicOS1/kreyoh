@@ -3,6 +3,7 @@ import "./v1.css";
 import "./polish.css";
 import "./kreyoh-ui.css";
 import "./responsive.css";
+import PwaRegister from "../components/PwaRegister";
 
 export const metadata = {
   title: "FACKTS Music",
@@ -29,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>{children}<PwaRegister /></body>
     </html>
   );
 }

@@ -1,5 +1,5 @@
-const CACHE_NAME = "fackts-music-shell-v1";
-const SHELL_ASSETS = ["/login", "/branding/fackts-music-logo.png"];
+const CACHE_NAME = "fackts-music-shell-v2";
+const SHELL_ASSETS = ["/", "/login", "/branding/fackts-music-logo.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL_ASSETS)));
