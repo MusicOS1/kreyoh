@@ -2,6 +2,7 @@ import ShellLayout from "./ShellLayout";
 import { getWorkspace } from "../lib/workspace";
 
 const ROLE_PRIORITY = [
+  "Super Admin",
   "Admin",
   "Project Lead",
   "Finance",
@@ -36,6 +37,8 @@ export default async function AppShell({
     user,
     roles,
     project,
+    membership,
+    activeProjects,
   } = await getWorkspace();
 
   const orderedRoles =
@@ -45,17 +48,16 @@ export default async function AppShell({
     profile?.stage_name ||
     profile?.full_name ||
     user.email?.split("@")[0] ||
-    "KREYOH User";
+    "FACKTS Music User";
 
   const primaryRole =
     orderedRoles[0] ||
-    "Project Member";
+    "Creator";
 
-  const projectCode =
-    project?.code || "P001";
+  const projectCode = project?.code || "";
 
   const projectName =
-    project?.name || "Project 001";
+    project?.name || "Your FACKTS Music home";
 
   return (
     <ShellLayout
@@ -63,6 +65,9 @@ export default async function AppShell({
       primaryRole={primaryRole}
       projectCode={projectCode}
       projectName={projectName}
+      hasProject={Boolean(membership && project)}
+      activeProjects={activeProjects || []}
+      selectedProjectId={project?.id || null}
       projectStatus={
         project?.status ||
         "Production"

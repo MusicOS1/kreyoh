@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { signOut } from "../app/actions";
@@ -27,7 +27,7 @@ export default function Topbar({
           <input
             placeholder="Search beats, contributors, pipeline..."
             readOnly
-            aria-label="Search KREYOH"
+            aria-label="Search FACKTS Music"
           />
           <kbd className="search-kbd">⌘K</kbd>
         </div>
@@ -66,7 +66,7 @@ export default function Topbar({
           <button
             className="topbar-logout-btn"
             type="submit"
-            title="Sign out of KREYOH"
+            title="Sign out of FACKTS Music"
           >
             Sign out
           </button>

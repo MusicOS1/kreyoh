@@ -1,35 +1,3 @@
-import AppShell from "../../components/AppShell";
-import PlaceholderModule from "../../components/PlaceholderModule";
+﻿import AppShell from "../../components/AppShell";import {createAdminClient} from "../../lib/supabase/admin";import {getWorkspace,hasAnyRole} from "../../lib/workspace";import {commentOnTrack,updateTrack} from "./actions";
+export default async function TracksPage(){const {project,membership,roles}=await getWorkspace();if(!project||!membership)return <AppShell><div className="content empty-state"><h2>Project invitation required</h2></div></AppShell>;const admin=createAdminClient();const {data:tracks=[]}=await admin.from("tracks").select("*,beats(title,producer_name,beat_code),track_contributors(id,contribution_role,profiles(full_name,stage_name)),comments(id,body,kind,created_at,profiles!comments_user_id_fkey(full_name,stage_name))").eq("project_id",project.id).order("created_at",{ascending:false});const canDevelop=hasAnyRole(roles,["Super Admin","Project Lead","A&R","Producer","Engineer"]);return <AppShell><div className="content"><div className="heading"><div><span className="eyebrow">PROJECT 001 / DEVELOPMENT</span><h1>Tracks in motion</h1><p>The connected record from original beat to contributors, sessions and release readiness.</p></div></div><div className="operations-list">{!tracks?.length&&<div className="empty-state"><h2>No tracks in development</h2><p>Project Lead or A&R can start one from a claimed beat.</p></div>}{(tracks ?? []).map((track:any)=>{const beat=Array.isArray(track.beats)?track.beats[0]:track.beats;return <article className="panel track-development-card" key={track.id}><span className="eyebrow">{track.track_code||"TRACK"} · {beat?.beat_code||"SOURCE BEAT"}</span><h2>{track.working_title||beat?.title||"Untitled track"}</h2><p>Produced by {beat?.producer_name||"Uncredited"}</p><span className={`status-pill ${track.development_status}`}>{String(track.development_status).replaceAll("_"," ")}</span><div className="contributor-row">{(track.track_contributors||[]).map((c:any)=>{const p=Array.isArray(c.profiles)?c.profiles[0]:c.profiles;return <span key={c.id}>{p?.stage_name||p?.full_name} · {c.contribution_role}</span>})}</div>{canDevelop&&<form action={updateTrack}><input type="hidden" name="track_id" value={track.id}/><select name="status" defaultValue={track.development_status||"in_development"}><option value="in_development">In Development</option><option value="revision">Revision</option><option value="in_studio">In Studio</option><option value="mixing">Mixing</option><option value="mastering">Mastering</option><option value="release_ready">Release Ready</option><option value="complete">Complete</option></select><button>Update stage</button></form>}<div className="track-comments">{(track.comments||[]).map((c:any)=>{const p=Array.isArray(c.profiles)?c.profiles[0]:c.profiles;return <p key={c.id}><strong>{p?.stage_name||p?.full_name||"Contributor"}</strong> {c.body}</p>})}</div><form action={commentOnTrack}><input type="hidden" name="track_id" value={track.id}/><input name="comment" required placeholder={roles.includes("A&R")?"Add A&R note":"Add a track comment"}/><button>Comment</button></form></article>})}</div></div></AppShell>}
 
-export default function TracksPage() {
-  return (
-    <AppShell>
-      <PlaceholderModule
-        title="Tracks & Catalog"
-        subtitle="Venture master track catalogue, metadata, recording versions, and stem archives."
-        eyebrow="PROJECT 001 / PRODUCTION"
-        phase="Phase 2 Release"
-        badge="CATALOG & STEM ENGINE"
-        description="Tracks links writing sessions, registered beats, recording takes, mix/master iterations, and ISRC metadata into an immutable music record."
-        plannedFeatures={[
-          {
-            title: "Master Catalog Registry",
-            description: "Track version history from early scratch vocals to final approved masters with stem archives.",
-          },
-          {
-            title: "Metadata & ISRC Assignment",
-            description: "Industry-standard metadata schemas, contributor credits, and direct digital distributor exports.",
-          },
-          {
-            title: "Mixing & Mastering Pipeline",
-            description: "Engineer review stages, revision notes, approval milestones, and audio reference player.",
-          },
-          {
-            title: "Asset & Stems Vault",
-            description: "High-resolution lossless stem storage, multitrack routing, and instant producer access.",
-          },
-        ]}
-      />
-    </AppShell>
-  );
-}

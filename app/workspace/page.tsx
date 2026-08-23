@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import Link from "next/link";
 
 import AppShell from "../../components/AppShell";
@@ -99,23 +99,22 @@ export default async function WorkspacePage() {
     user,
     project,
     roles,
+    membership,
   } = await getWorkspace();
 
-  if (!project) {
+  if (!project || !membership) {
     return (
       <AppShell>
         <div className="content">
-          <div className="empty-state">
-            <h2>
-              No active project access
-            </h2>
-
-            <p>
-              Your KREYOH account exists,
-              but it has not yet been linked
-              to Project 001.
-            </p>
-          </div>
+          <section className="member-home-hero">
+            <span className="eyebrow">YOU ARE IN</span>
+            <h1>Welcome to FACKTS Music</h1>
+            <p>Your creative workspace starts with a project. Join an existing project, accept an invitation, or start one of your own.</p>
+            <div className="member-home-actions"><Link href="/projects" className="login-submit-btn">Explore Projects</Link><Link href="/projects#create" className="creative-secondary-action">Create Project</Link><Link href="/invitations" className="creative-secondary-action">View Invitations</Link></div>
+          </section>
+          <section className="member-home-capabilities">
+            {[['Discover & claim beats','Find the right sound and reserve a development slot.'],['Collaborate in one room','Work with artists, producers, A&R and engineers.'],['Develop tracks','Keep music, feedback and next stages connected.'],['Join studio sessions','Know where to be and what the room needs.'],['Receive actions','See the work assigned to you and keep it moving.'],['Record your contribution','Build an approved creative history and credits.']].map(([title,copy])=><article className="panel" key={title}><span className="eyebrow">FACKTS MUSIC</span><h2>{title}</h2><p>{copy}</p></article>)}
+          </section>
         </div>
       </AppShell>
     );
@@ -131,7 +130,7 @@ export default async function WorkspacePage() {
   const admin = createAdminClient();
 
   const isAdmin =
-    roles.includes("Admin");
+    roles.includes("Admin") || roles.includes("Super Admin");
 
   const isProjectLead =
     roles.includes("Project Lead");
@@ -488,7 +487,7 @@ export default async function WorkspacePage() {
             </h1>
 
             <p>
-              KREYOH brings the people,
+              FACKTS Music brings the people,
               beats, sessions and work
               behind a music venture into
               one shared space.

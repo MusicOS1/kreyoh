@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import Link from "next/link";
 import { ArrowUpRight, ClockIcon, LockIcon, SparklesIcon } from "./Icons";
 
@@ -96,8 +96,9 @@ export default function PlaceholderModule({
 
       {/* Subtle Brand Tag */}
       <div className="placeholder-footer enter d3">
-        <span>This music venture runs on <strong>KREYOH</strong>.</span>
+        <span>This music venture runs on <strong>FACKTS Music</strong>.</span>
       </div>
     </div>
   );
 }
+

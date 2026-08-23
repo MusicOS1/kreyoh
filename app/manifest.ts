@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "KREYOH",
-    short_name: "KREYOH",
-    description: "The operating system for a founding music venture.",
+    name: "FACKTS Music",
+    short_name: "FACKTS Music",
+    description: "A FACKTS Africa platform for running and developing music projects.",
     start_url: "/",
     scope: "/",
     display: "standalone",
@@ -13,18 +13,13 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#06101f",
     icons: [
       {
-        src: "/icons/kreyoh-192.png",
-        sizes: "192x192",
+        src: "/branding/fackts-music-logo.png",
+        sizes: "1250x1250",
         type: "image/png",
       },
       {
-        src: "/icons/kreyoh-512.png",
-        sizes: "512x512",
-        type: "image/png",
-      },
-      {
-        src: "/icons/kreyoh-512-maskable.png",
-        sizes: "512x512",
+        src: "/branding/fackts-music-logo.png",
+        sizes: "1250x1250",
         type: "image/png",
         purpose: "maskable",
       },

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -149,7 +149,7 @@ export default function ProfileMenu({
             </span>
             <span className="profile-popover-identity">
               <strong>{stageName || userName}</strong>
-              <small>{email || "Authenticated KREYOH user"}</small>
+              <small>{email || "Authenticated FACKTS Music user"}</small>
               <span className="profile-role-list">
                 {roles.length ? roles.join(" · ") : "Project Member"}
               </span>
@@ -182,7 +182,7 @@ export default function ProfileMenu({
             {notificationsOpen && (
               <div className="profile-notification-panel">
                 <strong>Nothing new right now</strong>
-                <span>KREYOH will surface project activity here.</span>
+                <span>FACKTS Music will surface project activity here.</span>
                 <Link href="/activity" onClick={() => setOpen(false)}>Open activity ledger →</Link>
               </div>
             )}
@@ -201,17 +201,18 @@ export default function ProfileMenu({
                 <option value="system">System</option>
               </select>
             </div>
-            <button
-              type="button"
-              className="profile-menu-link profile-menu-install"
-              role="menuitem"
-              onClick={handleInstall}
-              disabled={installed || !installEvent}
-              title={installed ? "KREYOH is already installed" : !installEvent ? "Install is not available in this browser yet" : "Install KREYOH"}
-            >
-              <DownloadIcon size={15} />
-              <span><strong>{installed ? "KREYOH Installed" : "Install KREYOH"}</strong><small>{installed ? "Available from your app launcher" : installEvent ? "Add KREYOH to your device" : "Available when supported by your browser"}</small></span>
-            </button>
+            {!installed && installEvent && (
+              <button
+                type="button"
+                className="profile-menu-link profile-menu-install"
+                role="menuitem"
+                onClick={handleInstall}
+                title="Install FACKTS Music"
+              >
+                <DownloadIcon size={15} />
+                <span><strong>Install FACKTS Music</strong><small>Add FACKTS Music to this device</small></span>
+              </button>
+            )}
             <Link href="/settings" className="profile-menu-link" role="menuitem" onClick={() => setOpen(false)}>
               <SettingsIcon size={15} />
               <span><strong>Workspace Settings</strong><small>Project and brand preferences</small></span>
@@ -221,7 +222,7 @@ export default function ProfileMenu({
           <div className="profile-menu-footer">
             <form action={signOut}>
               <button type="submit" className="profile-menu-signout">
-                <LogOutIcon size={15} /> Sign out of KREYOH
+                <LogOutIcon size={15} /> Sign out of FACKTS Music
               </button>
             </form>
           </div>
@@ -230,3 +231,4 @@ export default function ProfileMenu({
     </div>
   );
 }
+

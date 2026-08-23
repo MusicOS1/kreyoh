@@ -1,10 +1,11 @@
-"use server";
+﻿"use server";
 
 import { revalidatePath } from "next/cache";
 import { getWorkspace } from "../../lib/workspace";
 import { createAdminClient } from "../../lib/supabase/admin";
 
 const MANAGER_ROLES = [
+  "Super Admin",
   "Project Lead",
   "Admin",
 ];
@@ -25,7 +26,7 @@ export async function addContributor(
    * IMPORTANT:
    * We use the normal logged-in client first
    * only to confirm the person performing this
-   * action is actually a KREYOH Admin/Project Lead.
+   * action is actually a FACKTS Music Admin/Project Lead.
    */
   const {
     supabase,
@@ -139,7 +140,7 @@ export async function addContributor(
     createAdminClient();
 
   /*
-   * Load valid KREYOH roles.
+   * Load valid FACKTS Music roles.
    */
   const {
     data: dbRoles,
@@ -180,7 +181,7 @@ export async function addContributor(
       )
     ) {
       throw new Error(
-        `Unknown KREYOH role: ${roleName}`
+        `Unknown FACKTS Music role: ${roleName}`
       );
     }
   }
@@ -268,7 +269,7 @@ export async function addContributor(
     authUser.id;
 
   /*
-   * Create/update their KREYOH profile.
+   * Create/update their FACKTS Music profile.
    *
    * This removes the need for you to manually
    * create profiles in Supabase.
@@ -334,10 +335,9 @@ export async function addContributor(
    * An invited account will still be allowed
    * into the workspace once they authenticate.
    */
-  const memberStatus =
-    wasInvited
-      ? "invited"
-      : "active";
+  // Every contributor enters Project 001 through an invitation.
+  // Existing public accounts are not granted project access silently.
+  const memberStatus = "invited";
 
   let memberId =
     existingMembership?.id;
@@ -408,31 +408,11 @@ export async function addContributor(
    * in the form the authoritative role
    * configuration.
    */
-  const deleteByMember =
-    await admin
-      .from("member_roles")
-      .delete()
-      .eq(
-        "member_id",
-        memberId
-      );
-
-  /*
-   * Earlier KREYOH builds used a possible
-   * project_member_id column, so retain the
-   * compatibility fallback.
-   */
-  if (
-    deleteByMember.error
-  ) {
-    await admin
-      .from("member_roles")
-      .delete()
-      .eq(
-        "project_member_id",
-        memberId
-      );
-  }
+  const deleteByMember = await admin
+    .from("member_roles")
+    .delete()
+    .eq("project_member_id", memberId);
+  if (deleteByMember.error) throw new Error(deleteByMember.error.message);
 
   /*
    * Assign all selected roles.
@@ -450,53 +430,17 @@ export async function addContributor(
       continue;
     }
 
-    const firstInsert =
-      await admin
-        .from(
-          "member_roles"
-        )
-        .insert({
-          member_id:
-            memberId,
-          role_id:
-            roleId,
-        });
-
-    /*
-     * Compatibility fallback.
-     */
-    if (
-      firstInsert.error
-    ) {
-      const secondInsert =
-        await admin
-          .from(
-            "member_roles"
-          )
-          .insert({
-            project_member_id:
-              memberId,
-            role_id:
-              roleId,
-          });
-
-      if (
-        secondInsert.error
-      ) {
-        throw new Error(
-          `Role assignment error: ${secondInsert.error.message}`
-        );
-      }
-    }
+    const roleInsert = await admin.from("member_roles").insert({
+      project_member_id: memberId,
+      role_id: roleId,
+    });
+    if (roleInsert.error) throw new Error(`Role assignment error: ${roleInsert.error.message}`);
   }
 
   /*
    * Record what happened.
    */
-  const actionText =
-    wasInvited
-      ? `Invited ${stageName || fullName} (${email}) to Project 001 as ${rolesToAssign.join(", ")}`
-      : `Assigned ${stageName || fullName} (${email}) to Project 001 as ${rolesToAssign.join(", ")}`;
+  const actionText = `Invited ${stageName || fullName} (${email}) to Project 001 as ${rolesToAssign.join(", ")}`;
 
   await admin
     .from("activity_log")
@@ -507,10 +451,7 @@ export async function addContributor(
         user.id,
       action:
         actionText,
-      entity_type:
-        wasInvited
-          ? "contributor_invite"
-          : "project_member",
+      entity_type: "contributor_invite",
       entity_id:
         memberId,
     });
@@ -555,4 +496,38 @@ export async function addContributor(
    * was performed against the current session.
    */
   void supabase;
+}
+
+export async function removeContributor(formData: FormData): Promise<void> {
+  const { user, project, roles } = await getWorkspace();
+  if (!project || !roles.some((role) => MANAGER_ROLES.includes(role))) {
+    throw new Error("Only an Admin or Project Lead can remove project members.");
+  }
+
+  const memberId = value(formData, "member_id");
+  if (!memberId) throw new Error("Member record is required.");
+
+  const admin = createAdminClient();
+  const { data: target, error } = await admin.from("project_members")
+    .select("id, user_id, profiles(full_name, stage_name, email)")
+    .eq("id", memberId).eq("project_id", project.id).maybeSingle();
+  if (error || !target) throw new Error(error?.message || "Project member was not found.");
+  if (target.user_id === user.id) throw new Error("You cannot remove your own project access.");
+
+  const { error: removeError } = await admin.from("project_members")
+    .update({ status: "removed" }).eq("id", memberId).eq("project_id", project.id);
+  if (removeError) throw new Error(removeError.message);
+
+  const profile = Array.isArray(target.profiles) ? target.profiles[0] : target.profiles;
+  const displayName = profile?.stage_name || profile?.full_name || profile?.email || "Project member";
+  await admin.from("activity_log").insert({
+    project_id: project.id,
+    user_id: user.id,
+    action: `Removed ${displayName} from Project 001`,
+    entity_type: "project_member_removed",
+    entity_id: memberId,
+  });
+
+  revalidatePath("/people");
+  revalidatePath("/workspace");
 }

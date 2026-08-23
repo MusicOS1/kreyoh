@@ -1,11 +1,11 @@
-# KREYO V1 Starter
+﻿# FACKTS Music V1 Starter
 
 **Create + orchestration. Run it on Kreyo.**
 
 This is Build 0A/0F: the first visual application shell for Project 001.
 
 ## Included
-- KREYO application shell
+- FACKTS Music application shell
 - details-inspired operational layout (not a copy)
 - Project 001 dashboard
 - Project health/progress
@@ -27,3 +27,4 @@ Authentication, Supabase, users/roles, beat audio, tracks, studio sessions, spli
 
 ## Next build
 Build 0B: Supabase schema + authentication + Project 001 + people/multi-role permissions.
+

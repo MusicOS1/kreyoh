@@ -1,35 +1,3 @@
-import AppShell from "../../components/AppShell";
-import PlaceholderModule from "../../components/PlaceholderModule";
+﻿import AppShell from "../../components/AppShell";import {createAdminClient} from "../../lib/supabase/admin";import {getWorkspace,hasAnyRole} from "../../lib/workspace";import {createSession,updateSession} from "./actions";
+export default async function SessionsPage(){const {project,membership,roles}=await getWorkspace();if(!project||!membership)return <AppShell><div className="content empty-state"><h2>Project invitation required</h2></div></AppShell>;const admin=createAdminClient();const [{data:sessions=[]},{data:members=[]},{data:tracks=[]}]=await Promise.all([admin.from("studio_sessions").select("*,tracks(working_title),session_participants(user_id,profiles(full_name,stage_name))").eq("project_id",project.id).order("starts_at",{ascending:true}),admin.from("project_members").select("user_id,profiles(full_name,stage_name)").eq("project_id",project.id).eq("status","active"),admin.from("tracks").select("id,working_title").eq("project_id",project.id)]);const canManage=hasAnyRole(roles,["Super Admin","Project Lead","A&R","Engineer"]);return <AppShell><div className="content"><div className="heading"><div><span className="eyebrow">PROJECT 001 / STUDIO</span><h1>Studio Sessions</h1><p>Schedule the room, capture outcomes and make follow-up visible.</p></div></div>{canManage&&<form action={createSession} className="panel operations-form"><input type="datetime-local" name="starts_at" required/><input name="location" placeholder="Location / room"/><select name="track_id" defaultValue=""><option value="">No track selected</option>{(tracks ?? []).map((t:any)=><option key={t.id} value={t.id}>{t.working_title}</option>)}</select><select name="participants" multiple>{(members ?? []).map((m:any)=>{const p=Array.isArray(m.profiles)?m.profiles[0]:m.profiles;return <option key={m.user_id} value={m.user_id}>{p?.stage_name||p?.full_name}</option>})}</select><textarea name="notes" placeholder="Session focus"/><button>Schedule session</button></form>}<div className="operations-list">{!sessions?.length&&<div className="empty-state"><h2>No sessions scheduled</h2><p>The next studio date will appear here.</p></div>}{(sessions ?? []).map((s:any)=><article className="panel operation-card" key={s.id}><span className={`status-pill ${s.status}`}>{s.status.replaceAll("_"," ")}</span><h2>{Array.isArray(s.tracks)?s.tracks[0]?.working_title:s.tracks?.working_title||"Project 001 session"}</h2><p>{new Date(s.starts_at).toLocaleString("en-KE")} · {s.location||"Location pending"}</p><small>{s.notes||"No session notes yet."}</small>{canManage&&<form action={updateSession}><input type="hidden" name="session_id" value={s.id}/><select name="status" defaultValue={s.status}><option value="scheduled">Scheduled</option><option value="in_session">In Session</option><option value="follow_up_required">Follow-Up Required</option><option value="complete">Complete</option></select><input name="outcomes" placeholder="Outcome / follow-up" defaultValue={s.outcomes||""}/><button>Update session</button></form>}</article>)}</div></div></AppShell>}
 
-export default function StudioSessionsPage() {
-  return (
-    <AppShell>
-      <PlaceholderModule
-        title="Studio Sessions"
-        subtitle="Live booking, recording schedules, studio engineer assignments, and call sheets."
-        eyebrow="PROJECT 001 / OPERATIONS"
-        phase="Phase 2 Release"
-        badge="STUDIO LOGISTICS ENGINE"
-        description="Coordinates physical and remote studio sessions, engineer bookings, mic sheets, attendance logs, and project hour tracking."
-        plannedFeatures={[
-          {
-            title: "Live Session Booking",
-            description: "Studio room availability, engineer rosters, session lockouts, and calendar integration.",
-          },
-          {
-            title: "Automated Call Sheets",
-            description: "Instant artist and producer reminders, arrival times, gear requirements, and address routing.",
-          },
-          {
-            title: "Take & Session Logs",
-            description: "In-session scratchpad, vocal chains used, engineer notes, and direct beat-to-track links.",
-          },
-          {
-            title: "Cost & Hours Tracking",
-            description: "Hourly studio rates, engineer billing reconciliation, and automated project spend logging.",
-          },
-        ]}
-      />
-    </AppShell>
-  );
-}

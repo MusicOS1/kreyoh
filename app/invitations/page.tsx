@@ -1,0 +1,10 @@
+import AppShell from "../../components/AppShell";
+import { getWorkspace } from "../../lib/workspace";
+import { respondToInvitation } from "./actions";
+
+const first=(value:any)=>Array.isArray(value)?value[0]:value;
+export default async function InvitationsPage(){
+  const {user,admin}=await getWorkspace();
+  const {data:invitations=[]}=await admin.from("project_invitations").select("id,status,message,created_at,projects(id,code,name,description),roles(name),inviter:profiles!project_invitations_invited_by_fkey(full_name,stage_name)").eq("user_id",user.id).order("created_at",{ascending:false});
+  return <AppShell><div className="content project-hub-page"><div className="heading"><div><span className="eyebrow">YOUR INVITATIONS</span><h1>Rooms waiting for you</h1><p>Project invitations live inside FACKTS Music. Accept when you are ready to enter.</p></div></div><div className="project-card-grid">{!(invitations||[]).length&&<article className="panel empty-state"><h2>No invitations yet</h2><p>When a Project Lead invites you, it will appear here.</p></article>}{(invitations||[]).map((invite:any)=>{const project=first(invite.projects),role=first(invite.roles),inviter=first(invite.inviter);return <article className="panel project-discovery-card" key={invite.id}><span className="eyebrow">{invite.status}</span><h2>{project?.name||"Project invitation"}</h2><p>{invite.message||`${inviter?.stage_name||inviter?.full_name||"The project team"} invited you to join as ${role?.name||"a contributor"}.`}</p>{invite.status==="pending"&&<div className="project-invite-actions"><form action={respondToInvitation}><input type="hidden" name="invitation_id" value={invite.id}/><input type="hidden" name="response" value="accepted"/><button className="login-submit-btn">Accept invitation</button></form><form action={respondToInvitation}><input type="hidden" name="invitation_id" value={invite.id}/><input type="hidden" name="response" value="declined"/><button className="member-remove-button">Decline</button></form></div>}<small>{new Date(invite.created_at).toLocaleString("en-KE")}</small></article>})}</div></div></AppShell>;
+}

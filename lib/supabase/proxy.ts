@@ -1,4 +1,4 @@
-import {
+﻿import {
   createServerClient,
 } from "@supabase/ssr";
 
@@ -40,7 +40,7 @@ export async function updateSession(
     !supabaseKey
   ) {
     console.error(
-      "KREYOH AUTH CONFIG ERROR:",
+      "FACKTS Music AUTH CONFIG ERROR:",
       {
         hasSupabaseUrl:
           Boolean(
@@ -69,7 +69,7 @@ export async function updateSession(
 
     url.searchParams.set(
       "error",
-      "KREYOH authentication is not configured on this deployment."
+      "FACKTS Music authentication is not configured on this deployment."
     );
 
     return NextResponse.redirect(
@@ -142,7 +142,7 @@ export async function updateSession(
 
     if (error) {
       console.error(
-        "KREYOH AUTH CLAIM ERROR:",
+        "FACKTS Music AUTH CLAIM ERROR:",
         error.message
       );
     }
@@ -200,7 +200,7 @@ export async function updateSession(
 
     /*
      * Everything else belongs to
-     * authenticated KREYOH.
+     * authenticated FACKTS Music.
      */
     if (!loggedIn) {
       const url =
@@ -217,7 +217,7 @@ export async function updateSession(
     return response;
   } catch (error) {
     console.error(
-      "KREYOH PROXY ERROR:",
+      "FACKTS Music PROXY ERROR:",
       error
     );
 

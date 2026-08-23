@@ -1,5 +1,5 @@
-/* ==========================================================================
-   KREYOH UI SYSTEM — PUBLIC FRONT DOOR + SHARED PRODUCT SURFACE
+﻿/* ==========================================================================
+   FACKTS Music UI SYSTEM — PUBLIC FRONT DOOR + SHARED PRODUCT SURFACE
    ========================================================================== */
 
 :root:not([data-theme="light"]) {
@@ -1848,3 +1848,4 @@ h6 {
     transition-duration: .01ms !important;
   }
 }
+

@@ -1,4 +1,4 @@
-/* KREYOH executive polish layer. Existing page architecture stays intact. */
+﻿/* FACKTS Music executive polish layer. Existing page architecture stays intact. */
 :root {
   --bg-deep: #06101f;
   --bg-surface: #0a1929;
@@ -1535,3 +1535,4 @@ button, input, select, textarea {
     min-width: var(--ambient-min-width-mobile, 0px);
   }
 }
+

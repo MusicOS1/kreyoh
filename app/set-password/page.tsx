@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   FormEvent,
@@ -134,7 +134,7 @@ export default function SetPasswordPage() {
             </span>
 
             <h2>
-              Welcome to KREYOH
+              Welcome to FACKTS Music
             </h2>
 
             <p>

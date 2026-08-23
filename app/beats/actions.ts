@@ -1,376 +1,122 @@
 "use server";
 
-import {
-  revalidatePath,
-} from "next/cache";
-import { getWorkspace } from "../../lib/workspace";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { createAdminClient } from "../../lib/supabase/admin";
+import { getWorkspace, hasAnyRole } from "../../lib/workspace";
 
-const MANAGER_ROLES = [
-  "Project Lead",
-  "Admin",
-  "Producer",
-];
+const read = (fd: FormData, key: string) => String(fd.get(key) || "").trim();
+const go = (kind: "message" | "error", message: string): never => redirect(`/beats?${kind}=${encodeURIComponent(message)}`);
 
-const LEAD_ROLES = [
-  "Project Lead",
-  "Admin",
-];
+export async function addBeat(formData: FormData) {
+  const { supabase, user, project, roles, membership } = await getWorkspace();
+  if (!project || !membership) go("error", "You need active project access.");
+  if (!hasAnyRole(roles, ["Super Admin", "Project Lead", "A&R", "Producer"])) go("error", "Your project role cannot upload beats.");
 
-const ALLOWED_STATUSES = [
-  "submitted",
-  "available",
-  "assigned",
-  "writing",
-  "ready for session",
-  "recording",
-  "production",
-  "mixing",
-  "mastering",
-  "rights pending",
-  "release ready",
-  "completed",
-];
-
-function value(
-  formData: FormData,
-  name: string
-) {
-  return String(
-    formData.get(name) || ""
-  ).trim();
-}
-
-export async function addBeat(
-  formData: FormData
-) {
-  const {
-    supabase,
-    user,
-    project,
-    roles,
-  } = await getWorkspace();
-
-  if (!project) {
-    throw new Error(
-      "No active Project 001 workspace."
-    );
+  const title = read(formData, "title");
+  if (!title) go("error", "Give the beat a title.");
+  const audio = formData.get("audio_file");
+  let audioPath: string | null = null;
+  if (audio instanceof File && audio.size > 0) {
+    if (audio.size > 100 * 1024 * 1024) go("error", "Audio files must be smaller than 100 MB.");
+    if (!audio.type.startsWith("audio/")) go("error", "Choose a valid audio file.");
+    const safeName = audio.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+    audioPath = `${project.id}/${crypto.randomUUID()}-${safeName}`;
+    const { error } = await supabase.storage.from("beat-audio").upload(audioPath, audio, { contentType: audio.type, upsert: false });
+    if (error) go("error", `Audio upload failed: ${error.message}`);
   }
 
-  if (
-    !roles.some((role) =>
-      MANAGER_ROLES.includes(role)
-    )
-  ) {
-    throw new Error(
-      "You do not have permission to add beats."
-    );
-  }
-
-  const beatCode = value(
-    formData,
-    "beat_code"
-  );
-
-  if (!beatCode) {
-    throw new Error(
-      "Beat code is required."
-    );
-  }
-
-  const { data: beat, error } =
-    await supabase
-      .from("beats")
-      .insert({
-        project_id: project.id,
-        beat_code: beatCode,
-        title:
-          value(formData, "title") ||
-          null,
-        producer_name:
-          value(
-            formData,
-            "producer_name"
-          ) || null,
-        source_provider:
-          value(
-            formData,
-            "source_provider"
-          ) || "External",
-        external_url:
-          value(
-            formData,
-            "external_url"
-          ) || null,
-        downloadable:
-          formData.get(
-            "downloadable"
-          ) === "on",
-        status: "available",
-        notes:
-          value(formData, "notes") ||
-          null,
-      })
-      .select("id")
-      .single();
-
+  const genreTags = read(formData, "genre_tags").split(",").map(v => v.trim()).filter(Boolean);
+  const moodTags = read(formData, "mood_tags").split(",").map(v => v.trim()).filter(Boolean);
+  const { data: beat, error } = await supabase.from("beats").insert({
+    project_id: project.id,
+    beat_code: read(formData, "beat_code") || `BEAT-${Date.now().toString().slice(-6)}`,
+    title,
+    producer_name: read(formData, "producer_name") || null,
+    producer_user_id: roles.includes("Producer") ? user.id : null,
+    source_provider: read(formData, "source_type") || "Supabase",
+    source_type: read(formData, "source_type") || (audioPath ? "supabase" : "external"),
+    external_source_id: read(formData, "external_source_id") || null,
+    external_url: read(formData, "external_url") || null,
+    sync_status: read(formData, "sync_status") || "manual",
+    audio_path: audioPath,
+    artwork_url: read(formData, "artwork_url") || null,
+    bpm: Number(read(formData, "bpm")) || null,
+    musical_key: read(formData, "musical_key") || null,
+    genre_tags: genreTags,
+    mood_tags: moodTags,
+    description: read(formData, "description") || null,
+    artist_capacity: Number(read(formData, "artist_capacity")) || project.default_beat_capacity || 3,
+    status: "available",
+    created_by: user.id,
+  }).select("id").single();
   if (error) {
-    throw new Error(error.message);
+    if (audioPath) await supabase.storage.from("beat-audio").remove([audioPath]);
+    go("error", error.message);
   }
-
-  await supabase
-    .from("activity_log")
-    .insert({
-      project_id: project.id,
-      user_id: user.id,
-      action: `Added ${beatCode} to the Beat Library`,
-      entity_type: "beat",
-      entity_id: beat.id,
-    });
-
-  revalidatePath("/");
-  revalidatePath("/beats");
+  await supabase.from("activity_log").insert({ project_id: project.id, user_id: user.id, action: `added ${title} to the Beat Library`, entity_type: "beat", entity_id: beat!.id });
+  revalidatePath("/beats"); revalidatePath("/workspace");
+  go("message", "Beat added to the library.");
 }
 
-
-export async function toggleBeatInterest(
-  formData: FormData
-) {
-  const {
-    supabase,
-    user,
-    project,
-  } = await getWorkspace();
-
-  if (!project) return;
-
-  const beatId = value(
-    formData,
-    "beat_id"
-  );
-
-  const beatCode = value(
-    formData,
-    "beat_code"
-  );
-
-  const { data: existing } =
-    await supabase
-      .from("beat_interest")
-      .select("id")
-      .eq("beat_id", beatId)
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-  if (existing) {
-    await supabase
-      .from("beat_interest")
-      .delete()
-      .eq("id", existing.id);
-
-    await supabase
-      .from("activity_log")
-      .insert({
-        project_id: project.id,
-        user_id: user.id,
-        action: `Removed interest from ${beatCode}`,
-        entity_type: "beat",
-        entity_id: beatId,
-      });
-  } else {
-    const { error } = await supabase
-      .from("beat_interest")
-      .insert({
-        beat_id: beatId,
-        user_id: user.id,
-        status: "interested",
-      });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    await supabase
-      .from("activity_log")
-      .insert({
-        project_id: project.id,
-        user_id: user.id,
-        action: `Registered interest in ${beatCode}`,
-        entity_type: "beat",
-        entity_id: beatId,
-      });
-  }
-
-  revalidatePath("/");
-  revalidatePath("/beats");
+export async function claimBeat(formData: FormData) {
+  const { supabase } = await getWorkspace();
+  const { error } = await supabase.rpc("claim_beat", { target_beat: read(formData, "beat_id"), claim_notes: null });
+  if (error) go("error", error.message);
+  revalidatePath("/beats"); revalidatePath("/workspace");
+  go("message", "Your development slot is confirmed.");
 }
 
-
-export async function assignBeat(
-  formData: FormData
-) {
-  const {
-    supabase,
-    user,
-    project,
-    roles,
-  } = await getWorkspace();
-
-  if (!project) return;
-
-  if (
-    !roles.some((role) =>
-      LEAD_ROLES.includes(role)
-    )
-  ) {
-    throw new Error(
-      "Only a Project Lead or Admin can assign artists."
-    );
-  }
-
-  const beatId = value(
-    formData,
-    "beat_id"
-  );
-
-  const beatCode = value(
-    formData,
-    "beat_code"
-  );
-
-  const artistUserId = value(
-    formData,
-    "artist_user_id"
-  );
-
-  const deadline =
-    value(
-      formData,
-      "writing_deadline"
-    ) || null;
-
-  if (!artistUserId) {
-    throw new Error(
-      "Select an artist."
-    );
-  }
-
-  const { error } = await supabase
-    .from("beat_assignments")
-    .upsert(
-      {
-        beat_id: beatId,
-        user_id: artistUserId,
-        assigned_by: user.id,
-      },
-      {
-        onConflict:
-          "beat_id,user_id",
-      }
-    );
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  const { error: beatError } =
-    await supabase
-      .from("beats")
-      .update({
-        status: "assigned",
-        writing_deadline:
-          deadline,
-      })
-      .eq("id", beatId);
-
-  if (beatError) {
-    throw new Error(
-      beatError.message
-    );
-  }
-
-  await supabase
-    .from("activity_log")
-    .insert({
-      project_id: project.id,
-      user_id: user.id,
-      action: `Assigned ${beatCode} to a Project 001 artist`,
-      entity_type: "beat",
-      entity_id: beatId,
-    });
-
-  revalidatePath("/");
-  revalidatePath("/beats");
+export async function releaseClaim(formData: FormData) {
+  const { supabase } = await getWorkspace();
+  const { error } = await supabase.rpc("release_beat_claim", { target_beat: read(formData, "beat_id") });
+  if (error) go("error", error.message);
+  revalidatePath("/beats"); revalidatePath("/workspace");
+  go("message", "Your claim was released.");
 }
 
-
-export async function updateBeatStatus(
-  formData: FormData
-) {
-  const {
-    supabase,
-    user,
-    project,
-    roles,
-  } = await getWorkspace();
-
-  if (!project) return;
-
-  if (
-    !roles.some((role) =>
-      MANAGER_ROLES.includes(role)
-    )
-  ) {
-    throw new Error(
-      "You do not have permission to change beat status."
-    );
-  }
-
-  const beatId = value(
-    formData,
-    "beat_id"
-  );
-
-  const beatCode = value(
-    formData,
-    "beat_code"
-  );
-
-  const status = value(
-    formData,
-    "status"
-  ).toLowerCase();
-
-  if (
-    !ALLOWED_STATUSES.includes(
-      status
-    )
-  ) {
-    throw new Error(
-      "Invalid workflow status."
-    );
-  }
-
-  const { error } = await supabase
-    .from("beats")
-    .update({
-      status,
-    })
-    .eq("id", beatId);
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  await supabase
-    .from("activity_log")
-    .insert({
-      project_id: project.id,
-      user_id: user.id,
-      action: `Moved ${beatCode} to ${status}`,
-      entity_type: "beat",
-      entity_id: beatId,
-    });
-
-  revalidatePath("/");
+export async function leaveIdea(formData: FormData) {
+  const { supabase, user, project, membership } = await getWorkspace();
+  if (!project || !membership) go("error", "You need active project access.");
+  const body = read(formData, "idea");
+  if (!body) go("error", "Write your idea first.");
+  const beatId = read(formData, "beat_id");
+  const { error } = await supabase.from("comments").insert({ project_id: project.id, entity_type: "beat", entity_id: beatId, user_id: user.id, kind: "idea", body });
+  if (error) go("error", error.message);
   revalidatePath("/beats");
+  go("message", "Your idea is now visible to A&R and the Project Lead.");
+}
+
+export async function manageClaim(formData: FormData) {
+  const { user, project, roles } = await getWorkspace();
+  if (!project || !hasAnyRole(roles, ["Super Admin", "Project Lead", "A&R"])) go("error", "Only Project Lead or A&R can manage claims.");
+  const claimId = read(formData, "claim_id");
+  const status = read(formData, "status");
+  const reason = read(formData, "reason");
+  if (!["confirmed", "removed"].includes(status)) go("error", "Invalid claim update.");
+  if (status === "removed" && !reason) go("error", "Record a reason for removing the claim.");
+  const admin = createAdminClient();
+  const { data: claim, error } = await admin.from("beat_claims").update({ status, removed_by: status === "removed" ? user.id : null, override_reason: reason || null, updated_at: new Date().toISOString() }).eq("id", claimId).eq("project_id", project.id).select("beat_id").single();
+  if (error) go("error", error.message);
+  await admin.from("activity_log").insert({ project_id: project.id, user_id: user.id, action: `${status} a beat claim${reason ? `: ${reason}` : ""}`, entity_type: "beat", entity_id: claim!.beat_id });
+  revalidatePath("/beats");
+  go("message", "Claim updated and recorded in activity history.");
+}
+
+export async function convertToTrack(formData: FormData) {
+  const { user, project, roles } = await getWorkspace();
+  if (!project || !hasAnyRole(roles, ["Super Admin", "Project Lead", "A&R"])) go("error", "Only Project Lead or A&R can start track development.");
+  const beatId = read(formData, "beat_id");
+  const title = read(formData, "title") || "Untitled track";
+  const admin = createAdminClient();
+  const existing = await admin.from("tracks").select("id").eq("beat_id", beatId).maybeSingle();
+  if (existing.data) go("error", "This beat is already linked to a track.");
+  const { data: track, error } = await admin.from("tracks").insert({ project_id: project.id, beat_id: beatId, track_code: `TRACK-${Date.now().toString().slice(-5)}`, working_title: title, status: "in_development", development_status: "in_development", created_by: user.id }).select("id").single();
+  if (error) go("error", error.message);
+  const claims = await admin.from("beat_claims").select("artist_id").eq("beat_id", beatId).in("status", ["claimed", "confirmed"]);
+  if (claims.data?.length) await admin.from("track_contributors").insert(claims.data.map(row => ({ track_id: track!.id, user_id: row.artist_id, contribution_role: "artist" })));
+  await admin.from("beat_claims").update({ status: "converted_to_track" }).eq("beat_id", beatId).in("status", ["claimed", "confirmed"]);
+  await admin.from("beats").update({ status: "in development" }).eq("id", beatId);
+  revalidatePath("/beats"); revalidatePath("/tracks");
+  go("message", "Track development started.");
 }

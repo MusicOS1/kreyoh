@@ -1,102 +1,12 @@
-import React from "react";
 import Link from "next/link";
 import { login } from "./actions";
-import { KreyohMark, KreyohWordmark } from "../../components/Branding";
+import { FacktsMusicLogo } from "../../components/Branding";
 import LoginAtmosphere from "../../components/LoginAtmosphere";
 
-export default async function LoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{
-    error?: string;
-  }>;
-}) {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; message?: string }> }) {
   const params = await searchParams;
-
-  return (
-    <main className="login-page">
-      <LoginAtmosphere />
-
-      {/* Left Brand Panel */}
-      <section className="login-brand-panel">
-        <Link href="/" className="login-back-link">← Back to KREYOH</Link>
-        <div className="login-brand-mark-lockup">
-          <KreyohMark size={44} />
-          <KreyohWordmark height={22} className="login-wordmark" />
-        </div>
-
-        <span className="login-kicker">
-          MUSIC VENTURE OPERATING SYSTEM
-        </span>
-
-        <h1>
-          Create.
-          <br />
-          Organise.
-          <br />
-          Operate.
-        </h1>
-
-        <p>
-          KREYOH is where creative music projects are organized, coordinated, and turned into real operating ventures. Project 001 is the founding implementation.
-        </p>
-
-        <span className="login-brand-tagline">
-          Run it on KREYOH.
-        </span>
-      </section>
-
-      {/* Right Login Form Panel */}
-      <section className="login-form-panel">
-        <form action={login} className="login-card">
-          <div>
-            <span className="eyebrow">PROJECT 001 WORKSPACE</span>
-            <h2>Welcome to KREYOH</h2>
-            <p>Sign in to access your venture workspace.</p>
-          </div>
-
-          {params.error && (
-            <div className="form-error-alert">
-              {params.error}
-            </div>
-          )}
-
-          <label>
-            Email Address
-            <input
-              name="email"
-              type="email"
-              required
-              autoComplete="email"
-              placeholder="contributor@kreyoh.com"
-            />
-          </label>
-
-          <label>
-            Password
-            <input
-              name="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              placeholder="••••••••••••"
-            />
-          </label>
-
-          <button className="login-submit-btn" type="submit">
-            Sign in to KREYOH →
-          </button>
-<p>
-  New to KREYOH?{" "}
-  <Link href="/signup">
-    Create an account
-  </Link>
-</p>
-          <small>
-            Access is restricted to Project 001 verified participants.
-          </small>
-        </form>
-      </section>
-    </main>
-  );
+  return <main className="login-page"><LoginAtmosphere />
+    <section className="login-brand-panel"><Link href="/" className="login-back-link">← Back to FACKTS Music</Link><div className="login-brand-mark-lockup"><FacktsMusicLogo size={54} /></div><span className="login-kicker">PROJECT OPERATING ROOM</span><h1>Create.<br />Develop.<br />Move.</h1><p>One shared place for the people, sound, sessions and decisions behind the music.</p><span className="login-brand-tagline">A FACKTS Africa platform.</span></section>
+    <section className="login-form-panel"><form action={login} className="login-card"><div><span className="eyebrow">WELCOME BACK</span><h2>Sign in to FACKTS Music</h2><p>Continue to your role-aware workspace.</p></div>{params.error && <div className="form-error-alert">{params.error}</div>}{params.message && <div className="form-success-alert">{params.message}</div>}<label>Email Address<input name="email" type="email" required autoComplete="email" placeholder="you@example.com" /></label><label>Password<input name="password" type="password" required autoComplete="current-password" placeholder="••••••••••••" /></label><div className="auth-inline-links"><Link href="/forgot-password">Forgot password?</Link></div><button className="login-submit-btn" type="submit">Sign In →</button><p>New here? <Link href="/signup">Create Account</Link></p></form></section>
+  </main>;
 }

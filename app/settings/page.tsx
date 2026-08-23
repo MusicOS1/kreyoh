@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import AppShell from "../../components/AppShell";
 import { getWorkspace } from "../../lib/workspace";
 import { updateProfile } from "./actions";
@@ -26,7 +26,7 @@ export default async function SettingsPage() {
           </div>
 
           <div className="date">
-            <span>KREYOH V1.1</span>
+            <span>FACKTS Music V1.1</span>
           </div>
         </div>
 
@@ -78,6 +78,11 @@ export default async function SettingsPage() {
                   placeholder="+254 7..."
                 />
               </label>
+              <label className="form-label-group">Short bio<textarea className="dark-textarea" name="bio" defaultValue={profile?.bio || ""} placeholder="What do you make and what are you building?" /></label>
+              <label className="form-label-group">Location<input className="dark-input" name="location" defaultValue={profile?.location || ""} placeholder="Nairobi, Kenya" /></label>
+              <label className="form-label-group">Skills / genres<input className="dark-input" name="skills_genres" defaultValue={(profile?.skills_genres || []).join(", ")} placeholder="Afrofusion, songwriting, mixing" /></label>
+              <label className="form-label-group">Primary social link<input className="dark-input" type="url" name="social_url" defaultValue={profile?.social_links?.primary || ""} /></label>
+              <label className="form-label-group">Primary streaming link<input className="dark-input" type="url" name="streaming_url" defaultValue={profile?.streaming_links?.primary || ""} /></label>
               <div className="settings-info-item">
                 <span className="settings-label">Authenticated email</span>
                 <span className="settings-value">{user.email}</span>
@@ -125,7 +130,7 @@ export default async function SettingsPage() {
               <div className="settings-info-item">
                 <span className="settings-label">Venture Description</span>
                 <span className="settings-value muted">
-                  {project?.description || "The founding implementation of KREYOH Music Venture Operating System."}
+                  {project?.description || "The founding implementation of the FACKTS Music operating platform."}
                 </span>
               </div>
             </div>
@@ -137,7 +142,7 @@ export default async function SettingsPage() {
           <div className="panel-header-row">
             <div className="panel-title-group">
               <span className="eyebrow">BRAND SYSTEM</span>
-              <h2>KREYOH Identity Assets</h2>
+              <h2>Official FACKTS Music identity</h2>
             </div>
             <span className="phase-pill-subtle">
               <SparklesIcon size={12} /> Official Assets
@@ -151,28 +156,12 @@ export default async function SettingsPage() {
 
             <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
               <a
-                href="/branding/kreyoh-logo.svg"
-                download="kreyoh-logo.svg"
+                href="/branding/fackts-music-logo.png"
+                download="fackts-music-logo.png"
                 className="secondary-button-inline"
                 style={{ height: "32px", fontSize: "10px" }}
               >
-                Download Logo (SVG) <ArrowUpRight size={12} />
-              </a>
-              <a
-                href="/branding/kreyoh-mark.svg"
-                download="kreyoh-mark.svg"
-                className="secondary-button-inline"
-                style={{ height: "32px", fontSize: "10px" }}
-              >
-                Download Monogram (SVG) <ArrowUpRight size={12} />
-              </a>
-              <a
-                href="/branding/kreyoh-wordmark.svg"
-                download="kreyoh-wordmark.svg"
-                className="secondary-button-inline"
-                style={{ height: "32px", fontSize: "10px" }}
-              >
-                Download Wordmark (SVG) <ArrowUpRight size={12} />
+                Download official logo <ArrowUpRight size={12} />
               </a>
             </div>
           </div>
@@ -197,3 +186,4 @@ export default async function SettingsPage() {
     </AppShell>
   );
 }
+

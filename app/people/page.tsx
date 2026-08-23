@@ -1,7 +1,8 @@
-import React from "react";
+﻿import React from "react";
 import AppShell from "../../components/AppShell";
 import { getWorkspace } from "../../lib/workspace";
-import { addContributor } from "./actions";
+import { removeContributor } from "./actions";
+import { inviteExistingUser, reviewJoinRequest } from "../projects/actions";
 import {
   UsersIcon,
   ClockIcon,
@@ -38,22 +39,22 @@ const AVAILABLE_ROLES = [
 ];
 
 export default async function PeoplePage() {
-  const { supabase, project, roles } = await getWorkspace();
+  const { supabase, admin, project, membership, roles } = await getWorkspace();
 
-  if (!project) {
+  if (!project || !membership) {
     return (
       <AppShell>
         <div className="content">
           <div className="empty-state">
             <h2>No active project access</h2>
-            <p>Your KREYOH account is not linked to an active project.</p>
+            <p>Your FACKTS Music account is not linked to an active project.</p>
           </div>
         </div>
       </AppShell>
     );
   }
 
-  const canAddPeople = roles.includes("Project Lead") || roles.includes("Admin");
+  const canAddPeople = roles.some((role) => ["Super Admin", "Project Lead", "Admin"].includes(role));
 
   // Query project members
   const { data: members } = await supabase
@@ -77,9 +78,13 @@ export default async function PeoplePage() {
       )
     `)
     .eq("project_id", project.id)
+    .neq("status", "removed")
     .order("joined_at", { ascending: true });
 
   const roster = members ?? [];
+  const { data: joinRequests = [] } = canAddPeople ? await admin.from("project_join_requests")
+    .select("id,status,message,created_at,profiles(full_name,stage_name,email,creator_types)")
+    .eq("project_id", project.id).eq("status", "pending").order("created_at", { ascending: true }) : { data: [] };
 
   // Breakdown counts
   const totalCount = roster.length;
@@ -157,28 +162,9 @@ export default async function PeoplePage() {
               </span>
             </div>
 
-            <form action={addContributor} className="beat-registration-form">
+            <form action={inviteExistingUser} className="beat-registration-form">
               <label className="form-label-group">
-                Full Legal / Official Name *
-                <input
-                  name="full_name"
-                  placeholder="e.g. John Doe"
-                  required
-                  className="dark-input"
-                />
-              </label>
-
-              <label className="form-label-group">
-                Stage / Professional Name
-                <input
-                  name="stage_name"
-                  placeholder="e.g. Monokid / Gish"
-                  className="dark-input"
-                />
-              </label>
-
-              <label className="form-label-group">
-                Authenticated Email *
+                FACKTS Music account email *
                 <input
                   name="email"
                   type="email"
@@ -186,7 +172,7 @@ export default async function PeoplePage() {
                   required
                   className="dark-input"
                 />
-                <span className="settings-readonly-note">Existing authenticated profiles are linked immediately. Unknown emails are recorded as Pending Invite without creating a fake account.</span>
+                <span className="settings-readonly-note">Every contributor receives a Project 001 invitation. Access starts only after they accept it.</span>
               </label>
 
               <label className="form-label-group">
@@ -204,40 +190,8 @@ export default async function PeoplePage() {
                 </select>
               </label>
 
-              <label className="form-label-group">
-                Phone / WhatsApp (Optional)
-                <input
-                  name="phone"
-                  type="tel"
-                  placeholder="+254 7..."
-                  className="dark-input"
-                />
-              </label>
-
-              <label className="form-label-group">
-                Initial Status
-                <select
-                  name="status"
-                  defaultValue="active"
-                  className="dark-select"
-                >
-                  <option value="active">Active Contributor</option>
-                  <option value="pending">Pending Invite</option>
-                  <option value="invited">Invited / Awaiting Confirmation</option>
-                </select>
-              </label>
-
-              <label className="form-label-group wide">
-                Additional Roles (Comma-separated)
-                <input
-                  name="additional_roles"
-                  placeholder="e.g. Producer, Engineer, Songwriter"
-                  className="dark-input"
-                />
-              </label>
-
               <label className="form-label-group full">
-                Internal Onboarding Notes & Contribution Scope
+                Invitation note
                 <textarea
                   name="notes"
                   placeholder="e.g. Lead vocalist on Track 002, approved by Project Lead for Phase 1 writing session..."
@@ -247,11 +201,13 @@ export default async function PeoplePage() {
               </label>
 
               <button className="submit-beat-btn" type="submit" style={{ gridColumn: "1 / -1" }}>
-                + Onboard Contributor to Project 001
+                + Invite Contributor to Project 001
               </button>
             </form>
           </article>
         )}
+
+        {canAddPeople && <article className="panel join-review-panel enter d2"><div className="panel-header-row"><div className="panel-title-group"><span className="eyebrow">ACCESS REQUESTS</span><h2>Creators asking to join</h2></div><span className="phase-pill-subtle">{joinRequests?.length || 0} pending</span></div>{!joinRequests?.length?<div className="empty-state"><p>No pending requests for this project.</p></div>:<div className="join-review-list">{joinRequests.map((request:any)=>{const profile=first(request.profiles);return <div className="join-review-row" key={request.id}><div><strong>{profile?.stage_name||profile?.full_name||profile?.email}</strong><span>{request.message||"No message supplied."}</span></div><form action={reviewJoinRequest}><input type="hidden" name="request_id" value={request.id}/><select name="role_name" defaultValue="Artist"><option>Artist</option><option>Producer</option><option>Engineer</option><option>A&R</option></select><button name="decision" value="approved">Approve</button><button name="decision" value="declined" className="member-remove-button">Decline</button></form></div>})}</div>}</article>}
 
         {/* Member Cards Grid */}
         <section className="people-grid-cards enter d3">
@@ -334,6 +290,12 @@ export default async function PeoplePage() {
                           })}`}
                     </span>
                   </div>
+                  {canAddPeople && member.status !== "removed" && (
+                    <form action={removeContributor} className="member-remove-form">
+                      <input type="hidden" name="member_id" value={member.id} />
+                      <button type="submit" className="member-remove-button">Remove from project</button>
+                    </form>
+                  )}
                 </article>
               );
             })
@@ -343,3 +305,4 @@ export default async function PeoplePage() {
     </AppShell>
   );
 }
+

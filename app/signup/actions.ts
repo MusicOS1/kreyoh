@@ -4,303 +4,59 @@ import { redirect } from "next/navigation";
 import { createClient } from "../../lib/supabase/server";
 import { createAdminClient } from "../../lib/supabase/admin";
 
-function value(formData: FormData, name: string) {
-  return String(formData.get(name) || "").trim();
-}
+const PUBLIC_TYPES: Record<string, string[]> = {
+  Artist: ["Artist"],
+  Producer: ["Producer"],
+  "Artist + Producer": ["Artist", "Producer"],
+  "Engineer / Technical": ["Engineer"],
+  "Other Creative": ["Other Creative"],
+};
+
+const read = (formData: FormData, key: string) => String(formData.get(key) || "").trim();
 
 export async function signup(formData: FormData) {
-  const fullName = value(formData, "full_name");
-  const stageName = value(formData, "stage_name") || null;
-
-  /*
-   * Public users may choose their creative role.
-   * They cannot choose Admin / Project Lead / Finance.
-   */
-  const requestedRole =
-    value(formData, "creative_role") || "Artist";
-
-  const allowedPublicRoles = [
-    "Artist",
-    "Producer",
-    "Engineer",
-    "A&R",
-  ];
-
-  const creativeRole = allowedPublicRoles.includes(requestedRole)
-    ? requestedRole
-    : "Artist";
-
-  const email = value(formData, "email").toLowerCase();
-
+  const fullName = read(formData, "full_name");
+  const email = read(formData, "email").toLowerCase();
   const password = String(formData.get("password") || "");
+  const confirm = String(formData.get("confirm_password") || "");
+  const typeLabel = read(formData, "creator_type");
+  const creatorTypes = PUBLIC_TYPES[typeLabel];
+  const accepted = formData.get("accepted_terms") === "on";
 
-  const confirmPassword = String(
-    formData.get("confirm_password") || ""
-  );
-
-  if (!fullName || !email || !password) {
-    redirect(
-      `/signup?error=${encodeURIComponent(
-        "Full name, email and password are required."
-      )}`
-    );
-  }
-
-  if (password.length < 8) {
-    redirect(
-      `/signup?error=${encodeURIComponent(
-        "Password must contain at least 8 characters."
-      )}`
-    );
-  }
-
-  if (password !== confirmPassword) {
-    redirect(
-      `/signup?error=${encodeURIComponent(
-        "Passwords do not match."
-      )}`
-    );
-  }
+  const fail = (message: string): never => redirect(`/signup?error=${encodeURIComponent(message)}`);
+  if (!fullName || !email || !password || !creatorTypes) fail("Complete every required field.");
+  if (!accepted) fail("Accept the terms and privacy notice to continue.");
+  if (password.length < 8) fail("Use a password with at least 8 characters.");
+  if (password !== confirm) fail("The passwords do not match.");
 
   const supabase = await createClient();
-
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    "http://localhost:3000";
-
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-
     options: {
-      emailRedirectTo: `${siteUrl}/login`,
-
-      data: {
-        full_name: fullName,
-        stage_name: stageName,
-        creative_role: creativeRole,
-      },
+      emailRedirectTo: `${siteUrl}/set-password`,
+      data: { full_name: fullName, creator_types: creatorTypes, creative_role: creatorTypes[0] },
     },
   });
 
-  if (error) {
-    redirect(
-      `/signup?error=${encodeURIComponent(error.message)}`
-    );
-  }
+  const authUser = data.user;
+  if (error) fail(error.message);
+  if (!authUser) return fail("FACKTS Music could not create this account.");
 
-  /*
-   * We only continue if Supabase genuinely
-   * returned an Auth user.
-   */
-  if (!data.user?.id) {
-    redirect(
-      `/signup?error=${encodeURIComponent(
-        "KREYOH could not create this account."
-      )}`
-    );
-  }
-
-  const userId = data.user.id;
-
-  /*
-   * Server-only admin client.
-   */
   const admin = createAdminClient();
+  const { error: profileError } = await admin.from("profiles").upsert({
+    id: authUser.id,
+    full_name: fullName,
+    email,
+    creator_types: creatorTypes,
+    profile_visibility: "project",
+    updated_at: new Date().toISOString(),
+  }, { onConflict: "id" });
+  if (profileError) fail("Your account was created, but the creator profile could not be prepared. Please sign in again.");
 
-  /*
-   * ------------------------------------------------
-   * 1. CREATE / UPDATE KREYOH PROFILE
-   * ------------------------------------------------
-   */
-  const { error: profileError } = await admin
-    .from("profiles")
-    .upsert(
-      {
-        id: userId,
-        full_name: fullName,
-        stage_name: stageName,
-        email,
-      },
-      {
-        onConflict: "id",
-      }
-    );
-
-  if (profileError) {
-    console.error(
-      "KREYOH SIGNUP PROFILE ERROR:",
-      profileError.message
-    );
-  }
-
-  /*
-   * ------------------------------------------------
-   * 2. FIND PROJECT 001
-   * ------------------------------------------------
-   */
-  const {
-  data: projects,
-  error: projectError,
-} = await admin
-  .from("projects")
-  .select("id, name, code")
-  .limit(1);
-
-const project =
-  projects?.[0] ?? null;
-  if (projectError) {
-    console.error(
-      "KREYOH PROJECT LOOKUP ERROR:",
-      projectError.message
-    );
-  }
-
-  if (!project) {
-    throw new Error(
-      "Project 001 could not be found."
-    );
-  }
-
-  /*
-   * ------------------------------------------------
-   * 3. CREATE PROJECT MEMBERSHIP
-   * ------------------------------------------------
-   */
-  const {
-    data: existingMembership,
-  } = await admin
-    .from("project_members")
-    .select("id, status")
-    .eq("project_id", project.id)
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  let memberId = existingMembership?.id;
-
-  if (!memberId) {
-    const {
-      data: membership,
-      error: membershipError,
-    } = await admin
-      .from("project_members")
-      .insert({
-        project_id: project.id,
-        user_id: userId,
-        status: "active",
-      })
-      .select("id")
-      .single();
-
-    if (membershipError) {
-      throw new Error(
-        `Could not join Project 001: ${membershipError.message}`
-      );
-    }
-
-    memberId = membership.id;
-  } else {
-    await admin
-      .from("project_members")
-      .update({
-        status: "active",
-      })
-      .eq("id", memberId);
-  }
-
-  /*
-   * ------------------------------------------------
-   * 4. FIND THEIR CREATIVE ROLE
-   * ------------------------------------------------
-   */
-  const {
-    data: role,
-    error: roleError,
-  } = await admin
-    .from("roles")
-    .select("id, name")
-    .eq("name", creativeRole)
-    .maybeSingle();
-
-  if (roleError) {
-    throw new Error(roleError.message);
-  }
-
-  if (!role) {
-    throw new Error(
-      `KREYOH role "${creativeRole}" does not exist.`
-    );
-  }
-
-  /*
-   * ------------------------------------------------
-   * 5. ASSIGN CREATIVE ROLE
-   * ------------------------------------------------
-   */
-
-  const {
-    data: existingRole,
-  } = await admin
-    .from("member_roles")
-    .select("id")
-    .eq("member_id", memberId)
-    .eq("role_id", role.id)
-    .maybeSingle();
-
-  if (!existingRole) {
-    const firstInsert = await admin
-      .from("member_roles")
-      .insert({
-        member_id: memberId,
-        role_id: role.id,
-      });
-
-    /*
-     * Compatibility fallback in case your
-     * table still uses project_member_id.
-     */
-    if (firstInsert.error) {
-      const fallbackInsert = await admin
-        .from("member_roles")
-        .insert({
-          project_member_id: memberId,
-          role_id: role.id,
-        });
-
-      if (fallbackInsert.error) {
-        throw new Error(
-          `Role assignment failed: ${fallbackInsert.error.message}`
-        );
-      }
-    }
-  }
-
-  /*
-   * ------------------------------------------------
-   * 6. LOG THE SIGNUP
-   * ------------------------------------------------
-   */
-  await admin
-    .from("activity_log")
-    .insert({
-      project_id: project.id,
-      user_id: userId,
-      action: `${stageName || fullName} joined Project 001 as ${creativeRole}`,
-      entity_type: "project_member",
-      entity_id: memberId,
-    });
-
-  /*
-   * If email confirmation is disabled,
-   * don't silently enter the workspace.
-   */
-  if (data.session) {
-    await supabase.auth.signOut();
-  }
-
-  redirect(
-    `/signup?success=${encodeURIComponent(
-      "Your KREYOH account is ready. Confirm your email, then sign in to Project 001."
-    )}`
-  );
+  // When Confirm Email is disabled Supabase returns a real session immediately.
+  // Keep it and enter the role-aware app. Otherwise provide an honest instruction.
+  if (data.session) redirect("/workspace");
+  redirect(`/signup?success=${encodeURIComponent("Account created. Check your email to confirm access, then sign in.")}`);
 }

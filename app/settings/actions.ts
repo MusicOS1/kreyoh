@@ -12,15 +12,26 @@ export async function updateProfile(formData: FormData): Promise<void> {
   const fullName = value(formData, "full_name");
   const stageName = value(formData, "stage_name") || null;
   const phone = value(formData, "phone") || null;
+  const bio = value(formData, "bio") || null;
+  const location = value(formData, "location") || null;
+  const skillsGenres = value(formData, "skills_genres").split(",").map(item => item.trim()).filter(Boolean);
+  const socialUrl = value(formData, "social_url") || null;
+  const streamingUrl = value(formData, "streaming_url") || null;
 
   if (!fullName) {
     throw new Error("Full name is required.");
   }
 
-  const profileUpdate: Record<string, string | null> = {
+  const profileUpdate: Record<string, unknown> = {
     full_name: fullName,
     stage_name: stageName,
     phone,
+    bio,
+    location,
+    skills_genres: skillsGenres,
+    social_links: socialUrl ? { primary: socialUrl } : {},
+    streaming_links: streamingUrl ? { primary: streamingUrl } : {},
+    updated_at: new Date().toISOString(),
   };
 
   // Preserve an existing photo when the profile form is submitted without the

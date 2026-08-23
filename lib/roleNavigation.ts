@@ -12,6 +12,7 @@ import {
 } from "../components/Icons";
 
 export type KreyohRole =
+  | "Super Admin"
   | "Admin"
   | "Project Lead"
   | "Artist"
@@ -143,6 +144,13 @@ export const NAV_ITEMS: NavItem[] = [
     roles: "all",
     activeMatch: (p) => p.startsWith("/activity"),
   },
+  {
+    label: "Notifications",
+    href: "/notifications",
+    icon: ActivityIcon,
+    roles: "all",
+    activeMatch: (p) => p.startsWith("/notifications"),
+  },
 ];
 
 export function getNavigationForRoles(roles: string[]) {
@@ -163,6 +171,7 @@ export function getNavigationForRoles(roles: string[]) {
 
 export function hasManagementRole(roles: string[]) {
   return (
+    roles.includes("Super Admin") ||
     roles.includes("Admin") ||
     roles.includes("Project Lead")
   );
@@ -178,6 +187,7 @@ export function canManageProject(roles: string[]) {
 
 export function canManageFinance(roles: string[]) {
   return (
+    roles.includes("Super Admin") ||
     roles.includes("Admin") ||
     roles.includes("Project Lead") ||
     roles.includes("Finance")
@@ -186,6 +196,7 @@ export function canManageFinance(roles: string[]) {
 
 export function canManageOpportunities(roles: string[]) {
   return (
+    roles.includes("Super Admin") ||
     roles.includes("Admin") ||
     roles.includes("Project Lead") ||
     roles.includes("A&R")

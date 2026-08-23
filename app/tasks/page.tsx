@@ -1,35 +1,3 @@
-import AppShell from "../../components/AppShell";
-import PlaceholderModule from "../../components/PlaceholderModule";
+﻿import AppShell from "../../components/AppShell";import {createAdminClient} from "../../lib/supabase/admin";import {getWorkspace,hasAnyRole} from "../../lib/workspace";import {createTask,updateTask} from "./actions";
+export default async function TasksPage(){const {user,project,membership,roles}=await getWorkspace();if(!project||!membership)return <AppShell><div className="content empty-state"><h2>Project invitation required</h2></div></AppShell>;const admin=createAdminClient();const [{data:tasks=[]},{data:members=[]},{data:tracks=[]}]=await Promise.all([admin.from("project_tasks").select("*,assignee:profiles!project_tasks_assignee_id_fkey(full_name,stage_name),creator:profiles!project_tasks_created_by_fkey(full_name,stage_name),tracks(working_title)").eq("project_id",project.id).order("created_at",{ascending:false}),admin.from("project_members").select("user_id,profiles(full_name,stage_name)").eq("project_id",project.id).eq("status","active"),admin.from("tracks").select("id,working_title").eq("project_id",project.id)]);const canCreate=hasAnyRole(roles,["Super Admin","Project Lead","A&R"]);return <AppShell><div className="content"><div className="heading"><div><span className="eyebrow">PROJECT 001 / ACTIONS</span><h1>What happens next</h1><p>Clear ownership, useful deadlines and a simple path to done.</p></div></div>{canCreate&&<form action={createTask} className="panel operations-form"><input name="title" required placeholder="Action title"/><textarea name="description" placeholder="What does good completion look like?"/><select name="assignee_id" defaultValue=""><option value="">Unassigned</option>{(members ?? []).map((m:any)=>{const p=Array.isArray(m.profiles)?m.profiles[0]:m.profiles;return <option key={m.user_id} value={m.user_id}>{p?.stage_name||p?.full_name}</option>})}</select><select name="track_id" defaultValue=""><option value="">No track</option>{(tracks ?? []).map((t:any)=><option key={t.id} value={t.id}>{t.working_title}</option>)}</select><input type="date" name="due_date"/><button>Create action</button></form>}<div className="operations-list">{!tasks?.length&&<div className="empty-state"><h2>No actions yet</h2><p>The project team can create the first next step here.</p></div>}{(tasks ?? []).map((task:any)=>{const assignee=Array.isArray(task.assignee)?task.assignee[0]:task.assignee;return <article className="panel operation-card" key={task.id}><span className={`status-pill ${task.status}`}>{task.status.replaceAll("_"," ")}</span><h2>{task.title}</h2><p>{task.description||"No description."}</p><small>{assignee?.stage_name||assignee?.full_name||"Unassigned"}{task.due_date?` · due ${task.due_date}`:""}</small>{(task.assignee_id===user.id||canCreate)&&<form action={updateTask}><input type="hidden" name="task_id" value={task.id}/><select name="status" defaultValue={task.status}><option value="to_do">To Do</option><option value="in_progress">In Progress</option><option value="blocked">Blocked</option><option value="done">Done</option></select><button>Update</button></form>}</article>})}</div></div></AppShell>}
 
-export default function TasksPage() {
-  return (
-    <AppShell>
-      <PlaceholderModule
-        title="Tasks & Deliverables"
-        subtitle="Operational action items, creative deadlines, asset deliverables, and team accountability."
-        eyebrow="PROJECT 001 / EXECUTION"
-        phase="Phase 2 Release"
-        badge="ACTION ENGINE"
-        description="Tracks every deliverable across writing, recording, mixing, artwork, video shoots, and digital release milestones."
-        plannedFeatures={[
-          {
-            title: "Venture Kanban & Milestones",
-            description: "Visual workflow boards mapped directly to Project 001 phases and writing deadlines.",
-          },
-          {
-            title: "Role-Specific Action Queues",
-            description: "Tailored to-do views for Artists (verse delivery), Producers (stems), and Leads (approvals).",
-          },
-          {
-            title: "Automated Reminders & Alerts",
-            description: "Smart notifications before writing deadlines and session dates without administrative clutter.",
-          },
-          {
-            title: "Activity Dependency Mapping",
-            description: "Links task completion to track pipeline status changes automatically.",
-          },
-        ]}
-      />
-    </AppShell>
-  );
-}

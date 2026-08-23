@@ -5,14 +5,14 @@ import "./kreyoh-ui.css";
 import "./responsive.css";
 
 export const metadata = {
-  title: "KREYOH",
-  description: "Music Venture Operating System",
-  applicationName: "KREYOH",
+  title: "FACKTS Music",
+  description: "Run and develop creative music projects in one place.",
+  applicationName: "FACKTS Music",
   manifest: "/manifest.webmanifest",
 
   icons: {
-    icon: "/icons/kreyoh-192.png",
-    apple: "/icons/kreyoh-192.png",
+    icon: "/branding/fackts-music-logo.png",
+    apple: "/branding/fackts-music-logo.png",
   },
 };
 

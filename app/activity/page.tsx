@@ -1,4 +1,4 @@
-import AppShell from "../../components/AppShell";
+﻿import AppShell from "../../components/AppShell";
 import { getWorkspace } from "../../lib/workspace";
 import { ActivityIcon, ClockIcon, FlameIcon } from "../../components/Icons";
 
@@ -11,7 +11,7 @@ export default async function ActivityPage() {
         <div className="content">
           <div className="empty-state">
             <h2>No active project access</h2>
-            <p>Your KREYOH account is not linked to an active project.</p>
+            <p>Your FACKTS Music account is not linked to an active project.</p>
           </div>
         </div>
       </AppShell>
@@ -90,3 +90,4 @@ export default async function ActivityPage() {
     </AppShell>
   );
 }
+
