@@ -16,6 +16,8 @@ const PUBLIC_ROUTES = [
   "/signup",
   "/forgot-password",
   "/set-password",
+  "/admin/login",
+  "/admin/access-unavailable",
 ];
 
 function isPublicRoute(
@@ -69,8 +71,7 @@ export async function updateSession(
     const url =
       request.nextUrl.clone();
 
-    url.pathname =
-      "/login";
+    url.pathname = pathname.startsWith("/admin") ? "/admin/login" : "/login";
 
     url.searchParams.set(
       "error",
@@ -204,8 +205,7 @@ export async function updateSession(
       const url =
         request.nextUrl.clone();
 
-      url.pathname =
-        "/login";
+      url.pathname = pathname.startsWith("/admin") ? "/admin/login" : "/login";
 
       return NextResponse.redirect(
         url
@@ -230,8 +230,7 @@ export async function updateSession(
     const url =
       request.nextUrl.clone();
 
-    url.pathname =
-      "/login";
+    url.pathname = pathname.startsWith("/admin") ? "/admin/login" : "/login";
 
     url.searchParams.set(
       "error",

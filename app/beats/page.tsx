@@ -1,8 +1,11 @@
 import AppShell from "../../components/AppShell";
 import { getWorkspace, hasAnyRole } from "../../lib/workspace";
 import { createAdminClient } from "../../lib/supabase/admin";
-import { addBeat, claimBeat, convertToTrack, leaveIdea, manageClaim, releaseClaim } from "./actions";
+import { claimBeat, convertToTrack, leaveIdea, manageClaim, releaseClaim } from "./actions";
 import { MusicIcon, PlayIcon, PlusIcon, UsersIcon } from "../../components/Icons";
+import BeatUploadForm from "../../components/BeatUploadForm";
+import BeatAudioPlayer from "../../components/BeatAudioPlayer";
+import { createR2PresignedUrl, isR2Configured } from "../../lib/r2";
 
 const activeStatuses = ["claimed", "confirmed", "converted_to_track"];
 
@@ -19,7 +22,9 @@ export default async function BeatsPage({ searchParams }: { searchParams: Promis
   const isArtist = roles.includes("Artist");
   const audioUrls: Record<string, string> = {};
   for (const beat of beats) {
-    if (beat.audio_path) {
+    if (beat.storage_provider === "r2" && beat.storage_key && isR2Configured()) {
+      audioUrls[beat.id] = beat.playback_url || createR2PresignedUrl("GET", beat.storage_key, 3600);
+    } else if (beat.audio_path) {
       const { data } = await admin.storage.from("beat-audio").createSignedUrl(beat.audio_path, 3600);
       if (data?.signedUrl) audioUrls[beat.id] = data.signedUrl;
     }
@@ -29,11 +34,7 @@ export default async function BeatsPage({ searchParams }: { searchParams: Promis
     <div className="heading enter"><div><span className="eyebrow">PROJECT 001 / SOUND</span><h1>Beat Library</h1><p>Listen, claim a development slot and turn the strongest ideas into tracks.</p></div><div className="date"><span>{beats.length} BEATS</span></div></div>
     {params.message && <div className="form-success-alert">{params.message}</div>}{params.error && <div className="form-error-alert">{params.error}</div>}
 
-    {canUpload && <details className="beat-intake-disclosure"><summary className="beat-intake-summary"><span>PRODUCER INTAKE</span><strong>Upload a beat</strong><small>Direct audio or an external source.</small><b>Open +</b></summary><form action={addBeat} className="panel beat-registration-form" encType="multipart/form-data">
-      <label>Title *<input className="dark-input" name="title" required /></label><label>Producer credit<input className="dark-input" name="producer_name" /></label><label>Beat code<input className="dark-input" name="beat_code" placeholder="Generated if blank" /></label><label>Audio file<input className="dark-input" name="audio_file" type="file" accept="audio/*" /></label>
-      <label>Source<select className="dark-select" name="source_type" defaultValue="supabase"><option value="supabase">Supabase upload</option><option value="google_drive">Google Drive</option><option value="dropbox">Dropbox</option><option value="onedrive">OneDrive</option><option value="private_stream">Private stream</option><option value="nextbeat">NextBeat</option><option value="other">Other</option></select></label><label>External URL<input className="dark-input" type="url" name="external_url" /></label>
-      <label>BPM<input className="dark-input" name="bpm" type="number" min="20" max="400" /></label><label>Key<input className="dark-input" name="musical_key" placeholder="A minor" /></label><label>Genre tags<input className="dark-input" name="genre_tags" placeholder="Afrobeats, hip-hop" /></label><label>Mood tags<input className="dark-input" name="mood_tags" placeholder="Warm, nocturnal" /></label><label>Artist slots<input className="dark-input" name="artist_capacity" type="number" min="1" max="12" defaultValue={project.default_beat_capacity || 3} /></label><label className="wide">Description<textarea className="dark-textarea" name="description" /></label><button className="submit-beat-btn">Upload to Beat Library</button>
-    </form></details>}
+    {canUpload && <details className="beat-intake-disclosure"><summary className="beat-intake-summary"><span>PRODUCER INTAKE</span><strong>Upload a beat</strong><small>Direct audio or an external source.</small><b>Open +</b></summary><BeatUploadForm defaultCapacity={project.default_beat_capacity || 3} /></details>}
 
     <section className="beats-grid-cards">
       {!beats.length && <article className="panel empty-state"><MusicIcon size={28} /><h2>No beats available yet</h2><p>{canUpload ? "Upload the first Project 001 beat when the sound is ready." : "Producers and the project team will publish beats here."}</p></article>}
@@ -46,7 +47,7 @@ export default async function BeatsPage({ searchParams }: { searchParams: Promis
         return <article className="beat-card-deck fackts-beat-card" key={beat.id}>
           <div className="beat-card-artwork" style={beat.artwork_url ? { backgroundImage: `url(${beat.artwork_url})` } : undefined}><span className="beat-artwork-index">{beat.beat_code}</span><div className="beat-artwork-wave"><i /><i /><i /><i /><i /><i /></div></div>
           <div className="beat-card-top-row"><div className="beat-card-identity"><span className="beat-code-chip">{beat.source_type || "manual"}</span><h3 className="beat-card-title">{beat.title || "Untitled beat"}</h3><span className="beat-card-producer">by <strong>{beat.producer_name || "Uncredited producer"}</strong></span></div><span className={`status-pill ${String(beat.status).replaceAll(" ", "-")}`}>{full ? "Full" : beat.status}</span></div>
-          {source ? <audio className="fackts-audio-player" controls preload="metadata" src={source}>Your browser cannot play this audio.</audio> : <div className="beat-audio-deck"><PlayIcon size={16} /><span>Audio source not attached</span></div>}
+          {source ? <BeatAudioPlayer beatId={beat.id} src={source} /> : <div className="beat-audio-deck"><PlayIcon size={16} /><span>Audio source not attached</span></div>}
           <div className="beat-tags">{beat.bpm && <span>{beat.bpm} BPM</span>}{beat.musical_key && <span>{beat.musical_key}</span>}{(beat.genre_tags || []).map((tag: string) => <span key={tag}>{tag}</span>)}</div>
           {beat.description && <p className="beat-description">{beat.description}</p>}
           <div className="claim-capacity"><UsersIcon size={15} /><strong>{claims.length} / {capacity} Artists</strong><span>{full ? "FULL" : `${capacity - claims.length} slot${capacity - claims.length === 1 ? "" : "s"} left`}</span></div>

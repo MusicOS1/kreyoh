@@ -1,0 +1,10 @@
+import Link from "next/link";
+import { createAdminClient } from "../../../../lib/supabase/admin";
+import { updateManagedProject } from "../actions";
+
+export default async function AdminProjects() {
+  const admin = createAdminClient();
+  const { data: projects = [] } = await admin.from("projects").select("id,code,name,description,status,progress,default_beat_capacity,updated_at,project_members(id,status),beats(id),tracks(id,status),studio_sessions(id),project_tasks(id,status)").order("created_at", { ascending: false });
+  if (!projects) throw new Error("Control Room projects could not be loaded.");
+  return <><section className="control-page-hero projects"><span className="control-eyebrow">PROJECT PORTFOLIO</span><h1>Every venture in view.</h1><p>Manage project status and core operating rules while retaining each Project Lead’s day-to-day ownership.</p></section><section className="control-project-list">{projects.map((project: any) => <article className="control-project-card" key={project.id}><div><span>{project.code}</span><Link href={`/admin/projects/${project.id}`}><h2>{project.name}</h2></Link><p>{project.description || "No description yet."}</p><div className="control-project-kpis"><small>{(project.project_members || []).filter((member: any) => member.status === "active").length} members</small><small>{project.beats?.length || 0} beats</small><small>{project.tracks?.length || 0} tracks</small><small>{project.studio_sessions?.length || 0} sessions</small><small>{(project.project_tasks || []).filter((task: any) => task.status !== "done").length} open actions</small></div></div><form action={updateManagedProject}><input type="hidden" name="project_id" value={project.id} /><label>Status<select name="status" defaultValue={project.status || "active"}><option>active</option><option>paused</option><option>completed</option><option>archived</option></select></label><label>Default artist slots<input type="number" name="default_beat_capacity" min="1" max="12" defaultValue={project.default_beat_capacity || 3} /></label><button>Save Project Settings</button></form></article>)}</section></>;
+}

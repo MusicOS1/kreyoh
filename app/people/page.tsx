@@ -2,7 +2,7 @@
 import AppShell from "../../components/AppShell";
 import { getWorkspace } from "../../lib/workspace";
 import { removeContributor } from "./actions";
-import { inviteExistingUser, reviewJoinRequest } from "../projects/actions";
+import { addRegisteredUsers, inviteExistingUser, reviewJoinRequest } from "../projects/actions";
 import {
   UsersIcon,
   ClockIcon,
@@ -82,6 +82,9 @@ export default async function PeoplePage() {
     .order("joined_at", { ascending: true });
 
   const roster = members ?? [];
+  const memberIds = new Set(roster.filter((member:any)=>member.status==="active").map((member:any)=>first(member.profiles)?.id));
+  const {data:directory=[]}=canAddPeople?await admin.from("profiles").select("id,full_name,stage_name,creator_types,avatar_url").eq("account_status","active").order("full_name").limit(100):{data:[]};
+  const availableProfiles=(directory||[]).filter((profile:any)=>!memberIds.has(profile.id));
   const { data: joinRequests = [] } = canAddPeople ? await admin.from("project_join_requests")
     .select("id,status,message,created_at,profiles(full_name,stage_name,email,creator_types)")
     .eq("project_id", project.id).eq("status", "pending").order("created_at", { ascending: true }) : { data: [] };
@@ -152,10 +155,17 @@ export default async function PeoplePage() {
         {/* Admin / Project Lead: Add Contributor Onboarding Form */}
         {canAddPeople && (
           <article className="panel register-beat-panel enter d2">
+            <div className="panel-header-row"><div className="panel-title-group"><span className="eyebrow">REGISTERED CREATORS</span><h2>Add existing users</h2><p>Choose people already inside FACKTS Music. Only collaboration details are shown.</p></div></div>
+            <form action={addRegisteredUsers} className="existing-user-picker"><label>Project role<select name="role_name" defaultValue="Artist">{AVAILABLE_ROLES.filter(role=>role!=="Admin").map(role=><option key={role}>{role}</option>)}</select></label><div className="existing-user-picker-grid">{availableProfiles.length===0?<p>Everyone in the directory is already in this project.</p>:availableProfiles.map((profile:any)=><label key={profile.id}><input type="checkbox" name="user_ids" value={profile.id}/><span><strong>{profile.stage_name||profile.full_name||"Creator"}</strong><small>{(profile.creator_types||[]).join(" · ")||"Creator"}</small></span></label>)}</div><button type="submit" className="submit-beat-btn">Add selected users to project</button></form>
+          </article>
+        )}
+
+        {canAddPeople && (
+          <article className="panel register-beat-panel enter d2">
             <div className="panel-header-row">
               <div className="panel-title-group">
                 <span className="eyebrow">ONBOARDING WORKFLOW</span>
-                <h2>Bring someone into the room</h2>
+                <h2>Invite someone new by email</h2>
               </div>
               <span className="phase-pill-subtle">
                 <PlusIcon size={12} /> Lead Action

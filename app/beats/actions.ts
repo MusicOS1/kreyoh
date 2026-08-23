@@ -4,9 +4,25 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "../../lib/supabase/admin";
 import { getWorkspace, hasAnyRole } from "../../lib/workspace";
+import { createR2PresignedUrl, isR2Configured, r2PublicUrl } from "../../lib/r2";
 
 const read = (fd: FormData, key: string) => String(fd.get(key) || "").trim();
 const go = (kind: "message" | "error", message: string): never => redirect(`/beats?${kind}=${encodeURIComponent(message)}`);
+
+export async function prepareR2BeatUpload(formData: FormData) {
+  const { project, roles, membership } = await getWorkspace();
+  if (!project || !membership) throw new Error("You need active project access.");
+  if (!hasAnyRole(roles, ["Super Admin", "Project Lead", "A&R", "Producer"])) throw new Error("Your project role cannot upload beats.");
+  if (!isR2Configured()) throw new Error("Cloudflare R2 is not configured yet. Add the R2 server variables before direct uploads.");
+  const name = read(formData, "file_name");
+  const mime = read(formData, "file_type");
+  const size = Number(read(formData, "file_size"));
+  if (!name || !mime.startsWith("audio/") || !Number.isFinite(size) || size <= 0) throw new Error("Choose a valid audio file.");
+  if (size > 100 * 1024 * 1024) throw new Error("Audio files must be smaller than 100 MB.");
+  const safeName = name.replace(/[^a-zA-Z0-9._-]/g, "-");
+  const storageKey = `${project.id}/${crypto.randomUUID()}-${safeName}`;
+  return { storageKey, uploadUrl: createR2PresignedUrl("PUT", storageKey, 900), playbackUrl: r2PublicUrl(storageKey) };
+}
 
 export async function addBeat(formData: FormData) {
   const { supabase, user, project, roles, membership } = await getWorkspace();
@@ -15,9 +31,12 @@ export async function addBeat(formData: FormData) {
 
   const title = read(formData, "title");
   if (!title) go("error", "Give the beat a title.");
+  const storageProvider = read(formData, "storage_provider");
+  const storageKey = read(formData, "storage_key");
+  const playbackUrl = read(formData, "playback_url");
   const audio = formData.get("audio_file");
   let audioPath: string | null = null;
-  if (audio instanceof File && audio.size > 0) {
+  if (!storageKey && audio instanceof File && audio.size > 0) {
     if (audio.size > 100 * 1024 * 1024) go("error", "Audio files must be smaller than 100 MB.");
     if (!audio.type.startsWith("audio/")) go("error", "Choose a valid audio file.");
     const safeName = audio.name.replace(/[^a-zA-Z0-9._-]/g, "-");
@@ -40,6 +59,12 @@ export async function addBeat(formData: FormData) {
     external_url: read(formData, "external_url") || null,
     sync_status: read(formData, "sync_status") || "manual",
     audio_path: audioPath,
+    storage_provider: storageProvider || (audioPath ? "supabase" : "external"),
+    storage_key: storageKey || audioPath,
+    playback_url: playbackUrl || null,
+    file_name: read(formData, "file_name") || (audio instanceof File ? audio.name : null),
+    file_size: Number(read(formData, "file_size")) || (audio instanceof File ? audio.size : null),
+    mime_type: read(formData, "mime_type") || (audio instanceof File ? audio.type : null),
     artwork_url: read(formData, "artwork_url") || null,
     bpm: Number(read(formData, "bpm")) || null,
     musical_key: read(formData, "musical_key") || null,
@@ -55,22 +80,27 @@ export async function addBeat(formData: FormData) {
     go("error", error.message);
   }
   await supabase.from("activity_log").insert({ project_id: project.id, user_id: user.id, action: `added ${title} to the Beat Library`, entity_type: "beat", entity_id: beat!.id });
+  await createAdminClient().from("platform_events").insert({ user_id: user.id, project_id: project.id, event_name: "beat_uploaded", category: "music", entity_type: "beat", entity_id: beat!.id, metadata: { storage_provider: storageProvider || (audioPath ? "supabase" : "external") } });
   revalidatePath("/beats"); revalidatePath("/workspace");
   go("message", "Beat added to the library.");
 }
 
 export async function claimBeat(formData: FormData) {
-  const { supabase } = await getWorkspace();
-  const { error } = await supabase.rpc("claim_beat", { target_beat: read(formData, "beat_id"), claim_notes: null });
+  const { supabase, user, project } = await getWorkspace();
+  const beatId = read(formData, "beat_id");
+  const { error } = await supabase.rpc("claim_beat", { target_beat: beatId, claim_notes: null });
   if (error) go("error", error.message);
+  await createAdminClient().from("platform_events").insert({ user_id: user.id, project_id: project?.id, event_name: "beat_claimed", category: "music", entity_type: "beat", entity_id: beatId });
   revalidatePath("/beats"); revalidatePath("/workspace");
   go("message", "Your development slot is confirmed.");
 }
 
 export async function releaseClaim(formData: FormData) {
-  const { supabase } = await getWorkspace();
-  const { error } = await supabase.rpc("release_beat_claim", { target_beat: read(formData, "beat_id") });
+  const { supabase, user, project } = await getWorkspace();
+  const beatId = read(formData, "beat_id");
+  const { error } = await supabase.rpc("release_beat_claim", { target_beat: beatId });
   if (error) go("error", error.message);
+  await createAdminClient().from("platform_events").insert({ user_id: user.id, project_id: project?.id, event_name: "beat_claim_released", category: "music", entity_type: "beat", entity_id: beatId });
   revalidatePath("/beats"); revalidatePath("/workspace");
   go("message", "Your claim was released.");
 }
@@ -83,6 +113,7 @@ export async function leaveIdea(formData: FormData) {
   const beatId = read(formData, "beat_id");
   const { error } = await supabase.from("comments").insert({ project_id: project.id, entity_type: "beat", entity_id: beatId, user_id: user.id, kind: "idea", body });
   if (error) go("error", error.message);
+  await createAdminClient().from("platform_events").insert({ user_id: user.id, project_id: project.id, event_name: "beat_idea_submitted", category: "collaboration", entity_type: "beat", entity_id: beatId });
   revalidatePath("/beats");
   go("message", "Your idea is now visible to A&R and the Project Lead.");
 }

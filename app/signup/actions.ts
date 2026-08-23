@@ -41,7 +41,7 @@ export async function signup(formData: FormData) {
     email,
     password,
     options: {
-      emailRedirectTo: `${siteUrl}/set-password`,
+      emailRedirectTo: `${siteUrl}/auth/callback?next=/workspace`,
       data: { full_name: fullName, creator_types: creatorTypes, creative_role: creatorTypes[0] },
     },
   });
@@ -60,6 +60,12 @@ export async function signup(formData: FormData) {
     updated_at: new Date().toISOString(),
   }, { onConflict: "id" });
   if (profileError) fail("Your account was created, but the creator profile could not be prepared. Please sign in again.");
+
+  await admin.from("auth_events").insert({
+    user_id: authUser.id,
+    event_name: "signup_completed",
+    metadata: { creator_types: creatorTypes },
+  });
 
   // When Confirm Email is disabled Supabase returns a real session immediately.
   // Keep it and enter the role-aware app. Otherwise provide an honest instruction.

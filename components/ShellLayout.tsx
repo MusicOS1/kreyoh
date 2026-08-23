@@ -29,6 +29,7 @@ import { selectProject } from "../app/projects/actions";
 import { getNavigationForRoles } from "../lib/roleNavigation";
 import ProfileMenu from "./ProfileMenu";
 import AmbientMusicAtmosphere from "./AmbientMusicAtmosphere";
+import PresenceHeartbeat from "./PresenceHeartbeat";
 
 type ShellLayoutProps = {
   userName: string;
@@ -202,6 +203,7 @@ export default function ShellLayout({
 
   return (
     <div className="kreyoh-app-shell">
+      <PresenceHeartbeat projectId={selectedProjectId} />
       {/* Background Atmosphere Layer (Subtle Studio Architectural Depth) */}
       <div className="app-backdrop-atmosphere" aria-hidden="true">
         <div className="backdrop-studio-overlay" />

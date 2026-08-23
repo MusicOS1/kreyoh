@@ -1,5 +1,5 @@
-const CACHE_NAME = "fackts-music-shell-v2";
-const SHELL_ASSETS = ["/", "/login", "/branding/fackts-music-logo.png"];
+const CACHE_NAME = "fackts-music-shell-v3";
+const SHELL_ASSETS = ["/", "/login", "/admin/login", "/branding/fackts-music-logo.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL_ASSETS)));
@@ -15,7 +15,8 @@ self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET" || new URL(request.url).origin !== self.location.origin) return;
   if (request.destination === "document") {
-    event.respondWith(fetch(request).catch(() => caches.match("/login")));
+    const fallback = new URL(request.url).pathname.startsWith("/admin") ? "/admin/login" : "/login";
+    event.respondWith(fetch(request).catch(() => caches.match(fallback)));
     return;
   }
   if (["script", "style", "image", "font"].includes(request.destination)) {
