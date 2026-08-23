@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import AmbientMusicAtmosphere from "../components/AmbientMusicAtmosphere";
-import { FacktsMusicLogo, FacktsMusicMark } from "../components/Branding";
+import { FacktsMusicLogo } from "../components/Branding";
 import { ArrowUpRight, CheckCircleIcon, DiscIcon, MicIcon, MusicIcon, UsersIcon } from "../components/Icons";
 
 const capabilities = [
@@ -62,7 +62,7 @@ export default function PublicHomePage() {
           <div className="public-stage-orbit public-stage-orbit-one" />
           <div className="public-stage-orbit public-stage-orbit-two" />
           <div className="fackts-hero-media">
-            <video className="fackts-hero-video" autoPlay loop muted playsInline preload="metadata" poster="/branding/fackts-music-logo.png" aria-label="Animated FACKTS Music logo">
+            <video className="fackts-hero-video" autoPlay loop muted playsInline preload="auto" poster="/branding/fackts-music-logo.png" aria-label="Animated FACKTS Music premium orbit logo">
               <source src="/branding/fackts-music-premium-orbit.mp4" type="video/mp4" />
             </video>
           </div>
@@ -79,7 +79,7 @@ export default function PublicHomePage() {
       </section>
 
       <section className="public-section public-roles-section" id="built-for">
-        <div className="public-role-visual"><AmbientMusicAtmosphere variant="sessions" /><div className="public-role-ring ring-one" /><div className="public-role-ring ring-two" /><div className="public-role-mark"><FacktsMusicMark size={100} /></div><span className="public-role-orbit-label">THE WHOLE ROOM</span></div>
+        <div className="public-role-visual"><AmbientMusicAtmosphere variant="sessions" /><div className="public-role-ring ring-one" /><div className="public-role-ring ring-two" /><div className="public-role-mark public-role-media"><video autoPlay loop muted playsInline preload="auto" poster="/branding/fackts-music-logo.png" aria-label="Animated FACKTS Music audio reactive logo"><source src="/branding/fackts-music-audio-reactive.mp4" type="video/mp4" /></video></div><span className="public-role-orbit-label">THE WHOLE ROOM</span></div>
         <div className="public-roles-copy"><div className="public-eyebrow">BUILT FOR THE PEOPLE MAKING THE MUSIC</div><h2>Different roles. One project truth.</h2><p>Every participant sees what matters to them, while Project Leads and A&R keep the music moving without turning the process into office software.</p><div className="public-role-list">{roles.map(role => <span key={role}>{role}</span>)}</div></div>
       </section>
 
