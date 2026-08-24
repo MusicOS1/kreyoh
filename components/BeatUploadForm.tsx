@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { addBeat, prepareR2BeatUpload } from "../app/beats/actions";
 
@@ -11,7 +11,9 @@ export default function BeatUploadForm({ defaultCapacity }: { defaultCapacity: n
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
-  async function submit(formData: FormData) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
     setBusy(true); setError(""); setMessage("");
     try {
       const file = formData.get("audio_file");
@@ -46,7 +48,7 @@ export default function BeatUploadForm({ defaultCapacity }: { defaultCapacity: n
     }
   }
 
-  return <form ref={formRef} action={submit} className="panel beat-registration-form">
+  return <form ref={formRef} onSubmit={submit} className="panel beat-registration-form">
     {error && <div className="form-error-alert wide" role="alert">{error}</div>}
     {message && <div className="form-success-alert wide" role="status">{message}</div>}
     <label>Title *<input className="dark-input" name="title" required /></label><label>Producer credit<input className="dark-input" name="producer_name" /></label><label>Beat code<input className="dark-input" name="beat_code" placeholder="Generated if blank" /></label><label>Audio file<input className="dark-input" name="audio_file" type="file" accept="audio/*" /></label>

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { signOut } from "../app/actions";
 import {
   BellIcon,
   ChevronDown,
@@ -25,6 +24,7 @@ type ProfileMenuProps = {
   email?: string | null;
   roles: string[];
   avatarUrl?: string | null;
+  canAccessControlRoom?: boolean;
 };
 
 function initialsFor(name: string) {
@@ -52,6 +52,7 @@ export default function ProfileMenu({
   email,
   roles,
   avatarUrl,
+  canAccessControlRoom = false,
 }: ProfileMenuProps) {
   const [open, setOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -165,6 +166,12 @@ export default function ProfileMenu({
           </div>
 
           <div className="profile-menu-section">
+            {canAccessControlRoom && (
+              <Link href="/admin" className="profile-menu-link" role="menuitem" onClick={() => setOpen(false)}>
+                <SettingsIcon size={15} />
+                <span><strong>Open Control Room</strong><small>Private FACKTS Music management</small></span>
+              </Link>
+            )}
             <Link href="/settings" className="profile-menu-link" role="menuitem" onClick={() => setOpen(false)}>
               <UserIcon size={15} />
               <span><strong>View / Edit Profile</strong><small>Personal identity and contact details</small></span>
@@ -220,10 +227,8 @@ export default function ProfileMenu({
           </div>
 
           <div className="profile-menu-footer">
-            <form action={signOut}>
-              <button type="submit" className="profile-menu-signout">
-                <LogOutIcon size={15} /> Sign out of FACKTS Music
-              </button>
+            <form action="/auth/signout" method="post">
+              <button type="submit" className="profile-menu-signout"><LogOutIcon size={15} /> Sign out of FACKTS Music</button>
             </form>
           </div>
         </div>

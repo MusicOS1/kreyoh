@@ -164,6 +164,8 @@ export default async function WorkspacePage() {
     pipelineResult,
     featuredTracksResult,
     featuredTrackAssetsResult,
+    beatArtworkKeysResult,
+    trackArtworkKeysResult,
     peoplePreviewResult,
   ] = await Promise.all([
     /*
@@ -317,6 +319,7 @@ export default async function WorkspacePage() {
         storage_key,
         playback_url,
         audio_path,
+        artwork_url,
 
         beat_interest (
           id
@@ -381,6 +384,17 @@ export default async function WorkspacePage() {
       .eq("entity_type", "track")
       .order("created_at", { ascending: false })
       .limit(24),
+
+    /* Optional private artwork fields added by the catalogue migration. */
+    admin
+      .from("beats")
+      .select("id,artwork_storage_key")
+      .eq("project_id", project.id),
+
+    admin
+      .from("tracks")
+      .select("id,artwork_url,artwork_storage_key")
+      .eq("project_id", project.id),
 
     /*
      * PEOPLE PREVIEW
@@ -489,6 +503,37 @@ export default async function WorkspacePage() {
       }
     })
   );
+
+  const beatArtworkKeys = new Map(
+    (beatArtworkKeysResult.data ?? []).map((item: any) => [
+      item.id,
+      item.artwork_storage_key,
+    ])
+  );
+  const trackArtworkRows = new Map(
+    (trackArtworkKeysResult.data ?? []).map((item: any) => [item.id, item])
+  );
+  const featuredBeatArtwork: Record<string, string> = {};
+  const featuredTrackArtwork: Record<string, string> = {};
+
+  await Promise.all([
+    ...pipeline.map(async (beat: any) => {
+      if (beat.artwork_url) featuredBeatArtwork[beat.id] = beat.artwork_url;
+      const key = beatArtworkKeys.get(beat.id);
+      if (!key || !isR2Configured()) return;
+      try {
+        featuredBeatArtwork[beat.id] = await createR2PresignedUrl("GET", String(key), 3600);
+      } catch { /* keep the visual placeholder */ }
+    }),
+    ...(featuredTracksResult.data ?? []).map(async (track: any) => {
+      const artwork = trackArtworkRows.get(track.id);
+      if (artwork?.artwork_url) featuredTrackArtwork[track.id] = artwork.artwork_url;
+      if (!artwork?.artwork_storage_key || !isR2Configured()) return;
+      try {
+        featuredTrackArtwork[track.id] = await createR2PresignedUrl("GET", artwork.artwork_storage_key, 3600);
+      } catch { /* keep the visual placeholder */ }
+    }),
+  ]);
 
   const featuredTracks =
     featuredTracksResult.data ?? [];
@@ -956,7 +1001,12 @@ export default async function WorkspacePage() {
                       <div
                         className={`creative-beat-art creative-beat-art-${
                           (index % 4) + 1
-                        }`}
+                        }${featuredBeatArtwork[beat.id] ? " has-artwork" : ""}`}
+                        style={featuredBeatArtwork[beat.id] ? {
+                          backgroundImage: `linear-gradient(180deg, rgba(3, 9, 18, .05), rgba(3, 9, 18, .62)), url("${featuredBeatArtwork[beat.id]}")`,
+                          backgroundPosition: "center",
+                          backgroundSize: "cover",
+                        } : undefined}
                       >
                         <span className="creative-beat-number">
                           {String(
@@ -1047,6 +1097,14 @@ export default async function WorkspacePage() {
                             Audio source not attached
                           </span>
                         )}
+
+                        <Link
+                          href={`/beats#beat-${beat.id}`}
+                          className="workspace-card-open"
+                        >
+                          View beat details
+                          <ArrowUpRight size={12} />
+                        </Link>
                       </div>
                     </article>
                   );
@@ -1123,7 +1181,12 @@ export default async function WorkspacePage() {
                     <div
                       className={`creative-beat-art creative-beat-art-${
                         (index % 4) + 1
-                      }`}
+                      }${featuredTrackArtwork[track.id] ? " has-artwork" : ""}`}
+                      style={featuredTrackArtwork[track.id] ? {
+                        backgroundImage: `linear-gradient(180deg, rgba(3, 9, 18, .04), rgba(3, 9, 18, .64)), url("${featuredTrackArtwork[track.id]}")`,
+                        backgroundPosition: "center",
+                        backgroundSize: "cover",
+                      } : undefined}
                     >
                       <span className="creative-beat-number">
                         {String(index + 1).padStart(2, "0")}
@@ -1199,6 +1262,14 @@ export default async function WorkspacePage() {
                           Audio version not attached
                         </span>
                       )}
+
+                      <Link
+                        href={`/tracks#track-${track.id}`}
+                        className="workspace-card-open"
+                      >
+                        View track details
+                        <ArrowUpRight size={12} />
+                      </Link>
                     </div>
                   </article>
                 );

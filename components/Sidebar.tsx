@@ -17,7 +17,6 @@ import {
   LogOutIcon,
 } from "./Icons";
 import { KreyohLogo } from "./Branding";
-import { signOut } from "../app/actions";
 
 const items = [
   { label: "Workspace", href: "/workspace", icon: HomeIcon },
@@ -113,15 +112,8 @@ export default function Sidebar({
               <span className="user-role-badge">{primaryRole}</span>
             </div>
 
-            <form action={signOut} className="user-signout-form">
-              <button
-                type="submit"
-                className="quick-signout-btn"
-                title="Sign Out"
-                aria-label="Sign Out"
-              >
-                <LogOutIcon size={14} />
-              </button>
+            <form action="/auth/signout" method="post" className="user-signout-form">
+              <button type="submit" className="quick-signout-btn" title="Sign Out" aria-label="Sign Out"><LogOutIcon size={14} /></button>
             </form>
           </div>
         </div>

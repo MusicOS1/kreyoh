@@ -621,3 +621,43 @@ html{scroll-behavior:smooth}.public-workflow-section{scroll-margin-top:88px}
 /* Track intake, selectable credits and workspace track discovery. */
 .track-intake-disclosure{margin-bottom:18px}.track-intake-disclosure .track-intake-form{margin:0;border-top:0;border-radius:0 0 14px 14px}.track-intake-form{display:grid;gap:18px;padding:clamp(18px,2.6vw,28px)}.track-intake-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.track-intake-grid label{display:grid;align-content:start;gap:7px;min-width:0;color:var(--theme-text-soft);font-size:10px;font-weight:800}.track-intake-grid input,.track-intake-grid select,.track-credit-row select{width:100%;min-width:0;min-height:43px;padding:10px 12px;border:1px solid var(--theme-border);border-radius:10px;background:var(--theme-surface-muted);color:var(--theme-text);font:inherit}.track-intake-grid input:focus,.track-intake-grid select:focus,.track-credit-row select:focus{outline:none;border-color:var(--theme-gold);box-shadow:0 0 0 3px var(--theme-gold-soft)}.track-intake-grid small{color:var(--theme-text-muted);font-weight:500;line-height:1.45}.track-credit-editor{padding:16px;border:1px solid var(--theme-border);border-radius:14px;background:var(--theme-surface-soft)}.track-credit-heading{display:flex;align-items:center;justify-content:space-between;gap:14px}.track-credit-heading h3{margin:5px 0 0;font-size:18px}.track-credit-add,.track-credit-row button,.track-intake-submit{border:0;border-radius:10px;font-weight:900;cursor:pointer}.track-credit-add{min-height:38px;padding:8px 12px;background:var(--theme-primary-soft);color:var(--theme-blue)}.track-credit-rows{display:grid;gap:8px;margin-top:14px}.track-credit-row{display:grid;grid-template-columns:30px minmax(0,1.15fr) minmax(0,.85fr) auto;align-items:center;gap:8px;min-width:0}.track-credit-row>span{color:var(--theme-gold);font-size:9px;font-weight:900}.track-credit-row button{min-height:38px;padding:8px 11px;border:1px solid var(--theme-border);background:transparent;color:var(--theme-text-soft)}.track-credit-row button:disabled{opacity:.35;cursor:not-allowed}.track-intake-submit{justify-self:start;min-height:46px;padding:10px 18px;background:var(--fackts-gold);color:#080b10;box-shadow:0 12px 28px rgba(245,165,36,.18)}.featured-track-credits{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}.featured-track-credits span{padding:5px 8px;border:1px solid var(--theme-border);border-radius:999px;background:var(--theme-surface-soft);color:var(--theme-text-muted);font-size:9px;text-transform:capitalize}.featured-track-card .creative-beat-art{background-image:radial-gradient(circle at 72% 30%,rgba(245,165,36,.18),transparent 32%),linear-gradient(145deg,var(--theme-surface-muted),var(--theme-surface))}
 @media(max-width:720px){.track-intake-grid{grid-template-columns:1fr}.track-credit-row{grid-template-columns:24px minmax(0,1fr);padding-bottom:10px;border-bottom:1px solid var(--theme-border)}.track-credit-row select,.track-credit-row button{grid-column:2}.track-credit-heading{align-items:flex-start}.track-intake-submit{width:100%}}
+
+/* ========================================================================
+   FACKTS MUSIC — COMPACT MUSIC SHELVES + CATALOGUE ARTWORK
+   Workspace cards stay quick on phones; full detail remains in the library.
+   ======================================================================== */
+
+.workspace-card-open{display:inline-flex;align-items:center;justify-content:space-between;gap:8px;width:100%;margin-top:12px;padding-top:10px;border-top:1px solid var(--theme-border);color:var(--theme-gold);font-size:10px;font-weight:900;letter-spacing:.04em;text-decoration:none}
+.workspace-card-open:hover{color:var(--theme-text)}
+.creative-beat-art.has-artwork::before,.beat-card-artwork.has-artwork::before{background:linear-gradient(180deg,rgba(3,9,18,.02),rgba(3,9,18,.42))}
+.creative-beat-art.has-artwork .creative-beat-number,.creative-beat-art.has-artwork .creative-beat-source,.beat-card-artwork.has-artwork .beat-artwork-index{color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.75)}
+.fackts-beat-card,.track-development-card{scroll-margin-top:96px}
+.track-catalog-artwork{width:100%;height:190px;margin:-2px 0 20px;border:1px solid var(--theme-border);border-radius:15px;background-position:center;background-size:cover;box-shadow:inset 0 -30px 70px rgba(0,0,0,.28)}
+
+@media(max-width:760px){
+  .creative-home>.creative-section{padding:15px!important;border-radius:19px!important}
+  .creative-home>.creative-section .creative-section-heading{display:flex;flex-direction:row;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:13px}
+  .creative-home>.creative-section .creative-section-heading h2{font-size:22px;line-height:1.05}
+  .creative-home>.creative-section .creative-section-link{flex:0 0 auto;font-size:9px}
+
+  .creative-home .featured-beats-grid{display:flex!important;grid-template-columns:none!important;gap:10px;max-width:100%;padding:1px 1px 8px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:thin;overscroll-behavior-inline:contain}
+  .creative-home .featured-beats-grid .creative-beat-card{display:flex;flex:0 0 158px;width:158px;min-width:158px;max-width:158px;min-height:0;flex-direction:column;scroll-snap-align:start;border-radius:14px!important}
+  .creative-home .featured-beats-grid .creative-beat-art{height:92px;min-height:92px;padding:11px}
+  .creative-home .featured-beats-grid .creative-beat-number{font-size:26px;line-height:1}
+  .creative-home .featured-beats-grid .creative-waveform{transform:scale(.68);transform-origin:center}
+  .creative-home .featured-beats-grid .creative-beat-source{font-size:7px;max-width:85px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .creative-home .featured-beats-grid .creative-beat-copy{display:flex;flex:1;flex-direction:column;padding:11px}
+  .creative-home .featured-beats-grid .creative-beat-title-row{display:grid;gap:6px}
+  .creative-home .featured-beats-grid .beat-code-chip{width:max-content;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:7px}
+  .creative-home .featured-beats-grid .status-pill{width:max-content;max-width:100%;padding:4px 7px;font-size:7px}
+  .creative-home .featured-beats-grid .creative-beat-copy h3{display:-webkit-box;margin:9px 0 4px;overflow:hidden;font-size:16px;line-height:1.08;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+  .creative-home .featured-beats-grid .creative-beat-copy>p{margin:0;overflow:hidden;color:var(--theme-text-muted);font-size:9px;line-height:1.35;text-overflow:ellipsis;white-space:nowrap}
+  .creative-home .featured-beats-grid .creative-beat-meta,.creative-home .featured-beats-grid .featured-track-credits,.creative-home .featured-beats-grid .fackts-audio-player,.creative-home .featured-beats-grid .creative-inline-link,.creative-home .featured-beats-grid .creative-muted-link{display:none!important}
+  .creative-home .featured-beats-grid .workspace-card-open{margin-top:auto;padding-top:9px;font-size:8px}
+  .track-catalog-artwork{height:128px;margin-bottom:15px;border-radius:12px}
+}
+
+@media(max-width:380px){
+  .creative-home .featured-beats-grid .creative-beat-card{flex-basis:146px;width:146px;min-width:146px;max-width:146px}
+  .creative-home>.creative-section .creative-section-heading{align-items:flex-start;flex-direction:column;gap:6px}
+}

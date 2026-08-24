@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { prepareTrackUpload, saveTrackAsset } from "../app/tracks/actions";
 
@@ -11,7 +11,9 @@ export default function TrackUploadForm({ trackId }: { trackId: string }) {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
-  async function submit(formData: FormData) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
     setBusy(true);
     setError("");
     setMessage("");
@@ -63,7 +65,7 @@ export default function TrackUploadForm({ trackId }: { trackId: string }) {
   }
 
   return (
-    <form ref={formRef} action={submit} className="track-upload-form">
+    <form ref={formRef} onSubmit={submit} className="track-upload-form">
       <div className="track-upload-fields">
         <label>
           File type

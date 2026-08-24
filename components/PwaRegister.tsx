@@ -14,7 +14,10 @@ export default function PwaRegister() {
       theme.content = adminSurface ? "#f3ecdf" : "#06101f";
     }
 
-    if ("serviceWorker" in navigator) {
+    if ("serviceWorker" in navigator && process.env.NODE_ENV !== "production") {
+      navigator.serviceWorker.getRegistrations().then((items) => items.forEach((item) => item.unregister()));
+      if ("caches" in window) caches.keys().then((keys) => keys.forEach((key) => caches.delete(key)));
+    } else if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js").catch(() => {
         // Installation is progressive enhancement; auth and app navigation remain unaffected.
       });

@@ -24,7 +24,6 @@ import {
   SparklesIcon,
 } from "./Icons";
 import { KreyohMark, KreyohLogo } from "./Branding";
-import { signOut } from "../app/actions";
 import { selectProject } from "../app/projects/actions";
 import { getNavigationForRoles } from "../lib/roleNavigation";
 import ProfileMenu from "./ProfileMenu";
@@ -44,6 +43,7 @@ type ShellLayoutProps = {
   userEmail?: string | null;
   stageName?: string | null;
   avatarUrl?: string | null;
+  canAccessControlRoom?: boolean;
   children: React.ReactNode;
 };
 
@@ -60,6 +60,7 @@ export default function ShellLayout({
   userEmail,
   stageName,
   avatarUrl,
+  canAccessControlRoom = false,
   children,
 }: ShellLayoutProps) {
   const pathname = usePathname();
@@ -186,13 +187,8 @@ export default function ShellLayout({
             <span className="user-role-badge">{primaryRole}</span>
           </div>
           
-          <form action={signOut} className="user-signout-form">
-            <button
-              type="submit"
-              className="quick-signout-btn"
-              title="Sign Out"
-              aria-label="Sign Out"
-            >
+          <form action="/auth/signout" method="post" className="user-signout-form">
+            <button type="submit" className="quick-signout-btn" title="Sign Out" aria-label="Sign Out">
               <LogOutIcon size={14} />
             </button>
           </form>
@@ -276,6 +272,7 @@ export default function ShellLayout({
               email={userEmail}
               roles={roles}
               avatarUrl={avatarUrl}
+              canAccessControlRoom={canAccessControlRoom}
             />
           </div>
         </header>

@@ -26,7 +26,7 @@ export default async function BeatsPage({ searchParams }: { searchParams: Promis
   }
 
   const beatIds = (beatRows ?? []).map((beat: any) => beat.id);
-  const [claimsResult, commentsResult] = beatIds.length
+  const [claimsResult, commentsResult, creditsResult] = beatIds.length
     ? await Promise.all([
         admin
           .from("beat_claims")
@@ -38,18 +38,24 @@ export default async function BeatsPage({ searchParams }: { searchParams: Promis
           .eq("project_id", project.id)
           .eq("entity_type", "beat")
           .in("entity_id", beatIds),
+        admin
+          .from("beat_contributors")
+          .select("id,beat_id,user_id,contribution_role,profiles(full_name,stage_name)")
+          .in("beat_id", beatIds),
       ])
-    : [{ data: [] }, { data: [] }];
+    : [{ data: [] }, { data: [] }, { data: [] }];
 
   const beats = (beatRows ?? []).map((beat: any) => ({
     ...beat,
     beat_claims: (claimsResult.data ?? []).filter((claim: any) => claim.beat_id === beat.id),
     comments: (commentsResult.data ?? []).filter((comment: any) => comment.entity_id === beat.id),
+    contributors: (creditsResult.data ?? []).filter((credit: any) => credit.beat_id === beat.id),
   }));
   const canUpload = hasAnyRole(roles, ["Super Admin", "Project Lead", "A&R", "Producer"]);
   const canManage = hasAnyRole(roles, ["Super Admin", "Project Lead", "A&R"]);
   const isArtist = roles.includes("Artist");
   const audioUrls: Record<string, string> = {};
+  const artworkUrls: Record<string, string> = {};
   await Promise.all(beats.map(async (beat: any) => {
     try {
       if (beat.storage_provider === "r2" && beat.storage_key && isR2Configured()) {
@@ -57,6 +63,11 @@ export default async function BeatsPage({ searchParams }: { searchParams: Promis
       } else if (beat.audio_path) {
         const { data } = await admin.storage.from("beat-audio").createSignedUrl(beat.audio_path, 3600);
         if (data?.signedUrl) audioUrls[beat.id] = data.signedUrl;
+      }
+
+      if (beat.artwork_url) artworkUrls[beat.id] = beat.artwork_url;
+      if (beat.artwork_storage_key && isR2Configured()) {
+        artworkUrls[beat.id] = await createR2PresignedUrl("GET", beat.artwork_storage_key, 3600);
       }
     } catch (cause) {
       console.error(
@@ -80,9 +91,17 @@ export default async function BeatsPage({ searchParams }: { searchParams: Promis
         const full = claims.length >= capacity;
         const mine = claims.find((claim: any) => claim.artist_id === user.id);
         const source = audioUrls[beat.id] || beat.external_url;
-        return <article className="beat-card-deck fackts-beat-card" key={beat.id}>
-          <div className="beat-card-artwork" style={beat.artwork_url ? { backgroundImage: `url(${beat.artwork_url})` } : undefined}><span className="beat-artwork-index">{beat.beat_code}</span><div className="beat-artwork-wave"><i /><i /><i /><i /><i /><i /></div></div>
+        return <article className="beat-card-deck fackts-beat-card" id={`beat-${beat.id}`} key={beat.id}>
+          <div
+            className={`beat-card-artwork${artworkUrls[beat.id] ? " has-artwork" : ""}`}
+            style={artworkUrls[beat.id] ? {
+              backgroundImage: `linear-gradient(180deg, rgba(3, 9, 18, .04), rgba(3, 9, 18, .58)), url("${artworkUrls[beat.id]}")`,
+              backgroundPosition: "center",
+              backgroundSize: "cover",
+            } : undefined}
+          ><span className="beat-artwork-index">{beat.beat_code}</span><div className="beat-artwork-wave"><i /><i /><i /><i /><i /><i /></div></div>
           <div className="beat-card-top-row"><div className="beat-card-identity"><span className="beat-code-chip">{beat.source_type || "manual"}</span><h3 className="beat-card-title">{beat.title || "Untitled beat"}</h3><span className="beat-card-producer">by <strong>{beat.producer_name || "Uncredited producer"}</strong></span></div><span className={`status-pill ${String(beat.status).replaceAll(" ", "-")}`}>{full ? "Full" : beat.status}</span></div>
+          {!!beat.contributors?.length && <div className="contributor-row">{beat.contributors.map((credit: any) => { const profile = Array.isArray(credit.profiles) ? credit.profiles[0] : credit.profiles; return <span key={credit.id}>{profile?.stage_name || profile?.full_name || "Contributor"} · {String(credit.contribution_role).replaceAll("_", " ")}</span>; })}</div>}
           {source ? <BeatAudioPlayer beatId={beat.id} src={source} /> : <div className="beat-audio-deck"><PlayIcon size={16} /><span>Audio source not attached</span></div>}
           <div className="beat-tags">{beat.bpm && <span>{beat.bpm} BPM</span>}{beat.musical_key && <span>{beat.musical_key}</span>}{(beat.genre_tags || []).map((tag: string) => <span key={tag}>{tag}</span>)}</div>
           {beat.description && <p className="beat-description">{beat.description}</p>}

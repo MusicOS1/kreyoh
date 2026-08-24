@@ -91,9 +91,10 @@ export default async function TracksPage() {
   });
 
   const assetAudioUrls: Record<string, string> = {};
+  const artworkUrls: Record<string, string> = {};
   if (isR2Configured()) {
-    await Promise.all(
-      (assetsResult.data ?? []).map(async (asset: any) => {
+    await Promise.all([
+      ...(assetsResult.data ?? []).map(async (asset: any) => {
         if (asset.bucket_id !== "r2" || !asset.storage_path || !asset.mime_type?.startsWith("audio/")) return;
         try {
           assetAudioUrls[asset.id] = await createR2PresignedUrl("GET", asset.storage_path, 3600);
@@ -104,7 +105,23 @@ export default async function TracksPage() {
           );
         }
       }),
-    );
+      ...tracks.map(async (track: any) => {
+        if (track.artwork_url) artworkUrls[track.id] = track.artwork_url;
+        if (!track.artwork_storage_key) return;
+        try {
+          artworkUrls[track.id] = await createR2PresignedUrl("GET", track.artwork_storage_key, 3600);
+        } catch (cause) {
+          console.error(
+            `FACKTS MUSIC TRACK ARTWORK ERROR (${track.id}):`,
+            cause instanceof Error ? cause.message : cause,
+          );
+        }
+      }),
+    ]);
+  } else {
+    tracks.forEach((track: any) => {
+      if (track.artwork_url) artworkUrls[track.id] = track.artwork_url;
+    });
   }
 
   return (
@@ -142,7 +159,16 @@ export default async function TracksPage() {
           {tracks.map((track: any) => {
             const beat = Array.isArray(track.beats) ? track.beats[0] : track.beats;
             return (
-              <article className="panel track-development-card" key={track.id}>
+              <article className="panel track-development-card" id={`track-${track.id}`} key={track.id}>
+                {artworkUrls[track.id] && (
+                  <div
+                    className="track-catalog-artwork"
+                    style={{
+                      backgroundImage: `linear-gradient(90deg, rgba(3, 9, 18, .12), rgba(3, 9, 18, .7)), url("${artworkUrls[track.id]}")`,
+                    }}
+                    aria-label={`${track.working_title || "Track"} cover image`}
+                  />
+                )}
                 <div className="track-card-heading">
                   <div>
                     <span className="eyebrow">{track.track_code || "TRACK"} · {beat?.beat_code || "SOURCE BEAT"}</span>

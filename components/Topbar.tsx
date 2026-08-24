@@ -1,7 +1,6 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { signOut } from "../app/actions";
 import { SearchIcon, BellIcon, PlusIcon } from "./Icons";
 
 export default function Topbar({
@@ -62,14 +61,8 @@ export default function Topbar({
           </div>
         </div>
 
-        <form action={signOut} className="topbar-signout-form">
-          <button
-            className="topbar-logout-btn"
-            type="submit"
-            title="Sign out of FACKTS Music"
-          >
-            Sign out
-          </button>
+        <form action="/auth/signout" method="post" className="topbar-signout-form">
+          <button className="topbar-logout-btn" type="submit" title="Sign out of FACKTS Music">Sign out</button>
         </form>
       </div>
     </header>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   discardTrackIntake,
@@ -71,7 +71,9 @@ export default function TrackIntakeForm({
     );
   }
 
-  async function submit(formData: FormData) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
     setBusy(true);
     setError("");
     setMessage("");
@@ -153,7 +155,7 @@ export default function TrackIntakeForm({
   }
 
   return (
-    <form action={submit} className="panel track-intake-form">
+    <form onSubmit={submit} className="panel track-intake-form">
       <div className="track-intake-grid">
         <label>
           Track title *

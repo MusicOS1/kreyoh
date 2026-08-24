@@ -1,5 +1,6 @@
 import ShellLayout from "./ShellLayout";
 import { getWorkspace } from "../lib/workspace";
+import { isControlRoomUser } from "../lib/controlRoom";
 
 const ROLE_PRIORITY = [
   "Super Admin",
@@ -43,6 +44,7 @@ export default async function AppShell({
 
   const orderedRoles =
     orderRoles(roles);
+  const canAccessControlRoom = await isControlRoomUser(user.id);
 
   const userName =
     profile?.stage_name ||
@@ -83,6 +85,7 @@ export default async function AppShell({
       avatarUrl={
         profile?.avatar_url
       }
+      canAccessControlRoom={canAccessControlRoom}
     >
       {children}
     </ShellLayout>
