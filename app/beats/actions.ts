@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "../../lib/supabase/admin";
 import { getWorkspace, hasAnyRole } from "../../lib/workspace";
-import { assertR2BucketAccess, createR2PresignedUrl, isR2Configured, r2PublicUrl } from "../../lib/r2";
+import { assertR2BucketAccess, assertR2ObjectAccess, createR2PresignedUrl, isR2Configured, r2PublicUrl } from "../../lib/r2";
 
 const read = (fd: FormData, key: string) => String(fd.get(key) || "").trim();
 const go = (kind: "message" | "error", message: string): never => redirect(`/beats?${kind}=${encodeURIComponent(message)}`);
@@ -27,23 +27,26 @@ export async function prepareR2BeatUpload(formData: FormData) {
 
 export async function addBeat(formData: FormData) {
   const { supabase, user, project, roles, membership } = await getWorkspace();
-  if (!project || !membership) go("error", "You need active project access.");
-  if (!hasAnyRole(roles, ["Super Admin", "Project Lead", "A&R", "Producer"])) go("error", "Your project role cannot upload beats.");
+  if (!project || !membership) throw new Error("You need active project access.");
+  if (!hasAnyRole(roles, ["Super Admin", "Project Lead", "A&R", "Producer"])) throw new Error("Your project role cannot upload beats.");
 
   const title = read(formData, "title");
-  if (!title) go("error", "Give the beat a title.");
+  if (!title) throw new Error("Give the beat a title.");
   const storageProvider = read(formData, "storage_provider");
   const storageKey = read(formData, "storage_key");
   const playbackUrl = read(formData, "playback_url");
+  if (storageProvider === "r2" && storageKey) {
+    await assertR2ObjectAccess(storageKey);
+  }
   const audio = formData.get("audio_file");
   let audioPath: string | null = null;
   if (!storageKey && audio instanceof File && audio.size > 0) {
-    if (audio.size > 100 * 1024 * 1024) go("error", "Audio files must be smaller than 100 MB.");
-    if (!audio.type.startsWith("audio/")) go("error", "Choose a valid audio file.");
+    if (audio.size > 100 * 1024 * 1024) throw new Error("Audio files must be smaller than 100 MB.");
+    if (!audio.type.startsWith("audio/")) throw new Error("Choose a valid audio file.");
     const safeName = audio.name.replace(/[^a-zA-Z0-9._-]/g, "-");
     audioPath = `${project.id}/${crypto.randomUUID()}-${safeName}`;
     const { error } = await supabase.storage.from("beat-audio").upload(audioPath, audio, { contentType: audio.type, upsert: false });
-    if (error) go("error", `Audio upload failed: ${error.message}`);
+    if (error) throw new Error(`Audio upload failed: ${error.message}`);
   }
 
   const genreTags = read(formData, "genre_tags").split(",").map(v => v.trim()).filter(Boolean);
@@ -78,12 +81,12 @@ export async function addBeat(formData: FormData) {
   }).select("id").single();
   if (error) {
     if (audioPath) await supabase.storage.from("beat-audio").remove([audioPath]);
-    go("error", error.message);
+    throw new Error(error.message);
   }
   await supabase.from("activity_log").insert({ project_id: project.id, user_id: user.id, action: `added ${title} to the Beat Library`, entity_type: "beat", entity_id: beat!.id });
   await createAdminClient().from("platform_events").insert({ user_id: user.id, project_id: project.id, event_name: "beat_uploaded", category: "music", entity_type: "beat", entity_id: beat!.id, metadata: { storage_provider: storageProvider || (audioPath ? "supabase" : "external") } });
   revalidatePath("/beats"); revalidatePath("/workspace");
-  go("message", "Beat added to the library.");
+  return { ok: true, beatId: beat!.id, message: "Beat added to the library." };
 }
 
 export async function claimBeat(formData: FormData) {

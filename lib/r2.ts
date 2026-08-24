@@ -3,6 +3,7 @@ import "server-only";
 import {
   GetObjectCommand,
   HeadBucketCommand,
+  HeadObjectCommand,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
@@ -74,6 +75,22 @@ export async function assertR2BucketAccess() {
     }
     throw new Error(
       "Cloudflare rejected the R2 credentials. Use the R2 S3 Access Key ID and Secret Access Key from Manage R2 API Tokens, then restart or redeploy the app.",
+    );
+  }
+}
+
+export async function assertR2ObjectAccess(key: string) {
+  const config = readR2Config();
+  try {
+    return await createR2Client(config).send(
+      new HeadObjectCommand({
+        Bucket: config.bucket,
+        Key: key,
+      }),
+    );
+  } catch {
+    throw new Error(
+      "The audio transfer did not finish in Cloudflare R2. Please choose the file and upload it again.",
     );
   }
 }

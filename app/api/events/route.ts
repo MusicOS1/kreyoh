@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "../../../lib/supabase/server";
 import { createAdminClient } from "../../../lib/supabase/admin";
 
-const allowed = new Set(["beat_played"]);
+const allowed = new Set(["beat_played", "track_file_played"]);
 export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

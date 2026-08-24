@@ -56,38 +56,53 @@ export default async function PeoplePage() {
 
   const canAddPeople = roles.some((role) => ["Super Admin", "Project Lead", "Admin"].includes(role));
 
-  // Query project members
-  const { data: members } = await supabase
-    .from("project_members")
-    .select(`
-      id,
-      status,
-      joined_at,
-      profiles (
+  const [membersResult, directoryResult, requestsResult] = await Promise.all([
+    supabase
+      .from("project_members")
+      .select(`
         id,
-        full_name,
-        stage_name,
-        email,
-        phone,
-        avatar_url
-      ),
-      member_roles (
-        roles (
-          name
+        status,
+        joined_at,
+        profiles (
+          id,
+          full_name,
+          stage_name,
+          email,
+          phone,
+          avatar_url
+        ),
+        member_roles (
+          roles (
+            name
+          )
         )
-      )
-    `)
-    .eq("project_id", project.id)
-    .neq("status", "removed")
-    .order("joined_at", { ascending: true });
+      `)
+      .eq("project_id", project.id)
+      .neq("status", "removed")
+      .order("joined_at", { ascending: true }),
+    canAddPeople
+      ? admin
+          .from("profiles")
+          .select("id,full_name,stage_name,creator_types,avatar_url")
+          .eq("account_status", "active")
+          .order("full_name")
+          .limit(100)
+      : Promise.resolve({ data: [] }),
+    canAddPeople
+      ? admin
+          .from("project_join_requests")
+          .select("id,status,message,created_at,profiles(full_name,stage_name,email,creator_types)")
+          .eq("project_id", project.id)
+          .eq("status", "pending")
+          .order("created_at", { ascending: true })
+      : Promise.resolve({ data: [] }),
+  ]);
 
-  const roster = members ?? [];
+  const roster = membersResult.data ?? [];
   const memberIds = new Set(roster.filter((member:any)=>member.status==="active").map((member:any)=>first(member.profiles)?.id));
-  const {data:directory=[]}=canAddPeople?await admin.from("profiles").select("id,full_name,stage_name,creator_types,avatar_url").eq("account_status","active").order("full_name").limit(100):{data:[]};
+  const directory = directoryResult.data ?? [];
   const availableProfiles=(directory||[]).filter((profile:any)=>!memberIds.has(profile.id));
-  const { data: joinRequests = [] } = canAddPeople ? await admin.from("project_join_requests")
-    .select("id,status,message,created_at,profiles(full_name,stage_name,email,creator_types)")
-    .eq("project_id", project.id).eq("status", "pending").order("created_at", { ascending: true }) : { data: [] };
+  const joinRequests = requestsResult.data ?? [];
 
   // Breakdown counts
   const totalCount = roster.length;

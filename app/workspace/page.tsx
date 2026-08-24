@@ -3,9 +3,11 @@ import Link from "next/link";
 
 import AppShell from "../../components/AppShell";
 import AmbientMusicAtmosphere from "../../components/AmbientMusicAtmosphere";
+import BeatAudioPlayer from "../../components/BeatAudioPlayer";
 
 import { getWorkspace } from "../../lib/workspace";
 import { createAdminClient } from "../../lib/supabase/admin";
+import { createR2PresignedUrl, isR2Configured } from "../../lib/r2";
 
 import {
   ActivityIcon,
@@ -160,6 +162,8 @@ export default async function WorkspacePage() {
     myInterestResult,
     activityResult,
     pipelineResult,
+    featuredTracksResult,
+    featuredTrackAssetsResult,
     peoplePreviewResult,
   ] = await Promise.all([
     /*
@@ -308,6 +312,11 @@ export default async function WorkspacePage() {
         writing_deadline,
         external_url,
         source_provider,
+        source_type,
+        storage_provider,
+        storage_key,
+        playback_url,
+        audio_path,
 
         beat_interest (
           id
@@ -328,6 +337,50 @@ export default async function WorkspacePage() {
         }
       )
       .limit(5),
+
+    /*
+     * FEATURED TRACKS
+     */
+    admin
+      .from("tracks")
+      .select(`
+        id,
+        track_code,
+        working_title,
+        status,
+        development_status,
+        created_at,
+
+        beats (
+          id,
+          beat_code,
+          title,
+          producer_name
+        ),
+
+        track_contributors (
+          id,
+          contribution_role,
+          profiles (
+            full_name,
+            stage_name
+          )
+        )
+      `)
+      .eq("project_id", project.id)
+      .order("created_at", { ascending: false })
+      .limit(4),
+
+    /*
+     * RECENT TRACK AUDIO / VERSIONS
+     */
+    admin
+      .from("project_assets")
+      .select("id,entity_id,bucket_id,storage_path,file_name,mime_type,asset_kind,created_at")
+      .eq("project_id", project.id)
+      .eq("entity_type", "track")
+      .order("created_at", { ascending: false })
+      .limit(24),
 
     /*
      * PEOPLE PREVIEW
@@ -395,6 +448,101 @@ export default async function WorkspacePage() {
 
   const pipeline =
     pipelineResult.data ?? [];
+
+  const featuredBeatAudio: Record<string, string> = {};
+
+  await Promise.all(
+    pipeline.map(async (beat: any) => {
+      try {
+        if (
+          beat.storage_provider === "r2" &&
+          beat.storage_key &&
+          isR2Configured()
+        ) {
+          featuredBeatAudio[beat.id] =
+            beat.playback_url ||
+            (await createR2PresignedUrl(
+              "GET",
+              beat.storage_key,
+              3600
+            ));
+        } else if (beat.audio_path) {
+          const { data } = await admin.storage
+            .from("beat-audio")
+            .createSignedUrl(
+              beat.audio_path,
+              3600
+            );
+
+          if (data?.signedUrl) {
+            featuredBeatAudio[beat.id] =
+              data.signedUrl;
+          }
+        }
+      } catch (cause) {
+        console.error(
+          `FACKTS MUSIC FEATURED AUDIO ERROR (${beat.id}):`,
+          cause instanceof Error
+            ? cause.message
+            : cause
+        );
+      }
+    })
+  );
+
+  const featuredTracks =
+    featuredTracksResult.data ?? [];
+
+  const featuredTrackAssets =
+    featuredTrackAssetsResult.data ?? [];
+
+  const featuredTrackAudio: Record<
+    string,
+    { assetId: string; src: string }
+  > = {};
+
+  await Promise.all(
+    featuredTracks.map(async (track: any) => {
+      const audioAsset = featuredTrackAssets.find(
+        (asset: any) =>
+          asset.entity_id === track.id &&
+          asset.mime_type?.startsWith("audio/")
+      );
+
+      if (!audioAsset?.storage_path || !audioAsset.bucket_id) {
+        return;
+      }
+
+      try {
+        if (audioAsset.bucket_id === "r2" && isR2Configured()) {
+          featuredTrackAudio[track.id] = {
+            assetId: audioAsset.id,
+            src: await createR2PresignedUrl(
+              "GET",
+              audioAsset.storage_path,
+              3600
+            ),
+          };
+        } else if (audioAsset.bucket_id !== "r2") {
+          const { data } = await admin.storage
+            .from(audioAsset.bucket_id)
+            .createSignedUrl(audioAsset.storage_path, 3600);
+
+          if (data?.signedUrl) {
+            featuredTrackAudio[track.id] = {
+              assetId: audioAsset.id,
+              src: data.signedUrl,
+            };
+          }
+        }
+      } catch (cause) {
+        console.error(
+          `FACKTS MUSIC FEATURED TRACK AUDIO ERROR (${track.id}):`,
+          cause instanceof Error ? cause.message : cause
+        );
+      }
+    })
+  );
 
   const peoplePreview =
     peoplePreviewResult.data ?? [];
@@ -874,7 +1022,12 @@ export default async function WorkspacePage() {
                           </span>
                         </div>
 
-                        {beat.external_url ? (
+                        {featuredBeatAudio[beat.id] ? (
+                          <BeatAudioPlayer
+                            beatId={beat.id}
+                            src={featuredBeatAudio[beat.id]}
+                          />
+                        ) : beat.external_url ? (
                           <a
                             href={
                               beat.external_url
@@ -899,6 +1052,157 @@ export default async function WorkspacePage() {
                   );
                 }
               )}
+            </div>
+          )}
+        </section>
+
+        {/* =====================================================
+            FEATURED TRACKS
+           ===================================================== */}
+
+        <section className="creative-section enter d4">
+          <div className="creative-section-heading">
+            <div>
+              <span className="creative-kicker">
+                MUSIC IN DEVELOPMENT
+              </span>
+
+              <h2>
+                Featured Tracks
+              </h2>
+            </div>
+
+            <Link
+              href="/tracks"
+              className="creative-section-link"
+            >
+              Open track room
+
+              <ArrowUpRight size={13} />
+            </Link>
+          </div>
+
+          {featuredTracks.length === 0 ? (
+            <div className="creative-empty-state workspace-soft-card">
+              <div className="creative-empty-art">
+                <MusicIcon size={22} />
+              </div>
+
+              <div>
+                <strong>
+                  The track room is ready.
+                </strong>
+
+                <span>
+                  Uploaded tracks will appear here with their source beat,
+                  contributors and latest playable version.
+                </span>
+              </div>
+
+              <Link
+                href="/tracks"
+                className="creative-secondary-action"
+              >
+                Open tracks
+
+                <ArrowUpRight size={13} />
+              </Link>
+            </div>
+          ) : (
+            <div className="featured-beats-grid featured-tracks-grid">
+              {featuredTracks.map((track: any, index: number) => {
+                const beat = first(track.beats);
+                const contributors = track.track_contributors ?? [];
+                const audio = featuredTrackAudio[track.id];
+
+                return (
+                  <article
+                    className="creative-beat-card featured-track-card workspace-soft-card"
+                    key={track.id}
+                  >
+                    <div
+                      className={`creative-beat-art creative-beat-art-${
+                        (index % 4) + 1
+                      }`}
+                    >
+                      <span className="creative-beat-number">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+
+                      <div className="creative-waveform" aria-hidden="true">
+                        <i />
+                        <i />
+                        <i />
+                        <i />
+                        <i />
+                        <i />
+                        <i />
+                      </div>
+
+                      <span className="creative-beat-source">
+                        {beat?.beat_code || "ORIGINAL TRACK"}
+                      </span>
+                    </div>
+
+                    <div className="creative-beat-copy">
+                      <div className="creative-beat-title-row">
+                        <span className="beat-code-chip">
+                          {track.track_code || "TRACK"}
+                        </span>
+
+                        <span
+                          className={`status-pill ${statusClass(
+                            track.development_status || track.status
+                          )}`}
+                        >
+                          {String(
+                            track.development_status || track.status || "in development"
+                          ).replaceAll("_", " ")}
+                        </span>
+                      </div>
+
+                      <h3>
+                        {track.working_title || "Untitled track"}
+                      </h3>
+
+                      <p>
+                        {beat?.producer_name
+                          ? `Source beat by ${beat.producer_name}`
+                          : "Original project track"}
+                      </p>
+
+                      <div className="featured-track-credits">
+                        {contributors.slice(0, 4).map((contributor: any) => {
+                          const profile = first(contributor.profiles);
+                          return (
+                            <span key={contributor.id}>
+                              {profile?.stage_name || profile?.full_name || "Contributor"}
+                              {" · "}
+                              {String(contributor.contribution_role).replaceAll("_", " ")}
+                            </span>
+                          );
+                        })}
+                        {contributors.length > 4 && (
+                          <span>+{contributors.length - 4} more</span>
+                        )}
+                      </div>
+
+                      {audio ? (
+                        <BeatAudioPlayer
+                          beatId={audio.assetId}
+                          src={audio.src}
+                          eventName="track_file_played"
+                          entityType="asset"
+                        />
+                      ) : (
+                        <span className="creative-muted-link">
+                          Audio version not attached
+                        </span>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           )}
         </section>

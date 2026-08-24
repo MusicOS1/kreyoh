@@ -15,20 +15,56 @@ export default async function BeatsPage({ searchParams }: { searchParams: Promis
   if (!project || !membership) return <AppShell><div className="content"><div className="empty-state"><h2>Project invitation required</h2><p>Your creator account is ready. A Project Lead must invite you before private Project 001 music becomes visible.</p></div></div></AppShell>;
 
   const admin = createAdminClient();
-  const { data: beatRows } = await admin.from("beats").select(`*, beat_claims(id,artist_id,status,claimed_at,profiles!beat_claims_artist_id_fkey(full_name,stage_name)), comments(id,user_id,kind,body,created_at,profiles!comments_user_id_fkey(full_name,stage_name))`).eq("project_id", project.id).order("created_at", { ascending: false });
-  const beats = beatRows ?? [];
+  const { data: beatRows, error: beatsError } = await admin
+    .from("beats")
+    .select("*")
+    .eq("project_id", project.id)
+    .order("created_at", { ascending: false });
+
+  if (beatsError) {
+    console.error("FACKTS MUSIC BEAT LIBRARY ERROR:", beatsError.message);
+  }
+
+  const beatIds = (beatRows ?? []).map((beat: any) => beat.id);
+  const [claimsResult, commentsResult] = beatIds.length
+    ? await Promise.all([
+        admin
+          .from("beat_claims")
+          .select("id,beat_id,artist_id,status,claimed_at,profiles!beat_claims_artist_id_fkey(full_name,stage_name)")
+          .in("beat_id", beatIds),
+        admin
+          .from("comments")
+          .select("id,entity_id,user_id,kind,body,created_at,profiles!comments_user_id_fkey(full_name,stage_name)")
+          .eq("project_id", project.id)
+          .eq("entity_type", "beat")
+          .in("entity_id", beatIds),
+      ])
+    : [{ data: [] }, { data: [] }];
+
+  const beats = (beatRows ?? []).map((beat: any) => ({
+    ...beat,
+    beat_claims: (claimsResult.data ?? []).filter((claim: any) => claim.beat_id === beat.id),
+    comments: (commentsResult.data ?? []).filter((comment: any) => comment.entity_id === beat.id),
+  }));
   const canUpload = hasAnyRole(roles, ["Super Admin", "Project Lead", "A&R", "Producer"]);
   const canManage = hasAnyRole(roles, ["Super Admin", "Project Lead", "A&R"]);
   const isArtist = roles.includes("Artist");
   const audioUrls: Record<string, string> = {};
-  for (const beat of beats) {
-    if (beat.storage_provider === "r2" && beat.storage_key && isR2Configured()) {
-      audioUrls[beat.id] = beat.playback_url || await createR2PresignedUrl("GET", beat.storage_key, 3600);
-    } else if (beat.audio_path) {
-      const { data } = await admin.storage.from("beat-audio").createSignedUrl(beat.audio_path, 3600);
-      if (data?.signedUrl) audioUrls[beat.id] = data.signedUrl;
+  await Promise.all(beats.map(async (beat: any) => {
+    try {
+      if (beat.storage_provider === "r2" && beat.storage_key && isR2Configured()) {
+        audioUrls[beat.id] = beat.playback_url || await createR2PresignedUrl("GET", beat.storage_key, 3600);
+      } else if (beat.audio_path) {
+        const { data } = await admin.storage.from("beat-audio").createSignedUrl(beat.audio_path, 3600);
+        if (data?.signedUrl) audioUrls[beat.id] = data.signedUrl;
+      }
+    } catch (cause) {
+      console.error(
+        `FACKTS MUSIC AUDIO URL ERROR (${beat.id}):`,
+        cause instanceof Error ? cause.message : cause,
+      );
     }
-  }
+  }));
 
   return <AppShell><div className="content fackts-beats-page">
     <div className="heading enter"><div><span className="eyebrow">PROJECT 001 / SOUND</span><h1>Beat Library</h1><p>Listen, claim a development slot and turn the strongest ideas into tracks.</p></div><div className="date"><span>{beats.length} BEATS</span></div></div>
