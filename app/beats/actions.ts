@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "../../lib/supabase/admin";
 import { getWorkspace, hasAnyRole } from "../../lib/workspace";
-import { createR2PresignedUrl, isR2Configured, r2PublicUrl } from "../../lib/r2";
+import { assertR2BucketAccess, createR2PresignedUrl, isR2Configured, r2PublicUrl } from "../../lib/r2";
 
 const read = (fd: FormData, key: string) => String(fd.get(key) || "").trim();
 const go = (kind: "message" | "error", message: string): never => redirect(`/beats?${kind}=${encodeURIComponent(message)}`);
@@ -19,9 +19,10 @@ export async function prepareR2BeatUpload(formData: FormData) {
   const size = Number(read(formData, "file_size"));
   if (!name || !mime.startsWith("audio/") || !Number.isFinite(size) || size <= 0) throw new Error("Choose a valid audio file.");
   if (size > 100 * 1024 * 1024) throw new Error("Audio files must be smaller than 100 MB.");
+  await assertR2BucketAccess();
   const safeName = name.replace(/[^a-zA-Z0-9._-]/g, "-");
   const storageKey = `${project.id}/${crypto.randomUUID()}-${safeName}`;
-  return { storageKey, uploadUrl: createR2PresignedUrl("PUT", storageKey, 900), playbackUrl: r2PublicUrl(storageKey) };
+  return { storageKey, uploadUrl: await createR2PresignedUrl("PUT", storageKey, 900, mime), playbackUrl: r2PublicUrl(storageKey) };
 }
 
 export async function addBeat(formData: FormData) {

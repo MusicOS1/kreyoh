@@ -1,43 +1,99 @@
 import "server-only";
-import { createHash, createHmac } from "node:crypto";
 
-const enc = (value: string) => encodeURIComponent(value).replace(/[!'()*]/g, c => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
-const hash = (value: string) => createHash("sha256").update(value).digest("hex");
-const hmac = (key: Buffer | string, value: string) => createHmac("sha256", key).update(value).digest();
+import {
+  GetObjectCommand,
+  HeadBucketCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+
+type R2Config = {
+  accountId: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  bucket: string;
+};
+
+function readR2Config(): R2Config {
+  const accountId = process.env.R2_ACCOUNT_ID?.trim();
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID?.trim();
+  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY?.trim();
+  const bucket = process.env.R2_BUCKET_NAME?.trim();
+
+  if (!accountId || !accessKeyId || !secretAccessKey || !bucket) {
+    throw new Error("Cloudflare R2 is not configured. Add all four R2 server variables.");
+  }
+
+  if (
+    !/^[0-9a-f]{32}$/i.test(accountId) ||
+    !/^[0-9a-f]{32}$/i.test(accessKeyId) ||
+    !/^[0-9a-f]{64}$/i.test(secretAccessKey)
+  ) {
+    throw new Error(
+      "The R2 variables are in the wrong fields. Account ID and Access Key ID are 32-character values; Secret Access Key is the 64-character value. Do not use the S3 endpoint URL as a key.",
+    );
+  }
+
+  return { accountId, accessKeyId, secretAccessKey, bucket };
+}
+
+function createR2Client(config: R2Config) {
+  return new S3Client({
+    region: "auto",
+    endpoint: `https://${config.accountId}.r2.cloudflarestorage.com`,
+    credentials: {
+      accessKeyId: config.accessKeyId,
+      secretAccessKey: config.secretAccessKey,
+    },
+  });
+}
 
 export function isR2Configured() {
-  return Boolean(process.env.R2_ACCOUNT_ID && process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY && process.env.R2_BUCKET_NAME);
+  return Boolean(
+    process.env.R2_ACCOUNT_ID?.trim() &&
+      process.env.R2_ACCESS_KEY_ID?.trim() &&
+      process.env.R2_SECRET_ACCESS_KEY?.trim() &&
+      process.env.R2_BUCKET_NAME?.trim(),
+  );
 }
 
 export function r2PublicUrl(key: string) {
-  const base = process.env.R2_PUBLIC_BASE_URL?.replace(/\/$/, "");
-  return base ? `${base}/${key.split("/").map(enc).join("/")}` : null;
+  const base = process.env.R2_PUBLIC_BASE_URL?.trim().replace(/\/$/, "");
+  return base ? `${base}/${key.split("/").map(encodeURIComponent).join("/")}` : null;
 }
 
-export function createR2PresignedUrl(method: "GET" | "PUT", key: string, expires = 900) {
-  const account = process.env.R2_ACCOUNT_ID;
-  const accessKey = process.env.R2_ACCESS_KEY_ID;
-  const secret = process.env.R2_SECRET_ACCESS_KEY;
-  const bucket = process.env.R2_BUCKET_NAME;
-  if (!account || !accessKey || !secret || !bucket) throw new Error("Cloudflare R2 is not configured.");
+export async function assertR2BucketAccess() {
+  const config = readR2Config();
+  try {
+    await createR2Client(config).send(new HeadBucketCommand({ Bucket: config.bucket }));
+  } catch (cause) {
+    const code = cause && typeof cause === "object" && "name" in cause ? String(cause.name) : "";
+    if (code === "NoSuchBucket" || code === "NotFound") {
+      throw new Error("The configured Cloudflare R2 bucket does not exist. Check R2_BUCKET_NAME.");
+    }
+    throw new Error(
+      "Cloudflare rejected the R2 credentials. Use the R2 S3 Access Key ID and Secret Access Key from Manage R2 API Tokens, then restart or redeploy the app.",
+    );
+  }
+}
 
-  const now = new Date();
-  const stamp = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
-  const date = stamp.slice(0, 8);
-  const scope = `${date}/auto/s3/aws4_request`;
-  const host = `${account}.r2.cloudflarestorage.com`;
-  const path = `/${enc(bucket)}/${key.split("/").map(enc).join("/")}`;
-  const params: Record<string, string> = {
-    "X-Amz-Algorithm": "AWS4-HMAC-SHA256",
-    "X-Amz-Credential": `${accessKey}/${scope}`,
-    "X-Amz-Date": stamp,
-    "X-Amz-Expires": String(expires),
-    "X-Amz-SignedHeaders": "host",
-  };
-  const query = Object.entries(params).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${enc(k)}=${enc(v)}`).join("&");
-  const canonical = [method, path, query, `host:${host}\n`, "host", "UNSIGNED-PAYLOAD"].join("\n");
-  const stringToSign = ["AWS4-HMAC-SHA256", stamp, scope, hash(canonical)].join("\n");
-  const signingKey = hmac(hmac(hmac(hmac(`AWS4${secret}`, date), "auto"), "s3"), "aws4_request");
-  const signature = createHmac("sha256", signingKey).update(stringToSign).digest("hex");
-  return `https://${host}${path}?${query}&X-Amz-Signature=${signature}`;
+export async function createR2PresignedUrl(
+  method: "GET" | "PUT",
+  key: string,
+  expires = 900,
+  contentType?: string,
+) {
+  const config = readR2Config();
+  const client = createR2Client(config);
+  const command =
+    method === "PUT"
+      ? new PutObjectCommand({
+          Bucket: config.bucket,
+          Key: key,
+          ContentType: contentType || "application/octet-stream",
+        })
+      : new GetObjectCommand({ Bucket: config.bucket, Key: key });
+
+  return getSignedUrl(client, command, { expiresIn: expires });
 }

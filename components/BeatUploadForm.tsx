@@ -15,8 +15,13 @@ export default function BeatUploadForm({ defaultCapacity }: { defaultCapacity: n
         const prep = new FormData();
         prep.set("file_name", file.name); prep.set("file_type", file.type); prep.set("file_size", String(file.size));
         const signed = await prepareR2BeatUpload(prep);
-        const response = await fetch(signed.uploadUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
-        if (!response.ok) throw new Error(`Audio transfer failed (${response.status}). Check the R2 CORS policy.`);
+        let response: Response;
+        try {
+          response = await fetch(signed.uploadUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
+        } catch {
+          throw new Error("The browser could not reach Cloudflare R2. Confirm the bucket CORS policy allows this site and localhost for PUT uploads.");
+        }
+        if (!response.ok) throw new Error(`Cloudflare rejected the audio transfer (${response.status}). Check the R2 bucket permissions and CORS policy.`);
         formData.delete("audio_file");
         formData.set("source_type", "r2");
         formData.set("storage_provider", "r2");

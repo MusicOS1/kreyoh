@@ -23,7 +23,7 @@ export default async function BeatsPage({ searchParams }: { searchParams: Promis
   const audioUrls: Record<string, string> = {};
   for (const beat of beats) {
     if (beat.storage_provider === "r2" && beat.storage_key && isR2Configured()) {
-      audioUrls[beat.id] = beat.playback_url || createR2PresignedUrl("GET", beat.storage_key, 3600);
+      audioUrls[beat.id] = beat.playback_url || await createR2PresignedUrl("GET", beat.storage_key, 3600);
     } else if (beat.audio_path) {
       const { data } = await admin.storage.from("beat-audio").createSignedUrl(beat.audio_path, 3600);
       if (data?.signedUrl) audioUrls[beat.id] = data.signedUrl;
