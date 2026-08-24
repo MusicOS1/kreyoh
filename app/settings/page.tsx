@@ -68,6 +68,7 @@ export default async function SettingsPage() {
                   placeholder="How the venture should identify you"
                 />
               </label>
+              <label className="form-label-group">Nickname<input className="dark-input" name="nickname" defaultValue={profile?.nickname || ""} placeholder="What your collaborators call you" /></label>
               <label className="form-label-group">
                 Phone / WhatsApp
                 <input
@@ -83,6 +84,8 @@ export default async function SettingsPage() {
               <label className="form-label-group">Skills / genres<input className="dark-input" name="skills_genres" defaultValue={(profile?.skills_genres || []).join(", ")} placeholder="Afrofusion, songwriting, mixing" /></label>
               <label className="form-label-group">Primary social link<input className="dark-input" type="url" name="social_url" defaultValue={profile?.social_links?.primary || ""} /></label>
               <label className="form-label-group">Primary streaming link<input className="dark-input" type="url" name="streaming_url" defaultValue={profile?.streaming_links?.primary || ""} /></label>
+              <div className="settings-info-item"><span className="settings-label">Top 5 songs</span><span className="settings-readonly-note">Add the song name and its Spotify, Apple Music, YouTube or other public link.</span></div>
+              {Array.from({length:5},(_,index)=>{const song=profile?.top_songs?.[index]||{};return <div className="settings-song-row" key={index}><input className="dark-input" name={`song_${index+1}_title`} defaultValue={song.title||""} placeholder={`Song ${index+1} title`} /><input className="dark-input" type="url" name={`song_${index+1}_url`} defaultValue={song.url||""} placeholder="https://..." /></div>})}
               <div className="settings-info-item">
                 <span className="settings-label">Authenticated email</span>
                 <span className="settings-value">{user.email}</span>
