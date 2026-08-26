@@ -45,7 +45,8 @@ export default function TrackPlaylist({ tracks, resultsVisible = false, showDeta
     const isEligible = selected.eligible;
     startTransition(async () => {
       try {
-        await recordTrackVersionListen(selected.id, percent);
+        const result = await recordTrackVersionListen(selected.id, percent);
+        if (!result.ok) throw new Error(result.error);
         setNotice(isEligible ? "Ranking unlocked. Choose #1, #2 or #3." : "Listening complete. You are credited on this track, so it cannot be included in your own ballot.");
       }
       catch (cause) {
@@ -60,7 +61,8 @@ export default function TrackPlaylist({ tracks, resultsVisible = false, showDeta
     setNotice("");
     startTransition(async () => {
       try {
-        await setTrackVersionRanking(trackId, rank);
+        const result = await setTrackVersionRanking(trackId, rank);
+        if (!result.ok) throw new Error(result.error);
         setLocalTracks((items) => items.map((item) => ({
           ...item,
           ranking: item.id === trackId ? rank : item.ranking === rank ? undefined : item.ranking,

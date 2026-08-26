@@ -402,18 +402,27 @@ export async function setTrackRanking(trackId: string, rank: number) {
 }
 
 export async function recordTrackVersionListen(assetId: string, progressPercent: number) {
-  const { supabase, project, membership } = await getWorkspace();
-  if (!project || !membership) throw new Error("Project access required.");
-  const { error } = await supabase.rpc("record_track_version_listen", { p_asset_id: assetId, p_progress: Math.max(0, Math.min(100, Math.round(progressPercent))) });
-  if (error) throw new Error(error.message);
+  try {
+    const { supabase, project, membership } = await getWorkspace();
+    if (!project || !membership) return { ok: false, error: "Project access required." };
+    const { error } = await supabase.rpc("record_track_version_listen", { p_asset_id: assetId, p_progress: Math.max(0, Math.min(100, Math.round(progressPercent))) });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  } catch (cause) {
+    return { ok: false, error: cause instanceof Error ? cause.message : "Listening progress could not be saved." };
+  }
 }
 
 export async function setTrackVersionRanking(assetId: string, rank: number) {
-  const { supabase, project, membership } = await getWorkspace();
-  if (!project || !membership) throw new Error("Project access required.");
-  const { error } = await supabase.rpc("set_track_version_ranking", { p_asset_id: assetId, p_rank: rank });
-  if (error) throw new Error(error.message);
-  revalidatePath("/tracks");
+  try {
+    const { supabase, project, membership } = await getWorkspace();
+    if (!project || !membership) return { ok: false, error: "Project access required." };
+    const { error } = await supabase.rpc("set_track_version_ranking", { p_asset_id: assetId, p_rank: rank });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  } catch (cause) {
+    return { ok: false, error: cause instanceof Error ? cause.message : "Your selection could not be recorded." };
+  }
 }
 
 export async function saveTrackArScore(formData: FormData) {
