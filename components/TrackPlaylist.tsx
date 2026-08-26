@@ -18,7 +18,7 @@ export type PlaylistTrack = {
   firstPlaceVotes?: number;
 };
 
-export default function TrackPlaylist({ tracks, resultsVisible = false }: { tracks: PlaylistTrack[]; resultsVisible?: boolean }) {
+export default function TrackPlaylist({ tracks, resultsVisible = false, showDetailedStats = false }: { tracks: PlaylistTrack[]; resultsVisible?: boolean; showDetailedStats?: boolean }) {
   const [current, setCurrent] = useState(0);
   const [localTracks, setLocalTracks] = useState(tracks);
   const [notice, setNotice] = useState("");
@@ -94,7 +94,7 @@ export default function TrackPlaylist({ tracks, resultsVisible = false }: { trac
           {[1,2,3].map((rank)=><button type="button" key={rank} className={track.ranking===rank?"selected":track.eligible&&track.listened?"available":""} disabled={pending || !track.eligible || !track.listened} onClick={()=>rankTrack(track.id,rank)} title={!track.eligible?"You are credited on this track":!track.listened?"Listen to 60% first":`Rank #${rank}`}>{rank}</button>)}
           <small className="track-rank-state">{!track.eligible ? "CREDITED · CANNOT RANK" : track.listened ? "RANKING UNLOCKED" : "LISTEN 60% TO UNLOCK"}</small>
         </div>
-        {resultsVisible && <div className="track-result-score"><strong>{Math.round(track.finalScore || 0)}</strong><small>final</small></div>}
+        {resultsVisible && <div className="track-result-score"><strong>{Math.round(track.finalScore || 0)}</strong><small>final</small>{showDetailedStats && <span>{Math.round(track.communityScore || 0)} community · {Math.round(track.arScore || 0)} A&amp;R · {track.firstPlaceVotes || 0} firsts</span>}</div>}
       </article>)}
     </div>
   </section>;

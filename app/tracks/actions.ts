@@ -436,8 +436,31 @@ export async function updateTrackVotingRound(formData: FormData) {
   }
   const roundId = read(formData, "round_id");
   const intent = read(formData, "intent");
+  if (intent === "start_new") {
+    const title = read(formData, "title") || "Project song selection";
+    const { data: openRound } = await admin
+      .from("track_voting_rounds")
+      .select("id")
+      .eq("project_id", project.id)
+      .eq("status", "open")
+      .limit(1)
+      .maybeSingle();
+    if (openRound) throw new Error("Close the current voting round before starting another one.");
+    const { error } = await admin.from("track_voting_rounds").insert({
+      project_id: project.id,
+      title,
+      status: "open",
+      results_visible: false,
+    });
+    if (error) throw new Error(error.message);
+    revalidatePath("/tracks");
+    return;
+  }
+  if (!roundId) throw new Error("Choose a voting round.");
   const changes = intent === "close"
     ? { status: "closed", results_visible: true, updated_at: new Date().toISOString() }
+    : intent === "reopen"
+      ? { status: "open", results_visible: false, updated_at: new Date().toISOString() }
     : { results_visible: intent === "reveal", updated_at: new Date().toISOString() };
   const { error } = await admin.from("track_voting_rounds").update(changes).eq("id", roundId).eq("project_id", project.id);
   if (error) throw new Error(error.message);

@@ -29,6 +29,7 @@ export default async function TracksPage() {
   const canCreate = hasAnyRole(roles, trackCreateRoles);
   const canManageVoting = hasAnyRole(roles, ["Super Admin", "Project Lead", "A&R"]);
   const canScoreAr = hasAnyRole(roles, ["Super Admin", "A&R"]);
+  const canViewPrivateVotingStats = roles.includes("Super Admin");
   const [tracksResult, beatsResult, membersResult] = await Promise.all([
     admin
       .from("tracks")
@@ -151,6 +152,7 @@ export default async function TracksPage() {
   }
 
   const resultsVisible = Boolean(votingRound?.results_visible || votingRound?.status === "closed");
+  const displayVotingStats = resultsVisible || canViewPrivateVotingStats;
   const playlist = tracks.map((track: any) => {
     const audio = track.assets.find((asset: any) => asset.mime_type?.startsWith("audio/") && assetAudioUrls[asset.id]);
     const rankings = (rankingsResult.data ?? []).filter((ranking: any) => ranking.track_id === track.id);
@@ -180,7 +182,7 @@ export default async function TracksPage() {
       arScore,
       firstPlaceVotes: rankings.filter((ranking: any) => ranking.rank === 1).length,
     } : null;
-  }).filter(Boolean).sort((a: any, b: any) => resultsVisible
+  }).filter(Boolean).sort((a: any, b: any) => displayVotingStats
     ? b.finalScore - a.finalScore || b.firstPlaceVotes - a.firstPlaceVotes || b.arScore - a.arScore || a.title.localeCompare(b.title)
     : a.title.localeCompare(b.title));
 
@@ -200,20 +202,24 @@ export default async function TracksPage() {
           <div className="track-billboard-heading">
             <div>
               <span className="eyebrow">PROJECT LISTENING ROOM</span>
-              <h2>{resultsVisible ? "Project Track Chart" : "Top 3 Selection Room"}</h2>
+              <h2>{displayVotingStats ? "Project Track Chart" : "Top 3 Selection Room"}</h2>
               <p>Listen to at least 60%, then rank your three strongest eligible tracks. #1 earns 5 points, #2 earns 3 and #3 earns 1. Live results stay private to reduce influence.</p>
             </div>
             <span>{votingRound?.status === "closed" ? "ROUND CLOSED" : `${playlist.length} PLAYABLE`}</span>
           </div>
+          {canViewPrivateVotingStats && !resultsVisible && votingRound && <div className="track-private-stats-note">PRIVATE ADMIN STATISTICS · Members still see hidden results</div>}
           {canManageVoting && votingRound && (
             <form action={updateTrackVotingRound} className="track-round-controls">
               <input type="hidden" name="round_id" value={votingRound.id} />
-              <span>{resultsVisible ? "Results visible" : "Results hidden"}</span>
-              {votingRound.status === "open" && <button name="intent" value={resultsVisible ? "hide" : "reveal"}>{resultsVisible ? "Hide results" : "Preview results"}</button>}
+              <span>{votingRound.status === "closed" ? "Round closed" : resultsVisible ? "Results visible" : "Results hidden"}</span>
+              {votingRound.status === "open" && <button name="intent" value={resultsVisible ? "hide" : "reveal"}>{resultsVisible ? "Hide from members" : "Reveal to members"}</button>}
               {votingRound.status === "open" && <button className="primary" name="intent" value="close">Close &amp; publish chart</button>}
+              {votingRound.status === "closed" && <button className="primary" name="intent" value="reopen">Reopen this round</button>}
+              {votingRound.status === "closed" && <button name="intent" value="start_new">Start fresh round</button>}
             </form>
           )}
-          <TrackPlaylist tracks={playlist as any} resultsVisible={resultsVisible} />
+          {canManageVoting && !votingRound && <form action={updateTrackVotingRound} className="track-round-controls"><span>No voting round</span><button className="primary" name="intent" value="start_new">Start voting round</button></form>}
+          <TrackPlaylist tracks={playlist as any} resultsVisible={displayVotingStats} showDetailedStats={canViewPrivateVotingStats} />
         </section>
 
         {canCreate && (

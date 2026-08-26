@@ -37,3 +37,4 @@
 .track-rank-buttons button.available:hover{background:var(--fackts-gold);color:#080604;transform:translateY(-1px)}
 .track-rank-state{grid-column:1/-1;margin-top:2px;color:rgba(255,255,255,.3);font-size:6px;font-weight:900;letter-spacing:.08em;white-space:nowrap}
 .track-rank-buttons.is-unlocked .track-rank-state{color:#f7bd43}
+.track-private-stats-note{margin:0 0 9px;padding:8px 10px;border:1px solid rgba(91,183,255,.18);border-radius:9px;background:rgba(53,145,211,.07);color:#8dcaf0;font-size:8px;font-weight:900;letter-spacing:.1em}.track-result-score{position:relative;min-width:48px}.track-result-score span{position:absolute;right:0;top:42px;z-index:4;padding:6px 8px;border:1px solid rgba(255,255,255,.08);border-radius:7px;background:#0a1018;color:rgba(255,255,255,.5);font-size:7px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease}.track-result-score:hover span{opacity:1}
