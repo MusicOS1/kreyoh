@@ -1,10 +1,11 @@
 import Link from "next/link";
 import AdminMusicCatalogManager from "../../../../components/AdminMusicCatalogManager";
-import { createR2PresignedUrl, isR2Configured } from "../../../../lib/r2";
 import { createAdminClient } from "../../../../lib/supabase/admin";
+import { resolveArtworkUrl } from "../../../../lib/artwork";
 
 const first = (value: any) => Array.isArray(value) ? value[0] : value;
 const label = (value?: string) => (value || "pending").replaceAll("_", " ");
+const DEFAULT_PROJECT_COVER = "/images/project-001-default-cover.png";
 
 export default async function AdminOperations() {
   const admin = createAdminClient();
@@ -41,18 +42,16 @@ export default async function AdminOperations() {
   const trackArtwork = new Map(trackArtworkRows.map((item: any) => [item.id, item]));
   const signedArtwork = new Map<string, string>();
 
-  if (isR2Configured()) {
-    await Promise.all([
+  await Promise.all([
       ...beats.map(async (beat: any) => {
         const key = beatArtwork.get(beat.id);
-        if (key) try { signedArtwork.set(`beat:${beat.id}`, await createR2PresignedUrl("GET", String(key), 3600)); } catch { /* use URL fallback */ }
+        try { const url = await resolveArtworkUrl(key ? String(key) : null, beat.artwork_url); if (url) signedArtwork.set(`beat:${beat.id}`, url); } catch { /* use placeholder */ }
       }),
       ...tracks.map(async (track: any) => {
         const key = trackArtwork.get(track.id)?.artwork_storage_key;
-        if (key) try { signedArtwork.set(`track:${track.id}`, await createR2PresignedUrl("GET", String(key), 3600)); } catch { /* render placeholder */ }
+        try { const url = await resolveArtworkUrl(key, trackArtwork.get(track.id)?.artwork_url); if (url) signedArtwork.set(`track:${track.id}`, url); } catch { /* render placeholder */ }
       }),
-    ]);
-  }
+  ]);
 
   const members = (membersResult.data ?? []).map((membership: any) => {
     const profile = first(membership.profiles);
@@ -64,7 +63,7 @@ export default async function AdminOperations() {
       id: beat.id, type: "beat" as const, projectId: beat.project_id,
       projectName: first(beat.projects)?.name || "No project", title: beat.title || "Untitled beat",
       code: beat.beat_code || "BEAT", status: beat.status || "available",
-      artworkUrl: signedArtwork.get(`beat:${beat.id}`) || beat.artwork_url || null,
+      artworkUrl: signedArtwork.get(`beat:${beat.id}`) || beat.artwork_url || DEFAULT_PROJECT_COVER,
       metadata: {producer_name:beat.producer_name,bpm:beat.bpm,musical_key:beat.musical_key,genre_tags:beat.genre_tags,mood_tags:beat.mood_tags,description:beat.description,artist_capacity:beat.artist_capacity,source_type:beat.source_type,external_url:beat.external_url},
       credits: beatCredits.filter((credit: any) => credit.beat_id === beat.id).map((credit: any) => ({ id: credit.id, userId: credit.user_id, role: credit.contribution_role })),
     })),
@@ -72,7 +71,7 @@ export default async function AdminOperations() {
       id: track.id, type: "track" as const, projectId: track.project_id,
       projectName: first(track.projects)?.name || "No project", title: track.working_title || "Untitled track",
       code: track.track_code || "TRACK", status: track.development_status || "in_development",
-      artworkUrl: signedArtwork.get(`track:${track.id}`) || trackArtwork.get(track.id)?.artwork_url || null,
+      artworkUrl: signedArtwork.get(`track:${track.id}`) || trackArtwork.get(track.id)?.artwork_url || DEFAULT_PROJECT_COVER,
       metadata: {beat_id:track.beat_id}, beatOptions: beats.filter((beat:any)=>beat.project_id===track.project_id).map((beat:any)=>({id:beat.id,label:beat.title||beat.beat_code||"Beat"})),
       credits: trackCredits.filter((credit: any) => credit.track_id === track.id).map((credit: any) => ({ id: credit.id, userId: credit.user_id, role: credit.contribution_role })),
     })),

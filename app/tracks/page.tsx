@@ -8,9 +8,11 @@ import { createR2PresignedUrl, isR2Configured } from "../../lib/r2";
 import { getWorkspace, hasAnyRole } from "../../lib/workspace";
 import { commentOnTrack, deleteTrackNote, saveTrackArScore, updateTrack, updateTrackVotingRound } from "./actions";
 import { creatorDisplayName } from "../../lib/profileIdentity";
+import { resolveArtworkUrl } from "../../lib/artwork";
 
 const trackFileRoles = ["Super Admin", "Project Lead", "A&R", "Producer", "Engineer"];
 const trackCreateRoles = ["Super Admin", "Project Lead", "A&R"];
+const DEFAULT_PROJECT_COVER = "/images/project-001-default-cover.png";
 
 export default async function TracksPage() {
   const { project, membership, roles, user } = await getWorkspace();
@@ -133,11 +135,11 @@ export default async function TracksPage() {
         }
       }),
       ...tracks.map(async (track: any) => {
-        if (track.artwork_url) artworkUrls[track.id] = track.artwork_url;
-        if (!track.artwork_storage_key) return;
         try {
-          artworkUrls[track.id] = await createR2PresignedUrl("GET", track.artwork_storage_key, 3600);
+          const artwork = await resolveArtworkUrl(track.artwork_storage_key, track.artwork_url);
+          artworkUrls[track.id] = artwork || DEFAULT_PROJECT_COVER;
         } catch (cause) {
+          artworkUrls[track.id] = DEFAULT_PROJECT_COVER;
           console.error(
             `FACKTS MUSIC TRACK ARTWORK ERROR (${track.id}):`,
             cause instanceof Error ? cause.message : cause,
@@ -146,9 +148,10 @@ export default async function TracksPage() {
       }),
     ]);
   } else {
-    tracks.forEach((track: any) => {
-      if (track.artwork_url) artworkUrls[track.id] = track.artwork_url;
-    });
+    await Promise.all(tracks.map(async (track: any) => {
+      try { const artwork = await resolveArtworkUrl(track.artwork_storage_key, track.artwork_url); artworkUrls[track.id] = artwork || DEFAULT_PROJECT_COVER; }
+      catch { artworkUrls[track.id] = DEFAULT_PROJECT_COVER; }
+    }));
   }
 
   const resultsVisible = Boolean(votingRound?.results_visible || votingRound?.status === "closed");

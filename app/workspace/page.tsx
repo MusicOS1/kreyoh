@@ -10,6 +10,7 @@ import { createAdminClient } from "../../lib/supabase/admin";
 import { createR2PresignedUrl, isR2Configured } from "../../lib/r2";
 import { creatorDisplayName } from "../../lib/profileIdentity";
 import { calculateProjectProgress } from "../../lib/projectProgress";
+import { resolveArtworkUrl } from "../../lib/artwork";
 
 import {
   ActivityIcon,
@@ -19,6 +20,8 @@ import {
   MusicIcon,
   PlayIcon,
 } from "../../components/Icons";
+
+const DEFAULT_PROJECT_COVER = "/images/project-001-default-cover.png";
 
 function first(value: any) {
   return Array.isArray(value)
@@ -534,20 +537,18 @@ export default async function WorkspacePage() {
 
   await Promise.all([
     ...pipeline.map(async (beat: any) => {
-      if (beat.artwork_url) featuredBeatArtwork[beat.id] = beat.artwork_url;
       const key = beatArtworkKeys.get(beat.id);
-      if (!key || !isR2Configured()) return;
       try {
-        featuredBeatArtwork[beat.id] = await createR2PresignedUrl("GET", String(key), 3600);
-      } catch { /* keep the visual placeholder */ }
+        const artwork = await resolveArtworkUrl(key ? String(key) : null, beat.artwork_url);
+        featuredBeatArtwork[beat.id] = artwork || DEFAULT_PROJECT_COVER;
+      } catch { featuredBeatArtwork[beat.id] = DEFAULT_PROJECT_COVER; }
     }),
     ...(featuredTracksResult.data ?? []).map(async (track: any) => {
       const artwork = trackArtworkRows.get(track.id);
-      if (artwork?.artwork_url) featuredTrackArtwork[track.id] = artwork.artwork_url;
-      if (!artwork?.artwork_storage_key || !isR2Configured()) return;
       try {
-        featuredTrackArtwork[track.id] = await createR2PresignedUrl("GET", artwork.artwork_storage_key, 3600);
-      } catch { /* keep the visual placeholder */ }
+        const url = await resolveArtworkUrl(artwork?.artwork_storage_key, artwork?.artwork_url);
+        featuredTrackArtwork[track.id] = url || DEFAULT_PROJECT_COVER;
+      } catch { featuredTrackArtwork[track.id] = DEFAULT_PROJECT_COVER; }
     }),
   ]);
 

@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "../lib/client";
 import {
   deleteAdminMusicRecord,
   prepareAdminArtworkUpload,
@@ -65,10 +66,10 @@ function CatalogEditor({ record, members }: { record: MusicRecord; members: Memb
       prep.set("entity_type", record.type); prep.set("entity_id", record.id);
       prep.set("file_name", file.name); prep.set("file_type", file.type); prep.set("file_size", String(file.size));
       const signed = await prepareAdminArtworkUpload(prep);
-      let response: Response;
-      try { response = await fetch(signed.uploadUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file }); }
-      catch { throw new Error("The browser could not reach Cloudflare R2."); }
-      if (!response.ok) throw new Error(`Cloudflare rejected the image (${response.status}).`);
+      const { error: uploadError } = await createClient().storage
+        .from("music-images")
+        .uploadToSignedUrl(signed.storageKey, signed.token, file, { contentType: file.type });
+      if (uploadError) throw new Error(uploadError.message);
       const save = new FormData(); save.set("entity_type", record.type); save.set("entity_id", record.id); save.set("storage_key", signed.storageKey);
       const result = await saveAdminArtwork(save);
       setNotice(result.message); router.refresh();

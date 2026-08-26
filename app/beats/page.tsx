@@ -7,8 +7,10 @@ import BeatUploadForm from "../../components/BeatUploadForm";
 import BeatAudioPlayer from "../../components/BeatAudioPlayer";
 import { createR2PresignedUrl, isR2Configured } from "../../lib/r2";
 import { creatorDisplayName } from "../../lib/profileIdentity";
+import { resolveArtworkUrl } from "../../lib/artwork";
 
 const activeStatuses = ["claimed", "confirmed", "converted_to_track"];
+const DEFAULT_PROJECT_COVER = "/images/project-001-default-cover.png";
 
 export default async function BeatsPage({ searchParams }: { searchParams: Promise<{ message?: string; error?: string }> }) {
   const params = await searchParams;
@@ -71,11 +73,10 @@ export default async function BeatsPage({ searchParams }: { searchParams: Promis
         if (data?.signedUrl) audioUrls[beat.id] = data.signedUrl;
       }
 
-      if (beat.artwork_url) artworkUrls[beat.id] = beat.artwork_url;
-      if (beat.artwork_storage_key && isR2Configured()) {
-        artworkUrls[beat.id] = await createR2PresignedUrl("GET", beat.artwork_storage_key, 3600);
-      }
+      const artwork = await resolveArtworkUrl(beat.artwork_storage_key, beat.artwork_url);
+      artworkUrls[beat.id] = artwork || DEFAULT_PROJECT_COVER;
     } catch (cause) {
+      artworkUrls[beat.id] = DEFAULT_PROJECT_COVER;
       console.error(
         `FACKTS MUSIC AUDIO URL ERROR (${beat.id}):`,
         cause instanceof Error ? cause.message : cause,
