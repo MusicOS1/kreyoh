@@ -9,6 +9,23 @@ import { assertR2BucketAccess, assertR2ObjectAccess, createR2PresignedUrl, isR2C
 const read = (fd: FormData, key: string) => String(fd.get(key) || "").trim();
 const go = (kind: "message" | "error", message: string): never => redirect(`/beats?${kind}=${encodeURIComponent(message)}`);
 
+export async function updateOwnBeatMetadata(formData: FormData) {
+  const { admin, user, project, membership, roles } = await getWorkspace();
+  if (!project || !membership) throw new Error("Project access required.");
+  const beatId = read(formData, "beat_id");
+  const { data: beat, error: lookupError } = await admin.from("beats").select("id,project_id,created_by,producer_user_id").eq("id", beatId).eq("project_id", project.id).maybeSingle();
+  if (lookupError || !beat) throw new Error("Beat not found.");
+  const isLeader = hasAnyRole(roles, ["Super Admin", "Admin", "Project Lead", "A&R"]);
+  const isOwnerProducer = roles.includes("Producer") && (beat.created_by === user.id || beat.producer_user_id === user.id);
+  if (!isLeader && !isOwnerProducer) throw new Error("Only the uploading producer or project leadership can edit this beat.");
+  const capacity = Number(read(formData, "artist_capacity") || "3");
+  if (!Number.isInteger(capacity) || capacity < 1 || capacity > 12) throw new Error("Artist slots must be between 1 and 12.");
+  const { error } = await admin.from("beats").update({ title: read(formData, "title") || null, producer_name: read(formData, "producer_name") || null, bpm: read(formData, "bpm") ? Number(read(formData, "bpm")) : null, musical_key: read(formData, "musical_key") || null, genre_tags: read(formData, "genre_tags").split(",").map(item => item.trim()).filter(Boolean), mood_tags: read(formData, "mood_tags").split(",").map(item => item.trim()).filter(Boolean), description: read(formData, "description") || null, artist_capacity: capacity, updated_at: new Date().toISOString() }).eq("id", beatId).eq("project_id", project.id);
+  if (error) throw new Error(error.message);
+  await admin.from("activity_log").insert({ project_id: project.id, user_id: user.id, action: "updated beat metadata", entity_type: "beat", entity_id: beatId });
+  revalidatePath("/beats"); revalidatePath("/workspace");
+}
+
 export async function prepareR2BeatUpload(formData: FormData) {
   const { project, roles, membership } = await getWorkspace();
   if (!project || !membership) throw new Error("You need active project access.");

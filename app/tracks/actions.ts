@@ -246,6 +246,7 @@ export async function saveTrackAsset(formData: FormData) {
   const fileName = read(formData, "file_name");
   const mimeType = read(formData, "mime_type") || null;
   const assetKind = read(formData, "asset_kind") || "demo";
+  const versionNote = read(formData, "version_note").slice(0, 280) || null;
   const { project, user, track } = await requireTrackAccess(trackId);
 
   if (!storageKey || !fileName) {
@@ -269,6 +270,7 @@ export async function saveTrackAsset(formData: FormData) {
       file_name: fileName,
       mime_type: mimeType,
       asset_kind: assetKind,
+      version_note: versionNote,
       visibility: "project",
     })
     .select("id")

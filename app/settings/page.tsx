@@ -5,6 +5,7 @@ import { updateProfile } from "./actions";
 import { SettingsIcon, UserIcon, ProjectIcon, LockIcon, ArrowUpRight, SparklesIcon } from "../../components/Icons";
 import { KreyohLogo, KreyohMark } from "../../components/Branding";
 import ProfilePhotoUpload from "../../components/ProfilePhotoUpload";
+import ProfileMediaGallery from "../../components/ProfileMediaGallery";
 
 function initialsFor(name: string) {
   return name.split(" ").map((part) => part[0]).filter(Boolean).join("").slice(0, 2).toUpperCase() || "K";
@@ -80,10 +81,14 @@ export default async function SettingsPage() {
                 />
               </label>
               <label className="form-label-group">Short bio<textarea className="dark-textarea" name="bio" defaultValue={profile?.bio || ""} placeholder="What do you make and what are you building?" /></label>
+              <label className="form-label-group">EPK headline<input className="dark-input" name="epk_tagline" defaultValue={profile?.epk_tagline || ""} placeholder="One line that introduces your creative world" /></label>
               <label className="form-label-group">Location<input className="dark-input" name="location" defaultValue={profile?.location || ""} placeholder="Nairobi, Kenya" /></label>
               <label className="form-label-group">Skills / genres<input className="dark-input" name="skills_genres" defaultValue={(profile?.skills_genres || []).join(", ")} placeholder="Afrofusion, songwriting, mixing" /></label>
               <label className="form-label-group">Primary social link<input className="dark-input" type="url" name="social_url" defaultValue={profile?.social_links?.primary || ""} /></label>
               <label className="form-label-group">Primary streaming link<input className="dark-input" type="url" name="streaming_url" defaultValue={profile?.streaming_links?.primary || ""} /></label>
+              <label className="form-label-group">Featured interview title<input className="dark-input" name="interview_title" defaultValue={profile?.interview_title || ""} placeholder="Inside the making of…" /></label>
+              <label className="form-label-group">Featured interview/video URL<input className="dark-input" type="url" name="interview_url" defaultValue={profile?.interview_url || ""} placeholder="YouTube, Vimeo or direct video URL" /></label>
+              <label className="form-label-group full">Highlights / achievements<textarea className="dark-textarea" name="achievements" defaultValue={(profile?.achievements || []).join("\n")} placeholder="One achievement per line" /></label>
               <div className="settings-info-item"><span className="settings-label">Top 5 songs</span><span className="settings-readonly-note">Add the song name and its Spotify, Apple Music, YouTube or other public link.</span></div>
               {Array.from({length:5},(_,index)=>{const song=profile?.top_songs?.[index]||{};return <div className="settings-song-row" key={index}><input className="dark-input" name={`song_${index+1}_title`} defaultValue={song.title||""} placeholder={`Song ${index+1} title`} /><input className="dark-input" type="url" name={`song_${index+1}_url`} defaultValue={song.url||""} placeholder="https://..." /></div>})}
               <div className="settings-info-item">
@@ -100,6 +105,7 @@ export default async function SettingsPage() {
               </div>
               <button type="submit" className="submit-beat-btn">Save profile</button>
             </form>
+            <ProfileMediaGallery userId={user.id} currentPhotos={profile?.photo_catalog || []} currentHero={profile?.hero_image_url} />
           </div>
 
           {/* Project Workspace Card */}

@@ -7,6 +7,7 @@ import {
   prepareAdminArtworkUpload,
   replaceAdminMusicCredits,
   saveAdminArtwork,
+  updateAdminMusicMetadata,
 } from "../app/admin/(control)/actions";
 
 type Member = { id: string; name: string; projectId: string };
@@ -21,6 +22,8 @@ type MusicRecord = {
   status: string;
   artworkUrl?: string | null;
   credits: Credit[];
+  metadata: Record<string, any>;
+  beatOptions?: Array<{ id: string; label: string }>;
 };
 
 const roles = [
@@ -83,6 +86,13 @@ function CatalogEditor({ record, members }: { record: MusicRecord; members: Memb
     finally { setBusy(""); }
   }
 
+  async function saveMetadata(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setBusy("metadata"); setError(""); setNotice("");
+    try { const data=new FormData(event.currentTarget); data.set("entity_type",record.type);data.set("entity_id",record.id);const result=await updateAdminMusicMetadata(data);setNotice(result.message);router.refresh(); }
+    catch(cause){setError(cause instanceof Error?cause.message:"Metadata could not be saved.");}
+    finally{setBusy("");}
+  }
+
   async function removeRecord() {
     if (!window.confirm(`Delete ${record.title}? This cannot be undone.`)) return;
     setBusy("delete"); setError(""); setNotice("");
@@ -100,6 +110,12 @@ function CatalogEditor({ record, members }: { record: MusicRecord; members: Memb
       <b>Manage +</b>
     </summary>
     <div className="control-catalog-body">
+      <form onSubmit={saveMetadata} className="control-catalog-metadata">
+        <header><div><span className="control-eyebrow">METADATA</span><h3>Edit the full record</h3></div></header>
+        <input name="title" defaultValue={record.title} placeholder={record.type==="beat"?"Beat title":"Working title"}/><input name="code" defaultValue={record.code} placeholder="Code"/>
+        {record.type==="beat"?<><input name="producer_name" defaultValue={record.metadata.producer_name||""} placeholder="Producer credit"/><input name="bpm" type="number" min="20" max="400" defaultValue={record.metadata.bpm||""} placeholder="BPM"/><input name="musical_key" defaultValue={record.metadata.musical_key||""} placeholder="Key"/><input name="genre_tags" defaultValue={(record.metadata.genre_tags||[]).join(", ")} placeholder="Genres, comma separated"/><input name="mood_tags" defaultValue={(record.metadata.mood_tags||[]).join(", ")} placeholder="Moods, comma separated"/><input name="artist_capacity" type="number" min="1" max="12" defaultValue={record.metadata.artist_capacity||3}/><select name="source_type" defaultValue={record.metadata.source_type||"manual"}><option>manual</option><option>r2</option><option>google_drive</option><option>dropbox</option><option>nextbeat</option><option>external</option></select><input name="external_url" type="url" defaultValue={record.metadata.external_url||""} placeholder="External source URL"/><textarea name="description" defaultValue={record.metadata.description||""} placeholder="Beat description"/></>:<select name="beat_id" defaultValue={record.metadata.beat_id||""}><option value="">Original track / no beat</option>{(record.beatOptions||[]).map(beat=><option key={beat.id} value={beat.id}>{beat.label}</option>)}</select>}
+        <select name="status" defaultValue={record.status}>{record.type==="beat"?["available","filling","full","in_development","in_studio","locked","completed","archived"].map(item=><option key={item}>{item}</option>):["in_development","revision","in_studio","mixing","mastering","release_ready","complete"].map(item=><option key={item}>{item}</option>)}</select><button disabled={Boolean(busy)}>{busy==="metadata"?"Saving…":"Save metadata"}</button>
+      </form>
       <form onSubmit={uploadArtwork} className="control-artwork-form">
         <label>Thumbnail / cover image<input name="artwork_file" type="file" accept="image/jpeg,image/png,image/webp" required /></label>
         <button disabled={Boolean(busy)}>{busy === "artwork" ? "Uploading…" : "Update thumbnail"}</button>

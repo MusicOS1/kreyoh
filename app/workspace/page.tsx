@@ -8,6 +8,7 @@ import BeatAudioPlayer from "../../components/BeatAudioPlayer";
 import { getWorkspace } from "../../lib/workspace";
 import { createAdminClient } from "../../lib/supabase/admin";
 import { createR2PresignedUrl, isR2Configured } from "../../lib/r2";
+import { creatorDisplayName } from "../../lib/profileIdentity";
 
 import {
   ActivityIcon,
@@ -310,6 +311,7 @@ export default async function WorkspacePage() {
         beat_code,
         title,
         producer_name,
+        producer_user_id,
         status,
         writing_deadline,
         external_url,
@@ -320,6 +322,16 @@ export default async function WorkspacePage() {
         playback_url,
         audio_path,
         artwork_url,
+
+        beat_contributors (
+          id,
+          contribution_role,
+          profiles (
+            full_name,
+            stage_name,
+            nickname
+          )
+        ),
 
         beat_interest (
           id
@@ -358,7 +370,8 @@ export default async function WorkspacePage() {
           id,
           beat_code,
           title,
-          producer_name
+          producer_name,
+          producer_user_id
         ),
 
         track_contributors (
@@ -366,7 +379,8 @@ export default async function WorkspacePage() {
           contribution_role,
           profiles (
             full_name,
-            stage_name
+            stage_name,
+            nickname
           )
         )
       `)
@@ -410,6 +424,7 @@ export default async function WorkspacePage() {
           id,
           full_name,
           stage_name,
+          nickname,
           email,
           avatar_url
         ),
@@ -537,6 +552,15 @@ export default async function WorkspacePage() {
 
   const featuredTracks =
     featuredTracksResult.data ?? [];
+
+  const featuredProducerIds = Array.from(new Set([
+    ...pipeline.map((beat: any) => beat.producer_user_id),
+    ...featuredTracks.map((track: any) => first(track.beats)?.producer_user_id),
+  ].filter(Boolean)));
+  const { data: featuredProducerProfiles = [] } = featuredProducerIds.length
+    ? await admin.from("profiles").select("id,full_name,stage_name,nickname").in("id", featuredProducerIds)
+    : { data: [] as any[] };
+  const featuredProducers = new Map((featuredProducerProfiles ?? []).map((profile: any) => [profile.id, profile]));
 
   const featuredTrackAssets =
     featuredTrackAssetsResult.data ?? [];
@@ -1058,8 +1082,14 @@ export default async function WorkspacePage() {
                         </h3>
 
                         <p>
-                          {beat.producer_name ||
-                            "Uncredited producer"}
+                          {(() => {
+                            const producer = (beat.beat_contributors || []).find((credit: any) => ["producer", "co_producer"].includes(String(credit.contribution_role).toLowerCase()));
+                            return producer
+                              ? creatorDisplayName(first(producer.profiles))
+                              : beat.producer_user_id
+                                ? creatorDisplayName(featuredProducers.get(beat.producer_user_id))
+                                : beat.producer_name || "Uncredited producer";
+                          })()}
                         </p>
 
                         <div className="creative-beat-meta">
@@ -1229,9 +1259,16 @@ export default async function WorkspacePage() {
                       </h3>
 
                       <p>
-                        {beat?.producer_name
-                          ? `Source beat by ${beat.producer_name}`
-                          : "Original project track"}
+                        {(() => {
+                          const producer = contributors.find((credit: any) => ["producer", "co_producer"].includes(String(credit.contribution_role).toLowerCase()));
+                          return producer
+                            ? `Source beat by ${creatorDisplayName(first(producer.profiles))}`
+                            : beat?.producer_user_id
+                              ? `Source beat by ${creatorDisplayName(featuredProducers.get(beat.producer_user_id))}`
+                              : beat?.producer_name
+                                ? `Source beat by ${beat.producer_name}`
+                                : "Original project track";
+                        })()}
                       </p>
 
                       <div className="featured-track-credits">
@@ -1239,7 +1276,7 @@ export default async function WorkspacePage() {
                           const profile = first(contributor.profiles);
                           return (
                             <span key={contributor.id}>
-                              {profile?.stage_name || profile?.full_name || "Contributor"}
+                              {creatorDisplayName(profile)}
                               {" · "}
                               {String(contributor.contribution_role).replaceAll("_", " ")}
                             </span>
@@ -1330,11 +1367,7 @@ export default async function WorkspacePage() {
                       .filter(Boolean) ??
                     [];
 
-                  const name =
-                    profile?.stage_name ||
-                    profile?.full_name ||
-                    profile?.email ||
-                    "Project member";
+                  const name = creatorDisplayName(profile);
 
                   const orderedMemberRoles =
                     [...memberRoles].sort(
@@ -1371,7 +1404,7 @@ export default async function WorkspacePage() {
 
                   return (
                     <Link
-                      href="/people"
+                      href={`/people/${profile?.id}`}
                       className="creative-person-card workspace-soft-card"
                       key={member.id}
                     >

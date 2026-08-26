@@ -1,5 +1,7 @@
 ﻿import React from "react";
 import AppShell from "../../components/AppShell";
+import Link from "next/link";
+import { creatorDisplayName } from "../../lib/profileIdentity";
 import { getWorkspace } from "../../lib/workspace";
 import { removeContributor } from "./actions";
 import { addRegisteredUsers, inviteExistingUser, reviewJoinRequest } from "../projects/actions";
@@ -249,11 +251,10 @@ export default async function PeoplePage() {
                   ?.map((row: any) => first(row.roles)?.name)
                   .filter(Boolean) ?? [];
 
-              const fullName = profile?.full_name || profile?.email || "Unnamed Member";
-              const stageName = profile?.stage_name;
+              const displayName = creatorDisplayName(profile);
               const isPending = member.status === "pending" || member.status === "invited";
               
-              const initials = fullName
+              const initials = displayName
                 .split(" ")
                 .map((p: string) => p[0])
                 .filter(Boolean)
@@ -267,7 +268,7 @@ export default async function PeoplePage() {
                   <div className="person-card-head">
                     <div className="person-avatar-ring">
                         {profile?.avatar_url ? (
-                          <img src={profile.avatar_url} alt={`${fullName} profile`} />
+                          <img src={profile.avatar_url} alt={`${displayName} profile`} />
                         ) : (
                           <span>{initials}</span>
                         )}
@@ -277,14 +278,7 @@ export default async function PeoplePage() {
                       />
                     </div>
 
-                    <div className="person-identity">
-                      <span className="person-full-name">{fullName}</span>
-                      {stageName ? (
-                        <span className="person-stage-name">AKA &ldquo;{stageName}&rdquo;</span>
-                      ) : (
-                        <span className="person-stage-name" style={{ opacity: 0.5 }}>Creative Member</span>
-                      )}
-                    </div>
+                    <div className="person-identity"><Link className="person-profile-link" href={`/people/${profile?.id}`}><span className="person-full-name">{displayName}</span><span className="person-stage-name">View creator profile →</span></Link></div>
                   </div>
 
                   {/* Multi-Role Badges */}
@@ -302,9 +296,7 @@ export default async function PeoplePage() {
 
                   {/* Status & Contact Footer */}
                   <div className="person-meta-footer">
-                    <span className="person-email-text">
-                      {profile?.email || "No email on record"}
-                    </span>
+                    <span className="person-email-text">FACKTS Music creator</span>
                     <span className="person-joined-badge">
                       <ClockIcon size={11} />
                       {isPending

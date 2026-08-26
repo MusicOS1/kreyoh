@@ -167,6 +167,7 @@ export default function ShellLayout({
 
       {/* Sidebar Footer */}
       <div className="sidebar-footer">
+        {canAccessControlRoom && <Link href="/admin" className="nav-link control-room-switch" onClick={() => isMobile && setMobileOpen(false)}><span className="nav-icon-wrap"><BriefcaseIcon size={16} /></span><span className="nav-label">Open Control Room</span><span className="nav-badge-live">ADMIN</span></Link>}
         <Link
           href="/settings"
           className={`nav-link ${pathname.startsWith("/settings") ? "active" : ""}`}

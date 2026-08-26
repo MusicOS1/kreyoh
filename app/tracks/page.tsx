@@ -6,6 +6,7 @@ import { createAdminClient } from "../../lib/supabase/admin";
 import { createR2PresignedUrl, isR2Configured } from "../../lib/r2";
 import { getWorkspace, hasAnyRole } from "../../lib/workspace";
 import { commentOnTrack, updateTrack } from "./actions";
+import { creatorDisplayName } from "../../lib/profileIdentity";
 
 const trackFileRoles = ["Super Admin", "Project Lead", "A&R", "Producer", "Engineer"];
 const trackCreateRoles = ["Super Admin", "Project Lead", "A&R"];
@@ -28,20 +29,20 @@ export default async function TracksPage() {
   const [tracksResult, beatsResult, membersResult] = await Promise.all([
     admin
       .from("tracks")
-      .select("*,beats(title,producer_name,beat_code),track_contributors(id,contribution_role,profiles(full_name,stage_name))")
+      .select("*,beats(title,producer_name,producer_user_id,beat_code),track_contributors(id,contribution_role,profiles(full_name,stage_name,nickname))")
       .eq("project_id", project.id)
       .order("created_at", { ascending: false }),
     canCreate
       ? admin
           .from("beats")
-          .select("id,title,beat_code,producer_name")
+          .select("id,title,beat_code,producer_name,producer_user_id")
           .eq("project_id", project.id)
           .order("created_at", { ascending: false })
       : Promise.resolve({ data: [], error: null }),
     canCreate
       ? admin
           .from("project_members")
-          .select("user_id,profiles(full_name,stage_name)")
+          .select("user_id,profiles(full_name,stage_name,nickname)")
           .eq("project_id", project.id)
           .eq("status", "active")
           .order("joined_at", { ascending: true })
@@ -53,6 +54,15 @@ export default async function TracksPage() {
   if (tracksError) {
     console.error("FACKTS MUSIC TRACK LIBRARY ERROR:", tracksError.message);
   }
+
+  const creatorIds = Array.from(new Set((trackRows ?? []).flatMap((track: any) => {
+    const beat = Array.isArray(track.beats) ? track.beats[0] : track.beats;
+    return [track.created_by, beat?.producer_user_id];
+  }).filter(Boolean)));
+  const { data: creatorProfiles = [] } = creatorIds.length
+    ? await admin.from("profiles").select("id,full_name,stage_name,nickname").in("id", creatorIds)
+    : { data: [] as any[] };
+  const creators = new Map((creatorProfiles ?? []).map((profile: any) => [profile.id, profile]));
 
   const trackIds = (trackRows ?? []).map((track: any) => track.id);
   const [commentsResult, assetsResult] = trackIds.length
@@ -66,7 +76,7 @@ export default async function TracksPage() {
           .order("created_at", { ascending: true }),
         admin
           .from("project_assets")
-          .select("id,entity_id,bucket_id,storage_path,file_name,mime_type,asset_kind,created_at,profiles!project_assets_uploaded_by_fkey(full_name,stage_name)")
+          .select("id,entity_id,bucket_id,storage_path,file_name,mime_type,asset_kind,version_note,created_at,profiles!project_assets_uploaded_by_fkey(full_name,stage_name,nickname)")
           .eq("project_id", project.id)
           .eq("entity_type", "track")
           .in("entity_id", trackIds)
@@ -86,7 +96,7 @@ export default async function TracksPage() {
     const profile = Array.isArray(member.profiles) ? member.profiles[0] : member.profiles;
     return {
       id: member.user_id,
-      name: profile?.stage_name || profile?.full_name || "Project member",
+      name: creatorDisplayName(profile),
     };
   });
 
@@ -158,6 +168,13 @@ export default async function TracksPage() {
 
           {tracks.map((track: any) => {
             const beat = Array.isArray(track.beats) ? track.beats[0] : track.beats;
+            const producerCredit = (track.track_contributors || []).find((credit: any) => ["producer", "co_producer"].includes(String(credit.contribution_role).toLowerCase()));
+            const producerName = producerCredit
+              ? creatorDisplayName(Array.isArray(producerCredit.profiles) ? producerCredit.profiles[0] : producerCredit.profiles)
+              : beat?.producer_user_id
+                ? creatorDisplayName(creators.get(beat.producer_user_id))
+                : beat?.producer_name || "Uncredited";
+            const uploaderName = creatorDisplayName(creators.get(track.created_by));
             return (
               <article className="panel track-development-card" id={`track-${track.id}`} key={track.id}>
                 {artworkUrls[track.id] && (
@@ -173,7 +190,8 @@ export default async function TracksPage() {
                   <div>
                     <span className="eyebrow">{track.track_code || "TRACK"} · {beat?.beat_code || "SOURCE BEAT"}</span>
                     <h2>{track.working_title || beat?.title || "Untitled track"}</h2>
-                    <p>Produced by {beat?.producer_name || "Uncredited"}</p>
+                    <p>Produced by {producerName}</p>
+                    <small className="music-uploader-label">Uploaded by {uploaderName}</small>
                   </div>
                   <span className={`status-pill ${track.development_status}`}>
                     {String(track.development_status).replaceAll("_", " ")}
@@ -226,8 +244,9 @@ export default async function TracksPage() {
                             <span>{asset.asset_kind.replaceAll("_", " ")}</span>
                             <strong>{asset.file_name}</strong>
                             <small>
-                              Version {version} · {uploader?.stage_name || uploader?.full_name || "Project member"} · {new Intl.DateTimeFormat("en-KE", { day: "numeric", month: "short", year: "numeric" }).format(new Date(asset.created_at))}
+                              Version {version} · Uploaded by {creatorDisplayName(uploader)} · {new Intl.DateTimeFormat("en-KE", { day: "numeric", month: "short", year: "numeric" }).format(new Date(asset.created_at))}
                             </small>
+                            {asset.version_note && <p className="track-version-note">{asset.version_note}</p>}
                           </div>
                           {assetAudioUrls[asset.id] ? (
                             <BeatAudioPlayer

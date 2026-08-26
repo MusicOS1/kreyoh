@@ -19,8 +19,8 @@ export default async function AdminOperations() {
     beatArtworkResult,
     trackArtworkResult,
   ] = await Promise.all([
-    admin.from("beats").select("id,project_id,title,beat_code,producer_name,status,created_at,artwork_url,projects(name)").order("created_at", { ascending: false }).limit(50),
-    admin.from("tracks").select("id,project_id,working_title,track_code,development_status,created_at,projects(name)").order("created_at", { ascending: false }).limit(50),
+    admin.from("beats").select("id,project_id,title,beat_code,producer_name,status,created_at,artwork_url,bpm,musical_key,genre_tags,mood_tags,description,artist_capacity,source_type,external_url,projects(name)").order("created_at", { ascending: false }).limit(50),
+    admin.from("tracks").select("id,project_id,beat_id,working_title,track_code,development_status,created_at,projects(name)").order("created_at", { ascending: false }).limit(50),
     admin.from("studio_sessions").select("id,starts_at,location,status,projects(name),tracks(working_title)").order("starts_at", { ascending: false }).limit(8),
     admin.from("project_tasks").select("id,title,status,due_date,projects(name),profiles!project_tasks_assignee_id_fkey(full_name,stage_name)").order("created_at", { ascending: false }).limit(8),
     admin.from("project_members").select("project_id,user_id,profiles(full_name,stage_name)").eq("status", "active"),
@@ -65,6 +65,7 @@ export default async function AdminOperations() {
       projectName: first(beat.projects)?.name || "No project", title: beat.title || "Untitled beat",
       code: beat.beat_code || "BEAT", status: beat.status || "available",
       artworkUrl: signedArtwork.get(`beat:${beat.id}`) || beat.artwork_url || null,
+      metadata: {producer_name:beat.producer_name,bpm:beat.bpm,musical_key:beat.musical_key,genre_tags:beat.genre_tags,mood_tags:beat.mood_tags,description:beat.description,artist_capacity:beat.artist_capacity,source_type:beat.source_type,external_url:beat.external_url},
       credits: beatCredits.filter((credit: any) => credit.beat_id === beat.id).map((credit: any) => ({ id: credit.id, userId: credit.user_id, role: credit.contribution_role })),
     })),
     ...tracks.map((track: any) => ({
@@ -72,6 +73,7 @@ export default async function AdminOperations() {
       projectName: first(track.projects)?.name || "No project", title: track.working_title || "Untitled track",
       code: track.track_code || "TRACK", status: track.development_status || "in_development",
       artworkUrl: signedArtwork.get(`track:${track.id}`) || trackArtwork.get(track.id)?.artwork_url || null,
+      metadata: {beat_id:track.beat_id}, beatOptions: beats.filter((beat:any)=>beat.project_id===track.project_id).map((beat:any)=>({id:beat.id,label:beat.title||beat.beat_code||"Beat"})),
       credits: trackCredits.filter((credit: any) => credit.track_id === track.id).map((credit: any) => ({ id: credit.id, userId: credit.user_id, role: credit.contribution_role })),
     })),
   ];

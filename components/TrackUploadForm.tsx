@@ -66,6 +66,7 @@ export default function TrackUploadForm({ trackId }: { trackId: string }) {
 
   return (
     <form ref={formRef} onSubmit={submit} className="track-upload-form">
+      <div className="track-upload-intro"><strong>Add a new version</strong><span>The newest upload appears first. Earlier versions stay safely in the project history.</span></div>
       <div className="track-upload-fields">
         <label>
           File type
@@ -81,6 +82,10 @@ export default function TrackUploadForm({ trackId }: { trackId: string }) {
         <label>
           Audio or stems
           <input name="track_file" type="file" accept="audio/*,.zip,application/zip" required />
+        </label>
+        <label className="track-version-note-field">
+          Version note
+          <input name="version_note" maxLength={280} placeholder="What changed in this version?" />
         </label>
         <button disabled={busy}>{busy ? "Uploading securely…" : "Add track file"}</button>
       </div>

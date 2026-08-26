@@ -134,6 +134,7 @@ export default function TrackIntakeForm({
       asset.set("file_name", file.name);
       asset.set("mime_type", file.type || "application/octet-stream");
       asset.set("asset_kind", String(formData.get("asset_kind") || "demo"));
+      asset.set("version_note", String(formData.get("version_note") || ""));
       await saveTrackAsset(asset);
 
       setCredits([newCredit()]);
@@ -208,6 +209,10 @@ export default function TrackIntakeForm({
         <label>
           Track audio *
           <input name="track_file" type="file" accept="audio/*" required />
+        </label>
+        <label>
+          First-version note
+          <input name="version_note" maxLength={280} placeholder="Demo context, changes needed, or recording note" />
         </label>
       </div>
 
