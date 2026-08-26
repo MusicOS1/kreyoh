@@ -42,9 +42,17 @@ export default function TrackPlaylist({ tracks, resultsVisible = false }: { trac
     if (percent < 60) return;
     listenRecorded.current.add(selected.id);
     setLocalTracks((items) => items.map((item) => item.id === selected.id ? { ...item, listened: true } : item));
+    const isEligible = selected.eligible;
     startTransition(async () => {
-      try { await recordTrackListen(selected.id, percent); setNotice("Listening requirement complete. You can now rank this track."); }
-      catch (cause) { listenRecorded.current.delete(selected.id); setNotice(cause instanceof Error ? cause.message : "Listening progress could not be saved."); }
+      try {
+        await recordTrackListen(selected.id, percent);
+        setNotice(isEligible ? "Ranking unlocked. Choose #1, #2 or #3." : "Listening complete. You are credited on this track, so it cannot be included in your own ballot.");
+      }
+      catch (cause) {
+        listenRecorded.current.delete(selected.id);
+        setLocalTracks((items) => items.map((item) => item.id === selected.id ? { ...item, listened: false } : item));
+        setNotice(cause instanceof Error ? cause.message : "Listening progress could not be saved.");
+      }
     });
   }
 
@@ -82,8 +90,9 @@ export default function TrackPlaylist({ tracks, resultsVisible = false }: { trac
           <span className={track.artwork ? "track-row-art has-artwork" : "track-row-art"}>{track.artwork ? <img src={track.artwork} alt="" /> : "♫"}</span>
           <span><strong>{track.title}</strong><small>{track.subtitle}</small></span>
         </button>
-        <div className="track-rank-buttons" aria-label={`Rank ${track.title}`}>
-          {[1,2,3].map((rank)=><button type="button" key={rank} className={track.ranking===rank?"selected":""} disabled={pending || !track.eligible || !track.listened} onClick={()=>rankTrack(track.id,rank)} title={!track.eligible?"You are credited on this track":!track.listened?"Listen to 60% first":`Rank #${rank}`}>{rank}</button>)}
+        <div className={`track-rank-buttons ${track.eligible && track.listened ? "is-unlocked" : "is-locked"}`} aria-label={`Rank ${track.title}`}>
+          {[1,2,3].map((rank)=><button type="button" key={rank} className={track.ranking===rank?"selected":track.eligible&&track.listened?"available":""} disabled={pending || !track.eligible || !track.listened} onClick={()=>rankTrack(track.id,rank)} title={!track.eligible?"You are credited on this track":!track.listened?"Listen to 60% first":`Rank #${rank}`}>{rank}</button>)}
+          <small className="track-rank-state">{!track.eligible ? "CREDITED · CANNOT RANK" : track.listened ? "RANKING UNLOCKED" : "LISTEN 60% TO UNLOCK"}</small>
         </div>
         {resultsVisible && <div className="track-result-score"><strong>{Math.round(track.finalScore || 0)}</strong><small>final</small></div>}
       </article>)}
