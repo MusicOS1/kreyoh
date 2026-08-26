@@ -92,9 +92,9 @@ export default async function TracksPage() {
           .in("entity_id", trackIds)
           .order("created_at", { ascending: false }),
         votingRound
-          ? admin.from("track_rankings").select("track_id,user_id,rank,points").eq("round_id", votingRound.id).in("track_id", trackIds)
+          ? admin.from("track_version_rankings").select("track_id,asset_id,user_id,rank,points").eq("round_id", votingRound.id).in("track_id", trackIds)
           : Promise.resolve({ data: [], error: null }),
-        admin.from("track_listens").select("track_id,progress_percent").eq("project_id", project.id).eq("user_id", user.id).in("track_id", trackIds),
+        admin.from("track_version_listens").select("track_id,asset_id,progress_percent").eq("project_id", project.id).eq("user_id", user.id).in("track_id", trackIds),
         votingRound
           ? admin.from("track_ar_scores").select("track_id,evaluator_id,song_quality,originality,replay_value,performance_potential,release_readiness,note").eq("round_id", votingRound.id).in("track_id", trackIds)
           : Promise.resolve({ data: [], error: null }),
@@ -153,36 +153,40 @@ export default async function TracksPage() {
 
   const resultsVisible = Boolean(votingRound?.results_visible || votingRound?.status === "closed");
   const displayVotingStats = resultsVisible || canViewPrivateVotingStats;
-  const playlist = tracks.map((track: any) => {
-    const audio = track.assets.find((asset: any) => asset.mime_type?.startsWith("audio/") && assetAudioUrls[asset.id]);
-    const rankings = (rankingsResult.data ?? []).filter((ranking: any) => ranking.track_id === track.id);
-    const myRanking = rankings.find((ranking: any) => ranking.user_id === user.id);
-    const myListen = (listensResult.data ?? []).find((listen: any) => listen.track_id === track.id);
+  const playlist = tracks.flatMap((track: any) => {
     const creditedIds = new Set((track.track_contributors || []).map((credit: any) => credit.user_id).filter(Boolean));
     const eligibleVoters = Math.max(0, projectMembers.length - creditedIds.size);
-    const communityPoints = rankings.reduce((sum: number, ranking: any) => sum + Number(ranking.points || 0), 0);
-    const communityScore = eligibleVoters ? Math.min(100, (communityPoints / (eligibleVoters * 5)) * 100) : 0;
     const arRows = (arScoresResult.data ?? []).filter((score: any) => score.track_id === track.id);
     const arScore = arRows.length
       ? arRows.reduce((sum: number, score: any) => sum + ((Number(score.song_quality) + Number(score.originality) + Number(score.replay_value) + Number(score.performance_potential) + Number(score.release_readiness)) / 5) * 10, 0) / arRows.length
       : 0;
-    const finalScore = arRows.length ? communityScore * .7 + arScore * .3 : communityScore;
     const artists = (track.track_contributors || []).filter((credit: any) => ["artist", "featured_artist", "vocalist"].includes(String(credit.contribution_role).toLowerCase())).map((credit: any) => creatorDisplayName(Array.isArray(credit.profiles) ? credit.profiles[0] : credit.profiles));
-    return audio ? {
-      id: track.id,
-      title: track.working_title || "Untitled track",
-      subtitle: artists.join(" · ") || "FACKTS Music",
-      src: assetAudioUrls[audio.id],
-      artwork: artworkUrls[track.id],
-      ranking: myRanking?.rank,
-      listened: Number(myListen?.progress_percent || 0) >= 60,
-      eligible: !creditedIds.has(user.id),
-      finalScore,
-      communityScore,
-      arScore,
-      firstPlaceVotes: rankings.filter((ranking: any) => ranking.rank === 1).length,
-    } : null;
-  }).filter(Boolean).sort((a: any, b: any) => displayVotingStats
+    return track.assets
+      .filter((asset: any) => asset.mime_type?.startsWith("audio/") && assetAudioUrls[asset.id])
+      .map((asset: any, versionIndex: number) => {
+        const rankings = (rankingsResult.data ?? []).filter((ranking: any) => ranking.asset_id === asset.id);
+        const myRanking = rankings.find((ranking: any) => ranking.user_id === user.id);
+        const myListen = (listensResult.data ?? []).find((listen: any) => listen.asset_id === asset.id);
+        const communityPoints = rankings.reduce((sum: number, ranking: any) => sum + Number(ranking.points || 0), 0);
+        const communityScore = eligibleVoters ? Math.min(100, (communityPoints / (eligibleVoters * 5)) * 100) : 0;
+        const finalScore = arRows.length ? communityScore * .7 + arScore * .3 : communityScore;
+        const versionLabel = String(asset.asset_kind || "version").replaceAll("_", " ");
+        return {
+          id: asset.id,
+          title: track.working_title || "Untitled track",
+          subtitle: `${artists.join(" · ") || "FACKTS Music"} · ${versionLabel} V${track.assets.length - versionIndex}`,
+          src: assetAudioUrls[asset.id],
+          artwork: artworkUrls[track.id],
+          ranking: myRanking?.rank,
+          listened: Number(myListen?.progress_percent || 0) >= 60,
+          eligible: !creditedIds.has(user.id),
+          finalScore,
+          communityScore,
+          arScore,
+          firstPlaceVotes: rankings.filter((ranking: any) => ranking.rank === 1).length,
+        };
+      });
+  }).sort((a: any, b: any) => displayVotingStats
     ? b.finalScore - a.finalScore || b.firstPlaceVotes - a.firstPlaceVotes || b.arScore - a.arScore || a.title.localeCompare(b.title)
     : a.title.localeCompare(b.title));
 

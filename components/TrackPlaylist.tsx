@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { recordTrackListen, setTrackRanking } from "../app/tracks/actions";
+import { recordTrackVersionListen, setTrackVersionRanking } from "../app/tracks/actions";
 
 export type PlaylistTrack = {
   id: string;
@@ -45,7 +45,7 @@ export default function TrackPlaylist({ tracks, resultsVisible = false, showDeta
     const isEligible = selected.eligible;
     startTransition(async () => {
       try {
-        await recordTrackListen(selected.id, percent);
+        await recordTrackVersionListen(selected.id, percent);
         setNotice(isEligible ? "Ranking unlocked. Choose #1, #2 or #3." : "Listening complete. You are credited on this track, so it cannot be included in your own ballot.");
       }
       catch (cause) {
@@ -60,7 +60,7 @@ export default function TrackPlaylist({ tracks, resultsVisible = false, showDeta
     setNotice("");
     startTransition(async () => {
       try {
-        await setTrackRanking(trackId, rank);
+        await setTrackVersionRanking(trackId, rank);
         setLocalTracks((items) => items.map((item) => ({
           ...item,
           ranking: item.id === trackId ? rank : item.ranking === rank ? undefined : item.ranking,

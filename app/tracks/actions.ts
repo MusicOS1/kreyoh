@@ -401,6 +401,21 @@ export async function setTrackRanking(trackId: string, rank: number) {
   revalidatePath("/tracks");
 }
 
+export async function recordTrackVersionListen(assetId: string, progressPercent: number) {
+  const { supabase, project, membership } = await getWorkspace();
+  if (!project || !membership) throw new Error("Project access required.");
+  const { error } = await supabase.rpc("record_track_version_listen", { p_asset_id: assetId, p_progress: Math.max(0, Math.min(100, Math.round(progressPercent))) });
+  if (error) throw new Error(error.message);
+}
+
+export async function setTrackVersionRanking(assetId: string, rank: number) {
+  const { supabase, project, membership } = await getWorkspace();
+  if (!project || !membership) throw new Error("Project access required.");
+  const { error } = await supabase.rpc("set_track_version_ranking", { p_asset_id: assetId, p_rank: rank });
+  if (error) throw new Error(error.message);
+  revalidatePath("/tracks");
+}
+
 export async function saveTrackArScore(formData: FormData) {
   const { admin, user, project, membership, roles } = await getWorkspace();
   if (!project || !membership || !hasAnyRole(roles, ["Super Admin", "A&R"])) {
