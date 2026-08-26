@@ -11,7 +11,8 @@ function initialsFor(name: string) {
   return name.split(" ").map((part) => part[0]).filter(Boolean).join("").slice(0, 2).toUpperCase() || "K";
 }
 
-export default async function SettingsPage() {
+export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ message?: string }> }) {
+  const notice = await searchParams;
   const { profile, user, project, roles } = await getWorkspace();
 
   const displayName = profile?.stage_name || profile?.full_name || user.email?.split("@")[0] || "User";
@@ -19,6 +20,7 @@ export default async function SettingsPage() {
   return (
     <AppShell>
       <div className="content">
+        {notice.message && <div className="form-success-alert" role="status">{notice.message}</div>}
         <div className="heading enter">
           <div>
             <span className="eyebrow">WORKSPACE / PREFERENCES</span>

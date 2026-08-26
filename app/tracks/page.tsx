@@ -2,17 +2,18 @@ import AppShell from "../../components/AppShell";
 import BeatAudioPlayer from "../../components/BeatAudioPlayer";
 import TrackIntakeForm from "../../components/TrackIntakeForm";
 import TrackUploadForm from "../../components/TrackUploadForm";
+import TrackPlaylist from "../../components/TrackPlaylist";
 import { createAdminClient } from "../../lib/supabase/admin";
 import { createR2PresignedUrl, isR2Configured } from "../../lib/r2";
 import { getWorkspace, hasAnyRole } from "../../lib/workspace";
-import { commentOnTrack, updateTrack } from "./actions";
+import { commentOnTrack, deleteTrackNote, saveTrackArScore, updateTrack, updateTrackVotingRound } from "./actions";
 import { creatorDisplayName } from "../../lib/profileIdentity";
 
 const trackFileRoles = ["Super Admin", "Project Lead", "A&R", "Producer", "Engineer"];
 const trackCreateRoles = ["Super Admin", "Project Lead", "A&R"];
 
 export default async function TracksPage() {
-  const { project, membership, roles } = await getWorkspace();
+  const { project, membership, roles, user } = await getWorkspace();
   if (!project || !membership) {
     return (
       <AppShell>
@@ -26,10 +27,12 @@ export default async function TracksPage() {
   const admin = createAdminClient();
   const canDevelop = hasAnyRole(roles, trackFileRoles);
   const canCreate = hasAnyRole(roles, trackCreateRoles);
+  const canManageVoting = hasAnyRole(roles, ["Super Admin", "Project Lead", "A&R"]);
+  const canScoreAr = hasAnyRole(roles, ["Super Admin", "A&R"]);
   const [tracksResult, beatsResult, membersResult] = await Promise.all([
     admin
       .from("tracks")
-      .select("*,beats(title,producer_name,producer_user_id,beat_code),track_contributors(id,contribution_role,profiles(full_name,stage_name,nickname))")
+      .select("*,beats(title,producer_name,producer_user_id,beat_code),track_contributors(id,user_id,contribution_role,profiles(full_name,stage_name,nickname))")
       .eq("project_id", project.id)
       .order("created_at", { ascending: false }),
     canCreate
@@ -39,14 +42,12 @@ export default async function TracksPage() {
           .eq("project_id", project.id)
           .order("created_at", { ascending: false })
       : Promise.resolve({ data: [], error: null }),
-    canCreate
-      ? admin
-          .from("project_members")
-          .select("user_id,profiles(full_name,stage_name,nickname)")
-          .eq("project_id", project.id)
-          .eq("status", "active")
-          .order("joined_at", { ascending: true })
-      : Promise.resolve({ data: [], error: null }),
+    admin
+      .from("project_members")
+      .select("user_id,profiles(full_name,stage_name,nickname)")
+      .eq("project_id", project.id)
+      .eq("status", "active")
+      .order("joined_at", { ascending: true }),
   ]);
 
   const { data: trackRows, error: tracksError } = tracksResult;
@@ -65,7 +66,15 @@ export default async function TracksPage() {
   const creators = new Map((creatorProfiles ?? []).map((profile: any) => [profile.id, profile]));
 
   const trackIds = (trackRows ?? []).map((track: any) => track.id);
-  const [commentsResult, assetsResult] = trackIds.length
+  const { data: votingRound } = await admin
+    .from("track_voting_rounds")
+    .select("id,title,status,results_visible,closes_at")
+    .eq("project_id", project.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const [commentsResult, assetsResult, rankingsResult, listensResult, arScoresResult] = trackIds.length
     ? await Promise.all([
         admin
           .from("comments")
@@ -81,8 +90,15 @@ export default async function TracksPage() {
           .eq("entity_type", "track")
           .in("entity_id", trackIds)
           .order("created_at", { ascending: false }),
+        votingRound
+          ? admin.from("track_rankings").select("track_id,user_id,rank,points").eq("round_id", votingRound.id).in("track_id", trackIds)
+          : Promise.resolve({ data: [], error: null }),
+        admin.from("track_listens").select("track_id,progress_percent").eq("project_id", project.id).eq("user_id", user.id).in("track_id", trackIds),
+        votingRound
+          ? admin.from("track_ar_scores").select("track_id,evaluator_id,song_quality,originality,replay_value,performance_potential,release_readiness,note").eq("round_id", votingRound.id).in("track_id", trackIds)
+          : Promise.resolve({ data: [], error: null }),
       ])
-    : [{ data: [] }, { data: [] }];
+    : [{ data: [] }, { data: [] }, { data: [] }, { data: [] }, { data: [] }];
 
   const tracks = (trackRows ?? []).map((track: any) => ({
     ...track,
@@ -134,6 +150,40 @@ export default async function TracksPage() {
     });
   }
 
+  const resultsVisible = Boolean(votingRound?.results_visible || votingRound?.status === "closed");
+  const playlist = tracks.map((track: any) => {
+    const audio = track.assets.find((asset: any) => asset.mime_type?.startsWith("audio/") && assetAudioUrls[asset.id]);
+    const rankings = (rankingsResult.data ?? []).filter((ranking: any) => ranking.track_id === track.id);
+    const myRanking = rankings.find((ranking: any) => ranking.user_id === user.id);
+    const myListen = (listensResult.data ?? []).find((listen: any) => listen.track_id === track.id);
+    const creditedIds = new Set((track.track_contributors || []).map((credit: any) => credit.user_id).filter(Boolean));
+    const eligibleVoters = Math.max(0, projectMembers.length - creditedIds.size);
+    const communityPoints = rankings.reduce((sum: number, ranking: any) => sum + Number(ranking.points || 0), 0);
+    const communityScore = eligibleVoters ? Math.min(100, (communityPoints / (eligibleVoters * 5)) * 100) : 0;
+    const arRows = (arScoresResult.data ?? []).filter((score: any) => score.track_id === track.id);
+    const arScore = arRows.length
+      ? arRows.reduce((sum: number, score: any) => sum + ((Number(score.song_quality) + Number(score.originality) + Number(score.replay_value) + Number(score.performance_potential) + Number(score.release_readiness)) / 5) * 10, 0) / arRows.length
+      : 0;
+    const finalScore = arRows.length ? communityScore * .7 + arScore * .3 : communityScore;
+    const artists = (track.track_contributors || []).filter((credit: any) => ["artist", "featured_artist", "vocalist"].includes(String(credit.contribution_role).toLowerCase())).map((credit: any) => creatorDisplayName(Array.isArray(credit.profiles) ? credit.profiles[0] : credit.profiles));
+    return audio ? {
+      id: track.id,
+      title: track.working_title || "Untitled track",
+      subtitle: artists.join(" · ") || "FACKTS Music",
+      src: assetAudioUrls[audio.id],
+      artwork: artworkUrls[track.id],
+      ranking: myRanking?.rank,
+      listened: Number(myListen?.progress_percent || 0) >= 60,
+      eligible: !creditedIds.has(user.id),
+      finalScore,
+      communityScore,
+      arScore,
+      firstPlaceVotes: rankings.filter((ranking: any) => ranking.rank === 1).length,
+    } : null;
+  }).filter(Boolean).sort((a: any, b: any) => resultsVisible
+    ? b.finalScore - a.finalScore || b.firstPlaceVotes - a.firstPlaceVotes || b.arScore - a.arScore || a.title.localeCompare(b.title)
+    : a.title.localeCompare(b.title));
+
   return (
     <AppShell>
       <div className="content fackts-tracks-page">
@@ -145,6 +195,26 @@ export default async function TracksPage() {
           </div>
           <div className="date"><span>{tracks.length} TRACKS</span></div>
         </div>
+
+        <section className="panel track-billboard-section">
+          <div className="track-billboard-heading">
+            <div>
+              <span className="eyebrow">PROJECT LISTENING ROOM</span>
+              <h2>{resultsVisible ? "Project Track Chart" : "Top 3 Selection Room"}</h2>
+              <p>Listen to at least 60%, then rank your three strongest eligible tracks. #1 earns 5 points, #2 earns 3 and #3 earns 1. Live results stay private to reduce influence.</p>
+            </div>
+            <span>{votingRound?.status === "closed" ? "ROUND CLOSED" : `${playlist.length} PLAYABLE`}</span>
+          </div>
+          {canManageVoting && votingRound && (
+            <form action={updateTrackVotingRound} className="track-round-controls">
+              <input type="hidden" name="round_id" value={votingRound.id} />
+              <span>{resultsVisible ? "Results visible" : "Results hidden"}</span>
+              {votingRound.status === "open" && <button name="intent" value={resultsVisible ? "hide" : "reveal"}>{resultsVisible ? "Hide results" : "Preview results"}</button>}
+              {votingRound.status === "open" && <button className="primary" name="intent" value="close">Close &amp; publish chart</button>}
+            </form>
+          )}
+          <TrackPlaylist tracks={playlist as any} resultsVisible={resultsVisible} />
+        </section>
 
         {canCreate && (
           <details className="beat-intake-disclosure track-intake-disclosure">
@@ -175,6 +245,7 @@ export default async function TracksPage() {
                 ? creatorDisplayName(creators.get(beat.producer_user_id))
                 : beat?.producer_name || "Uncredited";
             const uploaderName = creatorDisplayName(creators.get(track.created_by));
+            const myArScore = (arScoresResult.data ?? []).find((score: any) => score.track_id === track.id && score.evaluator_id === user.id);
             return (
               <article className="panel track-development-card" id={`track-${track.id}`} key={track.id}>
                 {artworkUrls[track.id] && (
@@ -204,6 +275,27 @@ export default async function TracksPage() {
                     return <span key={contributor.id}>{profile?.stage_name || profile?.full_name} · {contributor.contribution_role}</span>;
                   })}
                 </div>
+
+                {canScoreAr && votingRound && (
+                  <details className="track-ar-score-panel">
+                    <summary>A&amp;R evaluation</summary>
+                    <form action={saveTrackArScore}>
+                      <input type="hidden" name="track_id" value={track.id} />
+                      <input type="hidden" name="round_id" value={votingRound.id} />
+                      {[
+                        ["song_quality", "Song quality"],
+                        ["originality", "Originality"],
+                        ["replay_value", "Replay value"],
+                        ["performance_potential", "Performance potential"],
+                        ["release_readiness", "Release readiness"],
+                      ].map(([name, label]) => (
+                        <label key={name}>{label}<input type="number" name={name} min="1" max="10" required defaultValue={(myArScore as any)?.[name] || 7} /></label>
+                      ))}
+                      <label className="wide">Private A&amp;R note<textarea name="note" defaultValue={myArScore?.note || ""} placeholder="What should happen next?" /></label>
+                      <button>Save evaluation</button>
+                    </form>
+                  </details>
+                )}
 
                 {canDevelop && (
                   <form action={updateTrack} className="track-stage-form">
@@ -271,7 +363,7 @@ export default async function TracksPage() {
                 <div className="track-comments">
                   {(track.comments || []).map((comment: any) => {
                     const profile = Array.isArray(comment.profiles) ? comment.profiles[0] : comment.profiles;
-                    return <p key={comment.id}><strong>{profile?.stage_name || profile?.full_name || "Contributor"}</strong> {comment.body}</p>;
+                    return <div className="track-note-row" key={comment.id}><p><strong>{profile?.stage_name || profile?.full_name || "Contributor"}</strong> {comment.body}</p>{roles.includes("Super Admin") && <form action={deleteTrackNote}><input type="hidden" name="comment_id" value={comment.id} /><button title="Delete this note">Delete</button></form>}</div>;
                   })}
                 </div>
 

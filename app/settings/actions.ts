@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { getWorkspace } from "../../lib/workspace";
 
 function value(formData: FormData, name: string) {
@@ -8,7 +9,7 @@ function value(formData: FormData, name: string) {
 }
 
 export async function updateProfile(formData: FormData): Promise<void> {
-  const { supabase, user } = await getWorkspace();
+  const { supabase, admin, user } = await getWorkspace();
   const fullName = value(formData, "full_name");
   const stageName = value(formData, "stage_name") || null;
   const nickname = value(formData, "nickname") || null;
@@ -32,6 +33,10 @@ export async function updateProfile(formData: FormData): Promise<void> {
     throw new Error("Full name is required.");
   }
 
+  const slugBase = (stageName || nickname || fullName).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 54) || "creator";
+  const { data: slugOwner } = await admin.from("profiles").select("id").eq("public_slug", slugBase).neq("id", user.id).maybeSingle();
+  const publicSlug = slugOwner ? `${slugBase}-${user.id.slice(0, 6)}` : slugBase;
+
   const profileUpdate: Record<string, unknown> = {
     full_name: fullName,
     stage_name: stageName,
@@ -47,6 +52,7 @@ export async function updateProfile(formData: FormData): Promise<void> {
     interview_title: interviewTitle,
     interview_url: interviewUrl,
     profile_visibility: profileVisibility,
+    public_slug: publicSlug,
     achievements,
     updated_at: new Date().toISOString(),
   };
@@ -70,9 +76,11 @@ export async function updateProfile(formData: FormData): Promise<void> {
   revalidatePath("/people");
   revalidatePath(`/people/${user.id}`);
   revalidatePath(`/creators/${user.id}`);
+  revalidatePath(`/creators/${publicSlug}`);
   revalidatePath("/beats");
   revalidatePath("/tracks");
   revalidatePath("/studio-sessions");
+  redirect("/settings?message=Profile%20saved%20successfully");
 }
 
 export async function updateProfileMedia(formData: FormData): Promise<void> {

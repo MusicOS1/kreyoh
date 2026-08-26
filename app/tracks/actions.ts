@@ -337,3 +337,109 @@ export async function commentOnTrack(formData: FormData) {
   if (error) throw new Error(error.message);
   revalidatePath("/tracks");
 }
+
+export async function deleteTrackNote(formData: FormData) {
+  const { admin, project, membership, roles, user } = await getWorkspace();
+  if (!project || !membership || !roles.includes("Super Admin")) {
+    throw new Error("Only Super Admin can delete project notes.");
+  }
+  const commentId = read(formData, "comment_id");
+  const { error } = await admin
+    .from("comments")
+    .delete()
+    .eq("id", commentId)
+    .eq("project_id", project.id)
+    .eq("entity_type", "track");
+  if (error) throw new Error(error.message);
+  await admin.from("platform_events").insert({
+    user_id: user.id,
+    project_id: project.id,
+    event_name: "track_note_deleted",
+    category: "admin",
+    metadata: { comment_id: commentId },
+  });
+  revalidatePath("/tracks");
+}
+
+export async function toggleTrackVote(formData: FormData) {
+  const { admin, user, project, membership } = await getWorkspace();
+  if (!project || !membership) throw new Error("Project access required.");
+  const trackId = read(formData, "track_id");
+  const { data: track } = await admin.from("tracks").select("id").eq("id", trackId).eq("project_id", project.id).maybeSingle();
+  if (!track) throw new Error("That track is not available in this project.");
+  const { data: existing } = await admin.from("track_votes").select("id").eq("track_id", trackId).eq("user_id", user.id).maybeSingle();
+  if (existing) {
+    const { error } = await admin.from("track_votes").delete().eq("id", existing.id).eq("user_id", user.id);
+    if (error) throw new Error(error.message);
+  } else {
+    const { error } = await admin.from("track_votes").insert({ project_id: project.id, track_id: trackId, user_id: user.id });
+    if (error) throw new Error(error.code === "23505" ? "Your vote is already recorded." : error.message);
+  }
+  revalidatePath("/tracks");
+  revalidatePath("/workspace");
+}
+
+export async function recordTrackListen(trackId: string, progressPercent: number) {
+  const { supabase, project, membership } = await getWorkspace();
+  if (!project || !membership) throw new Error("Project access required.");
+  const progress = Math.max(0, Math.min(100, Math.round(progressPercent)));
+  const { error } = await supabase.rpc("record_track_listen", {
+    p_track_id: trackId,
+    p_progress: progress,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function setTrackRanking(trackId: string, rank: number) {
+  const { supabase, project, membership } = await getWorkspace();
+  if (!project || !membership) throw new Error("Project access required.");
+  const { error } = await supabase.rpc("set_track_ranking", {
+    p_track_id: trackId,
+    p_rank: rank,
+  });
+  if (error) throw new Error(error.message);
+  revalidatePath("/tracks");
+}
+
+export async function saveTrackArScore(formData: FormData) {
+  const { admin, user, project, membership, roles } = await getWorkspace();
+  if (!project || !membership || !hasAnyRole(roles, ["Super Admin", "A&R"])) {
+    throw new Error("Only A&R can submit the music-development score.");
+  }
+  const trackId = read(formData, "track_id");
+  const roundId = read(formData, "round_id");
+  const score = (key: string) => Math.max(1, Math.min(10, Number(read(formData, key)) || 1));
+  const { data: track } = await admin.from("tracks").select("id").eq("id", trackId).eq("project_id", project.id).maybeSingle();
+  const { data: round } = await admin.from("track_voting_rounds").select("id").eq("id", roundId).eq("project_id", project.id).maybeSingle();
+  if (!track || !round) throw new Error("That selection record is unavailable.");
+  const { error } = await admin.from("track_ar_scores").upsert({
+    round_id: roundId,
+    project_id: project.id,
+    track_id: trackId,
+    evaluator_id: user.id,
+    song_quality: score("song_quality"),
+    originality: score("originality"),
+    replay_value: score("replay_value"),
+    performance_potential: score("performance_potential"),
+    release_readiness: score("release_readiness"),
+    note: read(formData, "note").slice(0, 500) || null,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: "round_id,track_id,evaluator_id" });
+  if (error) throw new Error(error.message);
+  revalidatePath("/tracks");
+}
+
+export async function updateTrackVotingRound(formData: FormData) {
+  const { admin, project, membership, roles } = await getWorkspace();
+  if (!project || !membership || !hasAnyRole(roles, ["Super Admin", "Project Lead", "A&R"])) {
+    throw new Error("Only Project Lead or A&R can manage the selection round.");
+  }
+  const roundId = read(formData, "round_id");
+  const intent = read(formData, "intent");
+  const changes = intent === "close"
+    ? { status: "closed", results_visible: true, updated_at: new Date().toISOString() }
+    : { results_visible: intent === "reveal", updated_at: new Date().toISOString() };
+  const { error } = await admin.from("track_voting_rounds").update(changes).eq("id", roundId).eq("project_id", project.id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/tracks");
+}

@@ -23,8 +23,10 @@ const PUBLIC_ROUTES = [
 function isPublicRoute(
   pathname: string
 ) {
-  return PUBLIC_ROUTES.includes(
-    pathname
+  return (
+    PUBLIC_ROUTES.includes(pathname) ||
+    pathname === "/creators" ||
+    pathname.startsWith("/creators/")
   );
 }
 

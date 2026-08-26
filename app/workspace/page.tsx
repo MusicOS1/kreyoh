@@ -9,6 +9,7 @@ import { getWorkspace } from "../../lib/workspace";
 import { createAdminClient } from "../../lib/supabase/admin";
 import { createR2PresignedUrl, isR2Configured } from "../../lib/r2";
 import { creatorDisplayName } from "../../lib/profileIdentity";
+import { calculateProjectProgress } from "../../lib/projectProgress";
 
 import {
   ActivityIcon,
@@ -616,14 +617,7 @@ export default async function WorkspacePage() {
   const peoplePreview =
     peoplePreviewResult.data ?? [];
 
-  const progressPercent =
-    Math.max(
-      0,
-      Math.min(
-        project.progress ?? 42,
-        100
-      )
-    );
+  const progressPercent = calculateProjectProgress({ members: membersCount, beats: beatsCount, tracks: tracksCount, sessions: sessionsCount });
 
   const currentJourneyIndex =
     JOURNEY.reduce(
@@ -866,7 +860,7 @@ export default async function WorkspacePage() {
             </strong>
 
             <p>
-              Project completion
+              Auto-calculated from people, beats, tracks and sessions
             </p>
 
             <div className="workspace-progress-track">
