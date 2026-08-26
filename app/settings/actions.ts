@@ -21,6 +21,7 @@ export async function updateProfile(formData: FormData): Promise<void> {
   const epkTagline = value(formData, "epk_tagline") || null;
   const interviewTitle = value(formData, "interview_title") || null;
   const interviewUrl = value(formData, "interview_url") || null;
+  const profileVisibility = value(formData, "profile_visibility") === "public" ? "public" : "project";
   const achievements = value(formData, "achievements").split("\n").map(item => item.trim()).filter(Boolean).slice(0, 8);
   const topSongs = Array.from({ length: 5 }, (_, index) => ({
     title: value(formData, `song_${index + 1}_title`),
@@ -45,6 +46,7 @@ export async function updateProfile(formData: FormData): Promise<void> {
     epk_tagline: epkTagline,
     interview_title: interviewTitle,
     interview_url: interviewUrl,
+    profile_visibility: profileVisibility,
     achievements,
     updated_at: new Date().toISOString(),
   };
@@ -67,6 +69,7 @@ export async function updateProfile(formData: FormData): Promise<void> {
   revalidatePath("/workspace");
   revalidatePath("/people");
   revalidatePath(`/people/${user.id}`);
+  revalidatePath(`/creators/${user.id}`);
   revalidatePath("/beats");
   revalidatePath("/tracks");
   revalidatePath("/studio-sessions");

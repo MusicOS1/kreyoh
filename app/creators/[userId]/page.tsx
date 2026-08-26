@@ -1,0 +1,23 @@
+import { notFound } from "next/navigation";
+import PublicNavigation from "../../../components/PublicNavigation";
+import PublicFooter from "../../../components/PublicFooter";
+import { creatorDisplayName } from "../../../lib/profileIdentity";
+import { createAdminClient } from "../../../lib/supabase/admin";
+
+const first = (value: any) => Array.isArray(value) ? value[0] : value;
+function player(url?: string | null) { if (!url) return null; try { const p=new URL(url),h=p.hostname.replace(/^www\./,"").toLowerCase(); if(h==="youtu.be")return `https://www.youtube.com/embed/${p.pathname.slice(1).split("/")[0]}`; if(h.includes("youtube.com"))return `https://www.youtube.com/embed/${p.searchParams.get("v")||p.pathname.split("/").filter(Boolean).pop()}`; if(h.includes("spotify.com"))return `https://open.spotify.com/embed${p.pathname}`; if(h.includes("music.apple.com"))return `https://embed.music.apple.com${p.pathname}${p.search}`; if(h.includes("soundcloud.com"))return `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23f5a623&auto_play=false&hide_related=true&show_comments=false`; } catch {} return null; }
+
+export default async function PublicCreatorPage({params}:{params:Promise<{userId:string}>}) {
+ const {userId}=await params, admin=createAdminClient();
+ const [{data:profile},{data:credits=[]}]=await Promise.all([
+  admin.from("profiles").select("id,stage_name,nickname,avatar_url,hero_image_url,bio,epk_tagline,location,skills_genres,top_songs,photo_catalog,profile_visibility").eq("id",userId).eq("profile_visibility","public").maybeSingle(),
+  admin.from("track_contributors").select("id,contribution_role,tracks(working_title)").eq("user_id",userId).eq("approved",true)
+ ]);
+ if(!profile)notFound(); const name=creatorDisplayName(profile),photos=(profile.photo_catalog||[]).slice(0,5);
+ return <><PublicNavigation/><main className="public-creator-shell"><div className="content creator-profile-page public-creator-page">
+  <section className={`creator-profile-hero${profile.hero_image_url?" has-hero-image":""}`} style={profile.hero_image_url?{backgroundImage:`linear-gradient(90deg,rgba(2,7,13,.97),rgba(2,7,13,.68),rgba(2,7,13,.22)),url("${profile.hero_image_url}")`}:undefined}><div className="creator-profile-avatar">{profile.avatar_url?<img src={profile.avatar_url} alt={name}/>:name.slice(0,2).toUpperCase()}</div><div><span className="eyebrow">FACKTS MUSIC CREATOR</span><h1>{name}</h1><p>{profile.epk_tagline||profile.bio||"Independent creator on FACKTS Music."}</p></div></section>
+  {!!photos.length&&<section className="creator-photo-catalog"><div className="creator-section-heading"><span className="eyebrow">PHOTO CATALOGUE</span><h2>Selected images</h2></div><div>{photos.map((photo:string,index:number)=><img src={photo} alt={`${name} ${index+1}`} key={photo}/>)}</div></section>}
+  <section className="creator-profile-grid"><article className="panel"><span className="eyebrow">PROFILE</span><h2>Creative identity</h2><p>{profile.bio||"Bio coming soon."}</p><p>{profile.location||"Nairobi, Kenya"}</p><p>{(profile.skills_genres||[]).join(" · ")}</p></article><article className="panel creator-top-five"><span className="eyebrow">TOP FIVE</span><h2>Selected music</h2><div className="creator-song-list">{!(profile.top_songs||[]).length&&<p>No selected songs yet.</p>}{(profile.top_songs||[]).map((song:any,index:number)=>{const src=player(song.url);return <div className="creator-song-player" key={`${song.title}-${index}`}><div className="creator-song-heading"><span>{String(index+1).padStart(2,"0")}</span><strong>{song.title}</strong>{song.url&&<a href={song.url} target="_blank" rel="noreferrer">Open ↗</a>}</div>{src?<iframe src={src} title={`${song.title} player`} loading="lazy" allow="autoplay; encrypted-media; picture-in-picture"/>:song.url&&<a className="creator-song-fallback" href={song.url} target="_blank" rel="noreferrer">Play on original platform ↗</a>}</div>})}</div></article></section>
+  <section className="panel"><div className="creator-panel-heading"><div><span className="eyebrow">APPROVED CREDITS</span><h2>Music history</h2></div><span>{(credits ?? []).length} records</span></div><div className="creator-credit-list">{(credits ?? []).map((credit:any,index:number)=><div className="creator-credit-row premium" key={credit.id}><span className="creator-credit-index">{String(index+1).padStart(2,"0")}</span><strong>{first(credit.tracks)?.working_title||"Untitled track"}</strong><span>{String(credit.contribution_role).replaceAll("_"," ")}</span><b>Approved</b></div>)}</div><p className="public-credit-privacy">Credits are public. Project files, sessions and internal records remain private.</p></section>
+ </div></main><PublicFooter/></>;
+}

@@ -57,7 +57,7 @@ export default async function CreatorProfilePage({ params }: { params: Promise<{
     <section className={`creator-profile-hero${profile?.hero_image_url ? " has-hero-image" : ""}`} style={profile?.hero_image_url ? { backgroundImage: `linear-gradient(90deg, rgba(2,7,13,.96) 0%, rgba(2,7,13,.76) 58%, rgba(2,7,13,.30) 100%), url("${profile.hero_image_url}")` } : undefined}>
       <div className="creator-profile-avatar">{profile?.avatar_url ? <img src={profile.avatar_url} alt={name} /> : name.slice(0, 2).toUpperCase()}</div>
       <div><span className="eyebrow">CREATOR PROFILE / PROJECT 001</span><h1>{name}</h1><p>{profile?.epk_tagline || profile?.bio || "A creator building their professional history through FACKTS Music."}</p><div className="person-roles-wrap">{roles.map((role: string) => <span className="role-chip" key={role}>{role}</span>)}</div></div>
-      {user.id === userId && <Link className="secondary-button-inline" href="/settings">Edit my profile</Link>}
+      <div className="creator-profile-actions">{profile?.profile_visibility === "public" && <Link className="secondary-button-inline" href={`/creators/${userId}`}>Public profile ↗</Link>}{user.id === userId && <Link className="secondary-button-inline" href="/settings">Edit my profile</Link>}</div>
     </section>
 
     {!!photos.length && <section className="creator-photo-catalog"><div className="creator-section-heading"><span className="eyebrow">PHOTO CATALOGUE</span><h2>Selected images</h2></div><div>{photos.map((photo: string, index: number) => <img src={photo} alt={`${name} catalogue ${index + 1}`} key={photo} />)}</div></section>}
