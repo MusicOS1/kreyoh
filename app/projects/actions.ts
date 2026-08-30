@@ -52,7 +52,7 @@ export async function createProject(formData: FormData) {
   if (name.length < 3) throw new Error("Give the project a clear name.");
   const { user, admin } = await getWorkspace();
   const code = `FM-${Date.now().toString().slice(-8)}`;
-  const { data: project, error } = await admin.from("projects").insert({ code, name, description: read(formData,"description") || null, status: "active", progress: 0, visibility: read(formData,"visibility") === "discoverable" ? "discoverable" : "private", join_requests_open: read(formData,"join_requests_open") === "on", created_by: user.id }).select("id").single();
+  const { data: project, error } = await admin.from("projects").insert({ code, name, project_type: read(formData,"project_type") || "Music Project", current_stage: "Project Setup", next_action: "Invite the core team and define the project brief", owner_id: user.id, description: read(formData,"description") || null, status: "active", progress: 0, visibility: read(formData,"visibility") === "discoverable" ? "discoverable" : "private", join_requests_open: read(formData,"join_requests_open") === "on", created_by: user.id }).select("id").single();
   if (error) throw new Error(error.message);
   const { data: member, error: memberError } = await admin.from("project_members").insert({ project_id: project.id, user_id: user.id, status: "active" }).select("id").single();
   if (memberError) throw new Error(memberError.message);

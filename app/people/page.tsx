@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import AppShell from "../../components/AppShell";
 import Link from "next/link";
 import { creatorDisplayName } from "../../lib/profileIdentity";
@@ -40,7 +40,9 @@ const AVAILABLE_ROLES = [
   "Finance",
 ];
 
-export default async function PeoplePage() {
+export default async function PeoplePage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  const params = await searchParams;
+  const search = String(params.q || "").trim().toLowerCase();
   const { supabase, admin, project, membership, roles } = await getWorkspace();
 
   if (!project || !membership) {
@@ -100,8 +102,9 @@ export default async function PeoplePage() {
       : Promise.resolve({ data: [] }),
   ]);
 
-  const roster = membersResult.data ?? [];
-  const memberIds = new Set(roster.filter((member:any)=>member.status==="active").map((member:any)=>first(member.profiles)?.id));
+  const allRoster = membersResult.data ?? [];
+  const roster = search ? allRoster.filter((member: any) => { const profile = first(member.profiles); const roleNames = (member.member_roles || []).map((row: any) => first(row.roles)?.name).join(" "); return [profile?.stage_name, profile?.full_name, roleNames].filter(Boolean).join(" ").toLowerCase().includes(search); }) : allRoster;
+  const memberIds = new Set(allRoster.filter((member:any)=>member.status==="active").map((member:any)=>first(member.profiles)?.id));
   const directory = directoryResult.data ?? [];
   const availableProfiles=(directory||[]).filter((profile:any)=>!memberIds.has(profile.id));
   const joinRequests = requestsResult.data ?? [];

@@ -9,7 +9,6 @@ import { getWorkspace } from "../../lib/workspace";
 import { createAdminClient } from "../../lib/supabase/admin";
 import { createR2PresignedUrl, isR2Configured } from "../../lib/r2";
 import { creatorDisplayName } from "../../lib/profileIdentity";
-import { calculateProjectProgress } from "../../lib/projectProgress";
 import { resolveArtworkUrl } from "../../lib/artwork";
 
 import {
@@ -618,21 +617,9 @@ export default async function WorkspacePage() {
   const peoplePreview =
     peoplePreviewResult.data ?? [];
 
-  const progressPercent = calculateProjectProgress({ members: membersCount, beats: beatsCount, tracks: tracksCount, sessions: sessionsCount });
-
-  const currentJourneyIndex =
-    JOURNEY.reduce(
-      (
-        currentIndex,
-        item,
-        itemIndex
-      ) =>
-        progressPercent >=
-        item.threshold
-          ? itemIndex
-          : currentIndex,
-      0
-    );
+  const currentStage = project.current_stage || (project.code === "PROJECT 001" ? "Development / Production" : "Project Setup");
+  const stageKey = currentStage.toLowerCase();
+  const currentJourneyIndex = stageKey.includes("release") ? 6 : stageKey.includes("right") || stageKey.includes("split") ? 5 : stageKey.includes("production") || stageKey.includes("mix") || stageKey.includes("master") ? 4 : stageKey.includes("session") || stageKey.includes("record") ? 3 : stageKey.includes("writing") || stageKey.includes("creative") ? 2 : stageKey.includes("beat") ? 1 : 0;
 
   const managementRole =
     isAdmin
@@ -852,25 +839,11 @@ export default async function WorkspacePage() {
               </small>
             </div>
 
-            <strong>
-              {progressPercent}
-
-              <em>
-                %
-              </em>
-            </strong>
+            <strong className="workspace-stage-value">{currentStage}</strong>
 
             <p>
-              Auto-calculated from people, beats, tracks and sessions
+              {project.next_action || "Milestones and next actions define project movement"}
             </p>
-
-            <div className="workspace-progress-track">
-              <span
-                style={{
-                  width: `${progressPercent}%`,
-                }}
-              />
-            </div>
           </article>
         </section>
 

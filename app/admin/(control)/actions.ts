@@ -1,7 +1,7 @@
 "use server";
 
 import {revalidatePath} from "next/cache";
-import {requireControlRoomAdmin} from "../../../lib/controlRoom";
+import {requireControlRoomAdmin,requireControlRoomPermission,type ControlRoomPermission} from "../../../lib/controlRoom";
 import {createAdminClient} from "../../../lib/supabase/admin";
 
 const MUSIC_IMAGE_BUCKET = "music-images";
@@ -12,6 +12,21 @@ export async function updateManagedProject(fd:FormData){const user=await require
 
 export async function updateSystemSetting(fd:FormData){const user=await requireControlRoomAdmin();const admin=createAdminClient();const key=read(fd,"setting_key");const raw=read(fd,"setting_value");let value:any;try{value=JSON.parse(raw)}catch{throw new Error("Setting value must be valid JSON.")}const {error}=await admin.from("system_settings").upsert({setting_key:key,setting_value:value,updated_by:user.id,updated_at:new Date().toISOString()},{onConflict:"setting_key"});if(error)throw new Error(error.message);await admin.from("platform_events").insert({user_id:user.id,event_name:"system_setting_updated",category:"admin",metadata:{setting_key:key}});revalidatePath("/admin/system");}
 
+export async function setControlRoomAdminAccess(fd: FormData) {
+  const actor = await requireControlRoomPermission("admins");
+  const admin = createAdminClient();
+  const userId = read(fd, "user_id");
+  const active = read(fd, "active") !== "false";
+  const allowed = new Set<ControlRoomPermission>(["all","people","projects","music","enquiries","intelligence","system","admins"]);
+  const permissions = fd.getAll("permissions").map(String).filter((value): value is ControlRoomPermission => allowed.has(value as ControlRoomPermission));
+  if (!userId) throw new Error("Choose an account.");
+  if (active && !permissions.length) throw new Error("Choose at least one permission.");
+  if (userId === actor.id && !active) throw new Error("You cannot remove your own Control Room access.");
+  const { error } = await admin.from("control_room_admins").upsert({ user_id: userId, granted_by: actor.id, active, permissions: permissions.length ? permissions : ["people"], updated_at: new Date().toISOString() }, { onConflict: "user_id" });
+  if (error) throw new Error(error.message);
+  await admin.from("platform_events").insert({ user_id: actor.id, event_name: active ? "control_room_access_updated" : "control_room_access_revoked", category: "admin", entity_type: "profile", entity_id: userId, metadata: { permissions } });
+  revalidatePath("/admin/users");
+}
 export async function addUsersToManagedProject(fd:FormData){const actor=await requireControlRoomAdmin();const admin=createAdminClient();const projectId=read(fd,"project_id");const roleName=read(fd,"role_name");const userIds=fd.getAll("user_ids").map(String).filter(Boolean);if(!userIds.length)throw new Error("Select at least one user.");const {data:role}=await admin.from("roles").select("id").eq("name",roleName).maybeSingle();if(!role)throw new Error("Choose a valid project role.");for(const userId of userIds){const {data:existing}=await admin.from("project_members").select("id,status").eq("project_id",projectId).eq("user_id",userId).maybeSingle();let memberId=existing?.id;if(memberId)await admin.from("project_members").update({status:"active"}).eq("id",memberId);else{const created=await admin.from("project_members").insert({project_id:projectId,user_id:userId,status:"active"}).select("id").single();if(created.error)throw new Error(created.error.message);memberId=created.data.id;}await admin.from("member_roles").upsert({project_member_id:memberId,role_id:role.id},{onConflict:"project_member_id,role_id"});await admin.from("notifications").insert({user_id:userId,project_id:projectId,type:"project_added",title:"You were added to a project",body:`You now have ${roleName} access.`});await admin.from("platform_events").insert({user_id:actor.id,project_id:projectId,event_name:"member_added",category:"projects",entity_type:"profile",entity_id:userId,metadata:{role:roleName}});}revalidatePath("/admin/users");revalidatePath("/admin/projects");}
 
 export async function removeManagedMember(fd:FormData){const actor=await requireControlRoomAdmin();const admin=createAdminClient();const memberId=read(fd,"member_id");const {data:member}=await admin.from("project_members").select("id,project_id,user_id").eq("id",memberId).single();if(!member)throw new Error("Membership not found.");await admin.from("project_members").update({status:"removed"}).eq("id",memberId);await admin.from("platform_events").insert({user_id:actor.id,project_id:member.project_id,event_name:"member_removed",category:"admin",entity_type:"profile",entity_id:member.user_id});revalidatePath("/admin/users");revalidatePath("/admin/projects");}

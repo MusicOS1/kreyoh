@@ -19,7 +19,9 @@ export type KreyohRole =
   | "Producer"
   | "Engineer"
   | "A&R"
-  | "Finance";
+  | "Finance"
+  | "Manager"
+  | "Project Admin";
 
 type NavItem = {
   label: string;
@@ -75,7 +77,6 @@ export const NAV_ITEMS: NavItem[] = [
     icon: DiscIcon,
     roles: "all",
     activeMatch: (p) => p.startsWith("/tracks"),
-    badge: "P2",
   },
 
   {
@@ -84,7 +85,6 @@ export const NAV_ITEMS: NavItem[] = [
     icon: MicIcon,
     roles: "all",
     activeMatch: (p) => p.startsWith("/studio-sessions"),
-    badge: "P2",
   },
 
   {
@@ -93,7 +93,6 @@ export const NAV_ITEMS: NavItem[] = [
     icon: CheckIcon,
     roles: "all",
     activeMatch: (p) => p.startsWith("/tasks"),
-    badge: "P2",
   },
 
   /*
@@ -107,7 +106,6 @@ export const NAV_ITEMS: NavItem[] = [
     icon: LayersIcon,
     roles: "all",
     activeMatch: (p) => p.startsWith("/splits"),
-    badge: "P2",
   },
 
   /*
@@ -122,7 +120,6 @@ export const NAV_ITEMS: NavItem[] = [
     icon: BriefcaseIcon,
     roles: "all",
     activeMatch: (p) => p.startsWith("/opportunities"),
-    badge: "P2",
   },
 
   /*
@@ -132,9 +129,8 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Finance",
     href: "/finance",
     icon: WalletIcon,
-    roles: ["Admin", "Project Lead", "Finance"],
+    roles: ["Super Admin", "Admin", "Project Lead", "Finance"],
     activeMatch: (p) => p.startsWith("/finance"),
-    badge: "P2",
   },
 
   {
@@ -143,13 +139,6 @@ export const NAV_ITEMS: NavItem[] = [
     icon: ActivityIcon,
     roles: "all",
     activeMatch: (p) => p.startsWith("/activity"),
-  },
-  {
-    label: "Notifications",
-    href: "/notifications",
-    icon: ActivityIcon,
-    roles: "all",
-    activeMatch: (p) => p.startsWith("/notifications"),
   },
 ];
 

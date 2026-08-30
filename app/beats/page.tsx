@@ -1,4 +1,5 @@
 import AppShell from "../../components/AppShell";
+import Link from "next/link";
 import { getWorkspace, hasAnyRole } from "../../lib/workspace";
 import { createAdminClient } from "../../lib/supabase/admin";
 import { claimBeat, convertToTrack, leaveIdea, manageClaim, releaseClaim, updateOwnBeatMetadata } from "./actions";
@@ -11,18 +12,24 @@ import { resolveArtworkUrl } from "../../lib/artwork";
 
 const activeStatuses = ["claimed", "confirmed", "converted_to_track"];
 const DEFAULT_PROJECT_COVER = "/images/project-001-default-cover.png";
+const PAGE_SIZE = 15;
 
-export default async function BeatsPage({ searchParams }: { searchParams: Promise<{ message?: string; error?: string }> }) {
+export default async function BeatsPage({ searchParams }: { searchParams: Promise<{ message?: string; error?: string; q?: string; page?: string }> }) {
   const params = await searchParams;
   const { user, project, membership, roles } = await getWorkspace();
   if (!project || !membership) return <AppShell><div className="content"><div className="empty-state"><h2>Project invitation required</h2><p>Your creator account is ready. A Project Lead must invite you before private Project 001 music becomes visible.</p></div></div></AppShell>;
 
   const admin = createAdminClient();
-  const { data: beatRows, error: beatsError } = await admin
+  const page = Math.max(1, Number(params.page) || 1);
+  const search = String(params.q || "").trim().replace(/[,%()]/g, " ");
+  let beatQuery = admin
     .from("beats")
-    .select("*")
+    .select("*", { count: "exact" })
     .eq("project_id", project.id)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+  if (search) beatQuery = beatQuery.or(`title.ilike.%${search}%,beat_code.ilike.%${search}%,producer_name.ilike.%${search}%`);
+  const { data: beatRows, error: beatsError, count: beatCount = 0 } = await beatQuery;
 
   if (beatsError) {
     console.error("FACKTS MUSIC BEAT LIBRARY ERROR:", beatsError.message);
@@ -85,10 +92,10 @@ export default async function BeatsPage({ searchParams }: { searchParams: Promis
   }));
 
   return <AppShell><div className="content fackts-beats-page">
-    <div className="heading enter"><div><span className="eyebrow">PROJECT 001 / SOUND</span><h1>Beat Library</h1><p>Listen, claim a development slot and turn the strongest ideas into tracks.</p></div><div className="date"><span>{beats.length} BEATS</span></div></div>
+    <div className="heading enter"><div><span className="eyebrow">{project.code} / SOUND</span><h1>Beat Library</h1><p>Listen, claim a development slot and turn the strongest ideas into tracks.</p></div><div className="date"><span>{beatCount || 0} BEATS</span></div></div>
     {params.message && <div className="form-success-alert">{params.message}</div>}{params.error && <div className="form-error-alert">{params.error}</div>}
 
-    {canUpload && <details className="beat-intake-disclosure"><summary className="beat-intake-summary"><span>PRODUCER INTAKE</span><strong>Upload a beat</strong><small>Direct audio or an external source.</small><b>Open +</b></summary><BeatUploadForm defaultCapacity={project.default_beat_capacity || 3} /></details>}
+{canUpload && <details className="beat-intake-disclosure"><summary className="beat-intake-summary"><span>PRODUCER INTAKE</span><strong>Upload a beat</strong><small>Direct audio or an external source.</small><b>Open +</b></summary><BeatUploadForm defaultCapacity={project.default_beat_capacity || 3} /></details>}
 
     <section className="beats-grid-cards">
       {!beats.length && <article className="panel empty-state"><MusicIcon size={28} /><h2>No beats available yet</h2><p>{canUpload ? "Upload the first Project 001 beat when the sound is ready." : "Producers and the project team will publish beats here."}</p></article>}
@@ -130,5 +137,6 @@ export default async function BeatsPage({ searchParams }: { searchParams: Promis
         </article>;
       })}
     </section>
+    {(beatCount || 0) > PAGE_SIZE && <nav className="pagination" aria-label="Beat pages"><Link aria-disabled={page<=1} href={`/beats?q=${encodeURIComponent(search)}&page=${Math.max(1,page-1)}`}>Previous</Link><span>Page {page} of {Math.ceil((beatCount || 0)/PAGE_SIZE)}</span><Link aria-disabled={page>=Math.ceil((beatCount || 0)/PAGE_SIZE)} href={`/beats?q=${encodeURIComponent(search)}&page=${Math.min(Math.ceil((beatCount || 0)/PAGE_SIZE),page+1)}`}>Next</Link></nav>}
   </div></AppShell>;
 }

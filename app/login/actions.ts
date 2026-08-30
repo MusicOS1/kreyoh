@@ -19,5 +19,5 @@ export async function login(formData: FormData) {
     admin.from("auth_events").insert({ user_id: data.user.id, event_name: "login_completed", metadata: { surface: "main" } }),
   ]);
   revalidatePath("/", "layout");
-  redirect("/workspace");
+  redirect("/home");
 }

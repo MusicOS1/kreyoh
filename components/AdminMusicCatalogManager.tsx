@@ -136,14 +136,17 @@ function CatalogEditor({ record, members }: { record: MusicRecord; members: Memb
   </details>;
 }
 
-export default function AdminMusicCatalogManager({ records, members }: { records: MusicRecord[]; members: Member[] }) {
+export default function AdminMusicCatalogManager({ records, members, beatTotal, trackTotal, beatPage, trackPage, pageSize, query = "" }: { records: MusicRecord[]; members: Member[]; beatTotal: number; trackTotal: number; beatPage: number; trackPage: number; pageSize: number; query?: string }) {
   const beats = records.filter((record) => record.type === "beat");
   const tracks = records.filter((record) => record.type === "track");
+  const beatPages = Math.max(1, Math.ceil(beatTotal / pageSize));
+  const trackPages = Math.max(1, Math.ceil(trackTotal / pageSize));
+  const pageHref = (nextBeat: number, nextTrack: number) => { const params = new URLSearchParams({ beatPage: String(nextBeat), trackPage: String(nextTrack) }); if (query) params.set("q", query); return `/admin/operations?${params.toString()}`; };
   return <section className="control-catalog-manager">
-    <header><div><span className="control-eyebrow">ADMIN ONLY</span><h2>Music catalogue controls</h2><p>Update covers and official credits, or permanently remove a record.</p></div></header>
+    <header><div><span className="control-eyebrow">ADMIN ONLY</span><h2>Music catalogue controls</h2><p>Update covers and official credits, or permanently remove a record. Catalogues are paginated in sets of 15.</p></div></header>
     <div className="control-catalog-columns">
-      <div><h3>Beats <span>{beats.length}</span></h3>{beats.map((record) => <CatalogEditor key={record.id} record={record} members={members} />)}</div>
-      <div><h3>Tracks <span>{tracks.length}</span></h3>{tracks.map((record) => <CatalogEditor key={record.id} record={record} members={members} />)}</div>
+      <div><h3>Beats <span>{beatTotal} total</span></h3>{beats.map((record) => <CatalogEditor key={record.id} record={record} members={members} />)}<nav className="control-catalog-pagination" aria-label="Beat pages"><a aria-disabled={beatPage <= 1} href={pageHref(Math.max(1, beatPage - 1), trackPage)}>Previous</a><span>Page {beatPage} of {beatPages}</span><a aria-disabled={beatPage >= beatPages} href={pageHref(Math.min(beatPages, beatPage + 1), trackPage)}>Next</a></nav></div>
+      <div><h3>Tracks <span>{trackTotal} total</span></h3>{tracks.map((record) => <CatalogEditor key={record.id} record={record} members={members} />)}<nav className="control-catalog-pagination" aria-label="Track pages"><a aria-disabled={trackPage <= 1} href={pageHref(beatPage, Math.max(1, trackPage - 1))}>Previous</a><span>Page {trackPage} of {trackPages}</span><a aria-disabled={trackPage >= trackPages} href={pageHref(beatPage, Math.min(trackPages, trackPage + 1))}>Next</a></nav></div>
     </div>
   </section>;
 }

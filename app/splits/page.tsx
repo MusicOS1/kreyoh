@@ -1,35 +1,3 @@
-import AppShell from "../../components/AppShell";
-import PlaceholderModule from "../../components/PlaceholderModule";
-
-export default function SplitsPage() {
-  return (
-    <AppShell>
-      <PlaceholderModule
-        title="Splits & Rights Engine"
-        subtitle="Master rights, publishing shares, composition splits, and digital signature agreements."
-        eyebrow="PROJECT 001 / GOVERNANCE"
-        phase="Phase 2 Release"
-        badge="RIGHTS & SPLIT SHEETS"
-        description="Eliminates music ownership disputes with real-time split negotiation, digital signature sign-offs, and PRO/CMO registration data exports."
-        plannedFeatures={[
-          {
-            title: "Composition & Master Split Builder",
-            description: "Visual percentage allocations for producers, topliners, instrumentalists, and project venture shares.",
-          },
-          {
-            title: "One-Click In-App Signatures",
-            description: "Legally binding digital approvals with time-stamped IP verification for all contributors.",
-          },
-          {
-            title: "PRO/CMO Export Packs",
-            description: "Pre-formatted registration data sheets for BMI, ASCAP, PRS, KECOBO, MCSK, and international bodies.",
-          },
-          {
-            title: "Dispute Prevention Ledger",
-            description: "Full audit trail of split proposals, revision notes, and final counter-signed agreement records.",
-          },
-        ]}
-      />
-    </AppShell>
-  );
-}
+import AppShell from "../../components/AppShell";import{creatorDisplayName}from"../../lib/profileIdentity";import{getWorkspace,hasAnyRole}from"../../lib/workspace";import{confirmOwnSplit,saveTrackSplit}from"./actions";
+const first=(v:any)=>Array.isArray(v)?v[0]:v;
+export default async function SplitsPage(){const{admin,user,project,membership,roles}=await getWorkspace();if(!project||!membership)return<AppShell><div className="content empty-state"><h2>Project access required</h2></div></AppShell>;const[tracksResult,membersResult,splitsResult]=await Promise.all([admin.from("tracks").select("id,working_title,track_code").eq("project_id",project.id).order("working_title"),admin.from("project_members").select("user_id,profiles(full_name,stage_name)").eq("project_id",project.id).eq("status","active"),admin.from("track_splits").select("id,track_id,contributor_id,contribution_role,percentage,status,profiles(full_name,stage_name)").eq("project_id",project.id).order("created_at")]);const tracks=tracksResult.data||[],members=membersResult.data||[],splits=splitsResult.data||[];const canManage=hasAnyRole(roles,["Super Admin","Admin","Project Lead"]);return<AppShell><div className="content operations-page"><div className="heading"><div><span className="eyebrow">{project.code} / RIGHTS</span><h1>Splits & Credits</h1><p>Ownership percentages stay separate from public credits, and nothing becomes complete before the track reaches 100% confirmed.</p></div></div>{canManage&&<details className="beat-intake-disclosure"><summary className="beat-intake-summary"><span>RIGHTS CONTROL</span><strong>Add or revise a split</strong><small>Never guess a contributor's percentage.</small><b>Open +</b></summary><form action={saveTrackSplit} className="panel operations-form"><label>Track<select name="track_id" required><option value="">Choose track</option>{tracks.map((track:any)=><option key={track.id} value={track.id}>{track.working_title||track.track_code}</option>)}</select></label><label>Contributor<select name="contributor_id" required><option value="">Choose person</option>{members.map((member:any)=><option key={member.user_id} value={member.user_id}>{creatorDisplayName(first(member.profiles))}</option>)}</select></label><label>Rights role<input name="contribution_role" required placeholder="Writer, composer, producer…"/></label><label>Percentage<input name="percentage" type="number" min="0" max="100" step="0.01" required/></label><label>Status<select name="status" defaultValue="draft"><option value="draft">Draft</option><option value="awaiting_confirmation">Awaiting Confirmation</option></select></label><button>Save split</button></form></details>}<div className="rights-track-list">{!tracks.length&&<div className="panel empty-state"><h2>No tracks yet</h2></div>}{tracks.map((track:any)=>{const rows=splits.filter((split:any)=>split.track_id===track.id);const total=rows.reduce((sum:number,row:any)=>sum+Number(row.percentage||0),0);const allConfirmed=total===100&&rows.every((row:any)=>row.status==="confirmed");return<article className="panel rights-track-card" key={track.id}><header><div><span className="eyebrow">{track.track_code||"TRACK"}</span><h2>{track.working_title||"Untitled track"}</h2></div><div className={`rights-total ${allConfirmed?"complete":""}`}><strong>{total}%</strong><span>{allConfirmed?"Confirmed":"In progress"}</span></div></header><div className="rights-rows">{!rows.length&&<p>No splits proposed.</p>}{rows.map((row:any)=><div key={row.id}><span><strong>{creatorDisplayName(first(row.profiles))}</strong><small>{row.contribution_role}</small></span><b>{row.percentage}%</b><em>{row.status.replaceAll("_"," ")}</em>{row.contributor_id===user.id&&row.status==="awaiting_confirmation"&&<form action={confirmOwnSplit}><input type="hidden" name="split_id" value={row.id}/><button>Confirm</button></form>}</div>)}</div>{total!==100&&<p className="rights-warning">{total<100?`${100-total}% remains unallocated.`:`Total exceeds 100%.`}</p>}</article>})}</div></div></AppShell>}

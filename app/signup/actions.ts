@@ -41,7 +41,7 @@ export async function signup(formData: FormData) {
     email,
     password,
     options: {
-      emailRedirectTo: `${siteUrl}/auth/callback?next=/workspace`,
+      emailRedirectTo: `${siteUrl}/auth/callback?next=/home`,
       data: { full_name: fullName, creator_types: creatorTypes, creative_role: creatorTypes[0] },
     },
   });
@@ -69,6 +69,6 @@ export async function signup(formData: FormData) {
 
   // When Confirm Email is disabled Supabase returns a real session immediately.
   // Keep it and enter the role-aware app. Otherwise provide an honest instruction.
-  if (data.session) redirect("/workspace");
+  if (data.session) redirect("/home");
   redirect(`/signup?success=${encodeURIComponent("Account created. Check your email to confirm access, then sign in.")}`);
 }

@@ -40,11 +40,17 @@ export default async function AppShell({
     project,
     membership,
     activeProjects,
+    admin,
   } = await getWorkspace();
 
   const orderedRoles =
     orderRoles(roles);
   const canAccessControlRoom = await isControlRoomUser(user.id);
+  const { count: unreadNotifications = 0 } = await admin
+    .from("notifications")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .is("read_at", null);
 
   const userName =
     profile?.stage_name ||
@@ -86,6 +92,7 @@ export default async function AppShell({
         profile?.avatar_url
       }
       canAccessControlRoom={canAccessControlRoom}
+      unreadNotifications={unreadNotifications || 0}
     >
       {children}
     </ShellLayout>

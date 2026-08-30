@@ -14,7 +14,9 @@ const trackFileRoles = ["Super Admin", "Project Lead", "A&R", "Producer", "Engin
 const trackCreateRoles = ["Super Admin", "Project Lead", "A&R"];
 const DEFAULT_PROJECT_COVER = "/images/project-001-default-cover.png";
 
-export default async function TracksPage() {
+export default async function TracksPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  const params = await searchParams;
+  const search = String(params.q || "").trim().replace(/[,%()]/g, " ");
   const { project, membership, roles, user } = await getWorkspace();
   if (!project || !membership) {
     return (
@@ -32,12 +34,16 @@ export default async function TracksPage() {
   const canManageVoting = hasAnyRole(roles, ["Super Admin", "Project Lead", "A&R"]);
   const canScoreAr = hasAnyRole(roles, ["Super Admin", "A&R"]);
   const canViewPrivateVotingStats = roles.includes("Super Admin");
+  let tracksQuery = admin
+    .from("tracks")
+    .select("*,beats(title,producer_name,producer_user_id,beat_code),track_contributors(id,user_id,contribution_role,profiles(full_name,stage_name,nickname))")
+    .eq("project_id", project.id)
+    .order("created_at", { ascending: false });
+  if (search) tracksQuery = tracksQuery.or(`working_title.ilike.%${search}%,track_code.ilike.%${search}%`);
+
   const [tracksResult, beatsResult, membersResult] = await Promise.all([
-    admin
-      .from("tracks")
-      .select("*,beats(title,producer_name,producer_user_id,beat_code),track_contributors(id,user_id,contribution_role,profiles(full_name,stage_name,nickname))")
-      .eq("project_id", project.id)
-      .order("created_at", { ascending: false }),
+    tracksQuery,
+
     canCreate
       ? admin
           .from("beats")

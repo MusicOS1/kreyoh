@@ -3,7 +3,7 @@ import { createClient } from "../../../lib/supabase/server";
 import { createAdminClient } from "../../../lib/supabase/admin";
 
 function safeNext(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/workspace";
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/home";
   return value;
 }
 

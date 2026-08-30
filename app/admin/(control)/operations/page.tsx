@@ -6,8 +6,12 @@ import { resolveArtworkUrl } from "../../../../lib/artwork";
 const first = (value: any) => Array.isArray(value) ? value[0] : value;
 const label = (value?: string) => (value || "pending").replaceAll("_", " ");
 const DEFAULT_PROJECT_COVER = "/images/project-001-default-cover.png";
+const PAGE_SIZE = 15;
 
-export default async function AdminOperations() {
+export default async function AdminOperations({ searchParams }: { searchParams: Promise<{ beatPage?: string; trackPage?: string; q?: string }> }) {
+  const params = await searchParams;
+  const beatPage = Math.max(1, Number(params.beatPage) || 1);
+  const trackPage = Math.max(1, Number(params.trackPage) || 1);
   const admin = createAdminClient();
   const [
     beatsResult,
@@ -19,9 +23,10 @@ export default async function AdminOperations() {
     trackCreditsResult,
     beatArtworkResult,
     trackArtworkResult,
+    beatOptionsResult,
   ] = await Promise.all([
-    admin.from("beats").select("id,project_id,title,beat_code,producer_name,status,created_at,artwork_url,bpm,musical_key,genre_tags,mood_tags,description,artist_capacity,source_type,external_url,projects(name)").order("created_at", { ascending: false }).limit(50),
-    admin.from("tracks").select("id,project_id,beat_id,working_title,track_code,development_status,created_at,projects(name)").order("created_at", { ascending: false }).limit(50),
+    adminBeatsQuery,
+    adminTracksQuery,
     admin.from("studio_sessions").select("id,starts_at,location,status,projects(name),tracks(working_title)").order("starts_at", { ascending: false }).limit(8),
     admin.from("project_tasks").select("id,title,status,due_date,projects(name),profiles!project_tasks_assignee_id_fkey(full_name,stage_name)").order("created_at", { ascending: false }).limit(8),
     admin.from("project_members").select("project_id,user_id,profiles(full_name,stage_name)").eq("status", "active"),
@@ -29,6 +34,7 @@ export default async function AdminOperations() {
     admin.from("track_contributors").select("id,track_id,user_id,contribution_role"),
     admin.from("beats").select("id,artwork_storage_key"),
     admin.from("tracks").select("id,artwork_url,artwork_storage_key"),
+    admin.from("beats").select("id,project_id,title,beat_code").order("created_at", { ascending: false }),
   ]);
 
   const beats = beatsResult.data ?? [];
@@ -39,6 +45,7 @@ export default async function AdminOperations() {
   const trackCredits = trackCreditsResult.data ?? [];
   const beatArtwork = new Map((beatArtworkResult.data ?? []).map((item: any) => [item.id, item.artwork_storage_key]));
   const trackArtworkRows = trackArtworkResult.data ?? [];
+  const beatOptions = beatOptionsResult.data ?? [];
   const trackArtwork = new Map(trackArtworkRows.map((item: any) => [item.id, item]));
   const signedArtwork = new Map<string, string>();
 
@@ -72,7 +79,7 @@ export default async function AdminOperations() {
       projectName: first(track.projects)?.name || "No project", title: track.working_title || "Untitled track",
       code: track.track_code || "TRACK", status: track.development_status || "in_development",
       artworkUrl: signedArtwork.get(`track:${track.id}`) || trackArtwork.get(track.id)?.artwork_url || DEFAULT_PROJECT_COVER,
-      metadata: {beat_id:track.beat_id}, beatOptions: beats.filter((beat:any)=>beat.project_id===track.project_id).map((beat:any)=>({id:beat.id,label:beat.title||beat.beat_code||"Beat"})),
+      metadata: {beat_id:track.beat_id}, beatOptions: beatOptions.filter((beat:any)=>beat.project_id===track.project_id).map((beat:any)=>({id:beat.id,label:beat.title||beat.beat_code||"Beat"})),
       credits: trackCredits.filter((credit: any) => credit.track_id === track.id).map((credit: any) => ({ id: credit.id, userId: credit.user_id, role: credit.contribution_role })),
     })),
   ];
@@ -86,7 +93,7 @@ export default async function AdminOperations() {
 
   return <>
     <section className="control-page-hero operations"><span className="control-eyebrow">MUSIC OPERATIONS</span><h1>Manage the catalogue.</h1><p>Control official credits, cover images and the records moving through FACKTS Music. These destructive controls are visible only inside the private Control Room.</p></section>
-    <AdminMusicCatalogManager records={records} members={members} />
+    <AdminMusicCatalogManager records={records} members={members} beatTotal={beatsResult.count || 0} trackTotal={tracksResult.count || 0} beatPage={beatPage} trackPage={trackPage} pageSize={PAGE_SIZE} query={search} />
     <section className="control-operation-grid">{sections.map(section => <article className="control-panel" key={section.title}><header><div><span className="control-eyebrow">{section.eyebrow}</span><h2>{section.title}</h2></div><Link href={section.href}>Open workspace</Link></header><div className="control-table">{!section.items.length && <p className="control-empty">No records yet.</p>}{section.items.map(item => <div className="control-row" key={item.id}><span className="control-activity-dot"/><div><strong>{item.name}</strong><small>{item.meta}</small></div><span className="control-status">{label(item.status)}</span></div>)}</div></article>)}</section>
   </>;
 }

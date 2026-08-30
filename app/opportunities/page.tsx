@@ -1,35 +1,41 @@
 import AppShell from "../../components/AppShell";
-import PlaceholderModule from "../../components/PlaceholderModule";
+import { creatorDisplayName } from "../../lib/profileIdentity";
+import { getWorkspace, hasAnyRole } from "../../lib/workspace";
+import { createCreatorCampaign, createOpportunity, updateOpportunity } from "./actions";
 
-export default function OpportunitiesPage() {
-  return (
-    <AppShell>
-      <PlaceholderModule
-        title="Opportunities & Sync"
-        subtitle="Sync licensing briefs, brand partnerships, pitch decks, and live performance bookings."
-        eyebrow="PROJECT 001 / COMMERCIAL"
-        phase="Phase 2 Release"
-        badge="COMMERCIAL VENTURES"
-        description="Connects Project 001 finished masters and catalogue tracks to real commercial sync briefs, film/TV opportunities, and brand licensing."
-        plannedFeatures={[
-          {
-            title: "Live Sync Brief Feed",
-            description: "Direct pitch submissions for television, film, gaming, commercial sync, and advertising briefs.",
-          },
-          {
-            title: "Smart Catalogue Pitching",
-            description: "Instant filtering by mood, tempo, instrumentation, and lyric themes for instant brief responses.",
-          },
-          {
-            title: "Brand & Endorsement Deals",
-            description: "Venture-level brand agreements, sponsorship contracts, and creator collaboration pipelines.",
-          },
-          {
-            title: "Commercial Deal Ledger",
-            description: "Deal term tracking, upfront sync fee agreements, and backend royalty waterfall accounting.",
-          },
-        ]}
-      />
-    </AppShell>
-  );
+const first = (value: any) => Array.isArray(value) ? value[0] : value;
+const pathways = ["Streaming & Distribution", "Radio", "Television", "Film / Series / Documentary", "Sync Licensing", "TikTok / Reels", "Brand Opportunity", "Live Performance", "Creator Services", "Other"];
+const stages = ["identified", "researching", "preparing_pitch", "pitched", "follow_up", "interested", "in_discussion", "negotiating", "contracting", "won", "lost", "on_hold", "completed"];
+
+export default async function OpportunitiesPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string; page?: string }> }) {
+  const { admin, project, membership, roles } = await getWorkspace();
+  if (!project || !membership) return <AppShell><div className="content empty-state"><h2>Project access required</h2></div></AppShell>;
+  const params = await searchParams;
+  const q = (params.q || "").trim(); const status = params.status || "all"; const page = Math.max(1, Number(params.page) || 1); const pageSize = 15;
+  let opportunityQuery = admin.from("commercial_opportunities").select("*,tracks(working_title),profiles!commercial_opportunities_assigned_owner_fkey(full_name,stage_name)", { count: "exact" }).eq("project_id", project.id).order("follow_up_date", { ascending: true, nullsFirst: false }).range((page - 1) * pageSize, page * pageSize - 1);
+  if (status !== "all") opportunityQuery = opportunityQuery.eq("status", status);
+  if (q) opportunityQuery = opportunityQuery.or(`organisation.ilike.%${q}%,opportunity_type.ilike.%${q}%,revenue_pathway.ilike.%${q}%,contact_person.ilike.%${q}%`);
+  const [opportunitiesResult, tracksResult, membersResult, campaignsResult, revenueResult] = await Promise.all([
+    opportunityQuery,
+    admin.from("tracks").select("id,working_title").eq("project_id", project.id).order("working_title"),
+    admin.from("project_members").select("user_id,profiles(full_name,stage_name)").eq("project_id", project.id).eq("status", "active"),
+    admin.from("creator_campaigns").select("*,tracks(working_title),profiles!creator_campaigns_campaign_owner_fkey(full_name,stage_name)").eq("project_id", project.id).order("created_at", { ascending: false }),
+    admin.from("revenue_records").select("amount,currency,payment_status").eq("project_id", project.id),
+  ]);
+  const opportunities = opportunitiesResult.data || []; const tracks = tracksResult.data || []; const members = membersResult.data || []; const campaigns = campaignsResult.data || [];
+  const canManage = hasAnyRole(roles, ["Super Admin", "Admin", "Project Lead", "A&R", "Manager"]);
+  const counts = stages.reduce((map, key) => ({ ...map, [key]: opportunities.filter((item: any) => item.status === key).length }), {} as Record<string, number>);
+  const received = (revenueResult.data || []).filter((item: any) => item.payment_status === "paid").reduce((sum: number, item: any) => sum + Number(item.amount || 0), 0);
+  const total = opportunitiesResult.count || 0; const pages = Math.max(1, Math.ceil(total / pageSize));
+  const href = (target: number) => `/opportunities?q=${encodeURIComponent(q)}&status=${encodeURIComponent(status)}&page=${target}`;
+  return <AppShell><div className="content operations-page">
+    <div className="heading"><div><span className="eyebrow">{project.code} / COMMERCIAL</span><h1>Revenue Pathways</h1><p>Move selected music from ready to pitch, place, promote and monetise—without confusing potential value with money received.</p></div></div>
+    <section className="finance-metrics">{[["Active opportunities", total - (counts.lost || 0) - (counts.completed || 0)], ["Preparing / pitched", (counts.preparing_pitch || 0) + (counts.pitched || 0)], ["Follow-ups", counts.follow_up || 0], ["Negotiating", counts.negotiating || 0], ["Revenue received", `KES ${received.toLocaleString()}`]].map(([label, value]) => <article key={String(label)}><span>{label}</span><strong>{value}</strong></article>)}</section>
+    <form className="catalog-search-bar"><input name="q" defaultValue={q} placeholder="Search organisation, pathway or contact…"/><select name="status" defaultValue={status}><option value="all">All stages</option>{stages.map(item => <option key={item} value={item}>{item.replaceAll("_", " ")}</option>)}</select><button>Search</button></form>
+    {canManage && <div className="platform-home-split"><details className="beat-intake-disclosure"><summary className="beat-intake-summary"><span>NEW PIPELINE ITEM</span><strong>Create an opportunity</strong><b>Open +</b></summary><form action={createOpportunity} className="panel operations-form"><input name="opportunity_type" required placeholder="Opportunity type"/><select name="revenue_pathway" required defaultValue=""><option value="" disabled>Revenue pathway</option>{pathways.map(item => <option key={item}>{item}</option>)}</select><input name="organisation" placeholder="Organisation"/><input name="contact_person" placeholder="Contact person"/><select name="track_id" defaultValue=""><option value="">Project-wide</option>{tracks.map((item: any) => <option key={item.id} value={item.id}>{item.working_title}</option>)}</select><select name="assigned_owner" defaultValue=""><option value="">Unassigned</option>{members.map((item: any) => <option key={item.user_id} value={item.user_id}>{creatorDisplayName(first(item.profiles))}</option>)}</select><input name="estimated_value" type="number" min="0" step="0.01" placeholder="Potential value"/><select name="currency" defaultValue="KES"><option>KES</option><option>USD</option></select><input name="follow_up_date" type="date"/><input name="next_action" placeholder="Next action"/><textarea name="notes" placeholder="Notes"/><button>Create opportunity</button></form></details>
+    <details className="beat-intake-disclosure"><summary className="beat-intake-summary"><span>CREATOR OUTREACH</span><strong>Create a campaign</strong><b>Open +</b></summary><form action={createCreatorCampaign} className="panel operations-form"><input name="campaign_name" required placeholder="Campaign name"/><select name="track_id" defaultValue=""><option value="">Choose track later</option>{tracks.map((item: any) => <option key={item.id} value={item.id}>{item.working_title}</option>)}</select><textarea name="objective" placeholder="Campaign objective"/><input name="start_date" type="date"/><input name="end_date" type="date"/><input name="budget" type="number" min="0" step="0.01" placeholder="Budget"/><select name="currency" defaultValue="KES"><option>KES</option><option>USD</option></select><select name="campaign_owner" defaultValue=""><option value="">Use me as owner</option>{members.map((item: any) => <option key={item.user_id} value={item.user_id}>{creatorDisplayName(first(item.profiles))}</option>)}</select><button>Create campaign</button></form></details></div>}
+    <section className="opportunity-pipeline">{!opportunities.length && <div className="panel empty-state"><h2>No matching opportunities</h2><p>Create the first real pathway when one is identified.</p></div>}{opportunities.map((item: any) => <article className="panel opportunity-card" key={item.id}><header><div><span className="eyebrow">{item.revenue_pathway}</span><h2>{item.organisation || item.opportunity_type}</h2><p>{item.opportunity_type}{first(item.tracks)?.working_title ? ` · ${first(item.tracks).working_title}` : ""}</p></div><span className={`status-pill ${item.status}`}>{item.status.replaceAll("_", " ")}</span></header><div className="opportunity-facts"><span><small>Owner</small><strong>{creatorDisplayName(first(item.profiles)) || "Unassigned"}</strong></span><span><small>Potential</small><strong>{item.estimated_value == null ? "Not set" : `${item.currency} ${Number(item.estimated_value).toLocaleString()}`}</strong></span><span><small>Follow-up</small><strong>{item.follow_up_date || "Not scheduled"}</strong></span><span><small>Next action</small><strong>{item.next_action || "Define next move"}</strong></span></div>{canManage && <details className="session-inline-tool"><summary>Update pipeline item +</summary><form action={updateOpportunity} className="operations-form"><input type="hidden" name="opportunity_id" value={item.id}/><select name="status" defaultValue={item.status}>{stages.map(stage => <option key={stage} value={stage}>{stage.replaceAll("_", " ")}</option>)}</select><input name="next_action" defaultValue={item.next_action || ""} placeholder="Next action"/><input name="follow_up_date" type="date" defaultValue={item.follow_up_date || ""}/><input name="negotiated_value" type="number" min="0" step="0.01" defaultValue={item.negotiated_value || ""} placeholder="Negotiated value"/><input name="contracted_value" type="number" min="0" step="0.01" defaultValue={item.contracted_value || ""} placeholder="Contracted value"/><textarea name="notes" defaultValue={item.notes || ""}/><button>Save update</button></form></details>}</article>)}</section>
+    {pages > 1 && <nav className="catalog-pagination"><a aria-disabled={page === 1} href={href(Math.max(1, page - 1))}>Previous</a><span>Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} of {total}</span><a aria-disabled={page === pages} href={href(Math.min(pages, page + 1))}>Next</a></nav>}
+    <section className="platform-home-section"><header><div><span className="eyebrow">CREATOR CAMPAIGNS</span><h2>Short-form and creator outreach</h2></div></header><div className="project-card-grid">{!campaigns.length && <p>No creator campaigns yet.</p>}{campaigns.map((item: any) => <article className="project-operating-card" key={item.id}><span>{item.status}</span><h3>{item.campaign_name}</h3><p>{first(item.tracks)?.working_title || "Project campaign"}</p><small>{creatorDisplayName(first(item.profiles)) || "Owner pending"}</small></article>)}</div></section>
+  </div></AppShell>;
 }
