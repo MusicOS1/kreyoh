@@ -3,6 +3,7 @@ import {
   BriefcaseIcon,
   CheckIcon,
   DiscIcon,
+  FileIcon,
   HomeIcon,
   LayersIcon,
   MicIcon,
@@ -41,14 +42,6 @@ export const NAV_ITEMS: NavItem[] = [
     activeMatch: (p) => p === "/workspace",
   },
 
-  /*
-   * PEOPLE
-   * Everybody in the project should know
-   * who is in the room.
-   *
-   * Add/edit/remove permissions are handled
-   * inside the People page.
-   */
   {
     label: "People",
     href: "/people",
@@ -57,11 +50,6 @@ export const NAV_ITEMS: NavItem[] = [
     activeMatch: (p) => p.startsWith("/people"),
   },
 
-  /*
-   * BEATS
-   * Project members can see the music pool.
-   * Individual actions remain role controlled.
-   */
   {
     label: "Beats",
     href: "/beats",
@@ -95,11 +83,14 @@ export const NAV_ITEMS: NavItem[] = [
     activeMatch: (p) => p.startsWith("/tasks"),
   },
 
-  /*
-   * SPLITS
-   * Contributors need visibility into rights
-   * affecting their work.
-   */
+  {
+    label: "Documents",
+    href: "/documents",
+    icon: FileIcon,
+    roles: "all",
+    activeMatch: (p) => p.startsWith("/documents"),
+  },
+
   {
     label: "Splits",
     href: "/splits",
@@ -108,12 +99,6 @@ export const NAV_ITEMS: NavItem[] = [
     activeMatch: (p) => p.startsWith("/splits"),
   },
 
-  /*
-   * OPPORTUNITIES
-   * Visible project-wide.
-   * Creation/approval can still be limited
-   * to A&R / Lead / Admin inside the page.
-   */
   {
     label: "Opportunities",
     href: "/opportunities",
@@ -122,9 +107,6 @@ export const NAV_ITEMS: NavItem[] = [
     activeMatch: (p) => p.startsWith("/opportunities"),
   },
 
-  /*
-   * FINANCE stays controlled.
-   */
   {
     label: "Finance",
     href: "/finance",
