@@ -12,7 +12,26 @@ export default async function AdminOperations({ searchParams }: { searchParams: 
   const params = await searchParams;
   const beatPage = Math.max(1, Number(params.beatPage) || 1);
   const trackPage = Math.max(1, Number(params.trackPage) || 1);
+  const search = (params.q || "").trim();
   const admin = createAdminClient();
+
+  let adminBeatsQuery = admin
+    .from("beats")
+    .select("*,projects(name)", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range((beatPage - 1) * PAGE_SIZE, beatPage * PAGE_SIZE - 1);
+
+  let adminTracksQuery = admin
+    .from("tracks")
+    .select("*,projects(name)", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range((trackPage - 1) * PAGE_SIZE, trackPage * PAGE_SIZE - 1);
+
+  if (search) {
+    const safeSearch = search.replaceAll(",", " ");
+    adminBeatsQuery = adminBeatsQuery.or(`title.ilike.%${safeSearch}%,beat_code.ilike.%${safeSearch}%,producer_name.ilike.%${safeSearch}%`);
+    adminTracksQuery = adminTracksQuery.or(`working_title.ilike.%${safeSearch}%,track_code.ilike.%${safeSearch}%`);
+  }
   const [
     beatsResult,
     tracksResult,
@@ -44,9 +63,15 @@ export default async function AdminOperations({ searchParams }: { searchParams: 
   const beatCredits = beatCreditsResult.data ?? [];
   const trackCredits = trackCreditsResult.data ?? [];
   const beatArtwork = new Map((beatArtworkResult.data ?? []).map((item: any) => [item.id, item.artwork_storage_key]));
-  const trackArtworkRows = trackArtworkResult.data ?? [];
+  const trackArtworkRows = (trackArtworkResult.data ?? []) as Array<{
+    id: string;
+    artwork_url: string | null;
+    artwork_storage_key: string | null;
+  }>;
   const beatOptions = beatOptionsResult.data ?? [];
-  const trackArtwork = new Map(trackArtworkRows.map((item: any) => [item.id, item]));
+  const trackArtwork = new Map<string, { artwork_url: string | null; artwork_storage_key: string | null }>(
+    trackArtworkRows.map((item) => [item.id, { artwork_url: item.artwork_url, artwork_storage_key: item.artwork_storage_key }]),
+  );
   const signedArtwork = new Map<string, string>();
 
   await Promise.all([
@@ -94,6 +119,6 @@ export default async function AdminOperations({ searchParams }: { searchParams: 
   return <>
     <section className="control-page-hero operations"><span className="control-eyebrow">MUSIC OPERATIONS</span><h1>Manage the catalogue.</h1><p>Control official credits, cover images and the records moving through FACKTS Music. These destructive controls are visible only inside the private Control Room.</p></section>
     <AdminMusicCatalogManager records={records} members={members} beatTotal={beatsResult.count || 0} trackTotal={tracksResult.count || 0} beatPage={beatPage} trackPage={trackPage} pageSize={PAGE_SIZE} query={search} />
-    <section className="control-operation-grid">{sections.map(section => <article className="control-panel" key={section.title}><header><div><span className="control-eyebrow">{section.eyebrow}</span><h2>{section.title}</h2></div><Link href={section.href}>Open workspace</Link></header><div className="control-table">{!section.items.length && <p className="control-empty">No records yet.</p>}{section.items.map(item => <div className="control-row" key={item.id}><span className="control-activity-dot"/><div><strong>{item.name}</strong><small>{item.meta}</small></div><span className="control-status">{label(item.status)}</span></div>)}</div></article>)}</section>
+    <section className="control-operation-grid">{sections.map(section => <article className="control-panel" key={section.title}><header><div><span className="control-eyebrow">{section.eyebrow}</span><h2>{section.title}</h2></div><Link href={section.href}>Open workspace</Link></header><div className="control-table">{!section.items.length && <p className="control-empty">No records yet.</p>}{section.items.map((item: { id: string; name: string; meta: string; status?: string }) => <div className="control-row" key={item.id}><span className="control-activity-dot"/><div><strong>{item.name}</strong><small>{item.meta}</small></div><span className="control-status">{label(item.status)}</span></div>)}</div></article>)}</section>
   </>;
 }
