@@ -1,10 +1,16 @@
 import Link from "next/link";
 import { createAdminClient } from "../../../../lib/supabase/admin";
-import { updateManagedProject } from "../actions";
+import { requireControlRoomPermission } from "../../../../lib/controlRoom";
 
-export default async function AdminProjects() {
-  const admin = createAdminClient();
-  const { data: projects = [] } = await admin.from("projects").select("id,code,name,description,status,progress,default_beat_capacity,updated_at,project_members(id,status),beats(id),tracks(id,status),studio_sessions(id),project_tasks(id,status)").order("created_at", { ascending: false });
-  if (!projects) throw new Error("Control Room projects could not be loaded.");
-  return <><section className="control-page-hero projects"><span className="control-eyebrow">PROJECT PORTFOLIO</span><h1>Every venture in view.</h1><p>Manage project status and core operating rules while retaining each Project Lead’s day-to-day ownership.</p></section><section className="control-project-list">{projects.map((project: any) => <article className="control-project-card" key={project.id}><div><span>{project.code}</span><Link href={`/admin/projects/${project.id}`}><h2>{project.name}</h2></Link><p>{project.description || "No description yet."}</p><div className="control-project-kpis"><small>{(project.project_members || []).filter((member: any) => member.status === "active").length} members</small><small>{project.beats?.length || 0} beats</small><small>{project.tracks?.length || 0} tracks</small><small>{project.studio_sessions?.length || 0} sessions</small><small>{(project.project_tasks || []).filter((task: any) => task.status !== "done").length} open actions</small></div></div><form action={updateManagedProject}><input type="hidden" name="project_id" value={project.id} /><label>Status<select name="status" defaultValue={project.status || "active"}><option>active</option><option>paused</option><option>completed</option><option>archived</option></select></label><label>Default artist slots<input type="number" name="default_beat_capacity" min="1" max="12" defaultValue={project.default_beat_capacity || 3} /></label><button>Save Project Settings</button></form></article>)}</section></>;
+export default async function AdminProjects(){
+  await requireControlRoomPermission("projects");
+  const admin=createAdminClient();
+  const {data:projects}=await admin.from("projects").select("id,code,name,description,status,artwork_url,hero_image_url,next_action,project_members(id,status),beats(id),tracks(id,status),studio_sessions(id),project_tasks(id,status)").order("created_at",{ascending:false});
+  const safeProjects = projects ?? [];
+  return <><section className="control-page-hero projects"><span className="control-eyebrow">PROJECT PORTFOLIO</span><h1>Every venture in view.</h1><p>Operate across the portfolio according to Super Admin permissions.</p></section>
+  <section className="control-project-list">{safeProjects.map((p:any)=><article className="control-project-card" key={p.id}>
+    <div>{p.artwork_url&&<img src={p.artwork_url} alt="" style={{width:"100%",aspectRatio:"16/6",objectFit:"cover",borderRadius:"14px",marginBottom:"14px"}}/>}<span>{p.code}</span><Link href={`/admin/projects/${p.id}`}><h2>{p.name}</h2></Link><p>{p.description||"No description yet."}</p>
+    <div className="control-project-kpis"><small>{(p.project_members||[]).filter((m:any)=>m.status==="active").length} members</small><small>{p.beats?.length||0} beats</small><small>{p.tracks?.length||0} tracks</small><small>{p.studio_sessions?.length||0} sessions</small><small>{(p.project_tasks||[]).filter((t:any)=>t.status!=="done").length} open actions</small></div>
+    <div style={{display:"flex",gap:"8px",flexWrap:"wrap",marginTop:"14px"}}><Link className="control-secondary-button" href={`/admin/projects/${p.id}`}>Manage Project</Link><a className="control-secondary-button" href={`/api/projects/${p.id}/report`}>Download Project Report</a></div></div>
+  </article>)}</section></>;
 }
