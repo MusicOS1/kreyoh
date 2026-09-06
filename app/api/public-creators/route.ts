@@ -63,8 +63,13 @@ export async function GET() {
       return NextResponse.json({ creators: [], error: "Unable to load public creators." }, { status: 500 });
     }
 
-    const creators = (data ?? [])
-      .map((profile: Record<string, unknown>) => {
+    // Supabase's select() parser can infer a GenericStringError[] when the
+    // selected column list is assembled dynamically. The runtime payload is
+    // still an array of profile rows, so normalize it once before mapping.
+    const profiles = (data ?? []) as unknown as Record<string, unknown>[];
+
+    const creators = profiles
+      .map((profile) => {
         const id = text(profile.id);
         const publicSlug = text(profile.public_slug);
         const photoCatalog = stringArray(profile.photo_catalog);
