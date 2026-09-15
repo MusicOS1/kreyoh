@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { MenuIcon } from "./Icons";
 
 const STORAGE_KEY = "fackts-music-workspace-menu-collapsed";
 
@@ -14,7 +13,7 @@ export default function WorkspaceChromeEnhancer() {
     try {
       setCollapsed(window.localStorage.getItem(STORAGE_KEY) === "1");
     } catch {
-      // Local storage can be unavailable in private contexts; the toggle still works for the session.
+      // Preference only.
     }
   }, []);
 
@@ -23,19 +22,28 @@ export default function WorkspaceChromeEnhancer() {
 
     const resolveTarget = () => {
       if (stopped) return true;
+
       const shell = document.querySelector<HTMLElement>(".kreyoh-app-shell");
-      const topbarLeft = document.querySelector<HTMLElement>(".kreyoh-app-shell .topbar-left");
+      const topbarLeft = document.querySelector<HTMLElement>(
+        ".kreyoh-app-shell .topbar-left",
+      );
+
       if (shell && topbarLeft) {
         setTarget(topbarLeft);
         return true;
       }
+
       setTarget(null);
       return false;
     };
 
     resolveTarget();
+
     const observer = new MutationObserver(resolveTarget);
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
 
     return () => {
       stopped = true;
@@ -52,7 +60,7 @@ export default function WorkspaceChromeEnhancer() {
     try {
       window.localStorage.setItem(STORAGE_KEY, collapsed ? "1" : "0");
     } catch {
-      // Non-essential preference only.
+      // Preference only.
     }
   }, [collapsed, target]);
 
@@ -61,15 +69,18 @@ export default function WorkspaceChromeEnhancer() {
   return createPortal(
     <button
       type="button"
-      className="fm-workspace-menu-toggle"
+      className="fm-workspace-menu-toggle fm-workspace-chevron-toggle"
       onClick={() => setCollapsed((value) => !value)}
-      aria-label={collapsed ? "Show workspace navigation" : "Hide workspace navigation"}
+      aria-label={
+        collapsed
+          ? "Show workspace navigation"
+          : "Hide workspace navigation"
+      }
       aria-pressed={collapsed}
       title={collapsed ? "Show menu" : "Hide menu"}
     >
-      <MenuIcon size={17} />
-      <span>{collapsed ? "Show menu" : "Hide menu"}</span>
+      <span aria-hidden="true">{collapsed ? "›" : "‹"}</span>
     </button>,
-    target
+    target,
   );
 }

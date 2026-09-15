@@ -1,0 +1,382 @@
+/* FACKTS Music — Activation / Shell Layout Fix
+   Loaded last. Repairs shared signed-in chrome without redesigning page content. */
+
+.kreyoh-app-shell .topbar{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) auto !important;
+  align-items:center !important;
+  gap:18px !important;
+  width:100% !important;
+  min-width:0 !important;
+  padding-left:clamp(16px,2vw,28px) !important;
+  padding-right:clamp(16px,2vw,28px) !important;
+}
+
+.kreyoh-app-shell .topbar-left{
+  display:flex !important;
+  align-items:center !important;
+  gap:12px !important;
+  width:100% !important;
+  min-width:0 !important;
+  overflow:visible !important;
+}
+
+.kreyoh-app-shell .topbar-search{
+  flex:1 1 520px !important;
+  width:auto !important;
+  min-width:180px !important;
+  max-width:760px !important;
+  height:44px !important;
+  margin:0 !important;
+  padding:0 0 0 14px !important;
+  overflow:hidden !important;
+  border-radius:999px !important;
+}
+
+.kreyoh-app-shell.fm-workspace-collapsed .topbar-search{
+  max-width:920px !important;
+}
+
+.kreyoh-app-shell .topbar-search .search-icon{
+  flex:0 0 auto !important;
+}
+
+.kreyoh-app-shell .topbar-search input{
+  flex:1 1 auto !important;
+  width:100% !important;
+  min-width:0 !important;
+  height:100% !important;
+  padding:0 10px !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+.kreyoh-app-shell .topbar-search-submit{
+  align-self:stretch !important;
+  flex:0 0 auto !important;
+  min-width:78px !important;
+  padding:0 16px !important;
+  border:0 !important;
+  border-left:1px solid rgba(255,138,31,.20) !important;
+  background:rgba(255,138,31,.10) !important;
+  color:#ffad63 !important;
+  font-size:9px !important;
+  font-weight:900 !important;
+  letter-spacing:.08em !important;
+  text-transform:uppercase !important;
+  white-space:nowrap !important;
+  cursor:pointer !important;
+  border-radius:0 !important;
+}
+
+.kreyoh-app-shell .topbar-right{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:8px !important;
+  min-width:0 !important;
+  flex:0 0 auto !important;
+  white-space:nowrap !important;
+}
+
+.kreyoh-app-shell .fm-workspace-menu-toggle{
+  order:-4 !important;
+  flex:0 0 auto !important;
+  min-width:0 !important;
+  height:40px !important;
+  min-height:40px !important;
+  padding:0 12px !important;
+  white-space:nowrap !important;
+}
+
+.kreyoh-app-shell .topbar-icon-button{
+  flex:0 0 40px !important;
+  width:40px !important;
+  height:40px !important;
+}
+
+.kreyoh-app-shell .topbar-create-btn{
+  flex:0 0 auto !important;
+  min-width:0 !important;
+  height:40px !important;
+  padding:0 15px !important;
+  white-space:nowrap !important;
+}
+
+.kreyoh-app-shell .profile-menu-root{
+  flex:0 1 auto !important;
+  min-width:0 !important;
+  max-width:245px !important;
+}
+
+.kreyoh-app-shell .topbar-user-pill{
+  min-width:0 !important;
+  max-width:245px !important;
+  height:40px !important;
+}
+
+.kreyoh-app-shell .topbar-user-info{
+  min-width:0 !important;
+}
+
+.kreyoh-app-shell .topbar-user-name,
+.kreyoh-app-shell .topbar-user-role{
+  max-width:150px !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+
+/* Sidebar project selector: the select must shrink instead of pushing Switch outside. */
+.kreyoh-app-shell .sidebar-project-selector{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) auto !important;
+  align-items:stretch !important;
+  gap:8px !important;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+}
+
+.kreyoh-app-shell .sidebar-project-selector select{
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+.kreyoh-app-shell .sidebar-project-selector button{
+  flex:0 0 auto !important;
+  max-width:82px !important;
+  padding-left:12px !important;
+  padding-right:12px !important;
+  white-space:nowrap !important;
+}
+
+.kreyoh-app-shell .workspace-card,
+.kreyoh-app-shell .workspace-info,
+.kreyoh-app-shell .sidebar-inner{
+  min-width:0 !important;
+  max-width:100% !important;
+}
+
+.kreyoh-app-shell .sidebar-create-project{
+  max-width:100% !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+
+/* Medium desktop: keep controls usable without squeezing the search field. */
+@media(max-width:1480px){
+  .kreyoh-app-shell .fm-workspace-menu-toggle span{
+    display:none !important;
+  }
+  .kreyoh-app-shell .fm-workspace-menu-toggle{
+    width:40px !important;
+    padding:0 !important;
+    justify-content:center !important;
+  }
+}
+
+@media(max-width:1320px){
+  .kreyoh-app-shell .topbar-user-info{
+    display:none !important;
+  }
+  .kreyoh-app-shell .profile-menu-root,
+  .kreyoh-app-shell .topbar-user-pill{
+    max-width:52px !important;
+  }
+  .kreyoh-app-shell .topbar-user-pill{
+    padding:4px 7px !important;
+  }
+}
+
+@media(max-width:1160px){
+  .kreyoh-app-shell .topbar-create-btn span{
+    display:none !important;
+  }
+  .kreyoh-app-shell .topbar-create-btn{
+    width:40px !important;
+    padding:0 !important;
+    justify-content:center !important;
+  }
+  .kreyoh-app-shell .topbar-search{
+    max-width:none !important;
+  }
+}
+
+@media(max-width:1024px){
+  .kreyoh-app-shell .topbar{
+    grid-template-columns:minmax(0,1fr) auto !important;
+    gap:12px !important;
+  }
+  .kreyoh-app-shell .topbar-left{
+    gap:8px !important;
+  }
+  .kreyoh-app-shell .topbar-search{
+    flex-basis:auto !important;
+    min-width:0 !important;
+  }
+}
+
+@media(max-width:768px){
+  .kreyoh-app-shell .topbar{
+    display:flex !important;
+    justify-content:space-between !important;
+    gap:10px !important;
+  }
+  .kreyoh-app-shell .topbar-left{
+    width:auto !important;
+    flex:0 0 auto !important;
+  }
+  .kreyoh-app-shell .topbar-search{
+    display:none !important;
+  }
+  .kreyoh-app-shell .topbar-right{
+    margin-left:auto !important;
+  }
+  .kreyoh-app-shell .topbar-create-btn{
+    display:none !important;
+  }
+}
+
+@media(max-width:460px){
+  .kreyoh-app-shell .topbar{
+    padding-left:10px !important;
+    padding-right:10px !important;
+  }
+  .kreyoh-app-shell .topbar-right{
+    gap:5px !important;
+  }
+  .kreyoh-app-shell .topbar-icon-button,
+  .kreyoh-app-shell .mobile-menu-trigger,
+  .kreyoh-app-shell .topbar-user-pill{
+    width:38px !important;
+    height:38px !important;
+  }
+}
+
+
+/* ============================================================
+   SEARCH + SIDEBAR CHEVRON FINAL CORRECTION
+   ============================================================ */
+
+/*
+ * Search remains a form, so pressing Enter still searches.
+ * The visible orange SEARCH / enter-style block is removed.
+ */
+.kreyoh-app-shell .topbar-search-submit {
+  display: none !important;
+}
+
+.kreyoh-app-shell .topbar-search {
+  padding-right: 15px !important;
+}
+
+.kreyoh-app-shell .topbar-search input {
+  padding-right: 6px !important;
+}
+
+/*
+ * Desktop workspace control now sits at the LEFT EDGE of the top bar,
+ * immediately before the search field.
+ */
+.kreyoh-app-shell .fm-workspace-chevron-toggle {
+  order: -20 !important;
+
+  flex: 0 0 38px !important;
+
+  width: 38px !important;
+  min-width: 38px !important;
+  max-width: 38px !important;
+
+  height: 38px !important;
+  min-height: 38px !important;
+
+  padding: 0 !important;
+
+  display: grid !important;
+  place-items: center !important;
+
+  border: 1px solid rgba(255, 255, 255, 0.11) !important;
+  border-radius: 11px !important;
+
+  background: rgba(255, 255, 255, 0.025) !important;
+  color: rgba(255, 255, 255, 0.68) !important;
+
+  box-shadow: none !important;
+}
+
+.kreyoh-app-shell .fm-workspace-chevron-toggle > span {
+  display: block !important;
+
+  margin-top: -2px;
+
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 27px !important;
+  line-height: 1 !important;
+  font-weight: 300 !important;
+
+  color: #ff9a46 !important;
+}
+
+.kreyoh-app-shell .fm-workspace-chevron-toggle:hover {
+  border-color: rgba(255, 138, 31, 0.36) !important;
+  background: rgba(255, 138, 31, 0.07) !important;
+  color: #ffffff !important;
+}
+
+/*
+ * The old three-line mobile trigger must NOT appear on laptop/desktop.
+ * Keep the normal sidebar alive through laptop widths so the ‹ / ›
+ * button is the only navigation collapse control there.
+ */
+@media (min-width: 769px) {
+  .kreyoh-app-shell .mobile-menu-trigger {
+    display: none !important;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .kreyoh-app-shell .sidebar-desktop {
+    display: flex !important;
+  }
+
+  .kreyoh-app-shell.fm-workspace-collapsed .sidebar-desktop {
+    display: none !important;
+  }
+
+  .kreyoh-app-shell .kreyoh-main-canvas {
+    width: auto !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  .kreyoh-app-shell .mobile-drawer,
+  .kreyoh-app-shell .mobile-drawer-overlay {
+    display: none !important;
+  }
+}
+
+/*
+ * Real mobile keeps the actual drawer/hamburger.
+ * The desktop chevron disappears completely there.
+ */
+@media (max-width: 768px) {
+  .kreyoh-app-shell .fm-workspace-chevron-toggle {
+    display: none !important;
+  }
+}
+
+/*
+ * Keep the search clean at every desktop width.
+ */
+@media (min-width: 769px) {
+  .kreyoh-app-shell .topbar-search {
+    min-width: 0 !important;
+    width: auto !important;
+    flex: 1 1 auto !important;
+  }
+}
