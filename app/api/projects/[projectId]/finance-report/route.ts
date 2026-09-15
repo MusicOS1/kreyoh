@@ -1,6 +1,6 @@
-import {createClient} from "../../../../../../lib/supabase/server";
-import {createAdminClient} from "../../../../../../lib/supabase/admin";
-import {canViewProjectFinanceReport} from "../../../../../../lib/financeAccess";
+import {createClient} from "../../../../../lib/supabase/server";
+import {createAdminClient} from "../../../../../lib/supabase/admin";
+import {canViewProjectFinanceReport} from "../../../../../lib/financeAccess";
 
 const isMembershipRevenue=(item:any)=>{
   const source=String(item.revenue_source||"").toLowerCase();
