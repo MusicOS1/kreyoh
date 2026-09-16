@@ -5,8 +5,6 @@ import {canViewProjectFinanceReport} from "../../../../../lib/financeAccess";
 import {buildExecutiveProjectPdf} from "../../../../../lib/executiveProjectPdf";
 
 const first=(v:any)=>Array.isArray(v)?v[0]:v;
-const MONTHLY_FEE=2000;
-
 const isMembershipRevenue=(item:any)=>{
   const source=String(item.revenue_source||"").toLowerCase();
   return [
@@ -113,38 +111,9 @@ export async function GET(
     .filter((x:any)=>x.payment_status==="committed"&&x.currency===currency)
     .reduce((sum:number,x:any)=>sum+Number(x.amount||0),0);
 
-  const currentMonth=new Date().toISOString().slice(0,7);
-  const currentPeriod=`${currentMonth}-01`;
-
   const postedTransactions=transactions.filter(
     (x:any)=>x.status==="posted"&&x.currency==="KES"
   );
-
-  const currentTransactions=postedTransactions.filter(
-    (x:any)=>String(x.payment_period||x.transaction_date||"").slice(0,10)===currentPeriod
-  );
-
-  const paidByMember=new Map<string,number>();
-  currentTransactions.forEach((txn:any)=>{
-    paidByMember.set(
-      txn.member_user_id,
-      (paidByMember.get(txn.member_user_id)||0)+Number(txn.amount||0)
-    );
-  });
-
-  const monthlyRequired=members.length*MONTHLY_FEE;
-  const membershipCollected=currentTransactions.reduce(
-    (sum:number,x:any)=>sum+Number(x.amount||0),0
-  );
-
-  let membershipOutstanding=0;
-  let membershipCredit=0;
-
-  members.forEach((member:any)=>{
-    const paid=paidByMember.get(member.user_id)||0;
-    if(paid<MONTHLY_FEE)membershipOutstanding+=MONTHLY_FEE-paid;
-    if(paid>MONTHLY_FEE)membershipCredit+=paid-MONTHLY_FEE;
-  });
 
   const lifetimeMembershipCollected=postedTransactions.reduce(
     (sum:number,x:any)=>sum+Number(x.amount||0),0
@@ -199,8 +168,6 @@ export async function GET(
   );
 
   const commercialText=money(commercialPaid,"amount").join(" / ")||"None recorded";
-  const monthLabel=new Date(`${currentPeriod}T12:00:00`).toLocaleDateString("en-KE",{month:"long",year:"numeric"});
-
   const pdf=buildExecutiveProjectPdf({
     projectName:project.name,
     projectCode:project.code||"PROJECT",
@@ -291,10 +258,7 @@ export async function GET(
           `Opportunity revenue expected: ${currency} ${opportunityExpected.toLocaleString("en-KE")}`,
           `Opportunity revenue received: ${currency} ${opportunityReceived.toLocaleString("en-KE")}`,
           `Expenses paid: ${currency} ${paidSpend.toLocaleString("en-KE")}`,
-          `Cash available: ${currency} ${cashAvailable.toLocaleString("en-KE")}`,
-          `Current membership rule: KES 2,000 per active member per month`,
-          `Current-month membership collected: KES ${membershipCollected.toLocaleString("en-KE")}`,
-          `Current-month member credit: KES ${membershipCredit.toLocaleString("en-KE")}`
+          `Cash available: ${currency} ${cashAvailable.toLocaleString("en-KE")}`
         ]
       },
       {
@@ -307,9 +271,7 @@ export async function GET(
         eyebrow:"09 / NEXT MOVE",
         lines:[
           `Immediate next action: ${project.next_action||"Define the next project action."}`,
-          overdue.length?`${overdue.length} overdue task${overdue.length===1?"":"s"} require follow-up.`:"No overdue operational tasks are recorded.",
-          `${monthLabel} membership outstanding: KES ${membershipOutstanding.toLocaleString("en-KE")}.`,
-          membershipCredit>0?`${monthLabel} member credit held: KES ${membershipCredit.toLocaleString("en-KE")}.`:"No membership overpayment credit is recorded for the current month."
+          overdue.length?`${overdue.length} overdue task${overdue.length===1?"":"s"} require follow-up.`:"No overdue operational tasks are recorded."
         ]
       }
     ]
