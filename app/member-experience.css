@@ -1,4 +1,43 @@
 /* Member navigation and rights forms. Keep public-page styles untouched. */
+.kreyoh-app-shell .ask-fackts-launcher {
+  position: fixed;
+  z-index: 50;
+  right: max(24px, env(safe-area-inset-right));
+  bottom: max(24px, env(safe-area-inset-bottom));
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 12px 20px;
+  border: 1px solid #ffba70;
+  border-radius: 999px;
+  background: #ff8a1f;
+  color: #17100a;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.4;
+  text-decoration: none;
+  box-shadow: 0 8px 28px #0006;
+}
+.ask-fackts-launcher > span:first-child { display: flex; }
+.kreyoh-app-shell .ask-fackts-launcher:hover { background: #ffa34d; }
+.kreyoh-app-shell .ask-fackts-launcher:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 4px;
+}
+/* Let the last page action scroll clear of the fixed helper. */
+.kreyoh-app-shell .kreyoh-page-container { padding-bottom: 96px; }
+@media (max-width: 760px) {
+  .kreyoh-app-shell .ask-fackts-launcher {
+    right: max(16px, env(safe-area-inset-right));
+    bottom: calc(84px + env(safe-area-inset-bottom));
+    min-height: 48px;
+    padding: 10px 16px;
+  }
+  .kreyoh-app-shell .kreyoh-page-container {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+}
 .kreyoh-app-shell .mobile-bottom-nav{grid-template-columns:repeat(4,minmax(0,1fr))}
 .member-more-nav summary{cursor:pointer;list-style:revert;font-weight:700}
 .member-more-nav .nav-link:not(summary){padding-left:26px}
