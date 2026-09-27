@@ -1,144 +1,54 @@
+import Link from "next/link";
 import AppShell from "../../components/AppShell";
+import SplitPlanEditor, { SplitAction } from "../../components/SplitPlanEditor";
 import { creatorDisplayName } from "../../lib/profileIdentity";
 import { getWorkspace, hasAnyRole } from "../../lib/workspace";
-import {
-  confirmOwnSplit,
-  requestSplitChange,
-  saveTrackSplit,
-  sendTrackSplitsForConfirmation,
-} from "./actions";
+import { projectLink } from "../../lib/navigation";
+const first = (value: any) => Array.isArray(value) ? value[0] : value;
 
-const first=(v:any)=>Array.isArray(v)?v[0]:v;
-
-export default async function SplitsPage(){
-  const{admin,user,project,membership,roles}=await getWorkspace();
-  if(!project||!membership)return<AppShell><div className="content empty-state"><h2>Project access required</h2></div></AppShell>;
-
-  const[tracksResult,membersResult,splitsResult,contributorsResult]=await Promise.all([
-    admin.from("tracks").select("id,working_title,track_code,development_status,status").eq("project_id",project.id).order("working_title"),
+export default async function SplitsPage({ searchParams }: { searchParams: Promise<{track?: string; view?: string; q?: string}> }) {
+  const params = await searchParams;
+  const { admin, user, project, membership, roles, activeProjects } = await getWorkspace();
+  if (params.view === "mine") {
+    const {data, error} = await admin.from("track_splits").select("id,track_id,project_id,percentage,tracks(working_title),projects(name)").eq("contributor_id",user.id).eq("status","awaiting_confirmation").in("project_id",activeProjects.length ? activeProjects.map((p:any)=>p.id) : ["00000000-0000-0000-0000-000000000000"]);
+    return <AppShell><div className="content"><h1>Splits to review</h1>{error ? <p role="alert">We couldn’t load your shares. Please refresh or contact support.</p> : !data?.length ? <p>No shares are waiting for your confirmation.</p> : data.map((row:any)=><article className="panel" key={row.id}><h2>{first(row.tracks)?.working_title || "Song"}</h2><p>{first(row.projects)?.name} · Your share: {row.percentage}%</p><Link href={projectLink(row.project_id,`/splits?track=${row.track_id}`)}>Review complete proposal →</Link></article>)}<Link href="/home">Back to home</Link></div></AppShell>;
+  }
+  if (!project || !membership) return <AppShell><div className="content"><h1>Credits & Splits</h1><p>Join or open a project to review its song splits.</p><Link href="/projects">Open my projects →</Link></div></AppShell>;
+  const [tracksR, membersR, splitsR, plansR] = await Promise.all([
+    admin.from("tracks").select("id,working_title,track_code").eq("project_id",project.id).order("working_title"),
     admin.from("project_members").select("user_id,profiles(full_name,stage_name,nickname)").eq("project_id",project.id).eq("status","active"),
-    admin.from("track_splits").select("id,track_id,contributor_id,contribution_role,percentage,status,confirmed_at,profiles(full_name,stage_name,nickname)").eq("project_id",project.id).order("created_at"),
-    admin.from("track_contributors").select("track_id,user_id,contribution_role,profiles(full_name,stage_name,nickname),tracks!inner(project_id)").eq("tracks.project_id",project.id),
+    admin.from("track_splits").select("id,track_id,contributor_id,contribution_role,percentage,status,confirmed_at,profiles!track_splits_contributor_id_fkey(full_name,stage_name,nickname)").eq("project_id",project.id).order("created_at"),
+    admin.from("track_split_plans").select("track_id,version,status").eq("project_id",project.id),
   ]);
-
-  const tracks=tracksResult.data||[];
-  const members=membersResult.data||[];
-  const splits=splitsResult.data||[];
-  const contributors=contributorsResult.data||[];
-  const canManage=hasAnyRole(roles,["Super Admin","Admin","Project Lead"]);
-
-  const awaitingMine=splits.filter((row:any)=>row.contributor_id===user.id&&row.status==="awaiting_confirmation");
-
-  return<AppShell>
-    <style>{`
-      .split-explainer{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0 24px}
-      .split-explainer article{padding:16px;border:1px solid rgba(255,255,255,.07);border-radius:14px;background:rgba(255,255,255,.025)}
-      .split-explainer b{display:block;color:#ff9a46;font-size:10px}.split-explainer strong{display:block;margin:7px 0;font-size:13px}.split-explainer p{margin:0;color:rgba(255,255,255,.45);font-size:10px;line-height:1.5}
-      .split-action-banner{margin:0 0 18px;padding:16px 18px;border:1px solid rgba(249,115,22,.28);border-radius:14px;background:rgba(249,115,22,.06)}
-      .split-track-list{display:grid;gap:14px}
-      .split-track-card{display:grid;gap:16px}
-      .split-track-card>header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
-      .split-progress{min-width:150px;text-align:right}.split-progress strong{display:block;font-size:28px}.split-progress small{color:rgba(255,255,255,.42)}
-      .split-step-line{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-      .split-step{padding:10px;border:1px solid rgba(255,255,255,.07);border-radius:10px}.split-step small{display:block;color:rgba(255,255,255,.4);font-size:8px;text-transform:uppercase}.split-step strong{display:block;margin-top:4px;font-size:11px}
-      .split-member-row{display:grid;grid-template-columns:minmax(160px,1.5fr) minmax(120px,1fr) auto auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06)}
-      .split-member-row small{display:block;color:rgba(255,255,255,.42)}.split-member-row em{font-style:normal;font-size:9px;text-transform:uppercase;color:rgba(255,255,255,.55)}
-      .split-manage-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-      .split-send{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px dashed rgba(255,255,255,.1);border-radius:12px}
-      .split-help{padding:13px 15px;border-left:3px solid #ff8a1f;background:rgba(255,138,31,.045);color:rgba(255,255,255,.62);font-size:11px;line-height:1.55}
-      @media(max-width:900px){.split-explainer{grid-template-columns:repeat(2,minmax(0,1fr))}.split-member-row{grid-template-columns:1fr 1fr}.split-manage-grid{grid-template-columns:1fr}}
-      @media(max-width:620px){.split-explainer{grid-template-columns:1fr}.split-track-card>header{flex-direction:column}.split-progress{text-align:left}.split-step-line{grid-template-columns:1fr}.split-member-row{grid-template-columns:1fr}}
-    `}</style>
-
-    <div className="content operations-page">
-      <div className="heading">
-        <div>
-          <span className="eyebrow">{project.code} / RIGHTS</span>
-          <h1>Splits & Credits</h1>
-          <p>A split is the agreed ownership percentage of a song. FACKTS only treats a split plan as complete when it totals 100% and every contributor has confirmed their own share.</p>
-        </div>
-      </div>
-
-      <section className="split-explainer">
-        <article><b>STEP 1</b><strong>Draft the ownership</strong><p>Project leadership records who owns what percentage and why.</p></article>
-        <article><b>STEP 2</b><strong>Reach exactly 100%</strong><p>The plan cannot be sent while money/ownership is still unallocated or over-allocated.</p></article>
-        <article><b>STEP 3</b><strong>Send for confirmation</strong><p>Each contributor receives their own percentage to review. Nobody confirms on behalf of someone else.</p></article>
-        <article><b>STEP 4</b><strong>All contributors confirm</strong><p>Only then does the track become 100% confirmed. Credits and ownership remain separate concepts.</p></article>
-      </section>
-
-      {!!awaitingMine.length&&<section className="split-action-banner">
-        <strong>You have {awaitingMine.length} split confirmation{awaitingMine.length===1?"":"s"} waiting.</strong>
-        <p>Review the percentage shown on the relevant track below. Confirm it if correct, or request a change with a reason.</p>
-      </section>}
-
-      <div className="split-help">
-        <strong>Example:</strong> Producer 25% + Writer A 35% + Writer B 40% = 100%. Recording a person as a producer/writer credit does <b>not</b> automatically give them a split. The percentage must be explicitly agreed and confirmed.
-      </div>
-
-      <section className="split-track-list">
-        {!tracks.length&&<div className="panel empty-state"><h2>No tracks yet</h2><p>Splits become available once tracks exist in the project.</p></div>}
-
-        {tracks.map((track:any)=>{
-          const rows=splits.filter((split:any)=>split.track_id===track.id);
-          const total=rows.reduce((sum:number,row:any)=>sum+Number(row.percentage||0),0);
-          const confirmedCount=rows.filter((row:any)=>row.status==="confirmed").length;
-          const awaitingCount=rows.filter((row:any)=>row.status==="awaiting_confirmation").length;
-          const allConfirmed=Math.abs(total-100)<=0.001&&rows.length>0&&rows.every((row:any)=>row.status==="confirmed");
-          const remaining=Math.max(0,100-total);
-          const recordedContributors=contributors.filter((c:any)=>c.track_id===track.id);
-
-          return<article className="panel split-track-card" key={track.id}>
-            <header>
-              <div><span className="eyebrow">{track.track_code||"TRACK"}</span><h2>{track.working_title||"Untitled track"}</h2><p>Stage: {String(track.development_status||track.status||"in development").replaceAll("_"," ")}</p></div>
-              <div className="split-progress"><strong>{total.toFixed(total%1===0?0:2)}%</strong><small>{allConfirmed?"100% confirmed":remaining>0?`${remaining.toFixed(remaining%1===0?0:2)}% still unallocated`:"Awaiting confirmation"}</small></div>
-            </header>
-
-            <div className="split-step-line">
-              <div className="split-step"><small>Allocation</small><strong>{total===100?"100% allocated":`${total}% allocated`}</strong></div>
-              <div className="split-step"><small>Confirmation</small><strong>{confirmedCount} of {rows.length} confirmed</strong></div>
-              <div className="split-step"><small>Status</small><strong>{allConfirmed?"Rights split complete":awaitingCount?"Waiting on contributors":"Draft / incomplete"}</strong></div>
-            </div>
-
-            {!!recordedContributors.length&&<div>
-              <span className="eyebrow">RECORDED TRACK CONTRIBUTORS</span>
-              <p>{recordedContributors.map((c:any)=>`${creatorDisplayName(first(c.profiles))} (${String(c.contribution_role).replaceAll("_"," ")})`).join(" · ")}</p>
-            </div>}
-
-            <div>
-              <span className="eyebrow">OWNERSHIP PLAN</span>
-              {!rows.length&&<p>No ownership percentages have been drafted yet.</p>}
-              {rows.map((row:any)=><div className="split-member-row" key={row.id}>
-                <span><strong>{creatorDisplayName(first(row.profiles))}</strong><small>{row.contribution_role}</small></span>
-                <b>{row.percentage}%</b>
-                <em>{String(row.status).replaceAll("_"," ")}</em>
-                <span>
-                  {row.contributor_id===user.id&&row.status==="awaiting_confirmation"&&<>
-                    <form action={confirmOwnSplit} style={{display:"inline"}}><input type="hidden" name="split_id" value={row.id}/><button>Confirm my {row.percentage}%</button></form>
-                    <details className="session-inline-tool"><summary>Request change</summary><form action={requestSplitChange} className="operations-form"><input type="hidden" name="split_id" value={row.id}/><textarea name="reason" required placeholder="What percentage/role is wrong and why?"/><button>Send change request</button></form></details>
-                  </>}
-                  {row.contributor_id===user.id&&row.status==="confirmed"&&<strong>✓ You confirmed</strong>}
-                </span>
-              </div>)}
-            </div>
-
-            {canManage&&<details className="beat-intake-disclosure">
-              <summary className="beat-intake-summary"><span>MANAGE SPLIT</span><strong>Add or revise an allocation</strong><small>Saving a change returns that person's row to Draft. Send the complete 100% plan afterwards.</small><b>Open +</b></summary>
-              <form action={saveTrackSplit} className="panel operations-form split-manage-grid">
-                <input type="hidden" name="track_id" value={track.id}/>
-                <label>Contributor<select name="contributor_id" required defaultValue=""><option value="" disabled>Choose contributor</option>{members.map((member:any)=><option key={member.user_id} value={member.user_id}>{creatorDisplayName(first(member.profiles))}</option>)}</select></label>
-                <label>Rights role<input name="contribution_role" required placeholder="Writer, composer, producer…"/></label>
-                <label>Ownership %<input name="percentage" type="number" min="0" max="100" step="0.01" required placeholder="e.g. 25"/></label>
-                <button>Save Draft Allocation</button>
-              </form>
-            </details>}
-
-            {canManage&&<div className="split-send">
-              <span><strong>Ready to send?</strong><small>{Math.abs(total-100)<=0.001&&rows.length?`The plan totals 100%. Sending it will ask all ${new Set(rows.map((r:any)=>r.contributor_id)).size} contributor(s) to confirm.`:`Finish the plan first. It must total exactly 100%.`}</small></span>
-              <form action={sendTrackSplitsForConfirmation}><input type="hidden" name="track_id" value={track.id}/><button disabled={Math.abs(total-100)>0.001||!rows.length}>Send 100% Plan for Confirmation</button></form>
-            </div>}
-          </article>
-        })}
-      </section>
-    </div>
-  </AppShell>;
+  const error = tracksR.error || membersR.error || splitsR.error || plansR.error;
+  if (error) {
+    console.error("Splits load failed",error.code);
+    return <AppShell><div className="content"><h1>Credits & Splits</h1><div role="alert" className="panel"><h2>We couldn’t load the split proposals</h2><p>Your saved shares have not been changed. Please refresh or ask the project administrator to check the split-workflow database upgrade.</p><Link href="/splits">Try again →</Link></div></div></AppShell>;
+  }
+  const tracks = tracksR.data || [], splits = splitsR.data || [], plans = plansR.data || [];
+  const selected = params.track ? tracks.find((track:any)=>track.id===params.track) : null;
+  const canManage = hasAnyRole(roles,["Super Admin","Admin","Project Lead","Project Admin"]);
+  const members = (membersR.data || []).map((member:any)=>({id:member.user_id,name:creatorDisplayName(first(member.profiles))}));
+  const filtered = tracks.filter((track:any)=>`${track.working_title} ${track.track_code}`.toLowerCase().includes((params.q || "").toLowerCase()));
+  return <AppShell><div className="content splits-page">
+    <div className="heading"><div><span className="eyebrow">{project.name}</span><h1>Credits & Splits</h1><p>Credits record who did the work. Splits record the agreed percentages.</p></div><Link href="/splits?view=mine">My pending approvals →</Link></div>
+    {params.track && !selected ? <div className="panel"><h2>Song not found in this project</h2><Link href="/splits">View this project’s songs →</Link></div> : !selected ? <>
+      <form method="get" className="split-search"><label>Find a song<input type="search" name="q" defaultValue={params.q || ""} placeholder="Song title or code"/></label><button>Search</button></form>
+      {!filtered.length && <p>No songs found.</p>}
+      {filtered.map((track:any)=>{const rows=splits.filter((s:any)=>s.track_id===track.id);const total=rows.reduce((sum:number,s:any)=>sum+Number(s.percentage),0);const mine=rows.some((s:any)=>s.contributor_id===user.id&&s.status==="awaiting_confirmation");return <article className="panel split-summary" key={track.id}><div><h2>{track.working_title || "Untitled song"}</h2><p>{total.toFixed(2)}% allocated · {rows.filter((s:any)=>s.status==="confirmed").length}/{rows.length} shares confirmed{mine?" · Your review is needed":""}</p></div><Link href={`/splits?track=${track.id}`}>{mine?"Review my share":"Open proposal"} →</Link></article>;})}
+    </> : (()=>{
+      const rows=splits.filter((row:any)=>row.track_id===selected.id);
+      const plan=plans.find((p:any)=>p.track_id===selected.id);
+      const version=plan?.version || 0, status=plan?.status || "draft";
+      const total=rows.reduce((sum:number,row:any)=>sum+Math.round(Number(row.percentage)*100),0)/100;
+      const context={projectId:project.id,trackId:selected.id,version};
+      return <section className="panel split-detail"><Link href="/splits">← All songs</Link><h2>{selected.working_title}</h2><p><strong>{total.toFixed(2)}% allocated</strong> · {String(status).replaceAll("_"," ")} · Version {version}</p><Link href={`/track-records/${selected.id}`}>Song details, credits & files →</Link>
+        <p>Review the full proposal before confirming your share. A revision or change request resets all approvals.</p>
+        <div className="split-table-wrap"><table><thead><tr><th>Contributor</th><th>Role</th><th>Share</th><th>Status</th></tr></thead><tbody>{rows.map((row:any)=><tr key={row.id}><td>{creatorDisplayName(first(row.profiles))}{row.contributor_id===user.id?" (you)":""}</td><td>{row.contribution_role}</td><td>{row.percentage}%</td><td>{row.status.replaceAll("_"," ")}</td></tr>)}</tbody></table></div>
+        {!rows.length && <p>No shares drafted yet. Project management can add the contributors below.</p>}
+        {rows.filter((row:any)=>row.contributor_id===user.id).map((row:any)=><div key={`${row.id}-${version}`} className="split-my-share">{row.status==="awaiting_confirmation" && <SplitAction context={context} operation="confirm" splitId={row.id} label={`Confirm my ${row.percentage}% (${row.contribution_role})`}/>} {status!=="draft" && <details><summary>Request a change to my share</summary><SplitAction context={context} operation="request_change" splitId={row.id} label="Send change request"/></details>}</div>)}
+        {canManage && <><details className="split-edit-disclosure" open={status==="draft"}><summary>Edit allocation table</summary><SplitPlanEditor key={`${selected.id}-${version}`} context={context} status={status} members={members} initialRows={rows.map((row:any)=>({contributor_id:row.contributor_id,contribution_role:row.contribution_role,percentage:String(row.percentage)}))}/></details></>}
+      </section>;
+    })()}
+  </div></AppShell>;
 }

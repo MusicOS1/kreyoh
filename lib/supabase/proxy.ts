@@ -1,4 +1,5 @@
-﻿import {
+import { safeNext } from "../navigation";
+import {
   createServerClient,
 } from "@supabase/ssr";
 
@@ -16,6 +17,7 @@ const PUBLIC_ROUTES = [
   "/signup",
   "/forgot-password",
   "/set-password",
+  "/auth/callback",
   "/admin/login",
   "/admin/access-unavailable",
 ];
@@ -180,15 +182,11 @@ export async function updateSession(
           "/signup"
       )
     ) {
-      const url =
-        request.nextUrl.clone();
+      const url = new URL(safeNext(request.nextUrl.searchParams.get("next")), request.url);
 
-      url.pathname =
-        "/workspace";
-
-      return NextResponse.redirect(
-        url
-      );
+      const redirected = NextResponse.redirect(url);
+      response.cookies.getAll().forEach(cookie => redirected.cookies.set(cookie));
+      return redirected;
     }
 
     /*
@@ -208,6 +206,8 @@ export async function updateSession(
         request.nextUrl.clone();
 
       url.pathname = pathname.startsWith("/admin") ? "/admin/login" : "/login";
+      url.search = "";
+      url.searchParams.set("next", request.nextUrl.pathname + request.nextUrl.search);
 
       return NextResponse.redirect(
         url

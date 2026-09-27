@@ -5,7 +5,8 @@ import { cancelJoinRequest, createProject, requestToJoin, selectProject } from "
 
 const first = (value: any) => Array.isArray(value) ? value[0] : value;
 
-export default async function ProjectsPage() {
+export default async function ProjectsPage({searchParams}:{searchParams:Promise<{error?:string}>}) {
+  const {error}=await searchParams;
   const { user, admin, activeProjects } = await getWorkspace();
   const activeIds = activeProjects.map((project: any) => project.id);
   const [openResult, requestsResult, membershipsResult, tracksResult, sessionsResult, roundsResult] = await Promise.all([
@@ -22,6 +23,7 @@ export default async function ProjectsPage() {
   const membershipMap = new Map(memberships.map((item: any) => [item.project_id, item]));
 
   return <AppShell><div className="content project-hub-page">
+    {error && <p role="alert" className="form-error-alert">{error}</p>}
     <div className="heading"><div><span className="eyebrow">YOUR CREATIVE WORLD</span><h1>My Projects</h1><p>Projects you own, rooms you contribute to, invitations waiting for you, and the next action in each venture.</p></div><Link href="/invitations" className="secondary-button-inline">Project Invitations</Link></div>
     <section className="project-hub-section"><h2>Projects I own or belong to</h2><div className="project-card-grid">{!activeProjects.length && <article className="panel empty-state"><h2>No active projects yet</h2><p>Start a room or accept an invitation.</p></article>}{activeProjects.map((project: any) => {
       const membership: any = membershipMap.get(project.id); const roleNames = (membership?.member_roles || []).map((row: any) => first(row.roles)?.name).filter(Boolean); const trackCount = tracks.filter((item: any) => item.project_id === project.id).length; const nextSession = sessions.find((item: any) => item.project_id === project.id); const votingOpen = rounds.some((item: any) => item.project_id === project.id);

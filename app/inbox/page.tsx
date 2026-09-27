@@ -3,15 +3,7 @@ import AppShell from "../../components/AppShell";
 import {getWorkspace} from "../../lib/workspace";
 import {markInboxItemRead,markInboxRead} from "./actions";
 
-function fallbackHref(item:any){
-  if(item.action_url)return item.action_url;
-  if(item.type==="project_invitation"||item.type==="support_portal_invitation")return"/invitations";
-  if(item.entity_type==="track")return"/track-records";
-  if(["task","project_task"].includes(item.entity_type))return"/tasks";
-  if(["session","studio_session"].includes(item.entity_type))return"/studio-sessions";
-  if(item.entity_type==="project_update")return"/inbox";
-  return"/home";
-}
+import { notificationLink } from "../../lib/navigation";
 
 export default async function InboxPage(){
   const{supabase,user}=await getWorkspace();
@@ -56,7 +48,7 @@ export default async function InboxPage(){
             <small>{new Date(item.created_at).toLocaleString("en-KE")}</small>
           </div>
           <div className="inbox-actions">
-            <Link className="secondary-button-inline" href={fallbackHref(item)}>Open →</Link>
+            <Link className="secondary-button-inline" href={notificationLink(item)}>Open →</Link>
             {!item.read_at&&<form action={markInboxItemRead}><input type="hidden" name="notification_id" value={item.id}/><button>Mark read</button></form>}
           </div>
         </article>)}

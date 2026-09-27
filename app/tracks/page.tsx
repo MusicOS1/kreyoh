@@ -1,3 +1,4 @@
+import Link from "next/link";
 import AppShell from "../../components/AppShell";
 import BeatAudioPlayer from "../../components/BeatAudioPlayer";
 import TrackIntakeForm from "../../components/TrackIntakeForm";
@@ -279,7 +280,7 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
                 <div className="track-card-heading">
                   <div>
                     <span className="eyebrow">{track.track_code || "TRACK"} · {beat?.beat_code || "SOURCE BEAT"}</span>
-                    <h2>{track.working_title || beat?.title || "Untitled track"}</h2>
+                    <h2><Link href={`/track-records/${track.id}`}>{track.working_title || beat?.title || "Untitled track"}</Link></h2><Link href={`/track-records/${track.id}`} className="secondary-button-inline">Open song details →</Link>
                     <p>Produced by {producerName}</p>
                     <small className="music-uploader-label">Uploaded by {uploaderName}</small>
                   </div>

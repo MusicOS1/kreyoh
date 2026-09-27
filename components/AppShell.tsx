@@ -4,7 +4,7 @@ import {isControlRoomUser} from "../lib/controlRoom";
 import AppExperienceEnhancer from "./AppExperienceEnhancer";
 import TrackReplacementEnhancer from "./TrackReplacementEnhancer";
 import SupportTransparencyEnhancer from "./SupportTransparencyEnhancer";
-import InboxShellEnhancer from "./InboxShellEnhancer";
+
 
 const ROLE_PRIORITY=[
   "Super Admin","Admin","Project Lead","Finance","A&R","Manager","Studio Owner",
@@ -42,7 +42,7 @@ export default async function AppShell({children}:{children:React.ReactNode}){
     <AppExperienceEnhancer/>
     <TrackReplacementEnhancer enabled={canReplaceTracks}/>
     <SupportTransparencyEnhancer roles={roles}/>
-    <InboxShellEnhancer/>
+
 
     <ShellLayout
       userName={userName}
