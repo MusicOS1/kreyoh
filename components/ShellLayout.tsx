@@ -189,7 +189,7 @@ export default function ShellLayout({
       {/* Sidebar Footer */}
       <div className="sidebar-footer">
         {canAccessControlRoom && <Link href="/admin" className="nav-link control-room-switch" onClick={() => isMobile && setMobileOpen(false)}><span className="nav-icon-wrap"><BriefcaseIcon size={16} /></span><span className="nav-label">Open Control Room</span><span className="nav-badge-live">ADMIN</span></Link>}
-        <Link className="nav-link" href="/help"><SparklesIcon size={16}/> Help me find something</Link>
+        <Link className="nav-link" href="/help"><SparklesIcon size={16}/> Ask FACKTS</Link>
         <div className="user-profile-tile">
           <div className="user-avatar-initials">
             {avatarUrl ? <img src={avatarUrl} alt="" /> : <span>{initials}</span>}
@@ -257,7 +257,6 @@ export default function ShellLayout({
           </div>
 
           <div className="topbar-right">
-            <Link href="/help" className="topbar-icon-button" aria-label="Open FACKTS Music helper" title="Help"><SparklesIcon size={16}/></Link>
             {/* Notifications Button */}
             <Link
               href="/inbox"
@@ -290,6 +289,12 @@ export default function ShellLayout({
           {children}
         </main>
       </div>
+      {pathname !== "/help" && !mobileOpen && (
+        <Link href="/help" className="ask-fackts-launcher">
+          <span aria-hidden="true"><SparklesIcon size={22} /></span>
+          <span>Ask FACKTS</span>
+        </Link>
+      )}
       <nav className="mobile-bottom-nav" aria-label="Mobile primary navigation">
         <Link href="/home" className={pathname === "/home" ? "active" : ""}><HomeIcon size={19} /><span>Home</span></Link>
         <Link href="/projects" className={pathname.startsWith("/projects")||pathname.startsWith("/invitations") ? "active" : ""}><BriefcaseIcon size={19}/><span>Projects</span></Link>
@@ -300,4 +305,3 @@ export default function ShellLayout({
     </div>
   );
 }
-
