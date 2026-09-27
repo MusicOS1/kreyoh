@@ -12,7 +12,7 @@ function portalForRole(role:string|null|undefined){
   if(role==="A&R")return"/portal/ar";
   if(role==="Manager")return"/portal/manager";
   if(role==="Studio Owner")return"/portal/studio";
-  return"/workspace";
+  return"/member-dashboard";
 }
 
 export async function respondToInvitation(formData:FormData){

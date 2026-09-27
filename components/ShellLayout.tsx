@@ -71,12 +71,15 @@ export default function ShellLayout({
   const searchPlaceholder = pathname.startsWith("/beats") ? "Search beats, codes or producers" : pathname.startsWith("/tracks") ? "Search tracks or codes" : pathname.startsWith("/people") ? "Search people, stage names or roles" : "Search creators across FACKTS Music";
   const [mobileOpen, setMobileOpen] = useState(false);
   const visibleNavItems = hasProject ? getNavigationForRoles(roles) : [];
+  const primaryProjectPaths = ["/member-dashboard", "/tracks", "/people", "/studio-sessions", "/tasks", "/splits"];
+  const primaryProjectItems = visibleNavItems.filter(item => primaryProjectPaths.includes(item.href));
+  const moreProjectItems = visibleNavItems.filter(item => !primaryProjectPaths.includes(item.href));
   const platformNavItems = [
     {label:"Home",href:"/home",icon:HomeIcon,activeMatch:(p:string)=>p==="/home"},
     {label:"My Projects",href:"/projects",icon:BriefcaseIcon,activeMatch:(p:string)=>p.startsWith("/projects")||p.startsWith("/invitations")},
-    {label:"Discover",href:"/discover",icon:UsersIcon,activeMatch:(p:string)=>p.startsWith("/discover")},
-    {label:"Notifications",href:"/notifications",icon:BellIcon,activeMatch:(p:string)=>p.startsWith("/notifications")},
-    {label:"Suggest Something",href:"/suggestions",icon:SparklesIcon,activeMatch:(p:string)=>p.startsWith("/suggestions")},
+
+    {label:"Inbox",href:"/inbox",icon:BellIcon,activeMatch:(p:string)=>p.startsWith("/inbox")||p.startsWith("/notifications")},
+    {label:"My Profile",href:"/settings",icon:UsersIcon,activeMatch:(p:string)=>p.startsWith("/settings")},
   ];
 
   // Close drawer on route change
@@ -136,20 +139,20 @@ export default function ShellLayout({
         {hasProject && <div className="workspace-status-dot" title="Active project" />}
       </div>
 
-      {activeProjects.length > 0 && <form action={selectProject} className="sidebar-project-selector">
+      {activeProjects.length > 1 && <form action={selectProject} className="sidebar-project-selector">
         <select name="project_id" defaultValue={selectedProjectId || ""} aria-label="Switch project">
           {activeProjects.map((item)=><option key={item.id} value={item.id}>{item.name || item.code}</option>)}
         </select>
         <button>Switch</button>
       </form>}
-      <Link href="/projects#start-project" className="sidebar-create-project">+ Create Project</Link>
+
 
       {/* Main Navigation */}
       <nav className="nav-container" aria-label="Main Navigation">
         <div className="nav-section-label">FACKTS MUSIC</div>
-        {platformNavItems.map((item) => { const IconComp=item.icon; const isActive=item.activeMatch(pathname); return <Link key={item.label} href={item.href} className={`nav-link ${isActive?"active":""}`} onClick={()=>isMobile&&setMobileOpen(false)}><span className="nav-icon-wrap"><IconComp size={16}/></span><span className="nav-label">{item.label}</span>{item.label==="Notifications"&&unreadNotifications>0&&<span className="nav-unread-count">{Math.min(unreadNotifications,99)}</span>}</Link>; })}
+        {platformNavItems.map((item) => { const IconComp=item.icon; const isActive=item.activeMatch(pathname); return <Link key={item.label} href={item.href} className={`nav-link ${isActive?"active":""}`} onClick={()=>isMobile&&setMobileOpen(false)}><span className="nav-icon-wrap"><IconComp size={16}/></span><span className="nav-label">{item.label}</span>{item.label==="Inbox"&&unreadNotifications>0&&<span className="nav-unread-count">{Math.min(unreadNotifications,99)}</span>}</Link>; })}
         {hasProject && <div className="nav-section-label project-nav-label">PROJECT AREAS</div>}
-        {visibleNavItems.map((item) => {
+        {primaryProjectItems.map((item) => {
           const isActive = item.activeMatch(pathname);
           const IconComp = item.icon;
 
@@ -173,22 +176,20 @@ export default function ShellLayout({
             </Link>
           );
         })}
+        <details className="member-more-nav" open={moreProjectItems.some(item => item.activeMatch(pathname)) || ["/discover", "/suggestions", "/professional-record"].some(path => pathname.startsWith(path))}>
+          <summary className="nav-link">More</summary>
+          {moreProjectItems.map(item => <Link key={item.href} href={item.href} className={`nav-link ${item.activeMatch(pathname) ? "active" : ""}`}>{item.label}</Link>)}
+          {!hasProject && <Link className="nav-link" href="/professional-record">My credits</Link>}
+          <Link className="nav-link" href="/projects#start-project">Start a project</Link>
+          <Link className="nav-link" href="/discover">Discover creators</Link>
+          <Link className="nav-link" href="/suggestions">Suggest something</Link>
+        </details>
       </nav>
 
       {/* Sidebar Footer */}
       <div className="sidebar-footer">
         {canAccessControlRoom && <Link href="/admin" className="nav-link control-room-switch" onClick={() => isMobile && setMobileOpen(false)}><span className="nav-icon-wrap"><BriefcaseIcon size={16} /></span><span className="nav-label">Open Control Room</span><span className="nav-badge-live">ADMIN</span></Link>}
-        <Link
-          href="/settings"
-          className={`nav-link ${pathname.startsWith("/settings") ? "active" : ""}`}
-          onClick={() => isMobile && setMobileOpen(false)}
-        >
-          <span className="nav-icon-wrap">
-            <SettingsIcon size={16} />
-          </span>
-          <span className="nav-label">Settings</span>
-        </Link>
-
+        <Link className="nav-link" href="/help"><SparklesIcon size={16}/> Help me find something</Link>
         <div className="user-profile-tile">
           <div className="user-avatar-initials">
             {avatarUrl ? <img src={avatarUrl} alt="" /> : <span>{initials}</span>}
@@ -197,7 +198,7 @@ export default function ShellLayout({
             <span className="user-name">{userName}</span>
             <span className="user-role-badge">{primaryRole}</span>
           </div>
-          
+
           <form action="/auth/signout" method="post" className="user-signout-form">
             <button type="submit" className="quick-signout-btn" title="Sign Out" aria-label="Sign Out">
               <LogOutIcon size={14} />
@@ -256,12 +257,13 @@ export default function ShellLayout({
           </div>
 
           <div className="topbar-right">
+            <Link href="/help" className="topbar-icon-button" aria-label="Open FACKTS Music helper" title="Help"><SparklesIcon size={16}/></Link>
             {/* Notifications Button */}
             <Link
-              href="/notifications"
+              href="/inbox"
               className="topbar-icon-button"
-              aria-label="Notifications"
-              title="Notifications"
+              aria-label="Inbox"
+              title="Inbox"
             >
               <BellIcon size={16} />
               {unreadNotifications > 0 && <span className="notification-count">{Math.min(unreadNotifications,99)}</span>}
@@ -291,8 +293,8 @@ export default function ShellLayout({
       <nav className="mobile-bottom-nav" aria-label="Mobile primary navigation">
         <Link href="/home" className={pathname === "/home" ? "active" : ""}><HomeIcon size={19} /><span>Home</span></Link>
         <Link href="/projects" className={pathname.startsWith("/projects")||pathname.startsWith("/invitations") ? "active" : ""}><BriefcaseIcon size={19}/><span>Projects</span></Link>
-        <Link href="/discover" className={pathname.startsWith("/discover") ? "active" : ""}><UsersIcon size={19}/><span>Discover</span></Link>
-        <Link href="/notifications" className={pathname.startsWith("/notifications") ? "active" : ""}><BellIcon size={19}/><span>Alerts{unreadNotifications>0?` ${Math.min(unreadNotifications,99)}`:""}</span></Link>
+
+        <Link href="/inbox" className={pathname.startsWith("/inbox") ? "active" : ""}><BellIcon size={19}/><span>Inbox{unreadNotifications>0?` ${Math.min(unreadNotifications,99)}`:""}</span></Link>
         <Link href="/settings" className={pathname.startsWith("/settings") ? "active" : ""}><SettingsIcon size={19} /><span>Profile</span></Link>
       </nav>
     </div>

@@ -29,6 +29,7 @@ export async function saveRightsCheck(fd:FormData){
   const trackId=read(fd,"track_id");const{admin,roles,project,user}=await requireTrack(trackId);
   if(!hasAnyRole(roles,manageRoles))throw new Error("Rights control access required.");
   const checkKey=read(fd,"check_key"),status=read(fd,"status")||"pending";
+  if(checkKey === "splits_confirmed") throw new Error("Split confirmation is updated automatically when contributors approve the current plan.");
   if(!checkKey||!["pending","clear","not_applicable","blocked"].includes(status))throw new Error("Choose a valid rights check and status.");
   const{error}=await admin.from("track_rights_checks").upsert({project_id:project!.id,track_id:trackId,check_key:checkKey,status,evidence_note:read(fd,"evidence_note")||null,evidence_url:read(fd,"evidence_url")||null,updated_by:user.id,updated_at:new Date().toISOString()},{onConflict:"track_id,check_key"});
   if(error)throw new Error(error.message);

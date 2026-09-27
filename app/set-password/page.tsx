@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   FormEvent,
@@ -29,16 +29,16 @@ export default function SetPasswordPage() {
     setReady,
   ] = useState(false);
 
-  const supabase =
-    createBrowserClient(
-      process.env
-        .NEXT_PUBLIC_SUPABASE_URL!,
-      process.env
-        .NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-    );
+  const [supabase] = useState(() => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+    return url && key ? createBrowserClient(url, key) : null;
+  });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     async function checkSession() {
+      if (!supabase) { setMessage("Account access is temporarily unavailable. Please contact support."); return; }
       /*
        * Supabase invite links establish an
        * authenticated session when accepted.
@@ -53,7 +53,7 @@ export default function SetPasswordPage() {
         !data.session
       ) {
         setMessage(
-          "Your invitation session could not be found. The invite may have expired. Please ask the Project Lead to resend your invitation."
+          "This link has expired or could not be verified. Request a new password reset link."
         );
 
         return;
@@ -71,6 +71,7 @@ export default function SetPasswordPage() {
     event.preventDefault();
 
     setMessage("");
+    if (!supabase || saving) return;
 
     if (
       password.length < 8
@@ -93,6 +94,7 @@ export default function SetPasswordPage() {
       return;
     }
 
+    setSaving(true);
     const {
       error,
     } =
@@ -101,6 +103,7 @@ export default function SetPasswordPage() {
           password,
         });
 
+    setSaving(false);
     if (error) {
       setMessage(
         error.message
@@ -113,7 +116,7 @@ export default function SetPasswordPage() {
      * The account is now ready.
      */
     window.location.href =
-      "/workspace";
+      "/home";
   }
 
   return (
@@ -130,7 +133,7 @@ export default function SetPasswordPage() {
         >
           <div>
             <span className="eyebrow">
-              PROJECT 001
+              ACCOUNT ACCESS
             </span>
 
             <h2>
@@ -138,9 +141,7 @@ export default function SetPasswordPage() {
             </h2>
 
             <p>
-              Create your password
-              to finish joining
-              the project.
+              Set a new password for your FACKTS Music account.
             </p>
           </div>
 
@@ -150,6 +151,7 @@ export default function SetPasswordPage() {
             </div>
           )}
 
+          {!ready && message && <a href="/forgot-password">Request a new link →</a>}
           {ready && (
             <>
               <label>
@@ -201,8 +203,9 @@ export default function SetPasswordPage() {
               <button
                 className="login-submit-btn"
                 type="submit"
+                disabled={saving}
               >
-                Join Project 001 →
+                {saving ? "Saving…" : "Save password →"}
               </button>
             </>
           )}
