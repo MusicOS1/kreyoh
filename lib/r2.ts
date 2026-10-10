@@ -100,6 +100,7 @@ export async function createR2PresignedUrl(
   key: string,
   expires = 900,
   contentType?: string,
+  downloadName?: string,
 ) {
   const config = readR2Config();
   const client = createR2Client(config);
@@ -110,7 +111,13 @@ export async function createR2PresignedUrl(
           Key: key,
           ContentType: contentType || "application/octet-stream",
         })
-      : new GetObjectCommand({ Bucket: config.bucket, Key: key });
+      : new GetObjectCommand({
+          Bucket: config.bucket,
+          Key: key,
+          ResponseContentDisposition: downloadName
+            ? `attachment; filename="${downloadName.replace(/[^a-zA-Z0-9._ -]/g, "_")}"; filename*=UTF-8''${encodeURIComponent(downloadName).replace(/['()*]/g, char => "%" + char.charCodeAt(0).toString(16).toUpperCase())}`
+            : undefined,
+        });
 
   return getSignedUrl(client, command, { expiresIn: expires });
 }

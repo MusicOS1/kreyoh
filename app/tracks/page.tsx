@@ -372,6 +372,9 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
                               {asset.mime_type?.startsWith("audio/") ? "Playback unavailable" : "Stored project file"}
                             </span>
                           )}
+                          <a className="track-file-download" href={`/api/track-assets/${asset.id}/download`}>
+                            {asset.asset_kind === "stems" ? "Download stems" : "Download file"}
+                          </a>
                         </article>
                       );
                     })}
