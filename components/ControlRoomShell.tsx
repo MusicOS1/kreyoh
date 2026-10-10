@@ -10,6 +10,7 @@ import AppExperienceEnhancer from "./AppExperienceEnhancer";
 import type { ControlRoomPermission } from "../lib/controlRoom";
 
 const navigation = [
+  { label: "Public releases", href: "/admin/releases", group: "Operations", permission: "music" },
   { label: "Overview", href: "/admin", group: "Command", permission: "overview" },
   { label: "People & access", href: "/admin/users", group: "Management", permission: "people" },
   { label: "Projects", href: "/admin/projects", group: "Management", permission: "projects" },

@@ -27,6 +27,9 @@ function isPublicRoute(
 ) {
   return (
     PUBLIC_ROUTES.includes(pathname) ||
+    pathname === "/billboard" ||
+    /^\/billboard\/[0-9a-f-]{36}$/i.test(pathname) ||
+    /^\/api\/releases\/[0-9a-f-]{36}\/media$/i.test(pathname) ||
     pathname === "/creators" ||
     pathname.startsWith("/creators/")
   );

@@ -8,6 +8,7 @@ import "./fackts-music-premium.css";
 import "./afroplug-v3.css";
 import "./activation-shell-fixes.css";
 import "./member-experience.css";
+import "./community.css";
 import PwaRegister from "../components/PwaRegister";
 import GlobalVideoPlayer from "../components/GlobalVideoPlayer";
 import WorkspaceChromeEnhancer from "../components/WorkspaceChromeEnhancer";

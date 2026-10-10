@@ -6,7 +6,8 @@ import {markInboxItemRead,markInboxRead} from "./actions";
 import { notificationLink } from "../../lib/navigation";
 
 export default async function InboxPage(){
-  const{supabase,user}=await getWorkspace();
+  const{supabase,user,admin}=await getWorkspace();
+  const{count:unreadMessages}=await admin.from("member_messages").select("id",{count:"exact",head:true}).eq("recipient_id",user.id).is("read_at",null);
 
   const{data:items=[]}=await supabase.from("notifications")
     .select("*")
@@ -27,6 +28,7 @@ export default async function InboxPage(){
       @media(max-width:700px){.inbox-summary{grid-template-columns:1fr}.inbox-item{grid-template-columns:1fr}}
     `}</style>
     <div className="content operations-page">
+      <p><Link className="track-file-download" href="/messages">Private messages{unreadMessages?` · ${unreadMessages} unread`:""} →</Link></p>
       <div className="heading">
         <div><span className="eyebrow">YOUR FACKTS MUSIC INBOX</span><h1>Inbox</h1><p>Invitations, project updates, approvals and role-specific messages live here so important changes do not disappear inside a bell menu.</p></div>
         <form action={markInboxRead}><button>Mark all read</button></form>

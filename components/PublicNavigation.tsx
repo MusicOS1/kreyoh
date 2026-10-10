@@ -7,6 +7,7 @@ import { ArrowUpRight } from "./Icons";
 import { FacktsMusicLogo } from "./Branding";
 
 const links = [
+  ["Billboard", "/billboard"],
   ["Creators", "/creators"],
   ["How It Works", "/#how-it-works"],
   ["About", "/about"],

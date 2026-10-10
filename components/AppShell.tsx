@@ -30,6 +30,8 @@ export default async function AppShell({children}:{children:React.ReactNode}){
     .eq("user_id",user.id)
     .is("read_at",null);
 
+  const {count:unreadMessages}=await admin.from("member_messages").select("id",{count:"exact",head:true}).eq("recipient_id",user.id).is("read_at",null);
+
   const userName=
     profile?.stage_name||
     profile?.full_name||
@@ -59,6 +61,7 @@ export default async function AppShell({children}:{children:React.ReactNode}){
       avatarUrl={profile?.avatar_url}
       canAccessControlRoom={canAccessControlRoom}
       unreadNotifications={unreadNotifications||0}
+      unreadMessages={unreadMessages||0}
     >
       {children}
     </ShellLayout>

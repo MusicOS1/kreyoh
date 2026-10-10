@@ -126,7 +126,7 @@ export default async function PublicHomePage() {
             sessions, credits and discovery without flattening the culture into office software.
           </p>
           <div className="fm-v3-hero-actions">
-            <Link href="/signup" className="fm-v3-btn fm-v3-btn-primary">Join FACKTS Music <ArrowUpRight size={16} /></Link>
+            <Link href="/billboard" className="fm-v3-btn fm-v3-btn-primary">Listen & vote <ArrowUpRight size={16} /></Link>
             <Link href="/creators" className="fm-v3-btn fm-v3-btn-ghost">Meet the creators <ArrowUpRight size={16} /></Link>
           </div>
           <div className="fm-v3-hero-foot">

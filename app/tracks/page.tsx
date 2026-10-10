@@ -3,7 +3,7 @@ import AppShell from "../../components/AppShell";
 import BeatAudioPlayer from "../../components/BeatAudioPlayer";
 import TrackIntakeForm from "../../components/TrackIntakeForm";
 import TrackUploadForm from "../../components/TrackUploadForm";
-import TrackPlaylist from "../../components/TrackPlaylist";
+import TrackPlaylist from "../../components/MusicQueue";
 import { createAdminClient } from "../../lib/supabase/admin";
 import { createR2PresignedUrl, isR2Configured } from "../../lib/r2";
 import { getWorkspace, hasAnyRole } from "../../lib/workspace";
@@ -233,7 +233,7 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
             </form>
           )}
           {canManageVoting && !votingRound && <form action={updateTrackVotingRound} className="track-round-controls"><span>No voting round</span><button className="primary" name="intent" value="start_new">Start voting round</button></form>}
-          <TrackPlaylist tracks={playlist as any} resultsVisible={displayVotingStats} showDetailedStats={canViewPrivateVotingStats} />
+          <TrackPlaylist storageKey={`fackts-project-playlists:${user.id}:${project.id}`} tracks={playlist as any} resultsVisible={displayVotingStats} showDetailedStats={canViewPrivateVotingStats} />
         </section>
 
         {canCreate && (
