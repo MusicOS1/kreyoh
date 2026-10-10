@@ -62,3 +62,6 @@
 .music-helper{max-width:900px;margin:auto}.music-helper h1{font-size:clamp(26px,4vw,40px)}.music-helper p{font-size:15px;line-height:1.65}.help-topics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.help-topics summary{cursor:pointer;font-weight:700}.help-topics button{display:block;margin-top:14px}.music-helper textarea{min-height:90px}@media(max-width:650px){.help-topics{grid-template-columns:1fr}}
 
 .kreyoh-app-shell .platform-home-hero h1{font-size:clamp(26px,3.5vw,42px);line-height:1.12}.music-helper .operations-form{grid-template-columns:1fr}.splits-page input,.splits-page select,.splits-page textarea{padding:10px 12px;border:1px solid #ffffff35;border-radius:9px;background:#14171e;color:#fff}.splits-page button{padding:10px 15px;border:0;border-radius:9px;background:#e96316;color:white;font-weight:700}.split-editor-row button{background:#252832}.split-response-form textarea{resize:vertical}.split-search{max-width:680px}
+
+.track-file-download{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border-radius:10px;background:#b84308;color:#fff;font-size:14px;font-weight:700;text-decoration:none;flex-shrink:0}
+.track-file-download:hover{background:#963506}.track-file-download:focus-visible{outline:3px solid #ffad63;outline-offset:3px}

@@ -128,7 +128,7 @@ export default async function TrackPassportPage({params}:{params:Promise<{trackI
       <article className="panel">
         <span className="eyebrow">FILES</span><h2>Version & asset history</h2>
         {!assets.length&&<p>No track files recorded.</p>}
-        <div className="passport-list">{assets.map((asset:any)=><div className="passport-row" key={asset.id}><span><strong>{asset.file_name}</strong><small>{String(asset.asset_kind||"file").replaceAll("_"," ")} · {creatorDisplayName(first(asset.profiles))} · {new Date(asset.created_at).toLocaleDateString("en-KE")}</small>{asset.version_note&&<small>{asset.version_note}</small>}</span></div>)}</div>
+        <div className="passport-list">{assets.map((asset:any)=><div className="passport-row" key={asset.id}><span><strong>{asset.file_name}</strong><small>{String(asset.asset_kind||"file").replaceAll("_"," ")} · {creatorDisplayName(first(asset.profiles))} · {new Date(asset.created_at).toLocaleDateString("en-KE")}</small>{asset.version_note&&<small>{asset.version_note}</small>}</span><a className="track-file-download" href={`/api/track-assets/${asset.id}/download`}>{asset.asset_kind === "stems" ? "Download stems" : "Download file"}</a></div>)}</div>
       </article>
 
       <article className="panel">
