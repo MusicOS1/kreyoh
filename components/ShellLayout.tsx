@@ -45,6 +45,7 @@ type ShellLayoutProps = {
   avatarUrl?: string | null;
   canAccessControlRoom?: boolean;
   unreadNotifications?: number;
+  unreadMessages?: number;
   children: React.ReactNode;
 };
 
@@ -63,6 +64,7 @@ export default function ShellLayout({
   avatarUrl,
   canAccessControlRoom = false,
   unreadNotifications = 0,
+  unreadMessages = 0,
   children,
 }: ShellLayoutProps) {
   const pathname = usePathname();
@@ -75,6 +77,8 @@ export default function ShellLayout({
   const primaryProjectItems = visibleNavItems.filter(item => primaryProjectPaths.includes(item.href));
   const moreProjectItems = visibleNavItems.filter(item => !primaryProjectPaths.includes(item.href));
   const platformNavItems = [
+    {label:"Billboard",href:"/billboard",icon:MusicIcon,activeMatch:(p:string)=>p.startsWith("/billboard")},
+    {label:"Messages",href:"/messages",icon:UsersIcon,activeMatch:(p:string)=>p.startsWith("/messages")},
     {label:"Home",href:"/home",icon:HomeIcon,activeMatch:(p:string)=>p==="/home"},
     {label:"My Projects",href:"/projects",icon:BriefcaseIcon,activeMatch:(p:string)=>p.startsWith("/projects")||p.startsWith("/invitations")},
 
@@ -150,7 +154,7 @@ export default function ShellLayout({
       {/* Main Navigation */}
       <nav className="nav-container" aria-label="Main Navigation">
         <div className="nav-section-label">FACKTS MUSIC</div>
-        {platformNavItems.map((item) => { const IconComp=item.icon; const isActive=item.activeMatch(pathname); return <Link key={item.label} href={item.href} className={`nav-link ${isActive?"active":""}`} onClick={()=>isMobile&&setMobileOpen(false)}><span className="nav-icon-wrap"><IconComp size={16}/></span><span className="nav-label">{item.label}</span>{item.label==="Inbox"&&unreadNotifications>0&&<span className="nav-unread-count">{Math.min(unreadNotifications,99)}</span>}</Link>; })}
+        {platformNavItems.map((item) => { const IconComp=item.icon; const isActive=item.activeMatch(pathname); return <Link key={item.label} href={item.href} className={`nav-link ${isActive?"active":""}`} onClick={()=>isMobile&&setMobileOpen(false)}><span className="nav-icon-wrap"><IconComp size={16}/></span><span className="nav-label">{item.label}</span>{item.label==="Inbox"&&unreadNotifications>0&&<span className="nav-unread-count">{Math.min(unreadNotifications,99)}</span>}{item.label==="Messages"&&unreadMessages>0&&<span className="nav-unread-count">{Math.min(unreadMessages,99)}</span>}</Link>; })}
         {hasProject && <div className="nav-section-label project-nav-label">PROJECT AREAS</div>}
         {primaryProjectItems.map((item) => {
           const isActive = item.activeMatch(pathname);

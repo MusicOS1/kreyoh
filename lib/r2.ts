@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   GetObjectCommand,
+  CopyObjectCommand,
   HeadBucketCommand,
   HeadObjectCommand,
   PutObjectCommand,
@@ -120,4 +121,13 @@ export async function createR2PresignedUrl(
         });
 
   return getSignedUrl(client, command, { expiresIn: expires });
+}
+
+// Freeze a reviewed submission under a key that was never exposed in an upload URL.
+export async function finalizeReleaseObject(source: string, destination: string) {
+  const config = readR2Config();
+  await createR2Client(config).send(new CopyObjectCommand({
+    Bucket: config.bucket, Key: destination,
+    CopySource: `${config.bucket}/${source.split('/').map(encodeURIComponent).join('/')}`,
+  }));
 }

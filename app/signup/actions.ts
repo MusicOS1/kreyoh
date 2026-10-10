@@ -1,10 +1,12 @@
 "use server";
 
+import { safeNext } from "../../lib/navigation";
 import { redirect } from "next/navigation";
 import { createClient } from "../../lib/supabase/server";
 import { createAdminClient } from "../../lib/supabase/admin";
 
 const PUBLIC_TYPES: Record<string, string[]> = {
+  "Fan / Listener": ["Fan"],
   Artist: ["Artist"],
   Producer: ["Producer"],
   "Artist + Producer": ["Artist", "Producer"],
@@ -26,6 +28,7 @@ const read = (formData: FormData, key: string) =>
   String(formData.get(key) || "").trim();
 
 export async function signup(formData: FormData) {
+  const next = safeNext(read(formData,"next"), "/billboard");
   const fullName = read(formData, "full_name");
   const email = read(formData, "email").toLowerCase();
   const password = String(formData.get("password") || "");
@@ -35,7 +38,7 @@ export async function signup(formData: FormData) {
   const accepted = formData.get("accepted_terms") === "on";
 
   const fail = (message: string): never =>
-    redirect(`/signup?error=${encodeURIComponent(message)}`);
+    redirect(`/signup?next=${encodeURIComponent(next)}&error=${encodeURIComponent(message)}`);
 
   if (!fullName || !email || !password || !creatorTypes) {
     fail("Complete every required field.");
@@ -61,7 +64,7 @@ export async function signup(formData: FormData) {
     email,
     password,
     options: {
-      emailRedirectTo: `${siteUrl}/auth/callback?next=/home`,
+      emailRedirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}`,
       data: {
         full_name: fullName,
         creator_types: creatorTypes,
@@ -111,11 +114,11 @@ export async function signup(formData: FormData) {
   // Project access/permissions are still activated separately through
   // project membership and invitations.
   if (data.session) {
-    redirect("/home");
+    redirect(next);
   }
 
   redirect(
-    `/signup?success=${encodeURIComponent(
+    `/signup?next=${encodeURIComponent(next)}&success=${encodeURIComponent(
       "Account created. Check your email to confirm access, then sign in.",
     )}`,
   );

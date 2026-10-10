@@ -3,16 +3,16 @@
 import { useState } from "react";
 import { signup } from "../app/signup/actions";
 
-export default function SignupForm({ error }: { error?: string }) {
+export default function SignupForm({ error, next="/billboard" }: { error?: string; next?: string }) {
   const [visible, setVisible] = useState(false);
 
   return (
-    <form action={signup} className="login-card">
+    <form action={signup} className="login-card"><input name="next" type="hidden" value={next}/>
       <div>
         <span className="eyebrow">CREATE YOUR ACCOUNT</span>
         <h2>Join FACKTS Music</h2>
         <p>
-          Build your professional music profile. Project access is assigned
+          Listen, vote, connect or build your music profile. Project access is assigned
           separately when you join or are invited into a project.
         </p>
       </div>
@@ -41,6 +41,7 @@ export default function SignupForm({ error }: { error?: string }) {
           defaultValue="Artist"
           className="dark-select"
         >
+          <option>Fan / Listener</option>
           <option>Artist</option>
           <option>Producer</option>
           <option>Artist + Producer</option>
