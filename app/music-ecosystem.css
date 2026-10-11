@@ -104,3 +104,30 @@
  .listener-artists .fm-artist-shelf-photo{width:44px;height:44px;flex-basis:44px}
  .fm-artist-shelf-heading>button{white-space:nowrap}
 }
+
+/* The same compact music destinations across artist, producer and project workspaces. */
+.kreyoh-app-shell .fm-ecosystem-shortcuts{
+ display:flex;align-items:center;gap:8px;min-width:0;overflow-x:auto;
+ padding:10px clamp(12px,2vw,28px);scrollbar-width:none;
+ background:rgba(11,11,14,.94);border-bottom:1px solid rgba(255,255,255,.08);
+}
+.kreyoh-app-shell .fm-ecosystem-shortcuts::-webkit-scrollbar{display:none}
+.kreyoh-app-shell .fm-ecosystem-shortcuts a{
+ flex:0 0 auto;min-height:37px;padding:10px 15px;border-radius:999px;
+ display:inline-flex;align-items:center;font-size:12px;font-weight:720;
+ text-decoration:none;color:#c4c0bf;background:rgba(255,255,255,.04);
+ border:1px solid rgba(255,255,255,.075);
+ transition:background-color .16s,color .16s,border-color .16s;
+}
+.kreyoh-app-shell .fm-ecosystem-shortcuts a:hover{background:rgba(249,115,22,.11);color:#fff}
+.kreyoh-app-shell .fm-ecosystem-shortcuts a[aria-current="page"]{
+ color:#fda45a;background:rgba(249,115,22,.13);border-color:rgba(249,115,22,.27);
+}
+.fm-directory-release-count{display:block;font-size:11px;font-weight:800;color:#f9a365;margin-top:6px}
+@media(max-width:900px){
+ .kreyoh-app-shell .fm-ecosystem-shortcuts{gap:6px;padding:8px 11px}
+ .kreyoh-app-shell .fm-ecosystem-shortcuts a{font-size:12px;min-height:39px;padding:9px 13px}
+}
+@media(prefers-reduced-motion:reduce){
+ .kreyoh-app-shell .fm-ecosystem-shortcuts a{transition:none}
+}
