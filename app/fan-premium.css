@@ -369,3 +369,11 @@ html[data-fackts-fan-theme="afterhours"] .listener-home{
    transition-duration:.01ms!important;scroll-behavior:auto!important;
  }
 }
+
+/* Active mobile destination and readable mini-player for every palette */
+.fan-mobile-nav a[aria-current="page"]{color:var(--fan-accent)!important}
+.fan-mobile-nav a[aria-current="page"] svg{filter:drop-shadow(0 0 7px var(--fan-glow))}
+.fan-player-compact{color:var(--fan-text)!important}
+.fan-player-compact .track-player-copy h3{color:var(--fan-text)!important}
+.fan-player-compact .track-player-copy p{color:var(--fan-muted)!important}
+.fan-shell .fan-theme-menu button{color:var(--fan-text)!important}
