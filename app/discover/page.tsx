@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AppShell from "../../components/AppShell";
+import {creditedToArtist} from "../../lib/releaseArtistMatch";
 import { getWorkspace } from "../../lib/workspace";
 
 const PAGE_SIZE = 15;
@@ -17,12 +18,22 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
   let query = admin.from("profiles")
     .select("id,stage_name,avatar_url,hero_image_url,bio,location,skills_genres,creator_types,public_slug", { count: "exact" })
     .eq("profile_visibility", "public")
+    .eq("account_status","active")
     .order("stage_name", { ascending: true, nullsFirst: false })
     .range(from, to);
   if (queryText) query = query.or(`stage_name.ilike.%${queryText}%,bio.ilike.%${queryText}%,location.ilike.%${queryText}%`);
   if (role !== "All") query = query.contains("creator_types", [role]);
   const { data: creators = [], count = 0 } = await query;
   const pages = Math.max(1, Math.ceil((count || 0) / PAGE_SIZE));
+  const creatorIds=(creators||[]).map((person:any)=>person.id);
+  const {data:releaseRows=[]}=creatorIds.length?await admin.from("music_weekly_chart")
+    .select("id,artist_id,artist_name").in("artist_id",creatorIds).limit(500):{data:[]};
+  const releaseCounts=new Map<string,number>();
+  for(const song of releaseRows||[]){
+    const creator=(creators||[]).find((person:any)=>person.id===song.artist_id);
+    if(creator&&creditedToArtist(song.artist_name,creator.stage_name||creator.nickname||""))
+      releaseCounts.set(song.artist_id,(releaseCounts.get(song.artist_id)||0)+1);
+  }
   const queryFor = (targetPage: number) => { const next = new URLSearchParams(); if (queryText) next.set("q", queryText); if (role !== "All") next.set("role", role); next.set("page", String(targetPage)); return `/discover?${next.toString()}`; };
 
   return <AppShell><div className="content discover-page">
@@ -31,7 +42,7 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
     <div className="platform-section-heading"><div><span className="eyebrow">PUBLIC DIRECTORY</span><h2>{count || 0} creator{count === 1 ? "" : "s"}</h2></div><span>Showing {count ? from + 1 : 0}–{Math.min(from + PAGE_SIZE, count || 0)} of {count || 0}</span></div>
     <section className="creator-directory-grid">{!creators?.length && <article className="panel empty-state"><h2>No public profiles found</h2><p>Try a different search or creator role.</p></article>}{(creators || []).map((creator: any) => { const name = creator.stage_name || "FACKTS Music Creator"; return <Link href={`/creators/${creator.public_slug || creator.id}`} className="creator-directory-card" key={creator.id}>
       <div className="creator-directory-image" style={creator.hero_image_url ? { backgroundImage: `linear-gradient(180deg,transparent,rgba(3,8,15,.92)),url(${creator.hero_image_url})` } : undefined}>{creator.avatar_url ? <img src={creator.avatar_url} alt=""/> : <span>{name.slice(0,2).toUpperCase()}</span>}</div>
-      <div><span className="eyebrow">{(creator.creator_types || []).join(" · ") || "CREATOR"}</span><h3>{name}</h3><p>{creator.bio || "Independent creator on FACKTS Music."}</p><small>{[creator.location, ...(creator.skills_genres || []).slice(0,2)].filter(Boolean).join(" · ")}</small></div>
+      <div><span className="eyebrow">{(creator.creator_types || []).join(" · ") || "CREATOR"}</span><h3>{name}</h3><p>{creator.bio || "Independent creator on FACKTS Music."}</p>{releaseCounts.get(creator.id)?<strong className="fm-directory-release-count">{releaseCounts.get(creator.id)} released tracks on FACKTS</strong>:null}<small>{[creator.location, ...(creator.skills_genres || []).slice(0,2)].filter(Boolean).join(" · ")}</small></div>
     </Link>; })}</section>
     {pages > 1 && <nav className="pagination" aria-label="Creator pages"><Link aria-disabled={page <= 1} href={queryFor(Math.max(1,page-1))}>Previous</Link>{Array.from({length: pages},(_,index)=>index+1).slice(Math.max(0,page-3),Math.min(pages,page+2)).map(value=><Link className={value===page?"active":""} key={value} href={queryFor(value)}>{value}</Link>)}<Link aria-disabled={page >= pages} href={queryFor(Math.min(pages,page+1))}>Next</Link></nav>}
   </div></AppShell>;
