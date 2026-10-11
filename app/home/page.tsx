@@ -1,3 +1,5 @@
+import {redirect} from "next/navigation";
+import {isFanProfile} from "../../lib/fanProfile";
 import Link from "next/link";
 import AppShell from "../../components/AppShell";
 import { getWorkspace } from "../../lib/workspace";
@@ -10,6 +12,7 @@ const readable=(value:string|null|undefined)=>String(value||"Update").replaceAll
 
 export default async function PlatformHomePage(){
   const{user,profile,admin,activeProjects,project}=await getWorkspace();
+  if(isFanProfile(profile))redirect("/fan");
   const projectIds=(activeProjects||[]).map((item:any)=>item.id);
   const now=new Date().toISOString();
 

@@ -28,7 +28,7 @@ const read = (formData: FormData, key: string) =>
   String(formData.get(key) || "").trim();
 
 export async function signup(formData: FormData) {
-  const next = safeNext(read(formData,"next"), "/billboard");
+  const next = safeNext(read(formData,"next"), "/home");
   const fullName = read(formData, "full_name");
   const email = read(formData, "email").toLowerCase();
   const password = String(formData.get("password") || "");

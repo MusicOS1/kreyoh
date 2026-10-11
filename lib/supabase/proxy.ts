@@ -11,6 +11,7 @@ import {
 const PUBLIC_ROUTES = [
   "/",
   "/about",
+  "/listen",
   "/contact",
   "/partner",
   "/login",
