@@ -6,6 +6,7 @@ import {getWorkspace} from '../../lib/workspace';
 import {chart,currentChartWeek} from '../../lib/community';
 import ListenerExperience from '../../components/ListenerExperience';
 import FanShell from '../../components/FanShell';
+import AppShell from '../../components/AppShell';
 export default async function FanPage({searchParams}:{searchParams:Promise<{tab?:string}>}){
  const requestedTab=(await searchParams).tab||"For You";
  const initialTab=["For You","Artists","Albums & EPs","Shows","Billboard","My Library","Following","Recently played"].includes(requestedTab)?requestedTab:"For You";
@@ -31,5 +32,7 @@ export default async function FanPage({searchParams}:{searchParams:Promise<{tab?
    discovery:editorialResult.status
  });
  const name=profile?.nickname||profile?.stage_name||profile?.full_name||'Listener';
- return <FanShell showBottomNav={false} name={name} activeTab={initialTab} avatarUrl={profile?.avatar_url} creatorMode={!isFanProfile(profile)}><ListenerExperience initialTab={initialTab} editorial={editorial} heroSettings={heroSettings} artistsDirectory={artistsDirectory} loadWarning={dataUnavailable?"Some music information could not be loaded right now. Please refresh in a moment.":undefined} releases={releases} userId={user.id} name={name} initialLibrary={library.data||[]} votedIds={(votes.data||[]).map(x=>x.release_id)} unread={messages.count||0}/></FanShell>;
+ const fanOnly=isFanProfile(profile);
+ const listening=<ListenerExperience initialTab={initialTab} editorial={editorial} heroSettings={heroSettings} artistsDirectory={artistsDirectory} loadWarning={dataUnavailable?"Some music information could not be loaded right now. Please refresh in a moment.":undefined} releases={releases} userId={user.id} name={name} initialLibrary={library.data||[]} votedIds={(votes.data||[]).map(x=>x.release_id)} unread={messages.count||0} showFanNav={fanOnly}/>;
+ return fanOnly?<FanShell showBottomNav={false} name={name} activeTab={initialTab} avatarUrl={profile?.avatar_url}>{listening}</FanShell>:<AppShell>{listening}</AppShell>;
 }
