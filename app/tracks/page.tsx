@@ -233,7 +233,7 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
             </form>
           )}
           {canManageVoting && !votingRound && <form action={updateTrackVotingRound} className="track-round-controls"><span>No voting round</span><button className="primary" name="intent" value="start_new">Start voting round</button></form>}
-          <TrackPlaylist storageKey={`fackts-project-playlists:${user.id}:${project.id}`} tracks={playlist as any} resultsVisible={displayVotingStats} showDetailedStats={canViewPrivateVotingStats} />
+          <TrackPlaylist storageKey={`fackts-project-playlists:${user.id}:${project.id}`} tracks={playlist as any} votingOpen={votingRound?.status === "open"} resultsVisible={displayVotingStats} showDetailedStats={canViewPrivateVotingStats} />
         </section>
 
         {canCreate && (
