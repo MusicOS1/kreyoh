@@ -5,6 +5,7 @@ import Link from "next/link";
 import PublicNavigation from "../../../components/PublicNavigation";
 import PublicFooter from "../../../components/PublicFooter";
 import { creatorDisplayName } from "../../../lib/profileIdentity";
+import {creditedToArtist} from "../../../lib/releaseArtistMatch";
 import { createAdminClient } from "../../../lib/supabase/admin";
 
 const first = (value: any) => Array.isArray(value) ? value[0] : value;
@@ -19,11 +20,11 @@ export default async function PublicCreatorPage({params}:{params:Promise<{userId
  const [{data:published=[]},{data:credits=[]},sessionUser]=await Promise.all([
   admin.from("music_weekly_chart").select("id,title,artist_id,artist_name,collection,genre,has_cover,release_at,votes").eq("artist_id",profile.id).order("release_at",{ascending:false}).limit(50),
   admin.from("track_contributors").select("id,contribution_role,tracks(working_title)").eq("user_id",profile.id).eq("approved",true),viewer()]);
- const name=creatorDisplayName(profile),photos=(profile.photo_catalog||[]).slice(0,5),interview=mediaEmbed(profile.interview_url);
+ const name=creatorDisplayName(profile),verifiedReleases=(published||[]).filter(song=>creditedToArtist(song.artist_name,name)),photos=(profile.photo_catalog||[]).slice(0,5),interview=mediaEmbed(profile.interview_url);
  const content=<main className="public-creator-shell"><div className="content creator-profile-page public-creator-page">
   <section className={`creator-profile-hero${profile.hero_image_url?" has-hero-image":""}`} style={profile.hero_image_url?{backgroundImage:`linear-gradient(90deg,rgba(2,7,13,.97),rgba(2,7,13,.68),rgba(2,7,13,.22)),url("${profile.hero_image_url}")`}:undefined}><div className="creator-profile-avatar">{profile.avatar_url?<img src={profile.avatar_url} alt={name}/>:name.slice(0,2).toUpperCase()}</div><div><span className="eyebrow">FACKTS MUSIC CREATOR</span><h1>{name}</h1><p>{profile.epk_tagline||profile.bio||"Independent creator on FACKTS Music."}</p><div className="person-roles-wrap">{(profile.creator_types||[]).map((type:string)=><span className="role-chip" key={type}>{type}</span>)}</div></div></section>
   <section className="fm-creator-published panel" aria-label="Official FACKTS releases"><div className="creator-section-heading"><span className="eyebrow">RELEASED ON FACKTS MUSIC</span><h2>{name}'s music</h2><p>These releases update automatically when this artist publishes an approved track.</p></div>
-    {published?.length?<div className="fm-creator-published-list">{published.map(song=><article key={song.id}>
+    {verifiedReleases.length?<div className="fm-creator-published-list">{verifiedReleases.map(song=><article key={song.id}>
      <Link className="fm-creator-release-art" href={"/billboard/"+song.id} aria-label={"View "+song.title}>{song.has_cover?<img src={"/api/releases/"+song.id+"/media?kind=cover"} alt=""/>:<span>♫</span>}</Link>
      <div><strong>{song.title}</strong><small>{song.collection||"Single"}</small><span>{song.genre||"Independent music"}</span></div>
      <audio controls preload="none" src={"/api/releases/"+song.id+"/media"} aria-label={"Play "+song.title}/>
