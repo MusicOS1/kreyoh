@@ -1,0 +1,32 @@
+/* Fan song discussions: restrained black / FACKTS orange */
+.fm-comments{margin-top:14px;border-top:1px solid rgba(255,255,255,.10);color:#f5f2ed}
+.fm-comments-toggle{background:transparent;border:0;color:#d9d5ce;width:100%;display:flex;justify-content:space-between;gap:12px;align-items:center;text-align:left;padding:13px 0;font-size:13px;font-weight:650;cursor:pointer}
+.fm-comments-toggle:hover,.fm-comment-tools button:hover{color:#ff9b4b}
+.fm-comments-panel{padding:2px 0 14px}
+.fm-comments-list{max-height:550px;overflow:auto;scrollbar-width:thin}
+.fm-comment{display:flex;align-items:flex-start;gap:10px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.fm-comment-replies{padding-left:10px;border-left:1px solid rgba(249,115,22,.28);margin-top:8px}
+.fm-comment-reply{border:0;padding:8px 0}
+.fm-comment-avatar{width:30px;height:30px;flex:0 0 30px;border-radius:50%;display:grid;place-items:center;background:#222024;color:#ffac73;font-weight:800;font-size:12px}
+.fm-comment-content{min-width:0;flex:1}
+.fm-comment-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px}
+.fm-comment-meta time{color:#93908b;font-size:11px}
+.fm-comment-body,.fm-comment-deleted{margin:5px 0;overflow-wrap:anywhere;white-space:pre-wrap;color:#eae7e2;font-size:13px;line-height:1.55}
+.fm-comment-deleted{color:#8c8984;font-style:italic}
+.fm-comment-tools{display:flex;gap:14px;margin:7px 0 0}
+.fm-comment-tools button,.fm-comment-replying button{border:0;padding:0;background:transparent;color:#b8b2a9;cursor:pointer;font-size:11px}
+.fm-comment-tools button:disabled{opacity:.5}
+.fm-comment-compose{padding:14px 0 0;display:flex;flex-direction:column;gap:8px}
+.fm-comment-compose label{font-size:12px;font-weight:700;color:#e7e2db}
+.fm-comment-compose textarea{width:100%;min-height:70px;resize:vertical;border-radius:11px;background:#141315;border:1px solid rgba(255,255,255,.15);color:#fff;padding:11px 12px;font-size:13px;line-height:1.5}
+.fm-comment-compose textarea:focus-visible{outline:2px solid #f97316;outline-offset:1px}
+.fm-comment-compose-bottom{display:flex;align-items:center;justify-content:space-between}
+.fm-comment-compose-bottom small,.fm-comments-muted{color:#9c9691;font-size:12px}
+.fm-comment-compose-bottom button{border:0;border-radius:20px;background:#f97316;color:#170d06;font-size:12px;font-weight:750;padding:8px 15px;cursor:pointer}
+.fm-comment-compose-bottom button:disabled{opacity:.48;cursor:default}
+.fm-comment-replying{font-size:11px;color:#ffb47f;display:flex;gap:10px}
+.fm-comments-error{font-size:12px;padding:9px 11px;background:rgba(190,50,50,.13);border:1px solid rgba(220,85,85,.24);border-radius:7px}
+.fm-comments-error button{margin-left:8px;border:0;background:transparent;color:#ffae7b;cursor:pointer}
+.fm-comments-join{font-size:13px;margin:9px 0}
+.fm-comments-join a{color:#ffa45f}
+@media(max-width:640px){.fm-comment-replies{padding-left:8px}.fm-comment-avatar{width:26px;height:26px;flex-basis:26px}}
