@@ -8,7 +8,7 @@ import ReleaseComments from '../../../components/ReleaseComments';
 import {viewer,currentChartWeek,uuidPattern} from '../../../lib/community';
 import {createAdminClient} from '../../../lib/supabase/admin';
 async function getRelease(id:string){if(!uuidPattern.test(id))notFound();const{data,error}=await createAdminClient().from('music_weekly_chart').select('*').eq('id',id).maybeSingle();if(error)throw new Error('Release unavailable.');if(!data)notFound();return data;}
-export async function generateMetadata({params}:{params:Promise<{releaseId:string}>}){const r=await getRelease((await params).releaseId);return{title:`${r.title} — ${r.artist_name}`,description:`Listen to ${r.title} by ${r.artist_name} on FACKTS Music and vote this week.`,openGraph:{title:`${r.title} — ${r.artist_name}`,description:r.description.slice(0,160)||'Listen and vote on FACKTS Music.'}};}
+export async function generateMetadata({params}:{params:Promise<{releaseId:string}>}){const r=await getRelease((await params).releaseId);return{title:`${r.title} — ${r.artist_name}`,description:`Listen to ${r.title} by ${r.artist_name} on FACKTS Music and vote this week.`,openGraph:{title:`${r.title} — ${r.artist_name}`,description:r.description?.slice(0,160)||'Listen and vote on FACKTS Music.'}};}
 export default async function Release({params}:{params:Promise<{releaseId:string}>}){
  const r=await getRelease((await params).releaseId),user=await viewer();const admin=createAdminClient();
  const{data:vote}=user?await admin.from('music_votes').select('release_id').eq('release_id',r.id).eq('user_id',user.id).eq('week_start',currentChartWeek()).maybeSingle():{data:null};
