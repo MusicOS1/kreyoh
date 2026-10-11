@@ -1,5 +1,6 @@
 "use client";
 import type {DiscoveryItem} from '../lib/discoveryContent';
+import type {FanHeroConfig,FanHeroArea} from '../lib/fanHero';
 import {useMemo,useRef,useState} from 'react';
 import Link from 'next/link';
 import TrackWaveform from './TrackWaveform';
@@ -12,7 +13,7 @@ import {moveQueueTrack} from '../lib/playerQueue';
 import {updateFanLibrary} from '../app/fan/actions';
 type Release={id:string;title:string;artist_id:string;artist_name:string;collection:string;has_cover:boolean;release_at:string;votes:number;genre?:string};
 type Item={kind:string;item_id:string;label:string;track_ids:string[];updated_at:string};
-export default function ListenerExperience({releases,userId,name,initialTab='For You',initialLibrary=[],votedIds=[],unread=0,editorial=[],loadWarning}:{releases:Release[];userId?:string;name?:string;initialTab?:string;initialLibrary?:Item[];votedIds?:string[];unread?:number;editorial?:DiscoveryItem[];loadWarning?:string}){
+export default function ListenerExperience({releases,userId,name,initialTab='For You',initialLibrary=[],votedIds=[],unread=0,editorial=[],loadWarning,heroSettings}:{releases:Release[];userId?:string;name?:string;initialTab?:string;initialLibrary?:Item[];votedIds?:string[];unread?:number;editorial?:DiscoveryItem[];loadWarning?:string;heroSettings?:Record<FanHeroArea,FanHeroConfig>}){
  const[tab,setTab]=useState(initialTab),[query,setQuery]=useState(''),[library,setLibrary]=useState(initialLibrary),[started,setStarted]=useState(false),[playRequest,setPlayRequest]=useState<{id:string;nonce:number}>(),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false),[playlistName,setPlaylistName]=useState(''),[playlistId,setPlaylistId]=useState('');
  const remembered=useRef(new Set<string>());
  const[progress,setProgress]=useState({id:'',position:0,duration:0,isPlaying:false}),[seekRequest,setSeekRequest]=useState<{id:string;time:number;nonce:number}>();
@@ -30,7 +31,12 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
   if(tab==='For You'||tab==='Following')source.sort((a,b)=>b.release_at.localeCompare(a.release_at));
   return source.filter(r=>`${r.title} ${r.artist_name} ${r.collection||''}`.toLowerCase().includes(query.toLowerCase()));
  },[releases,tab,library,playlistId,query]);
+ const area=({"For You":"for-you","Albums & EPs":"albums","Shows":"shows","Billboard":"billboard","My Library":"library","Following":"following","Recently played":"recent"} as Record<string,FanHeroArea>)[tab]||"for-you";
+ const configured=heroSettings?.[area];
+ const hero=configured?.enabled?configured:undefined;
  const featured=useMemo(()=>{
+  if(hero?.releaseId)return "/api/releases/"+hero.releaseId+"/media?kind=cover";
+  if(hero?.image)return hero.image;
   const available=tab==='For You'?releases:rows.length?rows:releases;
   const cover=available.find(r=>r.has_cover);
   const editorialPhoto=(tab==='Shows'?editorial.find(item=>item.kind==='show'&&item.image):editorial.find(item=>item.kind==='feature'&&item.image))?.image;
@@ -39,12 +45,21 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
    tab==='Shows'?"/branding/fackts-creator-red-wide.jpg":
    tab==='Albums & EPs'?"/branding/fackts-monnokid-workspace.jpg":
    "/branding/fackts-creative-community.jpg");
- },[tab,releases,rows,editorial]);
+ },[tab,releases,rows,editorial,hero]);
  const queue=useMemo(()=>releases.map(r=>({id:r.id,title:r.title,subtitle:r.artist_name,src:"/api/releases/"+r.id+"/media",artwork:r.has_cover?"/api/releases/"+r.id+"/media?kind=cover":undefined,listened:false,eligible:false})),[releases]);
  async function change(kind:string,id:string,enabled:boolean,label='',ids:string[]=[]){if(!userId)return;setBusy(true);const result=await updateFanLibrary(kind,id,enabled,label,ids);if(result.ok){setLibrary(old=>[...old.filter(x=>!(x.kind===kind&&x.item_id===id)),...(enabled?[{kind,item_id:id,label,track_ids:ids,updated_at:new Date().toISOString()}]:[])]);setNotice(enabled?'Saved to your account.':'Removed from your library.');}else setNotice(result.error||'Please try again.');setBusy(false);}
  function play(r:Release){setStarted(true);setPlayRequest(previous=>({id:r.id,nonce:(previous?.nonce||0)+1}));}
  async function remember(id:string){if(!userId||remembered.current.has(id))return;remembered.current.add(id);const result=await updateFanLibrary('recent',id,true);if(result.ok)setLibrary(old=>[{kind:'recent',item_id:id,label:'',track_ids:[],updated_at:new Date().toISOString()},...old.filter(x=>x.kind!=='recent'||x.item_id!==id)]);else remembered.current.delete(id);}
- return <main className="listener-home sound-feed"><aside className="listener-sidebar" aria-label="Music library sections"><span className="eyebrow">{userId?'YOUR MUSIC':'DISCOVER FACKTS'}</span>{(userId?['For You','Albums & EPs','Shows','Billboard','My Library','Following','Recently played']:['For You','Albums & EPs','Shows','Billboard']).map(t=><button key={t} aria-pressed={tab===t} onClick={()=>{setTab(t);setQuery('');}}>{t}</button>)}<Link href="/creators">Meet the artists ↗</Link>{userId?<><Link href="/messages">Messages {unread>0&&<b>{unread}</b>}</Link><Link href="/fan/profile">Edit my profile ↗</Link></>:<Link className="listener-join" href="/signup?next=/fan">Join as a fan →</Link>}</aside><div className="listener-content"><div className="listener-search"><div className="listener-search-field"><span className="fan-search-icon" aria-hidden="true">⌕</span><input aria-label="Search music" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search songs, artists, albums…"/></div>{userId?<Link className="fan-listener-profile-cta" href="/fan/profile">Hi, {name?.split(" ")[0]} <span aria-hidden="true">↗</span></Link>:<><FanThemePicker compact/><Link href="/login?next=/fan">Sign in</Link></>}</div><section className="listener-hero fan-photo-hero"><div className="fan-photo-hero-art" aria-hidden="true"><img key={featured} src={featured} alt="" loading="eager"/><div className="fan-photo-hero-shade"/></div><div className="fan-photo-hero-copy"><span className="eyebrow">FACKTS MUSIC / YOUR SPACE</span><h1>{tab==='For You'?'Find your frequency.':tab}</h1><p>{userId?'Music worth staying for. Find new sounds, connect with artists and build a collection that is yours.':'Find your sound. Follow the people behind the music. Stay for the community.'}</p><div>{rows.length>0&&<button onClick={()=>play(rows[0])}>▶ Start listening</button>}{!userId&&<Link href="/signup?next=/fan">Save your favourites · Join FACKTS →</Link>}</div></div></section>
+ return <main className="listener-home sound-feed"><aside className="listener-sidebar" aria-label="Music library sections"><span className="eyebrow">{userId?'YOUR MUSIC':'DISCOVER FACKTS'}</span>{(userId?['For You','Albums & EPs','Shows','Billboard','My Library','Following','Recently played']:['For You','Albums & EPs','Shows','Billboard']).map(t=><button key={t} aria-pressed={tab===t} onClick={()=>{setTab(t);setQuery('');}}>{t}</button>)}<Link href="/creators">Meet the artists ↗</Link>{userId?<><Link href="/messages">Messages {unread>0&&<b>{unread}</b>}</Link><Link href="/fan/profile">Edit my profile ↗</Link></>:<Link className="listener-join" href="/signup?next=/fan">Join as a fan →</Link>}</aside><div className="listener-content"><div className="listener-search"><div className="listener-search-field"><span className="fan-search-icon" aria-hidden="true">⌕</span><input aria-label="Search music" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search songs, artists, albums…"/></div>{userId?<Link className="fan-listener-profile-cta" href="/fan/profile">Hi, {name?.split(" ")[0]} <span aria-hidden="true">↗</span></Link>:<><FanThemePicker compact/><Link href="/login?next=/fan">Sign in</Link></>}</div><section className={"listener-hero fan-photo-hero fm-hero-"+(hero?.layout||"editorial")}>
+   <div className="fan-photo-hero-art" aria-hidden="true"><img key={featured} src={featured} alt="" loading="eager"/><div className="fan-photo-hero-shade"/></div>
+   <div className="fan-photo-hero-copy">
+    <span className="eyebrow">{hero?.eyebrow||"FACKTS MUSIC / YOUR SPACE"}</span>
+    <h1>{hero?.title||(tab==='For You'?'Find your frequency.':tab)}</h1>
+    <p>{hero?.description||(userId?'Music worth staying for. Find new sounds, connect with artists and build a collection that is yours.':'Find your sound. Follow the people behind the music. Stay for the community.')}</p>
+    <div>{hero?.ctaHref&&hero.ctaLabel?<Link className="fm-hero-custom-cta" href={hero.ctaHref}>{hero.ctaLabel} ↗</Link>:rows.length>0&&<button onClick={()=>play(rows[0])}>▶ Start listening</button>}
+    {!userId&&<Link href="/signup?next=/fan">Save your favourites · Join FACKTS →</Link>}</div>
+   </div>
+  </section>
  {userId&&tab==='For You'&&<div className="listener-shortcuts"><button onClick={()=>setTab('My Library')}><strong>{library.filter(x=>x.kind==='saved').length}</strong> favourites</button><button onClick={()=>setTab('Following')}><strong>{library.filter(x=>x.kind==='following').length}</strong> artists followed</button><button onClick={()=>setTab('Recently played')}>Pick up where you left off →</button></div>}
  {tab==='My Library'&&<section className="listener-playlists"><div><button aria-pressed={!playlistId} onClick={()=>setPlaylistId('')}>♥ Favourites</button>{lists.map(x=><button aria-pressed={playlistId===x.item_id} key={x.item_id} onClick={()=>setPlaylistId(x.item_id)}>{x.label}</button>)}</div><form onSubmit={async e=>{e.preventDefault();const id=crypto.randomUUID();await change('playlist',id,true,playlistName,[]);setPlaylistName('');}}><input aria-label="New playlist name" required maxLength={60} value={playlistName} onChange={e=>setPlaylistName(e.target.value)} placeholder="Name a new playlist"/><button disabled={busy}>Create playlist</button></form>{activeList&&<button disabled={busy} onClick={async()=>{await change('playlist',activeList.item_id,false);setPlaylistId('');}}>Delete {activeList.label}</button>}</section>}
  {loadWarning&&<p role="alert" className="listener-notice">{loadWarning}</p>}{notice&&<p role="status" className="listener-notice">{notice}</p>}
