@@ -10,6 +10,7 @@ import "./activation-shell-fixes.css";
 import "./member-experience.css";
 import "./community.css";
 import "./release-comments.css";
+import "./fan-premium.css";
 import PwaRegister from "../components/PwaRegister";
 import GlobalVideoPlayer from "../components/GlobalVideoPlayer";
 import WorkspaceChromeEnhancer from "../components/WorkspaceChromeEnhancer";

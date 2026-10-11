@@ -9,6 +9,7 @@ type ProfilePhotoUploadProps = {
   userId: string;
   currentAvatarUrl?: string | null;
   fallbackText: string;
+  helperText?: string;
 };
 
 const BUCKET = "profile-avatars";
@@ -18,6 +19,7 @@ export default function ProfilePhotoUpload({
   userId,
   currentAvatarUrl,
   fallbackText,
+  helperText="Use a clear image so the project can recognize you across the room.",
 }: ProfilePhotoUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -106,7 +108,7 @@ export default function ProfilePhotoUpload({
       </div>
       <div className="profile-photo-copy">
         <span className="settings-label">Profile photo</span>
-        <p>Use a clear image so the project can recognize you across the room.</p>
+        <p>{helperText}</p>
         <div className="profile-photo-actions">
           <input
             ref={inputRef}
