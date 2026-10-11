@@ -21,7 +21,7 @@ export default async function Messages({searchParams}:{searchParams:Promise<{q?:
  const{data:profiles}=ids.length?await admin.from("profiles").select("id,stage_name,nickname,full_name,avatar_url").in("id",ids).eq("account_status","active"):{data:[]};
  const people=new Map([...(publicPeople||[]),...(profiles||[])].map(p=>[p.id,{name:creatorDisplayName(p),avatar:p.avatar_url as string|null}]));
  people.delete(user.id);
- const threads=new Map<string,(typeof messages extends (infer T)[]|null?T:never)>();
+ const threads=new Map<string,NonNullable<typeof messages>[number]>();
  for(const message of messages||[]){const other=message.sender_id===user.id?message.recipient_id:message.sender_id;if(!threads.has(other))threads.set(other,message);}
  const blockedIds=new Set((blocked||[]).map(b=>b.blocked_id));
  const filteredPeople=Array.from(people).filter(([,person])=>person.name.toLowerCase().includes(term));
