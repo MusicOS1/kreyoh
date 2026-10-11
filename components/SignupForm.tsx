@@ -38,7 +38,7 @@ export default function SignupForm({ error, next="/home" }: { error?: string; ne
         <select
           name="creator_type"
           required
-          defaultValue="Artist"
+          defaultValue={next.startsWith("/fan")?"Fan / Listener":"Artist"}
           className="dark-select"
         >
           <option>Fan / Listener</option>
@@ -60,7 +60,7 @@ export default function SignupForm({ error, next="/home" }: { error?: string; ne
         </select>
 
         <small>
-          This describes your professional identity. It does not automatically
+          This describes how you join the community. It does not automatically
           give access to another person's project. Project roles and permissions
           activate when the project invites or assigns you.
         </small>
