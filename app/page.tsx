@@ -120,13 +120,12 @@ export default async function PublicHomePage() {
 
         <div className="fm-v3-hero-copy">
           <div className="fm-v3-kicker"><span /> FACKTS MUSIC · NAIROBI / AFRICA</div>
-          <h1>Make music.<br /><em>Build the world</em><br />around it.</h1>
+          <h1>Discover music.<br /><em>Find your people.</em><br />Be part of it.</h1>
           <p>
-            FACKTS Music is the operating platform around creative work — connecting creators, projects,
-            sessions, credits and discovery without flattening the culture into office software.
+            Hear independent releases, meet the artists behind them, and follow the sounds you love. Your next favourite starts here.
           </p>
           <div className="fm-v3-hero-actions">
-            <Link href="/billboard" className="fm-v3-btn fm-v3-btn-primary">Listen & vote <ArrowUpRight size={16} /></Link>
+            <Link href="/listen" className="fm-v3-btn fm-v3-btn-primary">Explore the music <ArrowUpRight size={16} /></Link>
             <Link href="/creators" className="fm-v3-btn fm-v3-btn-ghost">Meet the creators <ArrowUpRight size={16} /></Link>
           </div>
           <div className="fm-v3-hero-foot">

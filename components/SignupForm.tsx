@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { signup } from "../app/signup/actions";
 
-export default function SignupForm({ error, next="/billboard" }: { error?: string; next?: string }) {
+export default function SignupForm({ error, next="/home" }: { error?: string; next?: string }) {
   const [visible, setVisible] = useState(false);
 
   return (
