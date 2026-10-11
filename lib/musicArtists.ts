@@ -1,10 +1,7 @@
 import "server-only";
 import {createAdminClient} from "./supabase/admin";
 
-export type MusicArtist={
- id:string;name:string;avatar:string|null;hero:string|null;bio:string;tagline:string;
- location:string;genres:string[];slug:string;roles:string[];
-};
+import type {MusicArtist} from "./musicArtistsTypes";
 // This directory only includes public profiles. Private project profiles must not leak
 // through fans' listening pages, even if someone contributes to a public recording.
 export async function publicMusicArtists():Promise<MusicArtist[]>{
