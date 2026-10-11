@@ -7,7 +7,7 @@ const read=(name)=>readFileSync(new URL("../"+name,import.meta.url),"utf8");
 const sourceFiles=[
  "components/ArtistDiscovery.tsx","components/ListenerExperience.tsx",
  "components/FanMobileTabs.tsx","components/FanShell.tsx","components/ShellLayout.tsx",
- "lib/musicArtists.ts","lib/musicArtistsTypes.ts","lib/fanHeroConfig.ts",
+ "lib/musicArtists.ts","lib/musicArtistsTypes.ts","lib/releaseArtistMatch.ts","lib/fanHeroConfig.ts",
  "app/fan/page.tsx","app/listen/page.tsx","app/creators/page.tsx",
  "app/creators/[userId]/page.tsx","app/auth/callback/route.ts",
  "app/signup/actions.ts","app/billboard/submit/page.tsx"
@@ -49,4 +49,16 @@ test("artists have a phone tab and an editable hero location",()=>{
  assert.match(read("components/FanMobileTabs.tsx"),/key:"Artists"/);
  assert.match(read("lib/fanHeroConfig.ts"),/id:"artists"/);
  assert.match(read("components/ShellLayout.tsx"),/Explore artists/);
+});
+
+test("release artist identity is not confused with a multi-artist uploader",async()=>{
+ const source=read("lib/releaseArtistMatch.ts");
+ const transpiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
+ const {creditedToArtist}=await import("data:text/javascript;base64,"+Buffer.from(transpiled).toString("base64"));
+ assert.equal(creditedToArtist("Joe Millz","Joe Millz"),true);
+ assert.equal(creditedToArtist("Joe Millz & Artist Two","Joe Millz"),true);
+ assert.equal(creditedToArtist("Artist Two","Joe Millz"),false);
+ assert.equal(creditedToArtist("Fackts Music","Joe Millz"),false);
+ const component=read("components/ListenerExperience.tsx");
+ assert.match(component,/isVerifiedArtistRelease\(r\)/);
 });
