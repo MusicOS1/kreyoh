@@ -138,6 +138,8 @@ export async function updateProfilePhoto(formData: FormData): Promise<void> {
   revalidatePath("/");
   revalidatePath("/people");
   revalidatePath("/settings");
+  revalidatePath("/fan");
+  revalidatePath("/fan/profile");
   revalidatePath(`/people/${user.id}`);
   revalidatePath("/workspace");
   revalidatePath("/beats");
