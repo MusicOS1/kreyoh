@@ -377,3 +377,25 @@ html[data-fackts-fan-theme="afterhours"] .listener-home{
 .fan-player-compact .track-player-copy h3{color:var(--fan-text)!important}
 .fan-player-compact .track-player-copy p{color:var(--fan-muted)!important}
 .fan-shell .fan-theme-menu button{color:var(--fan-text)!important}
+
+/* Palette transitions and consistent discussion surfaces */
+.fan-shell,.listener-home,.fan-shell .fan-topbar,
+.listener-home .track-stream>article,.fan-profile-panel{
+  transition:background-color .24s ease,color .24s ease,border-color .24s ease;
+}
+.fan-shell .fm-comments{color:var(--fan-text)}
+.fan-shell .fm-comment-meta strong{color:var(--fan-text)}
+.fan-shell .fm-comment-meta time,.fan-shell .fm-comments-muted,.fan-shell .fm-comment-compose small{color:var(--fan-muted)}
+.fan-shell .fm-comment-compose textarea{background:var(--fan-bg);color:var(--fan-text);border-color:var(--fan-border)}
+.fan-shell .fm-comment-tools button{color:var(--fan-muted)}
+.fan-shell .fm-comment-replies{border-color:var(--fan-border)}
+.fan-shell .fm-comment-body{color:var(--fan-text)}
+.fan-shell .fm-comment-compose label{color:var(--fan-soft)}
+.fan-shell .fm-comment-avatar{background:var(--fan-raised);color:var(--fan-accent)}
+.fan-shell .fm-comment-deleted{color:var(--fan-muted)}
+html[data-fackts-fan-theme="ivory"] .fan-shell .refined-player .track-chart-list article{
+  background:var(--fan-surface);color:var(--fan-text)
+}
+html[data-fackts-fan-theme="ivory"] .fan-shell .refined-player .track-chart-select{
+  color:var(--fan-text)
+}
