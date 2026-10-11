@@ -36,7 +36,7 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
   if(tab==='For You'||tab==='Following')source.sort((a,b)=>b.release_at.localeCompare(a.release_at));
   return source.filter(r=>`${r.title} ${r.artist_name} ${r.collection||''}`.toLowerCase().includes(query.toLowerCase()));
  },[releases,tab,library,playlistId,query]);
- const area=({"For You":"for-you","Albums & EPs":"albums","Shows":"shows","Billboard":"billboard","My Library":"library","Following":"following","Recently played":"recent"} as Record<string,FanHeroArea>)[tab]||"for-you";
+ const area=({"For You":"for-you","Artists":"artists","Albums & EPs":"albums","Shows":"shows","Billboard":"billboard","My Library":"library","Following":"following","Recently played":"recent"} as Record<string,FanHeroArea>)[tab]||"for-you";
  const configured=heroSettings?.[area];
  const hero=configured?.enabled?configured:undefined;
  const featured=useMemo(()=>{
