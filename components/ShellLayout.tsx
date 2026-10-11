@@ -78,7 +78,7 @@ export default function ShellLayout({
   const moreProjectItems = visibleNavItems.filter(item => !primaryProjectPaths.includes(item.href));
   const platformNavItems = [
     {label:"Listen & explore",href:"/fan",icon:MusicIcon,activeMatch:(p:string)=>p==="/fan"},
-    {label:"Explore artists",href:"/discover",icon:UsersIcon,activeMatch:(p:string)=>p.startsWith("/discover")},
+    {label:"Explore artists",href:"/discover?role=Artist",icon:UsersIcon,activeMatch:(p:string)=>p.startsWith("/discover")},
     {label:"My releases",href:"/billboard/submit",icon:DiscIcon,activeMatch:(p:string)=>p==="/billboard/submit"},
     {label:"Billboard",href:"/billboard",icon:MusicIcon,activeMatch:(p:string)=>p.startsWith("/billboard")},
     {label:"Messages",href:"/messages",icon:UsersIcon,activeMatch:(p:string)=>p.startsWith("/messages")},
