@@ -2,7 +2,8 @@
 import {useMemo,useState} from "react";
 import Link from "next/link";
 import type {MusicArtist} from "../lib/musicArtistsTypes";
-type Release={id:string;title:string;artist_id:string;artist_name:string;has_cover:boolean;collection?:string;release_at:string};
+type Release={id:string;title:string;artist_id:string;artist_name:string;has_cover:boolean;collection?:string;genre?:string;release_at:string};
+type ArtistEntry=MusicArtist&{catalogueOnly?:boolean};
 export default function ArtistDiscovery({
  artists,releases,viewerId,following,onFollow,onPlay,initialArtistId
 }:{artists:MusicArtist[];releases:Release[];viewerId?:string;
@@ -10,11 +11,32 @@ export default function ArtistDiscovery({
  const [selected,setSelected]=useState<string|null>(initialArtistId||null);
  const [search,setSearch]=useState("");
  const [genre,setGenre]=useState("All");
- const selectedArtist=artists.find(artist=>artist.id===selected);
- const genres=useMemo(()=>["All",...new Set(artists.flatMap(artist=>artist.genres).filter(Boolean))].slice(0,12),[artists]);
- const filtered=artists.filter(artist=>(genre==="All"||artist.genres.includes(genre))&&
+ // Public releases can credit an act whose full profile has not yet been published.
+ // Show only the already-public stage name, genre and cover in this case — never
+ // expose private profile fields or assign someone else's releases to a profile.
+ const directory=useMemo<ArtistEntry[]>(()=>{
+  const extras=new Map<string,ArtistEntry>();
+  for(const release of releases){
+   const attributed=artists.some(person=>person.id===release.artist_id);
+   if(attributed)continue;
+   const key=release.artist_name.trim().toLocaleLowerCase("en");
+   if(!key)continue;
+   const existing=extras.get(key);
+   if(!existing)extras.set(key,{
+    id:"catalogue:"+key,name:release.artist_name,avatar:release.has_cover?"/api/releases/"+release.id+"/media?kind=cover":null,
+    hero:null,bio:"Discover music already released by this act on FACKTS.",
+    tagline:"FACKTS released music",location:"",genres:release.genre?[release.genre]:[],
+    slug:"",roles:["Released artist"],catalogueOnly:true
+   });
+  }
+  return [...artists,...extras.values()];
+ },[artists,releases]);
+ const selectedArtist=directory.find(artist=>artist.id===selected);
+ const genres=useMemo(()=>["All",...new Set(directory.flatMap(artist=>artist.genres).filter(Boolean))].slice(0,12),[directory]);
+ const filtered=directory.filter(artist=>(genre==="All"||artist.genres.includes(genre))&&
   [artist.name,artist.bio,artist.tagline,artist.location,...artist.genres].join(" ").toLowerCase().includes(search.toLowerCase()));
- const artistReleases=selectedArtist?releases.filter(release=>release.artist_id===selectedArtist.id):[];
+ const artistTracks=(artist:ArtistEntry)=>artist.catalogueOnly?releases.filter(release=>"catalogue:"+release.artist_name.trim().toLocaleLowerCase("en")===artist.id):releases.filter(release=>release.artist_id===artist.id);
+ const artistReleases=selectedArtist?artistTracks(selectedArtist):[];
  const artistName=(artist:MusicArtist)=>artist.name.trim()[0]?.toUpperCase()||"F";
  const artistPhoto=(artist:MusicArtist)=>artist.avatar||artist.hero;
  return <section className="fm-artist-room" aria-label="FACKTS artist discovery">
@@ -34,7 +56,7 @@ export default function ArtistDiscovery({
      {selectedArtist.location&&<small>{selectedArtist.location}</small>}
      {selectedArtist.genres.length>0&&<div className="fm-artist-tags">{selectedArtist.genres.map(g=><span key={g}>{g}</span>)}</div>}
      <div className="fm-artist-detail-actions">
-      {viewerId?<button type="button" onClick={()=>onFollow(selectedArtist.id)} aria-pressed={following(selectedArtist.id)}>{following(selectedArtist.id)?"✓ Following":"+ Follow artist"}</button>:<Link href={"/login?next="+encodeURIComponent("/fan?tab=Artists")}>Sign in to follow</Link>}
+      {selectedArtist.catalogueOnly?<span>Official profile coming soon</span>:viewerId?<button type="button" onClick={()=>onFollow(selectedArtist.id)} aria-pressed={following(selectedArtist.id)}>{following(selectedArtist.id)?"✓ Following":"+ Follow artist"}</button>:<Link href={"/login?next="+encodeURIComponent("/fan?tab=Artists")}>Sign in to follow</Link>}
       <span>{artistReleases.length} released track{artistReleases.length===1?"":"s"} on FACKTS</span>
      </div>
     </div>
@@ -61,11 +83,11 @@ export default function ArtistDiscovery({
       {artistPhoto(artist)?<img src={artistPhoto(artist)!} alt=""/>:<span>{artistName(artist)}</span>}
      </div>
      <span className="fm-artist-card-copy"><strong>{artist.name}</strong><small>{artist.genres.slice(0,2).join(" · ")||artist.location||"FACKTS Music Artist"}</small>
-     <span>{releases.filter(release=>release.artist_id===artist.id).length} published tracks</span></span>
+     <span>{artistTracks(artist).length} published tracks</span></span>
     </button>
     <div className="fm-artist-card-actions">
      <button type="button" onClick={()=>setSelected(artist.id)}>Explore music →</button>
-     {viewerId&&<button type="button" aria-label={(following(artist.id)?"Unfollow ":"Follow ")+artist.name} aria-pressed={following(artist.id)} onClick={()=>onFollow(artist.id)}>{following(artist.id)?"♥":"♡"}</button>}
+     {viewerId&&!artist.catalogueOnly&&<button type="button" aria-label={(following(artist.id)?"Unfollow ":"Follow ")+artist.name} aria-pressed={following(artist.id)} onClick={()=>onFollow(artist.id)}>{following(artist.id)?"♥":"♡"}</button>}
     </div>
    </article>)}</div>
    {!filtered.length&&<div className="fm-artist-empty">No public artist profiles match that search. Try a different sound or name.</div>}
