@@ -15,7 +15,7 @@ export default function ReleaseSubmitForm(){
  if(draft.coverUploadUrl&&cover instanceof File){setNotice('Uploading cover…');const response=await fetch(draft.coverUploadUrl,{method:'PUT',headers:{'Content-Type':cover.type},body:cover});if(!response.ok)throw Error('Cover upload failed. Please try again.');}
  setNotice('Submitting for review…');await finishRelease(draft.id);ref.current?.reset();setNotice('Submitted. Your song will appear publicly after approval and its release date.');router.refresh();
  }catch(error){setNotice(error instanceof Error?error.message:'Submission failed. Please try again.');}finally{setBusy(false);}}}>
- <fieldset disabled={busy}><legend>Submit a finished song</legend>
+ <fieldset disabled={busy}><legend>Submit a finished song</legend><p>Public accounts can submit up to 10 songs in 24 hours. Authorised music admins can import up to 100 tracks per batch in the Control Room.</p>
  <label>Song title<input name="title" maxLength={120} required/></label><label>Artist / act name<input name="artist_name" maxLength={100} required placeholder="e.g. Mad Meets Crazy"/></label>
  <div className="community-columns"><label>Collection / EP / album (optional)<input name="collection" maxLength={120} placeholder="e.g. Raw Volume 1"/></label><label>Track number<input name="track_number" type="number" min={1} max={100} defaultValue={1}/></label></div>
  <div className="community-columns"><label>Genre<input name="genre" maxLength={60}/></label><label>Release date (Kenya time)<input name="release_at" type="date"/><small>Leave blank to release as soon as approved.</small></label></div>
