@@ -25,7 +25,7 @@ export function MessageComposer({other,disabled}:{other:string;disabled:boolean}
   area.focus();area.setSelectionRange(start+2,start+2);
  }
  function onKeyDown(event:React.KeyboardEvent<HTMLTextAreaElement>){
-  if(event.key==="Enter"&&!event.shiftKey&&!event.isComposing){
+  if(event.key==="Enter"&&!event.shiftKey&&!event.nativeEvent.isComposing){
    event.preventDefault();
    if(!disabled&&!pending&&event.currentTarget.value.trim())ref.current?.requestSubmit();
   }
