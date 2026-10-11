@@ -4,27 +4,36 @@
 .sound-feed .listener-hero.fan-photo-hero{position:relative;isolation:isolate;min-height:320px;overflow:hidden}
 .sound-feed .listener-hero.fan-photo-hero .fm-hero-soft-backdrop{
  position:absolute;inset:-12%;z-index:-3;width:124%;height:124%;object-fit:cover;
- filter:blur(44px) saturate(.88);opacity:.16;pointer-events:none
+ filter:blur(44px) saturate(.88);opacity:.075;pointer-events:none
 }
-.sound-feed .listener-hero.fan-photo-hero .fan-photo-hero-art{position:absolute;inset:0 0 0 auto;width:61%;height:100%;z-index:-2;overflow:hidden}
+/* Fade the IMAGE's alpha, not a large opaque Ivory sheet over the artwork.
+   Start just outside the copy and reach full colour quickly: no visible seam. */
+.sound-feed .listener-hero.fan-photo-hero .fan-photo-hero-art{
+ position:absolute;inset:0 0 0 auto;width:65%;height:100%;z-index:-2;overflow:hidden;
+ -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.18) 7%,rgba(0,0,0,.80) 21%,#000 31%);
+ mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.18) 7%,rgba(0,0,0,.80) 21%,#000 31%);
+}
 .sound-feed .listener-hero.fan-photo-hero .fan-photo-hero-art img{
  display:block;width:100%;height:100%;object-fit:cover;object-position:center;
  transform:scale(1.035);transition:transform .65s cubic-bezier(.2,.8,.2,1);
 }
 .sound-feed .listener-hero.fan-photo-hero:hover .fan-photo-hero-art img{transform:scale(1.075)}
 .sound-feed .listener-hero.fan-photo-hero .fan-photo-hero-shade{
- position:absolute;inset:0;background:linear-gradient(90deg,var(--fan-surface) 2%,var(--fan-surface) 4%,transparent 78%);
+ position:absolute;inset:0;pointer-events:none;background:none;
 }
 .sound-feed .listener-hero.fan-photo-hero .fan-photo-hero-copy{max-width:680px;width:57%;z-index:2}
 .sound-feed .listener-hero.fan-photo-hero .fan-photo-hero-copy h1{font-size:clamp(32px,3.9vw,60px)}
 .sound-feed .listener-hero.fan-photo-hero .fan-photo-hero-copy p{line-height:1.65}
 .sound-feed .listener-hero.fm-hero-immersive{background:#171516!important;color:white;min-height:340px}
-.sound-feed .listener-hero.fm-hero-immersive .fan-photo-hero-art{width:100%}
+.sound-feed .listener-hero.fm-hero-immersive .fan-photo-hero-art{
+ width:100%;-webkit-mask-image:none;mask-image:none;
+}
 .sound-feed .listener-hero.fm-hero-immersive .fan-photo-hero-shade{background:linear-gradient(90deg,rgba(8,8,11,.94) 2%,rgba(8,8,11,.66) 51%,rgba(8,8,11,.18))}
 .sound-feed .listener-hero.fm-hero-immersive .fan-photo-hero-copy :is(h1,p,.eyebrow){color:#fff!important}
 .sound-feed .listener-hero.fm-hero-immersive .fan-photo-hero-copy{width:min(76%,690px)}
 .sound-feed .listener-hero.fm-hero-spotlight .fm-hero-soft-backdrop{opacity:.28}
 .sound-feed .listener-hero.fm-hero-spotlight .fan-photo-hero-art{
+ -webkit-mask-image:none;mask-image:none;
  width:min(35%,290px);height:auto;aspect-ratio:1;inset:auto 7% auto auto;
  top:50%;transform:translateY(-50%) rotate(3deg);
  border:7px solid rgba(255,255,255,.12);border-radius:18px;
@@ -127,10 +136,13 @@
 @media(max-width:700px){
  .sound-feed .listener-hero.fan-photo-hero{display:flex;flex-direction:column;min-height:0}
  .sound-feed .listener-hero.fan-photo-hero .fan-photo-hero-art{
-  position:relative;inset:auto;width:100%;height:185px;z-index:0;transform:none;border:0;border-radius:0;box-shadow:none;aspect-ratio:auto
+  position:relative;inset:auto;width:100%;height:185px;z-index:0;transform:none;border:0;border-radius:0;box-shadow:none;aspect-ratio:auto;
+  -webkit-mask-image:none;mask-image:none
  }
  .sound-feed .listener-hero.fan-photo-hero .fan-photo-hero-art img{object-position:center}
- .sound-feed .listener-hero.fan-photo-hero .fan-photo-hero-shade{background:linear-gradient(0deg,var(--fan-surface),transparent 55%)}
+ .sound-feed .listener-hero.fan-photo-hero .fan-photo-hero-shade{
+  background:linear-gradient(0deg,var(--fan-surface) 0%,transparent 26%);
+ }
  .sound-feed .listener-hero.fan-photo-hero .fan-photo-hero-copy{width:100%;max-width:none;padding:15px 20px 25px}
  .sound-feed .listener-hero.fm-hero-immersive .fan-photo-hero-shade{background:linear-gradient(0deg,#141418,transparent 70%)}
  .sound-feed .listener-hero.fm-hero-immersive .fan-photo-hero-copy{background:#141418}
