@@ -9,3 +9,8 @@ export function nextPlaybackIndex(count:number,current:number,shuffle:boolean,re
  const fresh=Array.from({length:count},(_,i)=>i).filter(i=>i!==current);
  return fresh.length?fresh[Math.min(fresh.length-1,Math.floor(random*fresh.length))]:0;
 }
+
+export function moveQueueTrack<T>(items:T[],from:number,to:number):T[]{
+ if(from<0||from>=items.length||to<0||to>=items.length||from===to)return items;
+ const next=[...items];const [item]=next.splice(from,1);next.splice(to,0,item);return next;
+}
