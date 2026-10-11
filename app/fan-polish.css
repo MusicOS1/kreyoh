@@ -1,0 +1,232 @@
+/* FACKTS FAN POLISH — PHOTOGRAPHY / CONTRAST / PRIVATE MESSAGING
+   Loaded after fan-premium.css. No synthetic identities or invented artist photos. */
+
+/* Music heroes feature actual published artwork or existing FACKTS photography. */
+.sound-feed .listener-hero.fan-photo-hero{
+  display:flex;align-items:center;position:relative;isolation:isolate;
+  min-height:310px;padding:36px 40px!important;
+  overflow:hidden;background:var(--fan-surface)!important;
+}
+.sound-feed .listener-hero.fan-photo-hero::after{display:none!important}
+.fan-photo-hero-art{position:absolute;right:0;top:0;bottom:0;width:46%;overflow:hidden;z-index:-1;background:#1a1716}
+.fan-photo-hero-art img{display:block;width:100%;height:100%;object-fit:cover;object-position:center;animation:fan-hero-picture-in .7s cubic-bezier(.16,1,.3,1) both}
+.fan-photo-hero-shade{position:absolute;inset:0;background:linear-gradient(90deg,var(--fan-surface) 0%,transparent 47%)}
+.fan-photo-hero-copy{width:min(64%,680px);position:relative;z-index:1}
+.fan-photo-hero-copy h1{max-width:600px}
+.fan-photo-hero-copy p{max-width:500px}
+.sound-feed .listener-hero.fan-photo-hero .fan-photo-hero-copy>div{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:20px}
+@keyframes fan-hero-picture-in{from{opacity:.25;transform:scale(1.075)}to{opacity:1;transform:scale(1)}}
+.fan-profile-preview-art{position:relative;isolation:isolate;overflow:hidden}
+.fan-profile-preview-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;opacity:.78;animation:fan-hero-picture-in .75s ease both}
+.fan-profile-preview-art:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(17,12,9,.76),rgba(17,12,9,.07))}
+/* Billboard and individual release heroes */
+.community-page .fm-billboard-photo-hero{position:relative;isolation:isolate;min-height:242px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;overflow:hidden;border:1px solid #ffffff1b;border-radius:23px;margin:12px 0 20px;padding:33px clamp(22px,4vw,40px);background:#12100e}
+.community-page .fm-billboard-hero-art{position:absolute;z-index:-2;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 35%;opacity:.44;filter:saturate(.8)}
+.community-page .fm-billboard-photo-hero:after{content:"";position:absolute;z-index:-1;inset:0;background:linear-gradient(90deg,rgba(7,7,9,.95),rgba(7,7,9,.67) 60%,rgba(7,7,9,.14))}
+.community-page .fm-billboard-photo-hero h1,.community-page .fm-billboard-photo-hero p,.community-page .fm-billboard-photo-hero a{color:#fff!important}
+.community-page .fm-billboard-photo-hero .eyebrow{color:#ffae75!important}
+.community-page .fm-billboard-photo-hero>p{max-width:560px}
+.community-page .fm-billboard-photo-hero .community-actions{margin-bottom:0}
+
+/* Ivory: stronger reading contrast everywhere a fan navigates. */
+html[data-fackts-fan-theme="ivory"] .fan-shell,
+html[data-fackts-fan-theme="ivory"] .listener-home{
+ --fan-bg:#f2f0eb;--fan-surface:#fffdfa;--fan-raised:#e8e4df;
+ --fan-border:rgba(29,29,28,.18);--fan-text:#18191b;
+ --fan-soft:#303134;--fan-muted:#4c4d51;--fan-hover:rgba(0,0,0,.06);
+}
+html[data-fackts-fan-theme="ivory"] .fan-shell .listener-sidebar>button,
+html[data-fackts-fan-theme="ivory"] .fan-shell .listener-sidebar>a,
+html[data-fackts-fan-theme="ivory"] .fan-shell .fan-desktop-nav a,
+html[data-fackts-fan-theme="ivory"] .fan-shell .listener-song-grid p,
+html[data-fackts-fan-theme="ivory"] .fan-shell .listener-song-grid small,
+html[data-fackts-fan-theme="ivory"] .fan-shell .feed-listen-strip span,
+html[data-fackts-fan-theme="ivory"] .fan-shell .listener-section-heading>span,
+html[data-fackts-fan-theme="ivory"] .fan-shell .fm-comments-muted,
+html[data-fackts-fan-theme="ivory"] .fan-shell .listener-artists p{
+ color:#414146!important;
+}
+html[data-fackts-fan-theme="ivory"] .fan-shell .fan-mobile-nav a,
+html[data-fackts-fan-theme="ivory"] .fan-shell .fan-mobile-nav button{color:#37383c!important}
+html[data-fackts-fan-theme="ivory"] .fan-shell .fan-mobile-nav [aria-current="page"],
+html[data-fackts-fan-theme="ivory"] .fan-shell .listener-sidebar>[aria-pressed="true"]{color:#b94d09!important}
+html[data-fackts-fan-theme="ivory"] .fan-shell .listener-hero p,
+html[data-fackts-fan-theme="ivory"] .fan-shell .listener-empty p,
+html[data-fackts-fan-theme="ivory"] .fan-shell .listener-section-heading,
+html[data-fackts-fan-theme="ivory"] .fan-shell .fan-profile-heading p{color:#3d3f43!important}
+html[data-fackts-fan-theme="ivory"] .fan-shell .fm-comment-body,
+html[data-fackts-fan-theme="ivory"] .fan-shell .fm-comments-toggle,
+html[data-fackts-fan-theme="ivory"] .fan-shell .track-stream h3{color:#18191b!important}
+html[data-fackts-fan-theme="ivory"] .fan-shell .fan-photo-hero-art:after{background:linear-gradient(90deg,var(--fan-surface),transparent)}
+html[data-fackts-fan-theme="ivory"] .fan-shell .listener-hero button{color:#20100a!important}
+
+/* Fan private inbox, not a creator project inbox. */
+.fm-inbox,.fm-chat-page{
+ --chat-bg:var(--fan-bg,#0a0a0d);--chat-surface:var(--fan-surface,#151519);
+ --chat-raised:var(--fan-raised,#222228);--chat-text:var(--fan-text,#f8f7f5);
+ --chat-muted:var(--fan-muted,#a7a4a7);--chat-border:var(--fan-border,rgba(255,255,255,.13));
+ --chat-accent:var(--fan-accent,#f97316);
+ color:var(--chat-text);max-width:1360px!important;width:100%;
+ padding-top:32px!important;padding-bottom:105px!important;
+}
+.fm-inbox-hero{height:255px;border-radius:24px;position:relative;overflow:hidden;border:1px solid var(--chat-border);background:#191513;display:flex;align-items:center;isolation:isolate}
+.fm-inbox-hero>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.72;z-index:-2;animation:fan-hero-picture-in .7s both}
+.fm-inbox-hero:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(7,8,9,.96) 0%,rgba(7,8,9,.76) 55%,rgba(7,8,9,.08));z-index:-1}
+.fm-inbox-hero-content{padding:26px 42px}
+.fm-inbox-hero .eyebrow{font-size:10px;letter-spacing:.2em;color:#ffae78}
+.fm-inbox-hero h1{font-size:clamp(28px,3.7vw,46px);line-height:1.1;letter-spacing:-.05em;margin:12px 0;color:#fff!important}
+.fm-inbox-hero p{font-size:14px;max-width:440px;line-height:1.65;color:#e8e2d9!important}
+.fm-inbox-main{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(270px,.9fr);gap:20px;margin-top:24px}
+.fm-inbox-threads,.fm-inbox-discover{background:var(--chat-surface);border:1px solid var(--chat-border);border-radius:20px;padding:23px;min-width:0}
+.fm-inbox-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.fm-inbox-section-head h2,.fm-inbox-discover h2{font-size:clamp(20px,2vw,26px);letter-spacing:-.04em;margin:8px 0;color:var(--chat-text)}
+.fm-inbox-section-head>a{font-size:12px;color:var(--chat-accent);white-space:nowrap}
+.fm-inbox .eyebrow{color:var(--chat-accent);letter-spacing:.14em;font-size:10px}
+.fm-inbox-search{display:flex;align-items:center;gap:7px;background:var(--chat-bg);border:1px solid var(--chat-border);border-radius:13px;padding:3px 6px 3px 13px;margin:16px 0 17px}
+.fm-inbox-search span{font-size:21px;color:var(--chat-muted)}
+.fm-inbox-search input{flex:1;min-width:0;background:transparent!important;border:0!important;color:var(--chat-text)!important;min-height:43px!important;padding:8px!important;font-size:14px!important}
+.fm-inbox-search button{background:var(--chat-accent)!important;color:#1c0a04!important;padding:8px 16px!important;min-height:37px!important;border-radius:10px}
+.fm-inbox-thread-list,.fm-inbox-directory{display:flex;flex-direction:column}
+.fm-inbox-thread{display:flex;align-items:center;gap:13px;padding:13px 3px;min-height:78px;border-bottom:1px solid var(--chat-border);text-decoration:none;transition:background .18s;padding-inline:10px;border-radius:12px}
+.fm-inbox-thread:hover,.fm-inbox-directory>a:hover{background:var(--fan-hover,rgba(255,255,255,.06))}
+.fm-inbox-avatar{width:45px;height:45px;flex:0 0 45px;border-radius:50%;display:grid;place-items:center;color:var(--chat-accent);background:var(--chat-raised);font-size:16px;font-weight:800;overflow:hidden}
+.fm-inbox-avatar img{width:100%;height:100%;object-fit:cover}
+.fm-inbox-thread-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:5px}
+.fm-inbox-thread-copy strong,.fm-inbox-directory strong{color:var(--chat-text);font-size:15px}
+.fm-inbox-thread-copy>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--chat-muted);font-size:13px}
+.fm-inbox-thread-side{display:flex;flex-direction:column;align-items:flex-end;gap:6px;color:var(--chat-muted);font-size:10px;white-space:nowrap}
+.fm-inbox-unread{width:9px;height:9px;border-radius:50%;background:var(--chat-accent)}
+.fm-inbox-empty{color:var(--chat-muted);font-size:14px;padding:30px 10px}
+.fm-inbox-discover>p,.fm-inbox-discover>small{font-size:13px;line-height:1.6;color:var(--chat-muted)}
+.fm-inbox-directory{max-height:440px;overflow:auto;scrollbar-width:thin}
+.fm-inbox-directory>a{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid var(--chat-border);text-decoration:none;border-radius:10px}
+.fm-inbox-directory>a .fm-inbox-avatar{width:36px;height:36px;flex-basis:36px;font-size:13px}
+.fm-inbox-directory>a strong{flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm-inbox-directory>a>span:last-child{color:var(--chat-accent)}
+
+/* Full-height messenger surface. Fackts black/orange + theme-aware colours. */
+.fm-chat-page{max-width:1100px!important}
+.fm-chat-stage{display:flex;flex-direction:column;height:min(83dvh,880px);min-height:470px;background:var(--chat-surface);border:1px solid var(--chat-border);border-radius:22px;overflow:hidden;box-shadow:0 18px 54px rgba(0,0,0,.11)}
+.fm-chat-header{flex:0 0 auto;display:flex;align-items:center;gap:12px;min-height:76px;border-bottom:1px solid var(--chat-border);padding:10px 18px;background:var(--chat-surface);z-index:2}
+.fm-chat-back{display:grid;place-items:center;width:39px;height:39px;text-decoration:none;border-radius:50%;font-size:20px;color:var(--chat-text)!important}
+.fm-chat-back:hover{background:var(--fan-hover,rgba(255,255,255,.05))}
+.fm-chat-header-avatar{display:grid;place-items:center;width:46px;height:46px;flex:0 0 46px;background:var(--chat-raised);border-radius:50%;font-size:19px;font-weight:800;color:var(--chat-accent);overflow:hidden}
+.fm-chat-header-avatar img{width:100%;height:100%;object-fit:cover}
+.fm-chat-person{flex:1;min-width:0}
+.fm-chat-person h1{margin:0!important;font-size:17px!important;letter-spacing:-.02em!important;color:var(--chat-text)!important;text-overflow:ellipsis;white-space:nowrap;overflow:hidden}
+.fm-chat-person p{font-size:12px!important;margin:3px 0 0!important;color:var(--chat-muted)!important}
+.fm-chat-more{position:relative;flex:0 0 auto}
+.fm-chat-more summary{list-style:none;cursor:pointer;border-radius:50%;min-width:42px;min-height:42px;display:grid;place-items:center;font-weight:700;color:var(--chat-muted);font-size:19px}
+.fm-chat-more summary::-webkit-details-marker{display:none}
+.fm-chat-more-panel{position:absolute;right:0;top:100%;width:205px;border-radius:12px;background:var(--chat-surface);border:1px solid var(--chat-border);box-shadow:0 14px 30px #0003;padding:12px;z-index:8}
+.fm-chat-more-panel a{display:block;padding:12px;font-size:13px}
+.fm-chat-block button{min-height:37px!important;min-width:100%;padding:7px 9px!important;background:transparent!important;color:var(--chat-text)!important;border:1px solid var(--chat-border)!important;text-align:left}
+.fm-chat-block p{font-size:12px!important;color:var(--chat-muted)}
+.fm-chat-disabled{background:rgba(192,75,55,.08);color:#bd633f;padding:9px 16px;font-size:12px}
+.fm-chat-history{flex:0 0 auto;text-align:center}
+.fm-chat-history a{color:var(--chat-accent);font-size:12px;padding:9px 0;display:inline-block}
+.fm-chat-timeline{flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column;gap:7px;padding:20px clamp(12px,3vw,28px) 24px;scrollbar-width:thin;background:radial-gradient(circle at 12% 19%,rgba(249,115,22,.035),transparent 28%),var(--chat-bg);overscroll-behavior:contain}
+.fm-chat-message-group{display:block}
+.fm-chat-day{display:flex;justify-content:center;margin:10px 0 18px}
+.fm-chat-day span{display:inline-block;border:1px solid var(--chat-border);background:var(--chat-surface);border-radius:999px;padding:5px 13px;font-size:11px;font-weight:650;color:var(--chat-muted)}
+.fm-chat-message-row{display:flex;align-items:flex-end;justify-content:flex-start;gap:8px;margin:4px 0}
+.fm-chat-message-row.is-mine{justify-content:flex-end}
+.fm-chat-sender-avatar{width:27px;height:27px;flex:0 0 27px;border-radius:50%;background:var(--chat-raised);color:var(--chat-accent);display:grid;place-items:center;font-size:11px;font-weight:700;overflow:hidden}
+.fm-chat-sender-avatar img{width:100%;height:100%;object-fit:cover}
+.fm-chat-bubble{width:fit-content;max-width:min(75%,570px);border:1px solid var(--chat-border);background:var(--chat-surface);border-radius:16px 16px 16px 5px;padding:11px 13px 7px;box-shadow:0 2px 8px rgba(0,0,0,.045);animation:fan-enter .23s ease both}
+.fm-chat-message-row.is-mine .fm-chat-bubble{background:color-mix(in srgb,var(--chat-accent) 13%,var(--chat-surface));border-color:color-mix(in srgb,var(--chat-accent) 30%,var(--chat-border));border-radius:16px 16px 5px 16px}
+.fm-chat-bubble p{font-size:14px!important;line-height:1.55!important;color:var(--chat-text)!important;white-space:pre-wrap;overflow-wrap:anywhere;margin:0!important}
+.fm-chat-bubble-meta{display:flex;justify-content:flex-end;align-items:center;gap:7px;margin:5px 0 0;color:var(--chat-muted);font-variant-numeric:tabular-nums;font-size:10px}
+.fm-chat-bubble-meta span{font-size:13px;color:var(--chat-muted)}
+.fm-chat-bubble-meta span.is-read{color:var(--chat-accent);font-weight:800}
+.fm-chat-empty{margin:auto;text-align:center;padding:30px 20px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.fm-chat-empty>span{font-size:37px;color:var(--chat-accent)}
+.fm-chat-empty strong{font-size:17px;color:var(--chat-text)}
+.fm-chat-empty p{max-width:270px;font-size:13px!important;color:var(--chat-muted)!important}
+.fm-chat-composer{display:grid!important;grid-template-columns:38px minmax(0,1fr) 45px;align-items:end;gap:10px;flex:0 0 auto;margin:0!important;padding:12px 15px!important;border-top:1px solid var(--chat-border)!important;background:var(--chat-surface)}
+.fm-chat-emoji{display:grid!important;place-items:center;min-height:40px!important;height:40px;width:40px;padding:0!important;background:transparent!important;color:var(--chat-muted)!important;border:0!important;font-size:22px!important}
+.fm-chat-input-wrap{width:100%;min-width:0;display:block!important}
+.fm-chat-input-wrap>textarea{width:100%;min-height:44px!important;max-height:160px;height:45px;padding:12px 15px!important;margin:0;resize:vertical;border:1px solid var(--chat-border)!important;background:var(--chat-bg)!important;color:var(--chat-text)!important;border-radius:18px!important;font:inherit;font-size:15px!important;line-height:1.4}
+.fm-chat-send{width:44px!important;height:44px!important;min-height:44px!important;border-radius:50%!important;padding:0!important;background:var(--chat-accent)!important;border:0!important;color:#1e0a02!important;display:grid!important;place-items:center}
+.fm-chat-send:disabled{opacity:.55}
+.fm-chat-composer-status{grid-column:1/-1;font-size:12px!important;color:#d47552!important;margin:0!important}
+.fm-chat-footnote{flex:0 0 auto;background:var(--chat-surface);font-size:10px;line-height:1.4;padding:5px 14px 10px;text-align:center;color:var(--chat-muted)}
+html[data-fackts-fan-theme="ivory"] .fan-shell .fm-chat-bubble p,
+html[data-fackts-fan-theme="ivory"] .fan-shell .fm-inbox-thread-copy strong{color:#191919!important}
+html[data-fackts-fan-theme="ivory"] .fan-shell .fm-inbox-thread-copy>span,
+html[data-fackts-fan-theme="ivory"] .fan-shell .fm-chat-person p{color:#48494c!important}
+
+/* Mobile typography — no miniature controls on a listening product. */
+@media(max-width:900px){
+ .fm-inbox-main{grid-template-columns:1fr}
+ .fm-inbox-discover{order:2}
+}
+@media(max-width:760px){
+ .fan-shell .fan-topbar .fan-desktop-nav{display:none}
+ .fan-shell .listener-sidebar>button,.fan-shell .listener-sidebar>a{font-size:14px!important;font-weight:700!important}
+ .fan-shell .listener-search input{font-size:16px!important}
+ .fan-shell .fan-photo-hero-copy h1{font-size:clamp(30px,8vw,40px)!important}
+ .sound-feed .listener-hero.fan-photo-hero{
+  display:flex;flex-direction:column;align-items:stretch;justify-content:flex-end;
+  padding:0!important;min-height:0;border-radius:20px!important;
+ }
+ .fan-photo-hero-art{position:relative;top:auto;right:auto;bottom:auto;width:100%;height:155px;z-index:0}
+ .fan-photo-hero-shade{background:linear-gradient(0deg,var(--fan-surface),transparent 55%)}
+ .fan-photo-hero-copy{width:100%;max-width:none;padding:10px 20px 24px}
+ .fan-photo-hero-copy h1{margin:10px 0!important}
+ .fan-photo-hero-copy p{font-size:15px!important;line-height:1.6!important}
+ .fan-shell .listener-shortcuts button{font-size:13px!important}
+ .fan-shell .listener-shortcuts strong{font-size:20px!important}
+ .fan-shell .listener-section-heading>span{font-size:12px!important}
+ .fan-shell .track-stream h3{font-size:17px!important}
+ .fan-shell .track-stream>article>p{font-size:14px!important}
+ .fan-shell .track-stream>article>small{font-size:12px!important}
+ .fan-shell .track-stream .feed-listen-strip span{font-size:12px!important}
+ .fan-shell .track-stream .feed-listen-strip button{font-size:14px!important;min-height:43px!important}
+ .fan-shell .track-stream .listener-song-actions button,
+ .fan-shell .track-stream .listener-song-actions select{font-size:13px!important;min-height:43px!important}
+ .fan-shell .fm-comments-toggle{font-size:14px!important}
+ .fan-shell .fm-comment-body{font-size:14px!important}
+ .fan-shell .fm-comment-meta strong{font-size:13px!important}
+ .fan-shell .fm-comment-compose label{font-size:14px!important}
+ .fan-shell .fm-comment-tools button{font-size:13px!important}
+ .fan-shell .listener-artists article{font-size:14px!important}
+ .fan-shell .listener-artists button{font-size:13px!important;min-height:43px!important}
+ .fan-shell .listener-player .track-player-copy h3{font-size:14px!important}
+ .fan-shell .listener-player .track-player-copy p{font-size:12px!important}
+ .fan-shell .fan-mobile-nav a,.fan-shell .fan-mobile-nav button{font-size:11px!important}
+ .fan-shell .fan-profile-heading p{font-size:15px!important}
+ .fan-shell .fan-profile-fields label{font-size:14px!important}
+ .fm-inbox,.fm-chat-page{padding:12px 11px calc(86px + env(safe-area-inset-bottom))!important}
+ .fm-inbox-hero{height:218px;border-radius:17px}
+ .fm-inbox-hero-content{padding:18px}
+ .fm-inbox-hero h1{font-size:29px!important}
+ .fm-inbox-hero p{font-size:13px!important;line-height:1.55}
+ .fm-inbox-main{gap:12px;margin-top:12px}
+ .fm-inbox-threads,.fm-inbox-discover{padding:14px;border-radius:16px}
+ .fm-inbox-section-head h2{font-size:22px!important}
+ .fm-inbox-thread{min-height:77px}
+ .fm-inbox-thread-copy strong{font-size:15px}
+ .fm-inbox-thread-copy>span{font-size:13px}
+ .fm-inbox-avatar{width:43px;height:43px;flex-basis:43px}
+ .fm-chat-page{padding-bottom:calc(83px + env(safe-area-inset-bottom))!important}
+ .fm-chat-stage{height:calc(100dvh - 160px - env(safe-area-inset-bottom));min-height:360px;border-radius:15px}
+ .fm-chat-header{padding:8px 10px;min-height:64px;gap:7px}
+ .fm-chat-back{width:32px}
+ .fm-chat-header-avatar{width:40px;height:40px;flex-basis:40px}
+ .fm-chat-person h1{font-size:16px!important}
+ .fm-chat-person p{font-size:11px!important}
+ .fm-chat-timeline{padding:12px 10px}
+ .fm-chat-bubble{max-width:85%;padding:10px 12px 7px}
+ .fm-chat-bubble p{font-size:15px!important}
+ .fm-chat-composer{padding:9px 8px!important;gap:6px;grid-template-columns:33px minmax(0,1fr) 40px}
+ .fm-chat-emoji{width:33px!important;min-height:40px!important}
+ .fm-chat-send{width:40px!important;height:40px!important;min-height:40px!important}
+ .fm-chat-input-wrap>textarea{font-size:16px!important}
+ .fm-chat-footnote{font-size:9px}
+ .community-page .fm-billboard-photo-hero{min-height:230px;padding:23px 18px;border-radius:17px}
+ .community-page .fm-billboard-photo-hero h1{font-size:clamp(29px,8vw,39px)!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .fan-photo-hero-art img,.fm-inbox-hero>img,.fm-chat-bubble{animation:none!important}
+}
