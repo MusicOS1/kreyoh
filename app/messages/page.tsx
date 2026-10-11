@@ -2,12 +2,14 @@ import Link from "next/link";
 import AppShell from "../../components/AppShell";
 import FanShell from "../../components/FanShell";
 import {getWorkspace} from "../../lib/workspace";
+import {fanHeroSettings,heroImage} from "../../lib/fanHero";
 import {isFanProfile} from "../../lib/fanProfile";
 import {creatorDisplayName} from "../../lib/profileIdentity";
 
 export default async function Messages({searchParams}:{searchParams:Promise<{q?:string}>}){
  const term=String((await searchParams).q||"").trim().slice(0,70).toLowerCase();
- const{admin,user,profile,activeProjects}=await getWorkspace();
+ const[{admin,user,profile,activeProjects},heroes]=await Promise.all([getWorkspace(),fanHeroSettings()]);
+ const hero=heroes.inbox.enabled?heroes.inbox:undefined;
  const[{data:messages,error},{data:publicPeople},{data:artists},{data:blocked}]=await Promise.all([
   admin.from("member_messages").select("id,sender_id,recipient_id,body,created_at,read_at").or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`).order("created_at",{ascending:false}).limit(500),
   admin.from("profiles").select("id,stage_name,nickname,full_name,avatar_url").eq("profile_visibility","public").eq("account_status","active").limit(200),
@@ -27,9 +29,9 @@ export default async function Messages({searchParams}:{searchParams:Promise<{q?:
  const filteredPeople=Array.from(people).filter(([,person])=>person.name.toLowerCase().includes(term));
  const filteredThreads=Array.from(threads).filter(([id])=>people.get(id)?.name.toLowerCase().includes(term)||!term);
  const view=<main className="community-page member-community fm-inbox">
-  <header className="fm-inbox-hero">
-   <img src="/branding/fackts-creative-community.jpg" alt="" aria-hidden="true" />
-   <div className="fm-inbox-hero-content"><span className="eyebrow">FACKTS MUSIC / COMMUNITY</span><h1>Real conversations.<br/>Real connections.</h1><p>Talk to the artists and people shaping your sound. Every good story starts with a hello.</p></div>
+  <header className={"fm-inbox-hero fm-hero-"+(hero?.layout||"editorial")}>
+   <img src={heroImage(hero,"/branding/fackts-creative-community.jpg")} alt="" aria-hidden="true" />
+   <div className="fm-inbox-hero-content"><span className="eyebrow">{hero?.eyebrow||"FACKTS MUSIC / COMMUNITY"}</span><h1>{hero?.title||<>Real conversations.<br/>Real connections.</>}</h1><p>{hero?.description||"Talk to the artists and people shaping your sound. Every good story starts with a hello."}</p>{hero?.ctaLabel&&hero.ctaHref&&<Link href={hero.ctaHref} className="fm-hero-custom-cta">{hero.ctaLabel} ↗</Link>}</div>
   </header>
   <div className="fm-inbox-main">
    <section className="fm-inbox-threads">
