@@ -1,5 +1,6 @@
 "use server";
 import { safeNext } from "../../lib/navigation";
+import {isFanProfile} from "../../lib/fanProfile";
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -21,6 +22,8 @@ export async function login(formData: FormData) {
     admin.from("profiles").update({ last_login_at: now, last_active_at: now }).eq("id", data.user.id),
     admin.from("auth_events").insert({ user_id: data.user.id, event_name: "login_completed", metadata: { surface: "main" } }),
   ]);
+  const {data:profile}=await admin.from("profiles").select("creator_types").eq("id",data.user.id).maybeSingle();
+  const destination=next==="/home"&&isFanProfile(profile)?"/fan":next;
   revalidatePath("/", "layout");
-  redirect(next);
+  redirect(destination);
 }
