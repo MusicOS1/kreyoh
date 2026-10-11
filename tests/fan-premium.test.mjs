@@ -6,7 +6,7 @@ import ts from "typescript";
 const source=(path)=>readFileSync(new URL("../"+path,import.meta.url),"utf8");
 test("fan features parse as valid TSX",()=>{
   for(const file of [
-    "components/FanThemePicker.tsx","components/FanShell.tsx",
+    "components/FanThemePicker.tsx","components/FanShell.tsx","components/FanMobileTabs.tsx",
     "components/ListenerExperience.tsx","components/TrackPlaylist.tsx",
     "components/ProfilePhotoUpload.tsx","app/fan/profile/page.tsx",
     "app/fan/profile/actions.ts","app/fan/page.tsx"
