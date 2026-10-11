@@ -4,10 +4,10 @@ import Link from "next/link";
 import type {MusicArtist} from "../lib/musicArtistsTypes";
 type Release={id:string;title:string;artist_id:string;artist_name:string;has_cover:boolean;collection?:string;release_at:string};
 export default function ArtistDiscovery({
- artists,releases,viewerId,following,onFollow,onPlay
+ artists,releases,viewerId,following,onFollow,onPlay,initialArtistId
 }:{artists:MusicArtist[];releases:Release[];viewerId?:string;
- following:(id:string)=>boolean;onFollow:(id:string)=>void;onPlay:(release:Release)=>void}){
- const [selected,setSelected]=useState<string|null>(null);
+ following:(id:string)=>boolean;onFollow:(id:string)=>void;onPlay:(release:Release)=>void;initialArtistId?:string|null}){
+ const [selected,setSelected]=useState<string|null>(initialArtistId||null);
  const [search,setSearch]=useState("");
  const [genre,setGenre]=useState("All");
  const selectedArtist=artists.find(artist=>artist.id===selected);
