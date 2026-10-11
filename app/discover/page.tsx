@@ -16,7 +16,7 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
   const role = filters.includes(String(params.role)) ? String(params.role) : "All";
 
   let query = admin.from("profiles")
-    .select("id,stage_name,avatar_url,hero_image_url,bio,location,skills_genres,creator_types,public_slug", { count: "exact" })
+    .select("id,stage_name,nickname,avatar_url,hero_image_url,bio,location,skills_genres,creator_types,public_slug", { count: "exact" })
     .eq("profile_visibility", "public")
     .eq("account_status","active")
     .order("stage_name", { ascending: true, nullsFirst: false })
