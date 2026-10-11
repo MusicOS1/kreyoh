@@ -11,8 +11,8 @@ function FanIcon({kind}:{kind:"discover"|"library"|"charts"|"profile"}){
 }
 
 export default function FanShell({
-  children,name="Listener",avatarUrl=null,creatorMode=false
-}:{children:React.ReactNode;name?:string;avatarUrl?:string|null;creatorMode?:boolean}){
+  children,name="Listener",avatarUrl=null,creatorMode=false,activeTab="For You"
+}:{children:React.ReactNode;name?:string;avatarUrl?:string|null;creatorMode?:boolean;activeTab?:string}){
   const initial=(name.trim()[0]||"F").toUpperCase();
   return <div className="fan-shell">
     <header className="fan-topbar">
@@ -36,10 +36,10 @@ export default function FanShell({
     </header>
     {children}
     <nav className="fan-mobile-nav" aria-label="Fan quick navigation">
-      <Link href="/fan"><FanIcon kind="discover"/><span>Discover</span></Link>
-      <Link href="/fan?tab=My%20Library"><FanIcon kind="library"/><span>Library</span></Link>
-      <Link href="/fan?tab=Billboard"><FanIcon kind="charts"/><span>Billboard</span></Link>
-      <Link href="/fan/profile"><FanIcon kind="profile"/><span>Profile</span></Link>
+      <Link href="/fan" aria-current={activeTab==="For You"?"page":undefined}><FanIcon kind="discover"/><span>Discover</span></Link>
+      <Link href="/fan?tab=My%20Library" aria-current={activeTab==="My Library"?"page":undefined}><FanIcon kind="library"/><span>Library</span></Link>
+      <Link href="/fan?tab=Billboard" aria-current={activeTab==="Billboard"?"page":undefined}><FanIcon kind="charts"/><span>Billboard</span></Link>
+      <Link href="/fan/profile" aria-current={activeTab==="Profile"?"page":undefined}><FanIcon kind="profile"/><span>Profile</span></Link>
     </nav>
   </div>;
 }
