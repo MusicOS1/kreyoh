@@ -26,10 +26,10 @@ export default async function FanPage({searchParams}:{searchParams:Promise<{tab?
  const editorial=editorialResult.status==="fulfilled"?editorialResult.value:[];
  const artistsDirectory=artistResult.status==="fulfilled"?artistResult.value:[];
  const heroSettings=heroResult.status==="fulfilled"?heroResult.value:undefined;
- const dataUnavailable=chartResult.status==="rejected"||Boolean(library.error)||Boolean(votes.error)||editorialResult.status==="rejected";
+ const dataUnavailable=chartResult.status==="rejected"||Boolean(library.error)||Boolean(votes.error)||editorialResult.status==="rejected"||artistResult.status==="rejected";
  if(dataUnavailable)console.error("Fan portal partial data load failed",{
    chart:chartResult.status,library:Boolean(library.error),votes:Boolean(votes.error),
-   discovery:editorialResult.status
+   discovery:editorialResult.status,artists:artistResult.status
  });
  const name=profile?.nickname||profile?.stage_name||profile?.full_name||'Listener';
  const fanOnly=isFanProfile(profile);
