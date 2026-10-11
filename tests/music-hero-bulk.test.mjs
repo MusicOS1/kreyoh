@@ -46,7 +46,7 @@ test("admin hero settings are protected and editable across nine destinations",(
  assert.match(server,/music_weekly_chart/);
  assert.match(server,/system_settings/);
  assert.match(client,/Publish custom hero/);
- assert.match(client,/Published song cover/);
+ assert.match(client,/published song cover/);
  for(const id of ["for-you","albums","shows","billboard","library","following","recent","profile","inbox"]){
   assert.ok(model.includes('id:"'+id+'"'));
  }
