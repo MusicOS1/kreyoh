@@ -77,7 +77,8 @@ export default function ShellLayout({
   const primaryProjectItems = visibleNavItems.filter(item => primaryProjectPaths.includes(item.href));
   const moreProjectItems = visibleNavItems.filter(item => !primaryProjectPaths.includes(item.href));
   const platformNavItems = [
-    {label:"Fan home",href:"/fan",icon:MusicIcon,activeMatch:(p:string)=>p==="/fan"},
+    {label:"Listen & explore",href:"/fan",icon:MusicIcon,activeMatch:(p:string)=>p==="/fan"},
+    {label:"Explore artists",href:"/discover",icon:UsersIcon,activeMatch:(p:string)=>p.startsWith("/discover")},
     {label:"My releases",href:"/billboard/submit",icon:DiscIcon,activeMatch:(p:string)=>p==="/billboard/submit"},
     {label:"Billboard",href:"/billboard",icon:MusicIcon,activeMatch:(p:string)=>p.startsWith("/billboard")},
     {label:"Messages",href:"/messages",icon:UsersIcon,activeMatch:(p:string)=>p.startsWith("/messages")},
@@ -187,7 +188,7 @@ export default function ShellLayout({
           {moreProjectItems.map(item => <Link key={item.href} href={item.href} className={`nav-link ${item.activeMatch(pathname) ? "active" : ""}`}>{item.label}</Link>)}
           {!hasProject && <Link className="nav-link" href="/professional-record">My credits</Link>}
           <Link className="nav-link" href="/projects#start-project">Start a project</Link>
-          <Link className="nav-link" href="/discover">Discover creators</Link>
+          <Link className="nav-link" href="/discover?role=Artist">Explore artists & creators</Link>
           <Link className="nav-link" href="/suggestions">Suggest something</Link>
         </details>
       </nav>
