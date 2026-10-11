@@ -1,10 +1,10 @@
 import Link from "next/link";
 import FanThemePicker from "./FanThemePicker";
 
-function FanIcon({kind}:{kind:"discover"|"library"|"charts"|"profile"|"messages"}){
+function FanIcon({kind}:{kind:"discover"|"library"|"charts"|"profile"|"messages"|"artists"}){
   return <svg aria-hidden="true" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     {kind==="discover"&&<><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2.6 5.1-4.4 1.9 2.1-4.6z"/></>}
-    {kind==="library"&&<><path d="M4 5h12M4 10h12M4 15h9"/><rect x="15" y="14" width="5" height="7" rx="1"/><path d="M20 15v-5"/></>}
+    {kind==="artists"&&<><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2 20a6 6 0 0 1 12 0m0-5a5 5 0 0 1 8 5"/></>}{kind==="library"&&<><path d="M4 5h12M4 10h12M4 15h9"/><rect x="15" y="14" width="5" height="7" rx="1"/><path d="M20 15v-5"/></>}
     {kind==="charts"&&<><path d="M5 20V11m7 9V5m7 15v-8"/><path d="M3 20h18"/></>}
     {kind==="messages"&&<><path d="M21 11a8 8 0 0 1-8 8H6l-4 3V11a8 8 0 0 1 8-8h3a8 8 0 0 1 8 8z"/><path d="M7 11h10M7 15h6"/></>}{kind==="profile"&&<><circle cx="12" cy="8" r="4"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></>}
   </svg>;
@@ -19,7 +19,8 @@ export default function FanShell({
       <Link href="/fan" className="fan-logo" aria-label="FACKTS Music home">FACKTS <span>MUSIC</span></Link>
       <span className="fan-topbar-edition">THE LISTENING CLUB</span>
       <nav className="fan-desktop-nav" aria-label="Fan navigation">
-        <Link href="/fan">Discover</Link>
+        <Link href="/fan">Listen</Link>
+        <Link href="/fan?tab=Artists">Artists</Link>
         <Link href="/fan?tab=My%20Library">My library</Link>
         <Link href="/fan?tab=Billboard">Billboard</Link>
         <Link href="/messages">Messages</Link>
@@ -37,8 +38,8 @@ export default function FanShell({
     {children}
     {showBottomNav&&<nav className="fan-mobile-nav" aria-label="Fan quick navigation">
       <Link href="/fan" aria-current={activeTab==="For You"?"page":undefined}><FanIcon kind="discover"/><span>Discover</span></Link>
+      <Link href="/fan?tab=Artists" aria-current={activeTab==="Artists"?"page":undefined}><FanIcon kind="artists"/><span>Artists</span></Link>
       <Link href="/fan?tab=My%20Library" aria-current={activeTab==="My Library"?"page":undefined}><FanIcon kind="library"/><span>Library</span></Link>
-      <Link href="/fan?tab=Billboard" aria-current={activeTab==="Billboard"?"page":undefined}><FanIcon kind="charts"/><span>Billboard</span></Link>
       <Link href="/messages" aria-current={activeTab==="Messages"?"page":undefined}><FanIcon kind="messages"/><span>Chats</span></Link>
       <Link href="/fan/profile" aria-current={activeTab==="Profile"?"page":undefined}><FanIcon kind="profile"/><span>Profile</span></Link>
     </nav>}

@@ -1,0 +1,133 @@
+/* A single connected listening/artist ecosystem across FACKTS Music.
+   Existing themes, artist rights and production tools are left intact. */
+.fm-artist-room{--artist-line:var(--fan-border,rgba(255,255,255,.13));--artist-surface:var(--fan-surface,#141417);--artist-text:var(--fan-text,#f6f4ef);--artist-subtle:var(--fan-muted,#afa9a4);--artist-accent:var(--fan-accent,#f97316);margin:20px 0 35px;min-width:0;color:var(--artist-text)}
+.fm-artist-intro{padding:25px clamp(17px,2.5vw,34px);border:1px solid var(--artist-line);border-radius:22px;background:linear-gradient(125deg,var(--artist-surface),var(--fan-glow,rgba(249,115,22,.11)));margin-bottom:17px}
+.fm-artist-intro .eyebrow{letter-spacing:.15em;font-size:10px;color:var(--artist-accent)}
+.fm-artist-intro h2{font-size:clamp(26px,3vw,40px);letter-spacing:-.05em;line-height:1.13;margin:13px 0 8px;color:var(--artist-text)}
+.fm-artist-intro p{color:var(--artist-subtle);max-width:660px;font-size:14px;line-height:1.6}
+.fm-artist-filters{display:flex;flex-direction:column;gap:13px;margin-bottom:17px}
+.fm-artist-filters label{display:block}
+.fm-artist-filters input{width:100%;min-height:47px;padding:12px 15px;border-radius:14px;border:1px solid var(--artist-line);background:var(--artist-surface);font-size:15px;color:var(--artist-text)}
+.fm-artist-filters input::placeholder{color:var(--artist-subtle)}
+.fm-artist-filters>div{display:flex;gap:7px;overflow-x:auto;white-space:nowrap;scrollbar-width:thin;padding-bottom:4px}
+.fm-artist-filters button{flex:0 0 auto;min-height:36px;padding:8px 14px;border:1px solid var(--artist-line);border-radius:999px;background:transparent;color:var(--artist-subtle);font-size:12px;cursor:pointer}
+.fm-artist-filters button[aria-pressed=true]{background:var(--artist-accent);border-color:var(--artist-accent);color:#171008}
+.fm-artist-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.fm-artist-card{border:1px solid var(--artist-line);background:var(--artist-surface);border-radius:17px;padding:11px;min-width:0;overflow:hidden;transition:transform .22s ease,border-color .22s ease}
+.fm-artist-card:hover{transform:translateY(-3px);border-color:var(--artist-accent)}
+.fm-artist-open{display:flex;flex-direction:column;align-items:stretch;gap:10px;text-align:left;border:0;background:transparent;color:var(--artist-text);padding:0;cursor:pointer;width:100%;min-width:0}
+.fm-artist-cover{width:100%;aspect-ratio:1.2;border-radius:11px;background:var(--fan-raised,#28272a);overflow:hidden;display:grid;place-items:center;color:var(--artist-accent);font-size:38px;font-weight:800}
+.fm-artist-cover img{width:100%;height:100%;object-fit:cover;transition:transform .3s ease}
+.fm-artist-card:hover .fm-artist-cover img{transform:scale(1.045)}
+.fm-artist-card-copy{display:grid;gap:5px;min-width:0}
+.fm-artist-card-copy strong{font-size:17px;letter-spacing:-.025em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--artist-text)}
+.fm-artist-card-copy small,.fm-artist-card-copy>span{font-size:12px;color:var(--artist-subtle);white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.fm-artist-card-actions{display:flex;justify-content:space-between;gap:6px;margin-top:13px}
+.fm-artist-card-actions button{min-height:39px;border:1px solid var(--artist-line);border-radius:10px;background:var(--fan-hover,rgba(255,255,255,.05));padding:9px 12px;color:var(--artist-text);font-size:12px;font-weight:650;cursor:pointer}
+.fm-artist-card-actions button[aria-pressed=true]{color:var(--artist-accent)}
+.fm-artist-card-actions button:first-child{flex:1;text-align:left}
+.fm-artist-empty{border:1px dashed var(--artist-line);padding:24px;border-radius:14px;color:var(--artist-subtle);font-size:14px}
+.fm-artist-back{display:inline-flex;align-items:center;min-height:42px;padding:10px 14px;background:transparent;border:1px solid var(--artist-line);border-radius:999px;color:var(--artist-text);font-size:13px;cursor:pointer;margin-bottom:13px}
+.fm-artist-detail-hero{display:grid;grid-template-columns:minmax(160px,33%) minmax(0,1fr);gap:clamp(14px,3vw,34px);padding:clamp(16px,3vw,30px);border-radius:20px;border:1px solid var(--artist-line);background:var(--artist-surface);align-items:center}
+.fm-artist-detail-photo{width:100%;aspect-ratio:1;border-radius:16px;background:var(--fan-raised,#28272a);display:grid;place-items:center;overflow:hidden;font-size:54px;font-weight:800;color:var(--artist-accent)}
+.fm-artist-detail-photo img{width:100%;height:100%;object-fit:cover}
+.fm-artist-detail-info h3{font-size:clamp(27px,4vw,49px);letter-spacing:-.055em;line-height:1.12;margin:9px 0 13px;color:var(--artist-text)}
+.fm-artist-detail-info p{font-size:14px;line-height:1.65;color:var(--artist-subtle);white-space:pre-wrap}
+.fm-artist-detail-info>small{font-size:12px;color:var(--artist-subtle)}
+.fm-artist-tags{display:flex;flex-wrap:wrap;gap:7px;margin:13px 0}
+.fm-artist-tags span{font-size:11px;border:1px solid var(--artist-line);border-radius:30px;padding:5px 9px}
+.fm-artist-detail-actions{display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin-top:16px}
+.fm-artist-detail-actions button,.fm-artist-detail-actions a{border-radius:999px;background:var(--artist-accent);padding:10px 16px;color:#1b1007!important;border:0;font-size:12px;font-weight:800;cursor:pointer;text-decoration:none}
+.fm-artist-detail-actions span{font-size:12px;color:var(--artist-subtle)}
+.fm-artist-releases{margin:20px 0}
+.fm-artist-releases h4{font-size:21px;letter-spacing:-.035em;margin:0 0 12px}
+.fm-artist-release-list{display:flex;flex-direction:column;gap:8px}
+.fm-artist-release-list article{display:flex;align-items:center;gap:11px;border:1px solid var(--artist-line);background:var(--artist-surface);border-radius:12px;padding:10px}
+.fm-artist-release-cover{width:54px;height:54px;flex:0 0 54px;border-radius:9px;display:grid;place-items:center;overflow:hidden;background:var(--fan-raised,#28272a);border:0;color:var(--artist-text);cursor:pointer}
+.fm-artist-release-cover img{width:100%;height:100%;object-fit:cover}
+.fm-artist-release-list article>div{flex:1;min-width:0;display:grid;gap:4px}
+.fm-artist-release-list strong{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--artist-text)}
+.fm-artist-release-list small{font-size:11px;color:var(--artist-subtle)}
+.fm-artist-release-list article>button:not(.fm-artist-release-cover){padding:9px 12px;border:1px solid var(--artist-line);border-radius:10px;background:var(--artist-accent);color:#1e1006;font-size:12px;font-weight:800;cursor:pointer}
+.fm-artist-release-list a{font-size:12px;text-decoration:none}
+.fm-artist-inline-link{font:inherit!important;border:0!important;padding:0!important;min-height:0!important;background:transparent!important;color:var(--artist-text)!important;text-align:left;cursor:pointer}
+.fm-artist-inline-link:hover{text-decoration:underline;color:var(--artist-accent)!important}
+.fm-creator-published{margin:22px 0;padding:25px}
+.fm-creator-published .creator-section-heading p{font-size:13px;line-height:1.5;opacity:.75}
+.fm-creator-published-list{display:flex;flex-direction:column;gap:9px}
+.fm-creator-published-list article{display:grid;grid-template-columns:58px minmax(0,1fr) minmax(155px,220px) auto;align-items:center;gap:13px;padding:10px;border:1px solid rgba(255,255,255,.12);border-radius:12px}
+.fm-creator-release-art{display:block;width:58px;height:58px;border-radius:10px;overflow:hidden;background:#272328}
+.fm-creator-release-art img{display:block;width:100%;height:100%;object-fit:cover}
+.fm-creator-release-art span{display:grid;place-items:center;height:100%}
+.fm-creator-published-list article>div{display:grid;min-width:0;gap:4px}
+.fm-creator-published-list strong{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm-creator-published-list small,.fm-creator-published-list article>div>span{font-size:11px;opacity:.7}
+.fm-creator-published-list audio{width:100%;min-width:0;height:42px}
+.fm-creator-published-list article>a:last-child{font-size:12px;text-decoration:none;color:#fb964f}
+.fm-creator-empty-releases{padding:22px;border:1px dashed rgba(255,255,255,.15);border-radius:12px;font-size:13px;opacity:.76}
+@media(max-width:1100px){.fm-artist-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){
+ .fm-artist-intro{padding:21px 16px;border-radius:16px}
+ .fm-artist-intro h2{font-size:27px}
+ .fm-artist-intro p{font-size:14px}
+ .fm-artist-filters input{font-size:16px}
+ .fm-artist-grid{gap:9px}
+ .fm-artist-card{padding:9px;border-radius:14px}
+ .fm-artist-card-copy strong{font-size:15px}
+ .fm-artist-card-copy small,.fm-artist-card-copy>span{font-size:12px}
+ .fm-artist-detail-hero{grid-template-columns:1fr;padding:15px}
+ .fm-artist-detail-photo{max-width:250px;aspect-ratio:1.25}
+ .fm-artist-detail-info h3{font-size:32px}
+ .fm-artist-release-list article>a:last-child{display:none}
+ .fm-creator-published-list article{grid-template-columns:50px minmax(0,1fr);gap:8px}
+ .fm-creator-release-art{width:50px;height:50px}
+ .fm-creator-published-list audio{grid-column:1/-1}
+ .fm-creator-published-list article>a:last-child{grid-column:1/-1}
+}
+@media(max-width:460px){
+ .fm-artist-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .fm-artist-cover{aspect-ratio:1}
+ .fm-artist-card-actions button{font-size:11px;padding:9px}
+}
+@media(prefers-reduced-motion:reduce){.fm-artist-card,.fm-artist-cover img{transition:none!important}}
+
+/* Real artist personalities sit alongside song discovery, not as generic initials. */
+.fm-artist-shelf-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.fm-artist-shelf-heading h2{margin:0!important}
+.fm-artist-shelf-heading>button,.fm-artist-shelf-discover{border:0!important;background:transparent!important;color:var(--fan-accent,#f97316)!important;min-height:40px;padding:8px 10px;font-size:12px;font-weight:760;cursor:pointer}
+.listener-artists .fm-artist-shelf-photo{width:50px;height:50px;padding:0;border:0;background:transparent;border-radius:50%;overflow:hidden;flex:0 0 50px;cursor:pointer}
+.listener-artists .fm-artist-shelf-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.listener-artists .fm-artist-shelf-photo .artist-monogram{width:100%;height:100%;display:grid;place-items:center}
+.listener-artists .fm-artist-inline-link{font-size:13px!important;font-weight:730}
+.listener-artists article{min-width:0}
+@media(max-width:760px){
+ .listener-artists .fm-artist-shelf-photo{width:44px;height:44px;flex-basis:44px}
+ .fm-artist-shelf-heading>button{white-space:nowrap}
+}
+
+/* The same compact music destinations across artist, producer and project workspaces. */
+.kreyoh-app-shell .fm-ecosystem-shortcuts{
+ display:flex;align-items:center;gap:8px;min-width:0;overflow-x:auto;
+ padding:10px clamp(12px,2vw,28px);scrollbar-width:none;
+ background:rgba(11,11,14,.94);border-bottom:1px solid rgba(255,255,255,.08);
+}
+.kreyoh-app-shell .fm-ecosystem-shortcuts::-webkit-scrollbar{display:none}
+.kreyoh-app-shell .fm-ecosystem-shortcuts a{
+ flex:0 0 auto;min-height:37px;padding:10px 15px;border-radius:999px;
+ display:inline-flex;align-items:center;font-size:12px;font-weight:720;
+ text-decoration:none;color:#c4c0bf;background:rgba(255,255,255,.04);
+ border:1px solid rgba(255,255,255,.075);
+ transition:background-color .16s,color .16s,border-color .16s;
+}
+.kreyoh-app-shell .fm-ecosystem-shortcuts a:hover{background:rgba(249,115,22,.11);color:#fff}
+.kreyoh-app-shell .fm-ecosystem-shortcuts a[aria-current="page"]{
+ color:#fda45a;background:rgba(249,115,22,.13);border-color:rgba(249,115,22,.27);
+}
+.fm-directory-release-count{display:block;font-size:11px;font-weight:800;color:#f9a365;margin-top:6px}
+@media(max-width:900px){
+ .kreyoh-app-shell .fm-ecosystem-shortcuts{gap:6px;padding:8px 11px}
+ .kreyoh-app-shell .fm-ecosystem-shortcuts a{font-size:12px;min-height:39px;padding:9px 13px}
+}
+@media(prefers-reduced-motion:reduce){
+ .kreyoh-app-shell .fm-ecosystem-shortcuts a{transition:none}
+}

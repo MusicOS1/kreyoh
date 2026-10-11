@@ -1,5 +1,7 @@
 import Link from "next/link";
 import PublicNavigation from "../../components/PublicNavigation";
+import AppShell from "../../components/AppShell";
+import {viewer} from "../../lib/community";
 import PublicFooter from "../../components/PublicFooter";
 import { createAdminClient } from "../../lib/supabase/admin";
 import { ArrowUpRight } from "../../components/Icons";
@@ -20,6 +22,7 @@ export default async function PublicCreatorsPage({
   searchParams: Promise<{ q?: string; role?: string; page?: string }>;
 }) {
   const params = await searchParams;
+  const sessionUser=await viewer();
   const admin = createAdminClient();
   const page = Math.max(1, Number(params.page) || 1);
   const from = (page - 1) * PAGE_SIZE;
@@ -52,9 +55,8 @@ export default async function PublicCreatorsPage({
     return `/creators${qs ? `?${qs}` : ""}`;
   };
 
-  return (
+  const directory=(
     <main className="public-site fm-v3-site fm-creators-page">
-      <PublicNavigation />
 
       <section className="fm-directory-hero">
         <div className="fm-v3-kicker"><span /> PUBLIC CREATOR NETWORK</div>
@@ -113,7 +115,7 @@ export default async function PublicCreatorsPage({
         </nav>
       ) : null}
 
-      <PublicFooter />
     </main>
   );
+  return sessionUser?<AppShell>{directory}</AppShell>:<><PublicNavigation/>{directory}<PublicFooter/></>;
 }

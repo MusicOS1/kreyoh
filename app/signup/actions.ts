@@ -1,6 +1,7 @@
 "use server";
 
 import { safeNext } from "../../lib/navigation";
+import {isFanProfile} from "../../lib/fanProfile";
 import { redirect } from "next/navigation";
 import { createClient } from "../../lib/supabase/server";
 import { createAdminClient } from "../../lib/supabase/admin";
@@ -114,7 +115,7 @@ export async function signup(formData: FormData) {
   // Project access/permissions are still activated separately through
   // project membership and invitations.
   if (data.session) {
-    redirect(next);
+    redirect(next==="/home"&&isFanProfile({creator_types:creatorTypes})?"/fan":next);
   }
 
   redirect(

@@ -3,6 +3,7 @@ import { createClient } from "../../../lib/supabase/server";
 import { createAdminClient } from "../../../lib/supabase/admin";
 
 import { safeNext } from "../../../lib/navigation";
+import {isFanProfile} from "../../../lib/fanProfile";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -27,5 +28,6 @@ export async function GET(request: Request) {
     updated_at: new Date().toISOString(),
   }, { onConflict: "id" });
   await admin.from("auth_events").insert({ user_id: data.user.id, event_name: "confirmation_completed", metadata: { next } });
-  return NextResponse.redirect(new URL(next, url.origin));
+  const target=next==="/home"&&isFanProfile({creator_types:metadata.creator_types||[metadata.creative_role]})?"/fan":next;
+  return NextResponse.redirect(new URL(target, url.origin));
 }
