@@ -1,6 +1,6 @@
 "use client";
 import type {DiscoveryItem} from '../lib/discoveryContent';
-import type {FanHeroConfig,FanHeroArea} from '../lib/fanHero';
+import type {FanHeroConfig,FanHeroArea} from '../lib/fanHeroConfig';
 import {useMemo,useRef,useState} from 'react';
 import Link from 'next/link';
 import TrackWaveform from './TrackWaveform';
