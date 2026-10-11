@@ -3,7 +3,7 @@ import {revalidatePath} from "next/cache";
 import {communityAccount,uuidPattern} from "../../lib/community";
 import {createAdminClient} from "../../lib/supabase/admin";
 import {assertR2ObjectAccess,createR2PresignedUrl,finalizeReleaseObject} from "../../lib/r2";
-import {requireControlRoomPermission} from "../../lib/controlRoom";
+import {requireControlRoomPermission,hasControlRoomPermission} from "../../lib/controlRoom";
 const read=(f:FormData,k:string)=>String(f.get(k)||"").trim();
 export async function prepareRelease(form:FormData){
  const{admin,user}=await communityAccount();
@@ -19,7 +19,14 @@ export async function prepareRelease(form:FormData){
  if(collection.length>120||genre.length>60||description.length>2000||credits.length>2000)throw new Error('Shorten the release details.');
  const number=Number(form.get('track_number')||1);if(!Number.isInteger(number)||number<1||number>100)throw new Error('Choose a track number from 1 to 100.');
  const{count,error:countError}=await admin.from('music_releases').select('id',{count:'exact',head:true}).eq('artist_id',user.id).gte('created_at',new Date(Date.now()-86400000).toISOString());
- if(countError)throw new Error('Submission service unavailable.');if((count||0)>=10)throw new Error('You can submit up to 10 songs per day. Please continue tomorrow.');
+ if(countError)throw new Error('Submission service unavailable.');
+ // Public submission throttling remains, but approved music admins can safely import
+ // a full catalogue (up to 200 preparations in a rolling 24-hour period).
+ const catalogAdmin=await hasControlRoomPermission(user.id,'music');
+ const dailyLimit=catalogAdmin?200:10;
+ if((count||0)>=dailyLimit)throw new Error(catalogAdmin
+   ?'This admin account reached 200 release preparations in 24 hours. Try again when the oldest preparation expires.'
+   :'Public submissions are limited to 10 songs per 24 hours. Music admins can import catalogues from the Control Room.');
  const id=crypto.randomUUID(),prefix=`releases/${user.id}/${id}`;
  const audioKey=`${prefix}/audio`,coverKey=coverType?`${prefix}/cover`:null;
  const uploadUrl=await createR2PresignedUrl('PUT',audioKey,900,audioType);
