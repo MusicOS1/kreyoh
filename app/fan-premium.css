@@ -399,3 +399,15 @@ html[data-fackts-fan-theme="ivory"] .fan-shell .refined-player .track-chart-list
 html[data-fackts-fan-theme="ivory"] .fan-shell .refined-player .track-chart-select{
   color:var(--fan-text)
 }
+
+/* In-page mobile tabs use buttons to preserve the current audio session. */
+@media(max-width:900px){
+  .fan-listener-mobile-nav{max-width:none;width:100%}
+  .fan-mobile-nav button{
+    flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;
+    align-items:center;gap:5px;text-align:center;color:var(--fan-muted)!important;
+    text-decoration:none;font-size:10px;font-weight:690;min-height:54px;
+    padding:0;border:0;background:transparent;cursor:pointer
+  }
+  .fan-mobile-nav button[aria-current="page"]{color:var(--fan-accent)!important}
+}
