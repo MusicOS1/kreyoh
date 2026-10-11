@@ -40,7 +40,6 @@ export default function FanShell({
       <Link href="/fan" aria-current={activeTab==="For You"?"page":undefined}><FanIcon kind="discover"/><span>Discover</span></Link>
       <Link href="/fan?tab=Artists" aria-current={activeTab==="Artists"?"page":undefined}><FanIcon kind="artists"/><span>Artists</span></Link>
       <Link href="/fan?tab=My%20Library" aria-current={activeTab==="My Library"?"page":undefined}><FanIcon kind="library"/><span>Library</span></Link>
-      <Link href="/fan?tab=Billboard" aria-current={activeTab==="Billboard"?"page":undefined}><FanIcon kind="charts"/><span>Billboard</span></Link>
       <Link href="/messages" aria-current={activeTab==="Messages"?"page":undefined}><FanIcon kind="messages"/><span>Chats</span></Link>
       <Link href="/fan/profile" aria-current={activeTab==="Profile"?"page":undefined}><FanIcon kind="profile"/><span>Profile</span></Link>
     </nav>}
