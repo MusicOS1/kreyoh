@@ -20,7 +20,8 @@ export default function FanThemePicker({compact=false}:{compact?:boolean}){
   const [theme,setTheme]=useState<FanTheme>("obsidian");
   const details=useRef<HTMLDetailsElement>(null);
   useEffect(()=>{
-    const stored=valid(window.localStorage.getItem(storageKey));
+    let stored:FanTheme="obsidian";
+    try{stored=valid(window.localStorage.getItem(storageKey));}catch{}
     setTheme(stored);applyTheme(stored);
     const onStorage=(event:StorageEvent)=>{
       if(event.key===storageKey){const next=valid(event.newValue);setTheme(next);applyTheme(next);}
