@@ -22,7 +22,7 @@ export default async function FanProfilePage({
       </div>
       <div className="fan-profile-layout">
         <aside className="fan-profile-preview">
-          <div className="fan-profile-preview-art"><span>FACKTS / COMMUNITY</span></div>
+          <div className="fan-profile-preview-art"><img src="/branding/fackts-creative-community.jpg" alt=""/><span>FACKTS / COMMUNITY</span></div>
           <div className="fan-profile-preview-avatar">{profile?.avatar_url?<img src={profile.avatar_url} alt="Your profile photo"/>:initial}</div>
           <h2>{displayName}</h2>
           <p>{profile?.bio||"Your music story starts here."}</p>
