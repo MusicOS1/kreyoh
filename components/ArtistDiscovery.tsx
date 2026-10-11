@@ -2,6 +2,7 @@
 import {useMemo,useState} from "react";
 import Link from "next/link";
 import type {MusicArtist} from "../lib/musicArtistsTypes";
+import {creditedToArtist} from "../lib/releaseArtistMatch";
 type Release={id:string;title:string;artist_id:string;artist_name:string;has_cover:boolean;collection:string;genre?:string;release_at:string;votes:number};
 type ArtistEntry=MusicArtist&{catalogueOnly?:boolean};
 export default function ArtistDiscovery({
@@ -17,7 +18,7 @@ export default function ArtistDiscovery({
  const directory=useMemo<ArtistEntry[]>(()=>{
   const extras=new Map<string,ArtistEntry>();
   for(const release of releases){
-   const attributed=artists.some(person=>person.id===release.artist_id);
+   const attributed=artists.some(person=>person.id===release.artist_id&&creditedToArtist(release.artist_name,person.name));
    if(attributed)continue;
    const key=release.artist_name.trim().toLocaleLowerCase("en");
    if(!key)continue;
@@ -35,7 +36,7 @@ export default function ArtistDiscovery({
  const genres=useMemo(()=>["All",...new Set(directory.flatMap(artist=>artist.genres).filter(Boolean))].slice(0,12),[directory]);
  const filtered=directory.filter(artist=>(genre==="All"||artist.genres.includes(genre))&&
   [artist.name,artist.bio,artist.tagline,artist.location,...artist.genres].join(" ").toLowerCase().includes(search.toLowerCase()));
- const artistTracks=(artist:ArtistEntry)=>artist.catalogueOnly?releases.filter(release=>"catalogue:"+release.artist_name.trim().toLocaleLowerCase("en")===artist.id):releases.filter(release=>release.artist_id===artist.id);
+ const artistTracks=(artist:ArtistEntry)=>artist.catalogueOnly?releases.filter(release=>"catalogue:"+release.artist_name.trim().toLocaleLowerCase("en")===artist.id):releases.filter(release=>release.artist_id===artist.id&&creditedToArtist(release.artist_name,artist.name));
  const artistReleases=selectedArtist?artistTracks(selectedArtist):[];
  const artistName=(artist:MusicArtist)=>artist.name.trim()[0]?.toUpperCase()||"F";
  const artistPhoto=(artist:MusicArtist)=>artist.avatar||artist.hero;
