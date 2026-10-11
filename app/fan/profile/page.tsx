@@ -12,7 +12,7 @@ export default async function FanProfilePage({
   const {user,profile}=await getWorkspace();
   const displayName=profile?.nickname||profile?.full_name||"Listener";
   const initial=displayName.trim()[0]?.toUpperCase()||"F";
-  return <FanShell name={displayName} avatarUrl={profile?.avatar_url} creatorMode={Boolean(profile?.creator_types?.some((type:string)=>type!=="Fan"))}>
+  return <FanShell name={displayName} activeTab="Profile" avatarUrl={profile?.avatar_url} creatorMode={Boolean(profile?.creator_types?.some((type:string)=>type!=="Fan"))}>
     <main className="fan-profile-page">
       <div className="fan-profile-heading">
         <Link className="fan-back-link" href="/fan">← Back to your music</Link>
