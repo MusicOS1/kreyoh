@@ -2,7 +2,7 @@
 import {useMemo,useState} from "react";
 import Link from "next/link";
 import type {MusicArtist} from "../lib/musicArtistsTypes";
-type Release={id:string;title:string;artist_id:string;artist_name:string;has_cover:boolean;collection?:string;genre?:string;release_at:string};
+type Release={id:string;title:string;artist_id:string;artist_name:string;has_cover:boolean;collection:string;genre?:string;release_at:string;votes:number};
 type ArtistEntry=MusicArtist&{catalogueOnly?:boolean};
 export default function ArtistDiscovery({
  artists,releases,viewerId,following,onFollow,onPlay,initialArtistId
