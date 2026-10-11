@@ -3,6 +3,7 @@ import AppShell from "../../components/AppShell";
 import BeatAudioPlayer from "../../components/BeatAudioPlayer";
 import TrackIntakeForm from "../../components/TrackIntakeForm";
 import TrackUploadForm from "../../components/TrackUploadForm";
+import TrackCatalogPages from "../../components/TrackCatalogPages";
 import TrackPlaylist from "../../components/MusicQueue";
 import { createAdminClient } from "../../lib/supabase/admin";
 import { createR2PresignedUrl, isR2Configured } from "../../lib/r2";
@@ -256,7 +257,7 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
             </div>
           )}
 
-          {tracks.map((track: any) => {
+          <TrackCatalogPages key={`${project.id}:${search}`} ids={tracks.map((track:any)=>`track-${track.id}`)}>{tracks.map((track: any) => {
             const beat = Array.isArray(track.beats) ? track.beats[0] : track.beats;
             const producerCredit = (track.track_contributors || []).find((credit: any) => ["producer", "co_producer"].includes(String(credit.contribution_role).toLowerCase()));
             const producerName = producerCredit
@@ -267,7 +268,8 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
             const uploaderName = creatorDisplayName(creators.get(track.created_by));
             const myArScore = (arScoresResult.data ?? []).find((score: any) => score.track_id === track.id && score.evaluator_id === user.id);
             return (
-              <article className="panel track-development-card" id={`track-${track.id}`} key={track.id}>
+              <details className="panel track-development-card compact-track-card" id={`track-${track.id}`} key={track.id}>
+                <summary className="compact-track-summary">
                 {artworkUrls[track.id] && (
                   <div
                     className="track-catalog-artwork"
@@ -280,7 +282,7 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
                 <div className="track-card-heading">
                   <div>
                     <span className="eyebrow">{track.track_code || "TRACK"} · {beat?.beat_code || "SOURCE BEAT"}</span>
-                    <h2><Link href={`/track-records/${track.id}`}>{track.working_title || beat?.title || "Untitled track"}</Link></h2><Link href={`/track-records/${track.id}`} className="secondary-button-inline">Open song details →</Link>
+                    <h2>{track.working_title || beat?.title || "Untitled track"}</h2>
                     <p>Produced by {producerName}</p>
                     <small className="music-uploader-label">Uploaded by {uploaderName}</small>
                   </div>
@@ -289,6 +291,9 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
                   </span>
                 </div>
 
+                <span className="track-expand-label">{track.assets.length} files <b aria-hidden="true">⌄</b></span>
+                </summary>
+                <div className="compact-track-body"><Link href={`/track-records/${track.id}`} className="secondary-button-inline">Open song details →</Link>
                 <div className="contributor-row">
                   {(track.track_contributors || []).map((contributor: any) => {
                     const profile = Array.isArray(contributor.profiles) ? contributor.profiles[0] : contributor.profiles;
@@ -395,9 +400,10 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
                   <input name="comment" required placeholder={roles.includes("A&R") ? "Add A&R note" : "Add a track comment"} />
                   <button>Comment</button>
                 </form>
-              </article>
+                </div>
+              </details>
             );
-          })}
+          })}</TrackCatalogPages>
         </div>
       </div>
     </AppShell>
