@@ -36,7 +36,7 @@ export async function listReleaseComments(releaseId:string):Promise<{ok:boolean;
     if(profileError)throw new Error("Could not load comments.");
     const names=new Map((profiles||[]).map(person=>[
       person.id,String(person.stage_name||person.nickname||person.full_name||"FACKTS listener").slice(0,80)
-    ]));
+    ] as const));
     const visibleIds=new Set(rows.map(row=>row.id));
     return {ok:true,comments:rows.map(row=>({
       id:row.id,
