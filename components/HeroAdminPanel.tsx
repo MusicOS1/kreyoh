@@ -1,7 +1,7 @@
 "use client";
 import {useActionState,useState} from "react";
 import {saveFanHero} from "../app/admin/(control)/discovery/hero-actions";
-import {fanHeroAreas,type FanHeroArea,type FanHeroConfig} from "../lib/fanHero";
+import {fanHeroAreas,type FanHeroArea,type FanHeroConfig} from "../lib/fanHeroConfig";
 
 type Artwork={id:string;title:string;artist_name:string;has_cover:boolean};
 function SingleHeroEditor({area,config,artwork}:{area:FanHeroArea;config:FanHeroConfig;artwork:Artwork[]}){
