@@ -291,6 +291,14 @@ export default function ShellLayout({
           </div>
         </header>
 
+        {/* Shared FACKTS Music destinations stay inside the current creator shell. */}
+        {!pathname.startsWith("/fan")&&<nav className="fm-ecosystem-shortcuts" aria-label="FACKTS Music quick sections">
+          <Link href="/home" aria-current={pathname==="/home"?"page":undefined}>My space</Link>
+          <Link href="/fan" aria-current={pathname==="/fan"?"page":undefined}>Listen</Link>
+          <Link href="/discover?role=Artist" aria-current={pathname.startsWith("/discover")?"page":undefined}>Artists</Link>
+          <Link href="/billboard/submit" aria-current={pathname.startsWith("/billboard/submit")?"page":undefined}>My releases</Link>
+          <Link href="/messages" aria-current={pathname.startsWith("/messages")?"page":undefined}>Chats</Link>
+        </nav>}
         {/* Page Content */}
         <main className="kreyoh-page-container">
           {children}
@@ -304,9 +312,9 @@ export default function ShellLayout({
       )}
       <nav className="mobile-bottom-nav" aria-label="Mobile primary navigation">
         <Link href="/home" className={pathname === "/home" ? "active" : ""}><HomeIcon size={19} /><span>Home</span></Link>
+        <Link href="/fan" className={pathname==="/fan"?"active":""}><MusicIcon size={19}/><span>Listen</span></Link>
+        <Link href="/discover?role=Artist" className={pathname.startsWith("/discover")||pathname.startsWith("/creators")?"active":""}><UsersIcon size={19}/><span>Artists</span></Link>
         <Link href="/projects" className={pathname.startsWith("/projects")||pathname.startsWith("/invitations") ? "active" : ""}><BriefcaseIcon size={19}/><span>Projects</span></Link>
-
-        <Link href="/inbox" className={pathname.startsWith("/inbox") ? "active" : ""}><BellIcon size={19}/><span>Inbox{unreadNotifications>0?` ${Math.min(unreadNotifications,99)}`:""}</span></Link>
         <Link href="/settings" className={pathname.startsWith("/settings") ? "active" : ""}><SettingsIcon size={19} /><span>Profile</span></Link>
       </nav>
     </div>
