@@ -5,16 +5,20 @@ import TrackPlaylist from '../../components/MusicQueue';
 import {VoteButton,ShareRelease} from '../../components/ReleaseControls';
 import {chart,viewer,currentChartWeek} from '../../lib/community';
 import {createAdminClient} from '../../lib/supabase/admin';
+import {fanHeroSettings,heroImage} from '../../lib/fanHero';
 export const dynamic='force-dynamic';
 export const metadata={title:'FACKTS Billboard',description:'Discover independent music, hear new releases and vote for your favourites on FACKTS Music.'};
 export default async function Billboard({searchParams}:{searchParams:Promise<{collection?:string;artist?:string;q?:string}>}){
- const params=await searchParams;const[releases,user]=await Promise.all([chart(),viewer()]);
+ const params=await searchParams;const[releases,user,heroes]=await Promise.all([chart(),viewer(),fanHeroSettings()]);
+ const hero=heroes.billboard.enabled?heroes.billboard:undefined;
+ const cover=releases.find(r=>r.has_cover);
+ const background=heroImage(hero,cover?`/api/releases/${cover.id}/media?kind=cover`:"/branding/fackts-creator-red-wide.jpg");
  const{data:votes}=user?await createAdminClient().from('music_votes').select('release_id').eq('user_id',user.id).eq('week_start',currentChartWeek()):{data:[]};
  const voted=new Set((votes||[]).map(v=>v.release_id));
  const visible=releases.filter(r=>(!params.collection||r.collection===params.collection)&&(!params.artist||r.artist_id===params.artist)&&(!params.q||`${r.title} ${r.artist_name} ${r.collection}`.toLowerCase().includes(params.q.toLowerCase())));
  const queue=params.collection?[...visible].sort((a,b)=>a.track_number-b.track_number):visible;
  return <><PublicNavigation/><main className="community-page">
- <header className="billboard-hero fm-billboard-photo-hero"><img className="fm-billboard-hero-art" src={releases.find(r=>r.has_cover)?`/api/releases/${releases.find(r=>r.has_cover)!.id}/media?kind=cover`:"/branding/fackts-creator-red-wide.jpg"} alt=""/><span className="eyebrow">THE SOUND. THE PEOPLE. THE CHART.</span><h1>FACKTS Billboard</h1><p>Discover a new favourite. Be there for the first release. Help the music move.</p><div className="community-actions"><Link href={user?"/fan":"/listen"}>{user?"My music":"Discover music"}</Link>{!user&&<Link href="/signup?next=/fan">Join as a fan</Link>}</div></header>
+ <header className={"billboard-hero fm-billboard-photo-hero fm-hero-"+(hero?.layout||"editorial")}><img className="fm-billboard-hero-art" src={background} alt=""/><span className="eyebrow">{hero?.eyebrow||"THE SOUND. THE PEOPLE. THE CHART."}</span><h1>{hero?.title||"FACKTS Billboard"}</h1><p>{hero?.description||"Discover a new favourite. Be there for the first release. Help the music move."}</p><div className="community-actions"><Link href={hero?.ctaHref|| (user?"/fan":"/listen")}>{hero?.ctaLabel||(user?"My music":"Discover music")}</Link>{!user&&<Link href="/signup?next=/fan">Join as a fan</Link>}</div></header>
  <div className="community-chart-heading"><div><h2>{params.collection||'This week’s chart'}</h2><p>Week of {currentChartWeek()} · Resets Monday, 00:00 Kenya time.</p></div><form className="community-search"><input name="q" defaultValue={params.q} aria-label="Search music" placeholder="Song, artist or collection"/><button>Search</button></form></div>
  <p className="community-note">One vote per song per verified account each week. You may support multiple songs and undo a vote. Ties use the newest release first. Artists cannot vote for their own submissions.</p>
  {(params.collection||params.q)&&<Link href="/billboard">← Full chart</Link>}
