@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {getWorkspace} from "../../../lib/workspace";
+import {fanHeroSettings,heroImage} from "../../../lib/fanHero";
 import FanShell from "../../../components/FanShell";
 import ProfilePhotoUpload from "../../../components/ProfilePhotoUpload";
 import {saveFanProfile} from "./actions";
@@ -9,20 +10,21 @@ export default async function FanProfilePage({
   searchParams
 }:{searchParams:Promise<{saved?:string;error?:string}>}){
   const params=await searchParams;
-  const {user,profile}=await getWorkspace();
+  const [{user,profile},heroes]=await Promise.all([getWorkspace(),fanHeroSettings()]);
+  const hero=heroes.profile.enabled?heroes.profile:undefined;
   const displayName=profile?.nickname||profile?.full_name||"Listener";
   const initial=displayName.trim()[0]?.toUpperCase()||"F";
   return <FanShell name={displayName} activeTab="Profile" avatarUrl={profile?.avatar_url} creatorMode={Boolean(profile?.creator_types?.some((type:string)=>type!=="Fan"))}>
     <main className="fan-profile-page">
       <div className="fan-profile-heading">
         <Link className="fan-back-link" href="/fan">← Back to your music</Link>
-        <span className="fan-eyebrow">YOUR CORNER OF FACKTS</span>
-        <h1>Make this space yours.</h1>
-        <p>Your music, your people, your identity. Change your photo, the name fans see and the sounds that describe you.</p>
+        <span className="fan-eyebrow">{hero?.eyebrow||"YOUR CORNER OF FACKTS"}</span>
+        <h1>{hero?.title||"Make this space yours."}</h1>
+        <p>{hero?.description||"Your music, your people, your identity. Change your photo, the name fans see and the sounds that describe you."}</p>
       </div>
       <div className="fan-profile-layout">
         <aside className="fan-profile-preview">
-          <div className="fan-profile-preview-art"><img src="/branding/fackts-creative-community.jpg" alt=""/><span>FACKTS / COMMUNITY</span></div>
+          <div className={"fan-profile-preview-art fm-hero-"+(hero?.layout||"editorial")}><img src={heroImage(hero,"/branding/fackts-creative-community.jpg")} alt=""/><span>FACKTS / COMMUNITY</span></div>
           <div className="fan-profile-preview-avatar">{profile?.avatar_url?<img src={profile.avatar_url} alt="Your profile photo"/>:initial}</div>
           <h2>{displayName}</h2>
           <p>{profile?.bio||"Your music story starts here."}</p>
