@@ -25,15 +25,15 @@ test("music hero settings & bulk release components parse",()=>{
 test("public throttling stays in place while music admin can import a catalogue",()=>{
  const source=read("app/billboard/actions.ts");
  assert.match(source,/hasControlRoomPermission\(user.id,'music'\)/);
- assert.match(source,/catalogAdmin\?200:10/);
+ assert.match(source,/catalogAdmin\?1000:10/);
  assert.match(source,/count\|\|0/);
  assert.match(source,/rights/);
 });
 test("upload is sequential with visibility into every failure and rights consent",()=>{
  const source=read("components/BulkReleaseImporter.tsx");
  assert.match(source,/valid\.slice\(0,100\)/);
- assert.match(source,/await prepareRelease\(form\)/);
- assert.match(source,/await finishRelease\(draft.id\)/);
+ assert.match(source,/await prepareReleaseResult\(form\)/);
+ assert.match(source,/await finishReleaseResult\(draft.id\)/);
  assert.match(source,/for\(const row of queue\)/);
  assert.match(source,/stopRef.current/);
  assert.match(source,/rights/);

@@ -4,6 +4,7 @@ import {communityAccount,uuidPattern} from "../../lib/community";
 import {createAdminClient} from "../../lib/supabase/admin";
 import {assertR2ObjectAccess,createR2PresignedUrl,finalizeReleaseObject} from "../../lib/r2";
 import {requireControlRoomPermission,hasControlRoomPermission} from "../../lib/controlRoom";
+import { uploadResult } from "../../lib/uploadResult";
 const read=(f:FormData,k:string)=>String(f.get(k)||"").trim();
 export async function prepareRelease(form:FormData){
  const{admin,user}=await communityAccount();
@@ -21,11 +22,11 @@ export async function prepareRelease(form:FormData){
  const{count,error:countError}=await admin.from('music_releases').select('id',{count:'exact',head:true}).eq('artist_id',user.id).gte('created_at',new Date(Date.now()-86400000).toISOString());
  if(countError)throw new Error('Submission service unavailable.');
  // Public submission throttling remains, but approved music admins can safely import
- // a full catalogue (up to 200 preparations in a rolling 24-hour period).
+ // a full catalogue (up to 1000 preparations in a rolling 24-hour period).
  const catalogAdmin=await hasControlRoomPermission(user.id,'music');
- const dailyLimit=catalogAdmin?200:10;
+ const dailyLimit=catalogAdmin?1000:10;
  if((count||0)>=dailyLimit)throw new Error(catalogAdmin
-   ?'This admin account reached 200 release preparations in 24 hours. Try again when the oldest preparation expires.'
+   ?'This admin account reached 1000 release preparations in 24 hours. Try again when the oldest preparation expires.'
    :'Public submissions are limited to 10 songs per 24 hours. Music admins can import catalogues from the Control Room.');
  const id=crypto.randomUUID(),prefix=`releases/${user.id}/${id}`;
  const audioKey=`${prefix}/audio`,coverKey=coverType?`${prefix}/cover`:null;
@@ -37,8 +38,10 @@ export async function prepareRelease(form:FormData){
 }
 export async function finishRelease(id:string){
  const{admin,user}=await communityAccount();
- const{data:release,error}=await admin.from('music_releases').select('*').eq('id',id).eq('artist_id',user.id).eq('status','draft').single();
+ const{data:release,error}=await admin.from('music_releases').select('*').eq('id',id).eq('artist_id',user.id).single();
  if(error||!release)throw new Error('Draft not found.');
+ if(release.status==='pending'||release.status==='published')return;
+ if(release.status!=='draft')throw new Error('Draft not found.');
  const audio=await assertR2ObjectAccess(release.audio_key);
  if(!audio.ContentLength||audio.ContentLength>150*1024*1024||audio.ContentType!==release.audio_type)throw new Error('The uploaded audio is invalid. Submit a supported audio file.');
  if(release.cover_key){const cover=await assertR2ObjectAccess(release.cover_key);if(!cover.ContentLength||cover.ContentLength>10*1024*1024||!['image/jpeg','image/png','image/webp'].includes(cover.ContentType||''))throw new Error('The cover upload is invalid.');}
@@ -67,4 +70,19 @@ export async function manageRelease(_state:{message:string},form:FormData){
  const{data,error}=await query.select('id').maybeSingle();if(error||!data)throw new Error('Release changed or unavailable. Refresh and try again.');
  revalidatePath('/billboard');revalidatePath(`/billboard/${id}`);revalidatePath('/billboard/submit');revalidatePath('/admin/releases');return{message:'Release updated.'};
  }catch(error){return{message:error instanceof Error?error.message:'Could not update release.'};}
+}
+
+export async function prepareReleaseResult(form: FormData) { return uploadResult(() => prepareRelease(form)); }
+export async function finishReleaseResult(id: string) { return uploadResult(() => finishRelease(id)); }
+
+export async function refreshReleaseUploadResult(id: string, coverType: string) {
+ return uploadResult(async () => {
+  const {admin,user}=await communityAccount();
+  const {data:release,error}=await admin.from('music_releases').select('audio_key,audio_type,cover_key')
+    .eq('id',id).eq('artist_id',user.id).eq('status','draft').single();
+  if(error||!release)throw new Error('Draft not found.');
+  if(release.cover_key&&!['image/jpeg','image/png','image/webp'].includes(coverType))throw new Error('Use a JPG, PNG or WebP cover.');
+  return {uploadUrl:await createR2PresignedUrl('PUT',release.audio_key,3600,release.audio_type),
+    coverUploadUrl:release.cover_key?await createR2PresignedUrl('PUT',release.cover_key,3600,coverType):null};
+ });
 }

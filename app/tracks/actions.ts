@@ -10,6 +10,9 @@ import {
   isR2Configured,
 } from "../../lib/r2";
 
+import { trackUploadError } from "../../lib/trackUploadPolicy";
+import { uploadResult } from "../../lib/uploadResult";
+
 const read = (formData: FormData, key: string) =>
   String(formData.get(key) || "").trim();
 
@@ -150,7 +153,7 @@ export async function prepareTrackIntake(formData: FormData) {
   const trackId = crypto.randomUUID();
   const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, "-");
   const storageKey = `${project.id}/tracks/${trackId}/${crypto.randomUUID()}-${safeName}`;
-  const uploadUrl = await createR2PresignedUrl("PUT", storageKey, 900, mimeType);
+  const uploadUrl = await createR2PresignedUrl("PUT", storageKey, 3600, mimeType);
   const requestedCode = read(formData, "track_code").toUpperCase();
   const trackCode = requestedCode || `TRACK-${Date.now().toString().slice(-5)}`;
 
@@ -217,15 +220,8 @@ export async function prepareTrackUpload(formData: FormData) {
   if (!isR2Configured()) {
     throw new Error("Cloudflare R2 is not configured for track files yet.");
   }
-  if (!fileName || !Number.isFinite(fileSize) || fileSize <= 0) {
-    throw new Error("Choose a valid track file.");
-  }
-  if (fileSize > 250 * 1024 * 1024) {
-    throw new Error("Track files must be smaller than 250 MB.");
-  }
-  if (!mimeType.startsWith("audio/") && !fileName.toLowerCase().endsWith(".zip")) {
-    throw new Error("Upload an audio file, or a ZIP archive for stems.");
-  }
+  const validation = trackUploadError(fileName, mimeType, fileSize);
+  if (validation) throw new Error(validation);
   if (!trackAssetKinds.includes(assetKind)) {
     throw new Error("Choose a valid track file type.");
   }
@@ -236,7 +232,7 @@ export async function prepareTrackUpload(formData: FormData) {
 
   return {
     storageKey,
-    uploadUrl: await createR2PresignedUrl("PUT", storageKey, 900, mimeType),
+    uploadUrl: await createR2PresignedUrl("PUT", storageKey, 3600, mimeType),
   };
 }
 
@@ -256,8 +252,17 @@ export async function saveTrackAsset(formData: FormData) {
     throw new Error("Choose a valid track file type.");
   }
 
-  await assertR2ObjectAccess(storageKey);
+  if (!storageKey.startsWith(`${project.id}/tracks/${track.id}/`) || storageKey.includes("..")) {
+    throw new Error("The upload does not belong to this track.");
+  }
+  const object = await assertR2ObjectAccess(storageKey);
+  const validation = trackUploadError(fileName, object.ContentType || "", object.ContentLength || 0);
+  if (validation) throw new Error(validation);
   const admin = createAdminClient();
+  const { data: existing, error: lookupError } = await admin.from("project_assets").select("id")
+    .eq("project_id", project.id).eq("entity_id", track.id).eq("storage_path", storageKey).maybeSingle();
+  if (lookupError) throw new Error("Could not check the uploaded file registration.");
+  if (existing) return { ok: true, message: "Track file already saved to the version history." };
   const { data: asset, error } = await admin
     .from("project_assets")
     .insert({
@@ -489,4 +494,11 @@ export async function updateTrackVotingRound(formData: FormData) {
   const { error } = await admin.from("track_voting_rounds").update(changes).eq("id", roundId).eq("project_id", project.id);
   if (error) throw new Error(error.message);
   revalidatePath("/tracks");
+}
+
+export async function prepareTrackUploadResult(form: FormData) {
+  return uploadResult(() => prepareTrackUpload(form));
+}
+export async function saveTrackAssetResult(form: FormData) {
+  return uploadResult(() => saveTrackAsset(form));
 }

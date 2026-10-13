@@ -1,7 +1,7 @@
 "use client";
 import {useState,useRef} from 'react';
 import {useRouter} from 'next/navigation';
-import {prepareRelease,finishRelease} from '../app/billboard/actions';
+import {prepareReleaseResult,finishReleaseResult} from '../app/billboard/actions';
 export default function ReleaseSubmitForm(){
  const[busy,setBusy]=useState(false),[notice,setNotice]=useState('');const ref=useRef<HTMLFormElement>(null);const router=useRouter();
  return <form ref={ref} className="community-form" onSubmit={async e=>{e.preventDefault();if(busy)return;setBusy(true);setNotice('');try{
@@ -10,10 +10,10 @@ export default function ReleaseSubmitForm(){
  const ext=audio.name.split('.').pop()?.toLowerCase();const type=({mp3:'audio/mpeg',wav:'audio/wav',m4a:'audio/mp4',flac:'audio/flac'} as Record<string,string>)[ext||''];
  if(!type)throw Error('Choose MP3, WAV, M4A or FLAC.');metadata.set('audio_type',type);metadata.set('audio_size',String(audio.size));
  if(cover instanceof File&&cover.size){metadata.set('cover_type',cover.type);metadata.set('cover_size',String(cover.size));}
- setNotice('Preparing upload…');const draft=await prepareRelease(metadata);setNotice('Uploading audio…');
+ setNotice('Preparing upload…');const prepared=await prepareReleaseResult(metadata);if(!prepared.ok)throw Error(prepared.error);const draft=prepared.value;setNotice('Uploading audio…');
  const response=await fetch(draft.uploadUrl,{method:'PUT',headers:{'Content-Type':type},body:audio});if(!response.ok)throw Error('Audio upload failed. Please try again.');
  if(draft.coverUploadUrl&&cover instanceof File){setNotice('Uploading cover…');const response=await fetch(draft.coverUploadUrl,{method:'PUT',headers:{'Content-Type':cover.type},body:cover});if(!response.ok)throw Error('Cover upload failed. Please try again.');}
- setNotice('Submitting for review…');await finishRelease(draft.id);ref.current?.reset();setNotice('Submitted. Your song will appear publicly after approval and its release date.');router.refresh();
+ setNotice('Submitting for review…');const submitted=await finishReleaseResult(draft.id);if(!submitted.ok)throw Error(submitted.error);ref.current?.reset();setNotice('Submitted. Your song will appear publicly after approval and its release date.');router.refresh();
  }catch(error){setNotice(error instanceof Error?error.message:'Submission failed. Please try again.');}finally{setBusy(false);}}}>
  <fieldset disabled={busy}><legend>Submit a finished song</legend><p>Public accounts can submit up to 10 songs in 24 hours. Authorised music admins can import up to 100 tracks per batch in the Control Room.</p>
  <label>Song title<input name="title" maxLength={120} required/></label><label>Artist / act name<input name="artist_name" maxLength={100} required placeholder="e.g. Mad Meets Crazy"/></label>

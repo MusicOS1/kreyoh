@@ -2,17 +2,23 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { prepareTrackUpload, saveTrackAsset } from "../app/tracks/actions";
+import { prepareTrackUploadResult, saveTrackAssetResult } from "../app/tracks/actions";
+
+import { trackUploadError } from "../lib/trackUploadPolicy";
+import { directUpload } from "../lib/directUpload";
 
 export default function TrackUploadForm({ trackId }: { trackId: string }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
+  const uploaded = useRef<{file: File; key: string} | null>(null);
+  const [progress, setProgress] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (busy) return;
     const formData = new FormData(event.currentTarget);
     setBusy(true);
     setError("");
@@ -30,43 +36,46 @@ export default function TrackUploadForm({ trackId }: { trackId: string }) {
       prep.set("file_name", file.name);
       prep.set("file_type", file.type || "application/octet-stream");
       prep.set("file_size", String(file.size));
-      const signed = await prepareTrackUpload(prep);
-
-      let response: Response;
-      try {
-        response = await fetch(signed.uploadUrl, {
-          method: "PUT",
-          headers: { "Content-Type": file.type || "application/octet-stream" },
-          body: file,
-        });
-      } catch {
-        throw new Error("The browser could not reach Cloudflare R2. Check the bucket CORS origins and try again.");
+      const validation = trackUploadError(file.name, file.type || "application/octet-stream", file.size);
+      if (validation) throw new Error(validation);
+      const cached = uploaded.current;
+      const sameFile = cached && cached.file.name === file.name && cached.file.size === file.size && cached.file.lastModified === file.lastModified;
+      let storageKey = sameFile ? cached.key : "";
+      if (!storageKey) {
+        setMessage("Preparing secure upload…");
+        const prepared = await prepareTrackUploadResult(prep);
+        if (!prepared.ok) throw new Error(prepared.error);
+        setMessage("Transferring file directly to storage…");
+        setProgress(0);
+        await directUpload(prepared.value.uploadUrl, file, file.type || "application/octet-stream", setProgress);
+        storageKey = prepared.value.storageKey;
+        uploaded.current = { file, key: storageKey };
       }
-
-      if (!response.ok) {
-        throw new Error(`Cloudflare rejected the track transfer (${response.status}).`);
-      }
+      setMessage("Transfer complete. Saving file to the track…");
 
       formData.delete("track_file");
       formData.set("track_id", trackId);
-      formData.set("storage_key", signed.storageKey);
+      formData.set("storage_key", storageKey);
       formData.set("file_name", file.name);
       formData.set("mime_type", file.type || "application/octet-stream");
-      const result = await saveTrackAsset(formData);
+      const result = await saveTrackAssetResult(formData);
+      if (!result.ok) throw new Error(result.error);
+      uploaded.current = null;
 
       formRef.current?.reset();
-      setMessage(result.message);
+      setMessage(result.value.message);
       setBusy(false);
       router.refresh();
     } catch (cause) {
       setBusy(false);
+      setMessage("");
       setError(cause instanceof Error ? cause.message : "The track file could not be uploaded.");
     }
   }
 
   return (
     <form ref={formRef} onSubmit={submit} className="track-upload-form">
-      <div className="track-upload-intro"><strong>Add a new version</strong><span>The newest upload appears first. Earlier versions stay safely in the project history.</span></div>
+      <div className="track-upload-intro"><strong>Add a new version</strong><span>Audio up to 250 MB; stems ZIP up to 4 GB per file. Keep this tab open. The newest upload appears first. Earlier versions stay safely in the project history.</span></div>
       <div className="track-upload-fields">
         <label>
           File type
@@ -89,6 +98,7 @@ export default function TrackUploadForm({ trackId }: { trackId: string }) {
         </label>
         <button disabled={busy}>{busy ? "Uploading securely…" : "Add track file"}</button>
       </div>
+      {busy && <progress value={progress} max={100} aria-label="File upload progress" />}
       {error && <div className="form-error-alert" role="alert">{error}</div>}
       {message && <div className="form-success-alert" role="status">{message}</div>}
     </form>
