@@ -124,3 +124,157 @@
 .control-room .control-revoke-admin .control-admin-action-error{color:#9b2820;font-size:12px;font-weight:700}
 .control-room .control-revoke-admin .control-admin-action-success{color:#23633b;font-size:12px;font-weight:700}
 .control-room .control-admin-protected{font-size:12px;color:#594d3b;font-weight:750}
+
+
+/* Admin access legibility: keep grant cards on the cream Control Room surface.
+   This overrides older dark-theme cards and faint text inherited from globals. */
+.control-room .control-admin-access-panel .control-admin-grants {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+.control-room .control-admin-access-panel .control-admin-grants article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  min-width: 0;
+  padding: 18px 20px;
+  border: 1px solid #d2bfa5;
+  border-radius: 14px;
+  background: #fffaf0;
+  color: #211b15;
+  box-shadow: 0 3px 12px rgba(57, 37, 15, .04);
+}
+.control-room .control-admin-access-panel .control-admin-grants article > span {
+  flex: 1 1 210px;
+  min-width: 0;
+}
+.control-room .control-admin-access-panel .control-admin-grants article > span > strong {
+  display: block;
+  color: #1b1712;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+.control-room .control-admin-access-panel .control-admin-grants article > span > small {
+  display: block;
+  margin-top: 6px;
+  color: #554a3e;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.control-room .control-admin-access-panel .control-admin-protected {
+  color: #4c3924;
+  font-size: 12px;
+  font-weight: 750;
+}
+.control-room .control-admin-access-panel .control-revoke-admin {
+  justify-items: end;
+}
+.control-room .control-admin-access-panel .control-revoke-admin form {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  max-width: 100%;
+}
+.control-room .control-admin-access-panel .control-revoke-admin form p {
+  color: #2d2117;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.control-room .control-admin-access-panel .control-revoke-admin form p strong {
+  color: #241910;
+  font-size: 14px;
+  font-weight: 800;
+}
+.control-room .control-admin-access-panel .control-revoke-admin form p small {
+  margin-top: 6px;
+  color: #594d40;
+  font-size: 12px;
+  font-weight: 600;
+}
+.control-room .control-admin-access-panel .control-revoke-admin button.control-danger {
+  min-height: 44px;
+  padding: 10px 15px;
+  border: 1px solid #8d2b24 !important;
+  border-radius: 10px;
+  background: #992f28 !important;
+  color: #fffaf5 !important;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.control-room .control-admin-access-panel .control-revoke-admin button.control-danger:hover {
+  background: #762019 !important;
+  border-color: #762019 !important;
+}
+.control-room .control-admin-access-panel .control-revoke-admin form button[type="button"] {
+  min-height: 44px;
+  padding: 10px 15px;
+  border: 1px solid #a99a87;
+  border-radius: 10px;
+  background: #fffdf9;
+  color: #241910;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.control-room .control-admin-access-panel .control-revoke-admin button:focus-visible,
+.control-room .control-admin-access-panel .control-permission-checks input:focus-visible {
+  outline: 3px solid #976218;
+  outline-offset: 3px;
+}
+.control-room .control-admin-access-panel .control-revoke-admin button:disabled {
+  opacity: .65;
+  cursor: wait;
+}
+.control-room .control-admin-access-panel .control-revoke-admin .control-admin-action-error {
+  color: #8a221b;
+  font-size: 13px;
+}
+.control-room .control-admin-access-panel .control-revoke-admin .control-admin-action-success {
+  color: #155a31;
+  font-size: 13px;
+}
+.control-room .control-admin-access-panel .control-permission-checks label {
+  color: #282018;
+  font-size: 12px;
+  font-weight: 700;
+  background: #fffcf5;
+}
+.control-room .control-admin-access-panel .control-permission-checks input[type="checkbox"] {
+  appearance: auto;
+  display: block;
+  flex: 0 0 18px;
+  width: 18px !important;
+  min-width: 18px !important;
+  height: 18px !important;
+  min-height: 18px !important;
+  max-height: 18px;
+  margin: 0;
+  padding: 0 !important;
+  border-radius: 4px;
+  background: #fff !important;
+  color-scheme: light;
+  accent-color: #955f23;
+  box-shadow: none !important;
+  cursor: pointer;
+}
+@media (max-width: 760px) {
+  .control-room .control-admin-access-panel .control-admin-grants article {
+    align-items: stretch;
+    padding: 15px;
+  }
+  .control-room .control-admin-access-panel .control-revoke-admin {
+    width: 100%;
+    justify-items: stretch;
+  }
+  .control-room .control-admin-access-panel .control-revoke-admin form {
+    justify-content: flex-start;
+  }
+}

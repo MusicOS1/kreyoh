@@ -21,3 +21,17 @@ test("menus and global top navigation avoid low contrast lettering",()=>{
  assert.match(header,/font-weight: 600;\n  color: #ebe8ee;/);
  assert.match(workspace,/color: #ebe5ee/);
 });
+
+test("platform administrator grant cards have readable light surfaces and clear controls",()=>{
+ const css=get("app/admin/control-room.css");
+ const scoped=css.slice(css.indexOf("/* Admin access legibility:"));
+ assert.match(scoped,/background: #fffaf0;/);
+ assert.match(scoped,/color: #211b15;/);
+ assert.match(scoped,/font-size: 16px;/);
+ assert.match(scoped,/font-size: 14px;/);
+ assert.match(scoped,/background: #992f28 !important;/);
+ assert.match(scoped,/color: #fffaf5 !important;/);
+ assert.match(scoped,/\.control-permission-checks input\[type="checkbox"\]/);
+ assert.match(scoped,/color-scheme: light;/);
+ assert.match(scoped,/@media \(max-width: 760px\)/);
+});
