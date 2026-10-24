@@ -16,7 +16,7 @@ const pass=name=>{report.push(name);console.log('PASS '+name);};
 const profile=await mkdtemp(path.join(tmpdir(),'kreyoh-session-'));
 const options={headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']};
 const wav=Buffer.alloc(44+8000*2*90);wav.write('RIFF',0);wav.writeUInt32LE(wav.length-8,4);wav.write('WAVEfmt ',8);wav.writeUInt32LE(16,16);wav.writeUInt16LE(1,20);wav.writeUInt16LE(1,22);wav.writeUInt32LE(8000,24);wav.writeUInt32LE(16000,28);wav.writeUInt16LE(2,32);wav.writeUInt16LE(16,34);wav.write('data',36);wav.writeUInt32LE(wav.length-44,40);
-async function media(context){context.on('page',page=>page.on('pageerror',error=>browserErrors.push(error.message)));await context.route('**/api/releases/*/media',route=>{
+async function media(context){context.on('page',page=>page.on('pageerror',error=>{browserErrors.push(error.message);console.error('Browser error at',page.url(),error.stack);}));await context.route('**/api/releases/*/media',route=>{
  const range=route.request().headers().range?.match(/bytes=(\d+)-(\d*)/);
  const start=range?Number(range[1]):0,end=range&&range[2]?Math.min(Number(range[2]),wav.length-1):wav.length-1;
  return route.fulfill({status:range?206:200,contentType:'audio/wav',headers:{'Accept-Ranges':'bytes',...(range?{'Content-Range':`bytes ${start}-${end}/${wav.length}`}:{})},body:wav.subarray(start,end+1)});
@@ -58,7 +58,22 @@ try{
  for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});await overflow(page,`Homepage ${width}`);}
  await page.goto(origin+'/fan');for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});await overflow(page,`Fan ${width}`);}pass('Homepage and listener have no document overflow at 320/390/768/1440px');
  await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/tmp/kreyoh-fan-mobile.png',fullPage:false,scale:'css'});
+ state.publicArtist=true;
+ await page.goto(origin+'/fan?tab=Artists');await page.waitForLoadState('networkidle');
+ await page.getByRole('button',{name:'Follow Unreleased fixture artist',exact:true}).click();
+ await page.getByRole('button',{name:'Unfollow Unreleased fixture artist',exact:true}).waitFor();
+ assert.ok(state.library.some(item=>item.kind==='following'&&item.item_id==='99999999-9999-4999-8999-999999999999'));
+ await page.reload();await page.getByRole('button',{name:'Unfollow Unreleased fixture artist',exact:true}).click();
+ await page.getByRole('button',{name:'Follow Unreleased fixture artist',exact:true}).waitFor();
+ assert.ok(!state.library.some(item=>item.kind==='following'));
+ pass('Follow and unfollow a public artist without releases; following persists after reload');
+ state.publicArtist=false;
  state.creator=true;state.hasProject=true;
+ await page.goto(origin+'/fan');await page.waitForLoadState('networkidle');
+ for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});await page.getByRole('link',{name:'Artist workspace',exact:true}).waitFor();await overflow(page,'Artist shortcut '+width);}
+ await page.getByRole('link',{name:'Artist workspace',exact:true}).click();await page.waitForURL('**/workspaces/artist');await page.getByRole('heading',{name:'Make your next move.',exact:true}).waitFor();
+ pass('Artist workspace shortcut is visible at mobile and desktop widths and opens without login');
+ await page.setViewportSize({width:390,height:844});
  await page.goto(origin+'/home');await page.getByRole('heading',{name:'Make your next move.',exact:true}).waitFor();
  await page.goto(origin+'/member-dashboard');await page.waitForLoadState('networkidle');assert.ok(!(await page.url()).includes('/login'));
  assert.equal((await browser.cookies()).find(c=>c.name==='fackts_project_id')?.value,undefined);

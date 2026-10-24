@@ -24,6 +24,7 @@ export default function GlobalHeader({
 }) {
   const { identity: live, ready } = useMusicIdentity();
   const identity = ready ? live : initialIdentity;
+  const creatorWorkspace = identity?.workspaces.find(item => item.kind === 'artist') || identity?.workspaces.find(item => !['listener', 'admin'].includes(item.kind));
   const [open, setOpen] = useState(false),
     [resume, setResume] = useState('');
   const [installPrompt, setInstallPrompt] = useState<
@@ -119,6 +120,11 @@ export default function GlobalHeader({
       <div className={styles.actions}>
         {identity ? (
           <>
+            {active === 'listener' && creatorWorkspace && (
+              <Link className={styles.workspaceShortcut} href={creatorWorkspace.href}>
+                {creatorWorkspace.kind === 'artist' ? 'Artist workspace' : 'My workspace'}
+              </Link>
+            )}
             <Link
               href="/inbox"
               className={styles.inbox}

@@ -146,3 +146,15 @@ npm run test:browser
 ## Preview release boundary
 
 One consolidated commit and one feature-branch publication; draft PR targets `main`. GitHub remains the source of Vercel preview deployment. The handoff supplies the exact PR, commit and preview URL after publication and reports the observed check status. No direct main push, merge, production deployment, schema update or production data mutation is authorised by this preview release. Explicit owner approval is required before merging.
+
+## Owner feedback revision: Follow and artist access
+
+Follow now validates the target against the same active, public artist-profile criteria used by discovery. Previously it required a matching release in `music_weekly_chart`, so a discoverable artist with no published releases could not be followed. The write remains authenticated, account-scoped and server-validated. Private, inactive and non-artist profiles are excluded. Unfollow remains available for previously saved records.
+
+Follow controls in artist discovery now disable while saving and show confirmation/errors beside the artist area. The homepage artist highlights also display feedback next to their cards instead of relying only on the notice above the music sections.
+
+The listening header now exposes an Artist workspace shortcut for accounts with an artist option, or My workspace for another permitted professional workspace. It links to the existing permission-checked dashboard; it does not assign roles. All authorised workspaces remain in the top-right account menu. Artist entry: `/workspaces/artist`. Account-specific role assignments still require authorised acceptance; no production profile or role is changed by this revision.
+
+Added functional server-action regression coverage for following a public artist without releases and rejection of unavailable profiles/service failures. Browser coverage adds follow/unfollow persistence after refresh and direct artist entry at 320, 390, 768 and 1440 px using isolated fixtures. Real production account validation remains outstanding.
+
+Revision validation: 65 unit/SQL/action tests passed; TypeScript, production build and diff checks passed. The final clean browser run passed 30 scenarios with no page errors. An earlier run reported a script syntax error while the development environment was being updated; the clean rerun did not reproduce it.
