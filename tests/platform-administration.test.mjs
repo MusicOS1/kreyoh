@@ -12,7 +12,7 @@ test("global full-access administrator is independent of project membership",()=
 });
 test("only full-access administrators grant project-independent Control Room access",()=>{
  const actions=file("app/admin/(control)/projectManagementActions.ts");
- const start=actions.indexOf("export async function setScopedAdminAccess");
+ const start=actions.indexOf("async function changeScopedAdminAccess");
  const end=actions.indexOf("export async function setManagedProjectLead",start);
  const scope=actions.slice(start,end);
  assert.match(scope,/requireSuperAdmin\(\)/);
