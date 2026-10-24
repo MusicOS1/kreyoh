@@ -18,7 +18,6 @@ import SessionExperience from "../components/SessionExperience";
 import ListeningProvider from "../components/ListeningProvider";
 import PwaRegister from "../components/PwaRegister";
 import GlobalVideoPlayer from "../components/GlobalVideoPlayer";
-import WorkspaceChromeEnhancer from "../components/WorkspaceChromeEnhancer";
 import type { Metadata } from "next";
 
 const siteUrl=process.env.NEXT_PUBLIC_SITE_URL||"https://music.facktsafrica.co.ke";
@@ -45,9 +44,9 @@ export const viewport={themeColor:"#080809",width:"device-width",initialScale:1,
 export default function RootLayout({children}:Readonly<{children:React.ReactNode}>){
   return<html lang="en" data-scroll-behavior="smooth" className="fm-v3-root">
     <body className="fm-v3-body">
+      {process.env.NODE_ENV==='development'&&process.env.LOCAL_DEMO_DATA==='true'&&<aside style={{padding:'8px 16px',background:'#302719',color:'#d9bc8a',font:'12px system-ui',textAlign:'center'}} role="status">Local demo · synthetic records · no production data</aside>}
       <SessionExperience><ListeningProvider>{children}</ListeningProvider></SessionExperience>
       <GlobalVideoPlayer/>
-      <WorkspaceChromeEnhancer/>
       <PwaRegister/>
     </body>
   </html>;

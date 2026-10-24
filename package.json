@@ -8,7 +8,8 @@
     "start": "next start",
     "test": "node --test tests/*.mjs",
     "typecheck": "tsc --noEmit",
-    "test:browser": "node tests/browser/session-repair.mjs"
+    "test:browser": "node tests/browser/session-repair.mjs",
+    "demo:data": "node tests/helpers/demo-data.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1116.0",

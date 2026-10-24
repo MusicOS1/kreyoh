@@ -40,8 +40,8 @@ test("fan authentication preserves return locations without taking artists out o
  const fan=read("app/fan/page.tsx");
  const login=read("app/login/actions.ts");
  const callback=read("app/auth/callback/route.ts");
- assert.match(fan,/return fanOnly\?<FanShell/);
- assert.match(fan,/:<AppShell>\{listening\}<\/AppShell>/);
+ assert.match(fan,/return <FanShell/);
+ assert.match(read("components/AppShell.tsx"),/EcosystemShell/);
  assert.match(login,/next==="\u002fhome"&&isFanProfile/);
  assert.match(callback,/next==="\u002fhome"&&isFanProfile/);
 });

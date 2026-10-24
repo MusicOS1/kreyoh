@@ -1,5 +1,6 @@
 "use client";
 import {createContext,useContext,useEffect,useMemo,useRef,useState} from "react";
+import styles from './PersistentPlayer.module.css';
 import TrackPlaylist,{type PlaylistTrack} from "./TrackPlaylist";
 import {useMusicIdentity} from "./SessionExperience";
 import {readPreference,restoreListening} from "../lib/listeningState";
@@ -32,5 +33,5 @@ export default function ListeningProvider({children}:{children:React.ReactNode})
  const controls=useMemo(()=>({progress,play:(id:string)=>{if(!queue.some(t=>t.id===id)){pending.current=id;return;}setStarted(true);setPlayRequest({id,nonce:++nonce.current});},seek:(id:string,time:number)=>{if(queue.some(t=>t.id===id))setSeekRequest({id,time,nonce:++nonce.current});}}),[queue,progress]);
  // A private project player takes audio focus; the shared public player survives route changes.
  useEffect(()=>{const focus=(event:Event)=>{const target=event.target;if(target instanceof HTMLMediaElement){document.querySelectorAll<HTMLMediaElement>("audio,video").forEach(media=>{if(media!==target)media.pause();});}};document.addEventListener("play",focus,true);return()=>document.removeEventListener("play",focus,true);},[]);
- return <Context.Provider value={controls}>{children}{started&&queue.length>0&&<section className="global-listening-player" aria-label="Your listening queue"><button className="dismiss-listening" aria-label="Close listening player" onClick={()=>{setStarted(false);setProgress(empty);try{localStorage.removeItem(storageKey);}catch{}}}>Close player ×</button><TrackPlaylist key={storageKey} persistenceKey={storageKey} tracks={queue} compact enableRanking={false} playRequest={playRequest} seekRequest={seekRequest} onProgress={(id,position,duration)=>setProgress(p=>({...p,id,position,duration}))} onPlaybackChange={(id,isPlaying)=>setProgress(p=>({...p,id,isPlaying}))}/></section>}</Context.Provider>;
+ return <Context.Provider value={controls}>{children}{started&&queue.length>0&&<section className={`${styles.dock} global-listening-player`} aria-label="Your listening queue"><button className="dismiss-listening" aria-label="Close listening player" onClick={()=>{setStarted(false);setProgress(empty);try{localStorage.removeItem(storageKey);}catch{}}}>×</button><TrackPlaylist key={storageKey} persistenceKey={storageKey} tracks={queue} compact enableRanking={false} playRequest={playRequest} seekRequest={seekRequest} onProgress={(id,position,duration)=>setProgress(p=>({...p,id,position,duration}))} onPlaybackChange={(id,isPlaying)=>setProgress(p=>({...p,id,isPlaying}))}/></section>}</Context.Provider>;
 }

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
-import {mkdtemp,rm} from 'node:fs/promises';
+import {mkdtemp,rm,mkdir} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {chromium,devices} from 'playwright';
@@ -8,10 +8,10 @@ import {mockSupabase,releaseId,secondId,userId} from '../helpers/mock-supabase.m
 const {server,state}=mockSupabase();
 await new Promise(resolve=>server.listen(54329,'127.0.0.1',resolve));
 const origin='http://localhost:3100';
-const child=spawn(process.execPath,['node_modules/next/dist/bin/next','dev','--webpack','--port','3100','--hostname','127.0.0.1'],{env:{...process.env,NEXT_PUBLIC_SUPABASE_URL:'http://127.0.0.1:54329',NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'local-test-publishable-key',SUPABASE_SERVICE_ROLE_KEY:'local-test-service-key',NEXT_PUBLIC_SITE_URL:origin,NEXT_TELEMETRY_DISABLED:'1'},stdio:['ignore','pipe','pipe']});
+const child=spawn(process.execPath,['node_modules/next/dist/bin/next','dev','--webpack','--port','3100','--hostname','127.0.0.1'],{env:{...process.env,NEXT_PUBLIC_SUPABASE_URL:'http://127.0.0.1:54329',NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'local-test-publishable-key',SUPABASE_SERVICE_ROLE_KEY:'local-test-service-key',NEXT_PUBLIC_SITE_URL:origin,NEXT_TELEMETRY_DISABLED:'1',LOCAL_DEMO_DATA:'true'},stdio:['ignore','pipe','pipe']});
 let logs='';child.stdout.on('data',chunk=>{logs+=chunk;process.stdout.write(chunk)});child.stderr.on('data',chunk=>{logs+=chunk;process.stderr.write(chunk)});
 let browser;
-const report=[],browserErrors=[];
+const report=[],browserErrors=[];const screenshotDir=process.env.SCREENSHOT_DIR||'/tmp/kreyoh-phase2-screenshots';
 const pass=name=>{report.push(name);console.log('PASS '+name);};
 const profile=await mkdtemp(path.join(tmpdir(),'kreyoh-session-'));
 const options={headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']};
@@ -34,13 +34,14 @@ try{
  await page.goto(origin+'/auth/callback?token_hash=local-confirmation&type=signup&next=%2Ffan%3Ftab%3DArtists');
  await page.waitForURL('**/fan?tab=Artists');await page.getByRole('heading',{name:'Artists',exact:true}).waitFor();pass('Email token confirmation callback preserves deep link (mock verification)');
  await page.reload();await page.getByRole('heading',{name:'Artists',exact:true}).waitFor();pass('Authenticated refresh');
- await page.goto(origin+'/');await page.getByRole('navigation',{name:'Welcome back'}).waitFor();assert.equal(await page.locator('.fm-nav-signin').count(),0);pass('Homepage recognises returning user');
+ await page.goto(origin+'/');await page.getByRole('button',{name:'Open account and workspaces',exact:true}).waitFor();assert.equal(await page.locator('[data-fm-header]').getByRole('link',{name:'Sign in',exact:true}).count(),0);pass('Homepage recognises returning user');
  const beforeRefresh=state.refreshes;
  const expiring=(await browser.cookies()).find(c=>c.name.endsWith('-auth-token')&&c.value.startsWith('base64-'));
  assert.ok(expiring);
  const session=JSON.parse(Buffer.from(expiring.value.slice(7),'base64url').toString());session.expires_at=Math.floor(Date.now()/1000)-60;
  await browser.addCookies([{...expiring,value:'base64-'+Buffer.from(JSON.stringify(session)).toString('base64url')}]);
- await page.reload();await page.getByRole('navigation',{name:'Welcome back'}).waitFor();assert.ok(state.refreshes>beforeRefresh);pass('Expired access session refresh rotates cookies (mock refresh endpoint)');
+ await page.reload();await page.getByRole('button',{name:'Open account and workspaces',exact:true}).waitFor();assert.ok(state.refreshes>beforeRefresh);pass('Expired access session refresh rotates cookies (mock refresh endpoint)');
+ await mkdir(screenshotDir,{recursive:true});
  const cookies=await browser.cookies();assert.ok(cookies.some(c=>/-auth-token(?:\.\d+)?$/.test(c.name)&&c.expires>Date.now()/1000+86400));pass('Auth cookies persist beyond browser session');
  await browser.close();browser=await chromium.launchPersistentContext(profile,{...options,...devices['Pixel 7'],viewport:{width:390,height:844}});await media(browser);page=await browser.newPage();page.setDefaultTimeout(12000);page.setDefaultNavigationTimeout(15000);
  await page.goto(origin+'/fan');await page.getByRole('button',{name:'▶ Start listening',exact:true}).click();
@@ -49,16 +50,16 @@ try{
  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('fm-listening:11111111-1111-4111-8111-111111111111:published'))?.position>=23);
  await page.getByLabel('Search music',{exact:true}).fill('Test');assert.equal(await page.locator('.global-listening-player').isVisible(),false);assert.equal(await page.locator('.global-listening-player audio').count(),1);await page.getByLabel('Search music',{exact:true}).fill('');await page.getByRole('heading',{name:'Find your frequency.',exact:true}).click();pass('Mobile input focus hides floating controls without unmounting audio');
  await page.getByRole('button',{name:'Artists',exact:true}).first().click();assert.equal(await page.locator('.global-listening-player audio').count(),1);pass('Artist discovery keeps one shared audio element');
- await page.getByRole('link',{name:'Edit Listener fan profile'}).click();await page.waitForURL('**/fan/profile');assert.equal(await page.locator('.global-listening-player audio').count(),1);pass('Shared player survives navigation to profile');
+ await page.getByRole('button',{name:'Open account and workspaces',exact:true}).click();await page.getByRole('link',{name:'My profile',exact:true}).click();await page.waitForURL('**/fan/profile');assert.equal(await page.locator('.global-listening-player audio').count(),1);pass('Shared player survives navigation to profile');
  await browser.close();browser=await chromium.launchPersistentContext(profile,{...options,...devices['Pixel 7'],viewport:{width:390,height:844}});await media(browser);page=await browser.newPage();page.setDefaultTimeout(12000);page.setDefaultNavigationTimeout(15000);
  await page.goto(origin+'/?source=pwa');await page.getByRole('button',{name:'Resume Listening',exact:true}).waitFor();await page.waitForFunction(()=>document.querySelector('.global-listening-player audio')?.currentTime>=23);assert.equal(await page.locator('.global-listening-player audio').evaluate(a=>a.paused),true);pass('Browser reopen / manifest startup restores position without autoplay');
  await page.getByRole('button',{name:'Resume Listening',exact:true}).click();await page.waitForFunction(()=>!document.querySelector('.global-listening-player audio')?.paused);pass('Explicit Resume Listening starts audio');
  await browser.setOffline(true);await page.getByRole('status').filter({hasText:'You’re offline'}).waitFor();await browser.setOffline(false);pass('Network loss and recovery notification');
  for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});await overflow(page,`Homepage ${width}`);}
  await page.goto(origin+'/fan');for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});await overflow(page,`Fan ${width}`);}pass('Homepage and listener have no document overflow at 320/390/768/1440px');
- await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/tmp/kreyoh-fan-mobile.png',fullPage:false});
+ await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/tmp/kreyoh-fan-mobile.png',fullPage:false,scale:'css'});
  state.creator=true;state.hasProject=true;
- await page.goto(origin+'/home');await page.getByRole('heading',{name:/What needs your attention/}).waitFor();
+ await page.goto(origin+'/home');await page.getByRole('heading',{name:'Make your next move.',exact:true}).waitFor();
  await page.goto(origin+'/member-dashboard');await page.waitForLoadState('networkidle');assert.ok(!(await page.url()).includes('/login'));
  assert.equal((await browser.cookies()).find(c=>c.name==='fackts_project_id')?.value,undefined);
  await page.goto(origin+'/projects');const projectButton=page.getByRole('button',{name:'Enter project',exact:true});
@@ -69,12 +70,29 @@ try{
  pass('Creator workspace, projects, catalogue, upload, messages and profile render on mobile (mock data)');
  await page.locator('.global-listening-player audio').waitFor({state:'attached'});
  const transport=await page.locator('.global-listening-player audio').elementHandle();
- await page.getByRole('link',{name:'← Back to your music',exact:true}).click();await page.waitForURL('**/fan');assert.equal(await transport.evaluate(node=>node.isConnected),true);pass('Listening and creator portal switch preserves the same audio element');
+ await page.getByRole('navigation',{name:'Mobile primary navigation'}).getByRole('link',{name:'Discover',exact:true}).click();await page.waitForURL('**/fan');assert.equal(await transport.evaluate(node=>node.isConnected),true);pass('Listening and creator portal switch preserves the same audio element');await page.getByRole('button',{name:'Open account and workspaces',exact:true}).click();await page.locator('button[name=workspace][value=artist]').click();await page.waitForURL('**/workspaces/artist');assert.equal(await transport.evaluate(node=>node.isConnected),true);pass('Workspace switch preserves playback element and authenticated identity');
  state.admin=true;await page.goto(origin+'/admin');await page.waitForLoadState('networkidle');assert.equal(await page.getByRole('heading',{name:'We couldn’t load this page.'}).count(),0);await overflow(page,'Control Room mobile');pass('Control Room mobile shell renders with mock admin grant');
  await page.goto(origin+'/fan');await page.waitForLoadState('networkidle');
  await page.evaluate(async()=>{const registration=await navigator.serviceWorker.register('/sw.js');await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise(resolve=>navigator.serviceWorker.addEventListener('controllerchange',resolve,{once:true}));});
  await browser.setOffline(true);await page.goto(origin+'/projects?offline-test=1');await page.getByRole('heading',{name:'You’re offline.'}).waitFor();assert.equal(await page.locator('input[type=password]').count(),0);await browser.setOffline(false);await page.getByRole('button',{name:'Try again',exact:true}).click();await page.waitForURL('**/projects?offline-test=1');await page.waitForLoadState('networkidle');pass('Service worker offline navigation recovers exact URL without showing login');
  state.outage=true;const unavailable=await page.goto(origin+'/projects');assert.equal(unavailable.status(),503);await page.getByRole('heading',{name:'Let’s reconnect.'}).waitFor();assert.ok((await browser.cookies()).some(c=>/-auth-token(?:\.\d+)?$/.test(c.name)&&c.value));state.outage=false;await page.getByRole('button',{name:'Try again',exact:true}).click();await page.waitForLoadState('networkidle');assert.ok(!(await page.url()).includes('/login'));pass('Auth outage shows recovery and retains session');
+ state.types=['Artist','Producer','Engineer','Videographer','Songwriter'];state.roles=['Artist','Producer','Engineer','A&R','Manager','Project Lead','Studio Owner'];state.hasProject=true;
+ await page.goto(origin+'/fan');await page.waitForLoadState('networkidle');
+ await page.setViewportSize({width:1440,height:1000});assert.ok((await page.locator('.global-listening-player').boundingBox()).height<150,'Desktop player must stay compact');await page.mouse.move(10,10);await page.screenshot({path:path.join(screenshotDir,'ListeningDesktop.png'),fullPage:false,scale:'css'});
+ await page.setViewportSize({width:390,height:844});await page.screenshot({path:path.join(screenshotDir,'ListeningMobile.png'),fullPage:false,scale:'css'});
+ for(const kind of ['artist','producer','engineer','ar','visual','manager','coordinator','creative','studio']){
+  await page.getByRole('button',{name:'Open account and workspaces',exact:true}).click();
+  await page.locator(`button[name="workspace"][value="${kind}"]`).click();await page.waitForURL(`**/workspaces/${kind}`);await page.waitForLoadState('networkidle');
+  await page.locator('[data-fm-header]').waitFor({state:'visible'});assert.equal(await page.locator('[data-fm-header]').count(),1);assert.equal(await page.locator('.returning-actions').count(),0);await overflow(page,`${kind} workspace mobile`);
+  if(['artist','producer','engineer','ar','visual','manager'].includes(kind))await page.screenshot({path:path.join(screenshotDir,kind+'Mobile.png'),fullPage:false,scale:'css'});
+  if(kind==='artist'){await page.setViewportSize({width:1440,height:1000});assert.ok((await page.locator('.global-listening-player').boundingBox()).height<150,'Desktop workspace player must stay compact');await page.mouse.move(10,10);await page.screenshot({path:path.join(screenshotDir,'ArtistDesktop.png'),fullPage:false,scale:'css'});await page.setViewportSize({width:390,height:844});}
+ }
+ pass('All nine professional workspace choices switch through one account without another login');
+ await page.getByRole('button',{name:'Open account and workspaces',exact:true}).click();await page.screenshot({path:path.join(screenshotDir,'WorkspaceSwitcherMobile.png'),fullPage:false,scale:'css'});await page.keyboard.press('Escape');
+ await page.goto(origin+'/documents');await page.waitForLoadState('networkidle');await page.locator('select[name=document_type]').selectOption('brief');await page.locator('input[name=title]').fill('Fixture visual brief');await page.locator('input[type=file][name=file]').setInputFiles({name:'FixtureBrief.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic visual production brief for local test only.')});await page.getByRole('button',{name:'Save Project Record',exact:true}).click();await page.getByRole('heading',{name:'Fixture visual brief',exact:true}).waitFor();assert.equal(state.files.length,1);assert.equal(state.documents[0].file_name,'FixtureBrief.txt');const fileLink=page.getByRole('link',{name:'Open File ↗',exact:true});assert.ok((await fileLink.getAttribute('href')).includes('/storage/v1/object/sign/'));const downloaded=await browser.request.get(await fileLink.getAttribute('href'));assert.equal(downloaded.status(),200);assert.match(await downloaded.text(),/Synthetic project brief/);pass('Project-linked visual brief upload and signed file retrieval work against isolated fixture storage');
+
+ state.types=['Fan'];state.roles=[];state.hasProject=false;await page.goto(origin+'/workspaces/ar');await page.getByRole('heading',{name:'404',exact:true}).waitFor();assert.equal(await page.getByRole('heading',{name:'Find what deserves to be heard.',exact:true}).count(),0);await page.goto(origin+'/home');await page.waitForURL('**/fan');pass('Revoked workspace assignment and stale preference cannot open privileged views');
+ state.creator=true;state.hasProject=true;state.types=null;state.roles=null;
  await page.goto(origin+'/auth/signout');assert.ok((await browser.cookies()).some(c=>/-auth-token(?:\.\d+)?$/.test(c.name)));pass('GET signout requires explicit confirmation');
  await page.getByRole('button',{name:'Sign out',exact:true}).click();await page.waitForURL('**/login');assert.ok(!(await browser.cookies()).some(c=>/-auth-token(?:\.\d+)?$/.test(c.name)&&c.value));pass('Explicit POST logout clears session');
  await page.goto(origin+'/fan?tab=My%20Library');await page.waitForURL('**/login?next=*');assert.equal(new URL(new URL(page.url()).searchParams.get('next'),origin).searchParams.get('tab'),'My Library');
@@ -82,5 +100,5 @@ try{
  state.revoked=true;await page.reload();await page.waitForURL('**/login?next=*');pass('Revoked session cannot load protected page');
  assert.deepEqual(browserErrors,[]);pass('No browser page errors across the tested flows');
  console.log(JSON.stringify({passed:report.length,tests:report},null,2));
-}catch(error){console.error(error);console.error('Playback diagnostics',await browser?.pages().at(-1)?.evaluate(()=>({preferences:Object.fromEntries(Object.keys(localStorage).filter(k=>k.startsWith('fm-')).map(k=>[k,localStorage.getItem(k)])),audio:[...document.querySelectorAll('audio')].map(a=>({time:a.currentTime,duration:a.duration,paused:a.paused}))})).catch(()=>null));console.error(logs.slice(-6000));console.error('Fixture requests',state.requests.slice(-30));process.exitCode=1;}
+}catch(error){console.error(error);console.error('Playback diagnostics',await browser?.pages().at(-1)?.evaluate(()=>({headings:[...document.querySelectorAll('h1')].map(h=>h.textContent),preferences:Object.fromEntries(Object.keys(localStorage).filter(k=>k.startsWith('fm-')).map(k=>[k,localStorage.getItem(k)])),audio:[...document.querySelectorAll('audio')].map(a=>({time:a.currentTime,duration:a.duration,paused:a.paused}))})).catch(()=>null));console.error(logs.slice(-6000));console.error('Fixture requests',state.requests.slice(-30));process.exitCode=1;}
 finally{await browser?.close();child.kill('SIGTERM');server.closeAllConnections();await new Promise(resolve=>server.close(resolve));await rm(profile,{recursive:true,force:true});}

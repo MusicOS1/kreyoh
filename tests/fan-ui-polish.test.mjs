@@ -17,7 +17,7 @@ test("hero images are real FACKTS assets or published artwork, never generated f
  for(const name of ["fackts-creative-community.jpg","fackts-creator-red-wide.jpg","fackts-creator-sky.jpg","fackts-monnokid-workspace.jpg"]){
   assert.doesNotThrow(()=>file("public/branding/"+name));
  }
- assert.match(file("components/ListenerExperience.tsx"),/fan-photo-hero-art/);
+ assert.match(file("components/ListenerExperience.tsx"),/src=\{featured\}/);
  assert.match(file("app/billboard/page.tsx"),/fm-billboard-hero-art/);
  assert.match(file("app/billboard/\[releaseId\]/page.tsx"),/fm-billboard-hero-art/);
  assert.match(file("app/fan/profile/page.tsx"),/fackts-creative-community\.jpg/);

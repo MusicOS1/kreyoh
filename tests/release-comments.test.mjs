@@ -44,5 +44,5 @@ test("fan comment and music player components parse as TypeScript JSX",()=>{
   assert.match(player,/if\(restartCurrent\)\{p.currentTime=0;/);
   assert.match(player,/else togglePlayback\(\)/);
   assert.match(readFileSync(new URL("../components/ListeningProvider.tsx",import.meta.url),"utf8"),/playRequest=\{playRequest\}/);
-  assert.match(feed,/ReleaseComments releaseId=\{r.id\}/);
+  assert.match(feed,/ReleaseComments releaseId=\{release.id\}/);
 });
