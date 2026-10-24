@@ -19,3 +19,19 @@ test('public active artists can be followed before publishing any releases',asyn
 test('unavailable artist profiles and failed validation cannot be followed',async()=>{
  for(const options of [{artist:null},{artist:null,error:new Error('offline')}]){const {run,writes}=action(options);assert.equal((await run('following',id,true)).ok,false);assert.equal(writes.length,0);}
 });
+
+function followRoute(){
+ const calls=[];
+ const source=ts.transpileModule(readFileSync(new URL('../app/api/fan/follow/route.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText;
+ const module={exports:{}};new Function('require','module','exports',source)(name=>name.endsWith('/actions')?{updateFanLibrary:async(...args)=>{calls.push(args);return {ok:true}}}:{uuidPattern:/^[0-9a-f-]{36}$/},module,module.exports);
+ return {post:module.exports.POST,calls};
+}
+test('background follow endpoint preserves validation and rejects cross-site mutations',async()=>{
+ const {post,calls}=followRoute();
+ const request=(body,origin='https://music.test')=>new Request('https://music.test/api/fan/follow',{method:'POST',headers:{origin,'Content-Type':'application/json'},body:JSON.stringify(body)});
+ assert.equal((await post(request({artistId:id,following:true},'https://foreign.test'))).status,403);
+ assert.equal((await post(request({artistId:id,following:'yes'}))).status,400);
+ assert.equal((await post(request({artistId:'invalid',following:true}))).status,400);
+ assert.equal(calls.length,0);
+ const response=await post(request({artistId:id,following:true}));assert.equal(response.status,200);assert.match(response.headers.get('cache-control'),/no-store/);assert.deepEqual(calls,[['following',id,true]]);
+});

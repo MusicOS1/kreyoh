@@ -158,3 +158,13 @@ The listening header now exposes an Artist workspace shortcut for accounts with 
 Added functional server-action regression coverage for following a public artist without releases and rejection of unavailable profiles/service failures. Browser coverage adds follow/unfollow persistence after refresh and direct artist entry at 320, 390, 768 and 1440 px using isolated fixtures. Real production account validation remains outstanding.
 
 Revision validation: 65 unit/SQL/action tests passed; TypeScript, production build and diff checks passed. The final clean browser run passed 30 scenarios with no page errors. An earlier run reported a script syntax error while the development environment was being updated; the clean rerun did not reproduce it.
+
+## Owner feedback revision: responsive Follow
+
+Follow/unfollow now uses a small JSON background request to `/api/fan/follow`, rather than invoking a client Server Action that participates in Next's navigation/action queue. The route reuses the existing authenticated, account-scoped follow validation and rejects cross-origin requests and invalid inputs. No page refresh or navigation is requested by the follow client.
+
+The clicked artist changes immediately to the intended state. Pending requests are tracked per artist, so another artist's controls and unrelated library actions remain enabled. Duplicate clicks on the same pending artist are ignored. On a failed request, only that artist's previous state is restored and a retry message is displayed; other changes are preserved. Playback remains in the shared player.
+
+Browser regression coverage deliberately holds a follow response open, checks the optimistic state and disabled control for that artist, verifies another artist remains enabled, then uses navigation/search and checks Save availability before releasing a failed response and checking rollback. Normal follow/unfollow persistence is still tested separately. Server endpoint tests check input validation and cross-origin rejection before any mutation.
+
+Responsive Follow validation: 66 regression tests, TypeScript, production build, diff check and all 31 isolated browser scenarios passed. No browser page errors were recorded. The delayed-response/rollback scenario passed without blocking the unrelated controls checked above. Physical-device and live-account acceptance remain outstanding.

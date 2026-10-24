@@ -37,7 +37,10 @@ export function mockSupabase(){
 
   if(table==='project_documents')rows=state.documents;
   if(table==='profiles')rows=[{...user,full_name:'Test Listener',nickname:'Listener',creator_types:state.types||(state.creator?['Fan','Artist']:['Fan']),account_status:'active',profile_visibility:'project'}];
-  if(table==='profiles'&&state.publicArtist&&(url.searchParams.has('limit')||url.searchParams.get('id')==='eq.99999999-9999-4999-8999-999999999999'))rows=[{id:'99999999-9999-4999-8999-999999999999',stage_name:'Unreleased fixture artist',creator_types:['Artist'],profile_visibility:'public',account_status:'active'}];
+  if(table==='profiles'&&state.publicArtist&&(url.searchParams.has('limit')||['eq.99999999-9999-4999-8999-999999999999','eq.aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'].includes(url.searchParams.get('id')))){
+   rows=[['99999999-9999-4999-8999-999999999999','Unreleased fixture artist'],['aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','Another fixture artist']].map(([id,stage_name])=>({id,stage_name,creator_types:['Artist'],profile_visibility:'public',account_status:'active'}));
+   if(url.searchParams.has('id'))rows=rows.filter(row=>'eq.'+row.id===url.searchParams.get('id'));
+  }
   if(table==='music_weekly_chart')rows=[releaseId,secondId].map((id,i)=>({id,title:`Test song ${i+1}`,artist_id:userId,artist_name:'Test artist',collection:'Test EP',has_cover:false,release_at:'2026-10-01T12:00:00Z',votes:0}));
   if(table==='control_room_admins'&&state.admin)rows=[{user_id:userId,active:true,permissions:['all']}];
   if(table==='project_members'&&state.hasProject)rows=[{id:'55555555-5555-4555-8555-555555555555',user_id:userId,project_id:'66666666-6666-4666-8666-666666666666',status:'active',joined_at:'2026-01-01',projects:{id:'66666666-6666-4666-8666-666666666666',name:'Test creative project',code:'TEST',status:'active'},member_roles:(state.roles||['Artist']).map(name=>({roles:{name}}))}];
