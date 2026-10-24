@@ -59,7 +59,7 @@
 .context > span,
 .project label {
   font-size: 9px;
-  color: #77717c;
+  color: #b9b2bf;
   letter-spacing: 0.16em;
   font-weight: 700;
 }
@@ -87,13 +87,14 @@
   font-size: 12px;
   min-width: 0;
   overflow-wrap: anywhere;
-  color: #a4a1ad;
+  color: #ebe5ee;
+  font-weight: 600;
   text-decoration: none;
 }
 .links a > span {
   width: 18px;
   font-size: 17px;
-  color: #77727e;
+  color: #b4acbd;
 }
 .links a[aria-current],
 .links a:hover {
@@ -140,8 +141,9 @@
   margin-top: 24px;
 }
 .secondary a {
-  font-size: 11px;
-  color: #807b89;
+  font-size: 12px;
+  font-weight: 600;
+  color: #c5becb;
   text-decoration: none;
 }
 .listen {

@@ -31,14 +31,15 @@
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.14em;
-  color: #79797f;
+  color: #c6c3c8;
   max-width: 160px;
   line-height: 1.6;
 }
 .navigation a,
 .signin {
-  font-size: 13px;
-  color: #bdbcc2;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ebe8ee;
   text-decoration: none;
   white-space: nowrap;
 }
@@ -117,7 +118,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 650;
+  color: #f6f3ef;
 }
 .panel {
   position: absolute;
@@ -147,7 +150,7 @@
 .identity small,
 .workspaces small {
   font-size: 11px;
-  color: #96949c;
+  color: #bcb7c1;
   line-height: 1.5;
 }
 .personal {
@@ -173,7 +176,7 @@
   margin: 12px 10px 8px;
   font-size: 9px;
   letter-spacing: 0.16em;
-  color: #9c815a;
+  color: #d2b181;
 }
 .workspaces {
   display: grid;
@@ -190,7 +193,7 @@
   background: transparent;
   border: 1px solid transparent;
   border-radius: 9px;
-  color: #c1bec8;
+  color: #eeeaf0;
   cursor: pointer;
 }
 .header .workspaces button > span:first-child {
@@ -215,7 +218,7 @@
 .header .signout {
   font: inherit;
   font-size: 12px;
-  color: #b6afb6;
+  color: #e2dce2;
   background: transparent;
   border: 0;
   min-height: 44px;
@@ -312,7 +315,7 @@
   margin: 5px 10px 14px;
   font-size: 11px;
   line-height: 1.8;
-  color: #8f8299;
+  color: #c4bac9;
 }
 
 .workspaceShortcut {
@@ -331,3 +334,9 @@
   .workspaceShortcut { max-width: 80px; font-size: 11px; padding: 6px; }
   .actions { gap: 4px; }
 }
+
+/* Readable shared navigation across all public and authenticated destinations. */
+.header .navigation a:focus-visible,.header .accountButton:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.header .navigation a[aria-current="page"]{color:var(--gold)}
+.header .panel .personal a,.header .panel .secondary a{color:#ede9ef;font-size:13px;font-weight:600}
+.header .panel .workspaces small{color:#c5beca}
