@@ -22,6 +22,11 @@ async function activeRoleNames(userId: string) {
   );
 }
 
+export async function isProjectSuperAdmin(userId: string) {
+  const roles = await activeRoleNames(userId);
+  return roles.includes("Super Admin");
+}
+
 export async function isSuperAdmin(userId: string) {
   const admin = createAdminClient();
   const [roles, { data: grant, error }] = await Promise.all([

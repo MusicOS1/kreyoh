@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import {
   requireControlRoomPermission,
   requireSuperAdmin,
-  isSuperAdmin,
+  isProjectSuperAdmin,
   type ControlRoomPermission,
 } from "../../../lib/controlRoom";
 import { createAdminClient } from "../../../lib/supabase/admin";
@@ -28,36 +28,91 @@ async function uploadImage(admin:any, projectId:string, file:File|null, kind:str
   return admin.storage.from(BUCKET).getPublicUrl(key).data.publicUrl;
 }
 
-export async function setScopedAdminAccess(fd:FormData) {
-  const actor = await requireSuperAdmin();
+async function changeScopedAdminAccess(
+  fd: FormData,
+  actor: { id: string },
+  operation: "manage" | "revoke",
+) {
   const admin = createAdminClient();
   const userId = read(fd,"user_id");
-  const active = read(fd,"active") !== "false";
+  const active = operation === "revoke" ? false : read(fd,"active") !== "false";
   if (!userId) throw new Error("Choose an account.");
-  if (await isSuperAdmin(userId)) throw new Error("Super Admin permissions cannot be reduced from this panel.");
-
-  const permissions = fd.getAll("permissions").map(String).filter(
-    (p): p is ControlRoomPermission => ADMIN_PERMISSIONS.has(p as ControlRoomPermission)
+  if (userId === actor.id) throw new Error("You cannot change your own full administrator access.");
+  // Protect distinct project-based Super Admin membership, not every
+  // full-access global grant. Another full global admin can revoke one.
+  if (await isProjectSuperAdmin(userId)) {
+    throw new Error("This account also has a project Super Admin role. Review that role separately.");
+  }
+  const permissions = [...new Set(fd.getAll("permissions").map(String))].filter(
+    (p): p is ControlRoomPermission => ADMIN_PERMISSIONS.has(p as ControlRoomPermission),
   );
   if (active && !permissions.length) throw new Error("Choose at least one Admin permission.");
-
-  const { error } = await admin.from("control_room_admins").upsert({
-    user_id:userId, granted_by:actor.id, active,
-    permissions:permissions.length ? permissions : ["projects"],
-    updated_at:new Date().toISOString(),
-  }, { onConflict:"user_id" });
-  if (error) throw new Error(error.message);
-
-  await notifyUser(admin, {
-    userId,
-    type:"admin_permissions_updated",
-    title:active ? "Administrator access updated" : "Administrator access disabled",
-    body:active ? `Your Control Room permissions are: ${permissions.join(", ")}.` : "Your administrator access was disabled by Super Admin.",
-    entityType:"profile",
-    entityId:userId,
+  const { data: existing, error: readError } = await admin.from("control_room_admins")
+    .select("user_id,active,permissions").eq("user_id",userId).maybeSingle();
+  if (readError) throw new Error("Could not check the account's existing access.");
+  if (!active && !existing?.active) throw new Error("This account's administrator access is already disabled.");
+  if (existing?.active && existing.permissions?.includes("all")
+      && (!active || !permissions.includes("all" as ControlRoomPermission))) {
+    const { count, error: countError } = await admin.from("control_room_admins")
+      .select("user_id", { count:"exact", head:true })
+      .eq("active",true).contains("permissions",["all"]);
+    if (countError || count === null) throw new Error("Unable to verify remaining full administrators.");
+    if (count < 2) throw new Error("Cannot disable the last full platform administrator.");
+  }
+  const nextPermissions = active ? permissions
+    : (existing?.permissions?.length ? existing.permissions : ["projects"]);
+  const { data: updated, error } = await admin.from("control_room_admins")
+    .upsert({
+      user_id:userId, granted_by:actor.id, active,
+      permissions:nextPermissions,
+      updated_at:new Date().toISOString(),
+    }, {onConflict:"user_id"})
+    .select("user_id").maybeSingle();
+  if (error || !updated) throw new Error("Could not save administrator access.");
+  const { error:auditError } = await admin.from("platform_events").insert({
+    user_id:actor.id,
+    event_name:active ? "control_room_access_updated" : "control_room_access_revoked",
+    category:"admin",
+    entity_type:"profile",
+    entity_id:userId,
+    metadata:{active,permissions:nextPermissions},
   });
+  if (auditError) console.warn("Could not write Control Room access audit",auditError.code);
+  try {
+    await notifyUser(admin,{
+      userId,
+      type:"admin_permissions_updated",
+      title:active ? "Administrator access updated" : "Administrator access disabled",
+      body:active ? "Your Control Room permissions are: " + permissions.join(", ") + "."
+        : "Your Control Room administrator access was disabled. Your music account, projects and content remain.",
+      entityType:"profile",
+      entityId:userId,
+    });
+  } catch (error) {
+    console.warn("Could not send Control Room access notification",error);
+  }
   revalidatePath("/admin/users");
   revalidatePath("/notifications");
+}
+
+// Preserve the existing grant form's FormData server action API.
+export async function setScopedAdminAccess(fd:FormData) {
+  const actor = await requireSuperAdmin();
+  return changeScopedAdminAccess(fd,actor,"manage");
+}
+
+// Revocation reports expected failures inline rather than a runtime error.
+export async function revokeScopedAdminAccess(
+  _previous: {error:string;success:string},
+  fd:FormData,
+):Promise<{error:string;success:string}> {
+  const actor = await requireSuperAdmin();
+  try {
+    await changeScopedAdminAccess(fd,actor,"revoke");
+    return {error:"",success:"Administrator access disabled. The music account remains intact."};
+  } catch (error) {
+    return {error:error instanceof Error?error.message:"Unable to disable administrator access.",success:""};
+  }
 }
 
 export async function setManagedProjectLead(fd:FormData) {

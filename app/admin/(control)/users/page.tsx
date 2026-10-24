@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AdminRevokeAccessForm from "../../../../components/AdminRevokeAccessForm";
 import { createAdminClient } from "../../../../lib/supabase/admin";
 import { requireControlRoomPermission, isSuperAdmin } from "../../../../lib/controlRoom";
 import { addUsersToManagedProject, removeManagedMember, restoreManagedMember } from "../actions";
@@ -51,7 +52,9 @@ export default async function AdminUsers({searchParams}:{searchParams:Promise<{q
         <div className="control-permission-checks">{permissionOptions.map(([value,label])=><label key={value}><input type="checkbox" name="permissions" value={value}/><span>{label}</span></label>)}</div>
         <input type="hidden" name="active" value="true"/><button type="submit">Grant platform admin access</button>
       </form> : <p className="control-admin-access-restricted" role="status"><strong>Administrator appointments are restricted.</strong> Your current account can manage people, but it does not have full platform administrator authority. Sign in with an existing full-access administrator account to grant or revoke platform permissions. You do not need to add anyone to a music project.</p>}
-      {superAdmin&&<div className="control-admin-grants">{safeControlAdmins.map((g:any)=>{const a=(safeUsers as any[]).find(u=>u.id===g.user_id);return <article key={g.user_id}><span><strong>{a?.stage_name||a?.full_name||a?.email||"Administrator"}</strong><small>{g.active?(g.permissions||[]).join(" · "):"Access disabled"}</small></span>{g.active&&<form action={setScopedAdminAccess}><input type="hidden" name="user_id" value={g.user_id}/><input type="hidden" name="active" value="false"/><button className="control-danger">Disable Admin</button></form>}</article>})}</div>}
+      {superAdmin&&<div className="control-admin-grants">{safeControlAdmins.map((g:any)=>{const a=(safeUsers as any[]).find(u=>u.id===g.user_id);return <article key={g.user_id}><span><strong>{a?.stage_name||a?.full_name||a?.email||"Administrator"}</strong><small>{g.active?(g.permissions||[]).join(" · "):"Access disabled"}</small></span>{g.active && (g.user_id === actor.id
+  ? <small className="control-admin-protected">Your administrator account · protected</small>
+  : <AdminRevokeAccessForm userId={g.user_id} name={a?.stage_name||a?.full_name||a?.email||"this account"}/>)}</article>})}</div>}
     </section>
 
     <section className="control-panel"><header><div><span className="control-eyebrow">MUSIC PROJECT ACCESS</span><h2>Add existing accounts to a music project</h2></div></header>
