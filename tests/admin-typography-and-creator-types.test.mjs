@@ -35,3 +35,13 @@ test("platform administrator grant cards have readable light surfaces and clear 
  assert.match(scoped,/color-scheme: light;/);
  assert.match(scoped,/@media \(max-width: 760px\)/);
 });
+
+test("Control Room's dark shared header retains a visible FACKTS Music wordmark",()=>{
+ const css=get("app/admin/control-room.css");
+ const header=get("components/ecosystem/GlobalHeader.tsx");
+ assert.match(header,/data-fm-header/);
+ assert.match(css,/\.control-room \[data-fm-header\] \.fackts-music-wordmark,/);
+ assert.match(css,/\.control-room \[data-fm-header\] \.fackts-music-wordmark strong \{\s*color: #f4f2ed !important;/);
+ assert.doesNotMatch(css,/\.control-room \.fackts-music-wordmark strong,.control-login-page/);
+ assert.match(css,/\.control-room \.control-topbar \.fackts-music-wordmark strong/);
+});
