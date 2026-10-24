@@ -204,3 +204,31 @@ Actual implemented card screenshots (synthetic local records): [mobile](Phase2Sc
 Reproduce the focused checks after the normal build/tests with `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/path/to/chromium node tests/browser/interaction-cards.mjs`, or omit the environment override when Playwright Chromium is installed. Run it separately from the full browser suite because both use the same isolated fixture ports. The harness scrolls the composer into view before clicking, avoiding smooth-scroll movement between pointer down/up.
 
 The final focused harness passed all 3 checks with no page errors or duplicate-key/hydration warnings. Collection card keys now include the actual artist ID so artists with the same display name remain distinct. The final full-suite run passed all 33 scenarios. A blocked npm update-network check interrupted a runner handoff; final unit/build/focused checks were completed directly with Node using installed dependencies.
+
+
+## V4 public homepage restoration
+
+The root route `/` restores `app/page.tsx` verbatim from production `main` (Phase 1). Its hero, real imagery, creator ticker and public profiles, operating-layer cards, founding project, production workflow, conditional creator interviews, partnership band and footer remain intact. About, Partners and Contact retain their existing pages. No discovery feed or authenticated redirect replaces this page.
+
+The original public header now links to About, How It Works, Creators, Explore Music, Partners and Contact, with Sign In and Join for visitors. Signed-in visitors see My Library, My Workspace (`/home`, using the existing authorised preference) and Continue Listening. The mobile menu uses the same destinations. Listening and workspace headers keep the Phase 2 account/workspace switcher; their brand and Public website link return to `/`. Discovery stays at `/listen`; fan collections stay at `/fan`. The persistent session and root listening provider remain in the shared root layout. Muted decorative videos no longer take music audio focus; audible media retain the existing single-playback behaviour.
+
+### Registration and approval review
+
+Signup records `creator_types` and a private/project-visible profile. This is a descriptive identity, not a privileged role application approval. Ordinary creative workspace presentation can follow those identities, while project data and operations continue to require active membership and server permission checks. A&R, Manager, Studio and coordination/control access derive from assigned roles or explicit administrative grants, not a selected signup profession. `app/people/actions.ts` restricts contributor onboarding and role assignment to authorised managers; invitation acceptance is scoped to the invited user and pending invitation. Workspace switching checks the server-derived options before changing a preference cookie; it does not create memberships or sign out the user.
+
+A separate professional application queue with submitted evidence, reviewer assignment, approval/rejection reasons, applicant notifications and appeal/reapplication policy is not implemented by this correction. Product requirements must specify which professions need platform verification versus project-specific invitation, who may approve them, and whether verification is distinct from project privileges. No new approval rules, auth behaviour, migrations, or production data writes are included.
+
+### Local inspection
+
+In the VS Code terminal, from the existing repository folder:
+
+```bash
+git switch feat/phase2-unified-workspaces
+git pull --ff-only origin feat/phase2-unified-workspaces
+npm run dev
+```
+
+Keep the existing local environment configuration. Open `http://localhost:3000/`, `/listen`, `/fan` and `/home`. If a dev server is already running, stop it with Ctrl+C before restarting. No new launch script or dependency is needed.
+
+
+Validation for this correction: 74 existing unit/regression tests passed; TypeScript and a normal production build passed. The extended full browser suite passed 36 scenarios, including logged-out `/` to `/listen`, signed-in `/`, persistent audio continuity across the public homepage, session recovery, deep links, nine role workspaces, workspace switching and revoked access. Four focused checks passed, including public navigation/brand visibility and overflow at 320/390/768/1024/1440px, compact card actions, optimistic vote rollback and failed comment draft retention. Original branding images loaded and local mobile/desktop screenshots were visually inspected. Browser checks use isolated auth/data/media fixtures, not production data. Real account/email/device/R2 acceptance remains as documented above.

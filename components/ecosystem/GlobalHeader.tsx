@@ -104,7 +104,7 @@ export default function GlobalHeader({
           </button>
         )}
         <Link
-          href={identity ? '/fan' : '/'}
+          href="/"
           aria-label="FACKTS Music home"
           className={styles.brand}
         >
@@ -116,6 +116,7 @@ export default function GlobalHeader({
         <Link href={identity ? '/fan' : '/listen'}>Discover</Link>
         <Link href={identity ? '/fan?tab=Artists' : '/creators'}>Artists</Link>
         <Link href="/billboard">Billboard</Link>
+        {identity && <Link href="/fan?tab=My%20Library">Library</Link>}
       </nav>
       <div className={styles.actions}>
         {identity ? (
@@ -208,6 +209,7 @@ export default function GlobalHeader({
                     ))}
                   </form>
                   <div className={styles.secondary}>
+                    <Link href="/">Public website</Link>
                     <Link href="/settings">Settings</Link>
                     <Link href="/help">Help</Link>
                   </div>

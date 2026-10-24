@@ -25,7 +25,15 @@ async function overflow(page,label){const size=await page.evaluate(()=>({scroll:
 try{
  for(let attempt=0;attempt<90;attempt++){try{if((await fetch(origin+'/offline.html',{signal:AbortSignal.timeout(3000)})).ok)break;}catch{}await new Promise(resolve=>setTimeout(resolve,500));if(attempt===89)throw Error('Dev server did not start');}
  browser=await chromium.launchPersistentContext(profile,{...options,...devices['Pixel 7'],viewport:{width:390,height:844}});await media(browser);
- let page=await browser.newPage();page.setDefaultTimeout(12000);page.setDefaultNavigationTimeout(15000);
+ let page=await browser.newPage();page.setDefaultTimeout(12000);page.setDefaultNavigationTimeout(45000);
+ await page.goto(origin+'/');
+ await page.getByRole('heading',{name:'Discover music. Find your people. Be part of it.'}).waitFor();
+ assert.equal(await page.locator('.fm-v3-project-001').count(),1);assert.equal(await page.locator('.fm-v3-flow li').count(),6);
+ assert.equal(await page.locator('.fm-public-footer').count(),1);assert.equal(await page.locator('[data-fm-header]').count(),0);
+ await page.getByRole('button',{name:'Toggle navigation',exact:true}).click();
+ await page.getByRole('navigation',{name:'Mobile navigation',exact:true}).getByRole('link',{name:'Explore Music',exact:true}).click();
+ await page.waitForURL('**/listen',{waitUntil:'domcontentloaded'});await page.getByRole('heading',{name:'Find your frequency.',exact:true}).waitFor();
+ pass('Public homepage marketing content and mobile Explore Music link lead to premium /listen');
  await page.goto(origin+'/signup?next=/fan');await page.getByLabel('Full Name',{exact:true}).fill('Test Listener');await page.getByLabel('Email Address',{exact:true}).fill('listener@example.test');
  // Form labels may evolve; keep the fixture tied to the existing field names.
  await page.locator('input[name="password"]').fill('Local test password 123!');await page.locator('input[name="confirm_password"]').fill('Local test password 123!');
@@ -34,16 +42,16 @@ try{
  await page.goto(origin+'/auth/callback?token_hash=local-confirmation&type=signup&next=%2Ffan%3Ftab%3DArtists');
  await page.waitForURL('**/fan?tab=Artists');await page.getByRole('heading',{name:'Artists',exact:true}).waitFor();pass('Email token confirmation callback preserves deep link (mock verification)');
  await page.reload();await page.getByRole('heading',{name:'Artists',exact:true}).waitFor();pass('Authenticated refresh');
- await page.goto(origin+'/');await page.getByRole('button',{name:'Open account and workspaces',exact:true}).waitFor();assert.equal(await page.locator('[data-fm-header]').getByRole('link',{name:'Sign in',exact:true}).count(),0);pass('Homepage recognises returning user');
+ await page.goto(origin+'/');await page.getByRole('link',{name:'My Workspace',exact:true}).first().waitFor();assert.equal(await page.getByRole('heading',{name:'Discover music. Find your people. Be part of it.'}).count(),1);assert.equal(await page.locator('[data-fm-header]').count(),0);pass('Signed-in homepage keeps original public content and one public header');
  const beforeRefresh=state.refreshes;
  const expiring=(await browser.cookies()).find(c=>c.name.endsWith('-auth-token')&&c.value.startsWith('base64-'));
  assert.ok(expiring);
  const session=JSON.parse(Buffer.from(expiring.value.slice(7),'base64url').toString());session.expires_at=Math.floor(Date.now()/1000)-60;
  await browser.addCookies([{...expiring,value:'base64-'+Buffer.from(JSON.stringify(session)).toString('base64url')}]);
- await page.reload();await page.getByRole('button',{name:'Open account and workspaces',exact:true}).waitFor();assert.ok(state.refreshes>beforeRefresh);pass('Expired access session refresh rotates cookies (mock refresh endpoint)');
+ await page.reload();await page.getByRole('link',{name:'My Workspace',exact:true}).first().waitFor();assert.ok(state.refreshes>beforeRefresh);pass('Expired access session refresh rotates cookies (mock refresh endpoint)');
  await mkdir(screenshotDir,{recursive:true});
  const cookies=await browser.cookies();assert.ok(cookies.some(c=>/-auth-token(?:\.\d+)?$/.test(c.name)&&c.expires>Date.now()/1000+86400));pass('Auth cookies persist beyond browser session');
- await browser.close();browser=await chromium.launchPersistentContext(profile,{...options,...devices['Pixel 7'],viewport:{width:390,height:844}});await media(browser);page=await browser.newPage();page.setDefaultTimeout(12000);page.setDefaultNavigationTimeout(15000);
+ await browser.close();browser=await chromium.launchPersistentContext(profile,{...options,...devices['Pixel 7'],viewport:{width:390,height:844}});await media(browser);page=await browser.newPage();page.setDefaultTimeout(12000);page.setDefaultNavigationTimeout(45000);
  await page.goto(origin+'/fan');await page.getByRole('button',{name:'▶ Start listening',exact:true}).click();
  const audio=page.locator('.global-listening-player audio');await audio.waitFor({state:"attached"});await page.waitForFunction(()=>document.querySelector('.global-listening-player audio')?.readyState>=3);
  await audio.evaluate(element=>{element.currentTime=24;});await page.waitForFunction(()=>document.querySelector('.global-listening-player audio')?.currentTime>=23);await page.getByRole('button',{name:'Pause',exact:true}).click();
@@ -51,11 +59,25 @@ try{
  await page.getByLabel('Search music',{exact:true}).fill('Test');assert.equal(await page.locator('.global-listening-player').isVisible(),false);assert.equal(await page.locator('.global-listening-player audio').count(),1);await page.getByLabel('Search music',{exact:true}).fill('');await page.getByRole('heading',{name:'Find your frequency.',exact:true}).click();pass('Mobile input focus hides floating controls without unmounting audio');
  await page.getByRole('button',{name:'Artists',exact:true}).first().click();assert.equal(await page.locator('.global-listening-player audio').count(),1);pass('Artist discovery keeps one shared audio element');
  await page.getByRole('button',{name:'Open account and workspaces',exact:true}).click();await page.getByRole('link',{name:'My profile',exact:true}).click();await page.waitForURL('**/fan/profile');assert.equal(await page.locator('.global-listening-player audio').count(),1);pass('Shared player survives navigation to profile');
- await browser.close();browser=await chromium.launchPersistentContext(profile,{...options,...devices['Pixel 7'],viewport:{width:390,height:844}});await media(browser);page=await browser.newPage();page.setDefaultTimeout(12000);page.setDefaultNavigationTimeout(15000);
+ const publicTransport=await page.locator('.global-listening-player audio').elementHandle();
+ await page.getByRole('button',{name:'Play',exact:true}).click();await page.waitForFunction(()=>!document.querySelector('.global-listening-player audio')?.paused);
+ await page.getByRole('link',{name:'FACKTS Music home',exact:true}).click();await page.waitForURL(origin+'/',{waitUntil:'domcontentloaded'});
+ await page.getByRole('heading',{name:'Discover music. Find your people. Be part of it.'}).waitFor();
+ assert.equal(await publicTransport.evaluate(node=>node.isConnected),true);
+ assert.equal(await publicTransport.evaluate(node=>node.paused),false,'Muted homepage animation must not interrupt music');
+ await page.getByRole('link',{name:'Explore the music',exact:false}).click();await page.waitForURL('**/listen',{waitUntil:'domcontentloaded'});
+ assert.equal(await publicTransport.evaluate(node=>node.isConnected),true);await page.getByRole('button',{name:'Pause',exact:true}).click();pass('Public homepage and /listen navigation preserve the same audio element and session');
+
+ await browser.close();browser=await chromium.launchPersistentContext(profile,{...options,...devices['Pixel 7'],viewport:{width:390,height:844}});await media(browser);page=await browser.newPage();page.setDefaultTimeout(12000);page.setDefaultNavigationTimeout(45000);
  await page.goto(origin+'/?source=pwa');await page.getByRole('button',{name:'Resume Listening',exact:true}).waitFor();await page.waitForFunction(()=>document.querySelector('.global-listening-player audio')?.currentTime>=23);assert.equal(await page.locator('.global-listening-player audio').evaluate(a=>a.paused),true);pass('Browser reopen / manifest startup restores position without autoplay');
  await page.getByRole('button',{name:'Resume Listening',exact:true}).click();await page.waitForFunction(()=>!document.querySelector('.global-listening-player audio')?.paused);pass('Explicit Resume Listening starts audio');
  await browser.setOffline(true);await page.getByRole('status').filter({hasText:'You’re offline'}).waitFor();await browser.setOffline(false);pass('Network loss and recovery notification');
- for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});await overflow(page,`Homepage ${width}`);}
+ for(const width of [320,390,768,1440]){
+ await page.setViewportSize({width,height:900});await overflow(page,`Homepage ${width}`);
+ if(width===390||width===1440)await page.screenshot({path:path.join(screenshotDir,`PublicHomepage${width}.png`),fullPage:true,scale:'css'});
+ }
+ const branding=await page.locator('.fm-v3-hero-world img,.fm-v3-project-image img').evaluateAll(images=>images.map(image=>({src:image.getAttribute('src'),loaded:image.complete&&image.naturalWidth>0})));
+ assert.ok(branding.every(image=>image.loaded),JSON.stringify(branding));pass('Original homepage imagery loads at phone and desktop widths');
  await page.goto(origin+'/fan');for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});await overflow(page,`Fan ${width}`);}pass('Homepage and listener have no document overflow at 320/390/768/1440px');
  await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/tmp/kreyoh-fan-mobile.png',fullPage:false,scale:'css'});
  state.publicArtist=true;

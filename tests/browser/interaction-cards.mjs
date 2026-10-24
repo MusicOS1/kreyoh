@@ -12,6 +12,24 @@ try{
  for(let i=0;i<90;i++){try{if((await fetch(origin+'/offline.html')).ok)break;}catch{}await new Promise(resolve=>setTimeout(resolve,500));if(i===89)throw Error('Dev server unavailable');}
  browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE,args:['--no-sandbox','--disable-dev-shm-usage']});
  page=await browser.newPage({viewport:{width:390,height:844}});page.on('pageerror',error=>errors.push(error.message));page.on('console',message=>{if(message.type()==='error'){console.error('BROWSER CONSOLE',message.text());if(/same key|Hydration|hydration|cannot be a descendant/.test(message.text()))errors.push(message.text());}});page.setDefaultTimeout(12000);page.setDefaultNavigationTimeout(45000);
+ await page.goto(origin+'/');
+ for(const width of [320,390,768,1024,1440]){
+  await page.setViewportSize({width,height:900});
+  const desktop=await page.getByRole('navigation',{name:'Public navigation',exact:true}).isVisible();
+  if(desktop){
+   const brand=await page.getByRole('link',{name:'FACKTS Music home',exact:true}).boundingBox();
+   const about=await page.getByRole('navigation',{name:'Public navigation',exact:true}).getByRole('link',{name:'About',exact:true}).boundingBox();
+   assert.ok(about.x>=brand.x+brand.width-1,`Public brand overlaps About at ${width}px`);
+  }else{
+   await page.getByRole('button',{name:'Toggle navigation',exact:true}).click();
+   const menu=page.getByRole('navigation',{name:'Mobile navigation',exact:true});
+   for(const name of ['About','How It Works','Creators','Explore Music','Partners','Contact','Sign In','Join FACKTS'])assert.ok(await menu.getByRole('link',{name,exact:false}).isVisible());
+   await page.getByRole('button',{name:'Toggle navigation',exact:true}).click();
+  }
+  const size=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:innerWidth}));assert.ok(size.scroll<=size.width+1);
+ }
+ await page.screenshot({path:screenshots+'/PublicHomepageHeader.png',fullPage:false});
+ console.log('PASS Public homepage navigation and brand stay accessible across phone, tablet and desktop widths');
  await page.goto(origin+'/auth/callback?token_hash=fixture&type=signup&next=/fan?tab=Billboard');await page.waitForLoadState('networkidle');
  const header=await page.locator('[data-fm-header]').elementHandle();let requests=0;page.on('request',request=>{if(request.headers()['next-action'])requests++});
  let delayed;await page.route('**/api/interactions/releaseVote',route=>{delayed=route});
