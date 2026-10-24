@@ -1,5 +1,6 @@
 "use server";
 
+import {safeNext} from "../../lib/navigation";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "../../lib/supabase/server";
@@ -13,7 +14,7 @@ export async function controlRoomLogin(formData: FormData) {
   const supabase=await createClient();
   const {data,error}=await supabase.auth.signInWithPassword({email,password});
   if(error||!data.user) redirect("/admin/login?error=Access+unavailable.");
-  if(!(await isControlRoomUser(data.user.id))){await supabase.auth.signOut();redirect("/admin/login?error=Access+unavailable.");}
+  if(!(await isControlRoomUser(data.user.id)))redirect("/admin/access-unavailable");
   const admin=createAdminClient();
   const now=new Date().toISOString();
   await Promise.all([
@@ -21,7 +22,8 @@ export async function controlRoomLogin(formData: FormData) {
     admin.from("auth_events").insert({user_id:data.user.id,event_name:"login_completed",metadata:{surface:"control_room"}}),
   ]);
   revalidatePath("/","layout");
-  redirect("/admin");
+  const next=safeNext(String(formData.get("next")||""),"/admin");
+  redirect(next.startsWith("/admin/")||next==="/admin"?next:"/admin");
 }
 
 export async function controlRoomLogout(){

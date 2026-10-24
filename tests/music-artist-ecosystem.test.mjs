@@ -24,7 +24,7 @@ test("fans browse artists, play and follow without leaving the current audio tre
  const discovery=read("components/ArtistDiscovery.tsx");
  assert.match(experience,/tab==='Artists'&&<ArtistDiscovery/);
  assert.match(experience,/onPlay=\{play\}/);
- assert.match(experience,/started&&queue\.length>0/);
+ assert.match(read("components/ListeningProvider.tsx"),/started&&queue\.length>0/);
  assert.match(discovery,/onFollow\(selectedArtist\.id\)/);
  assert.match(discovery,/onPlay\(release\)/);
  assert.match(discovery,/catalogueOnly/);

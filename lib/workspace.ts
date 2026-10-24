@@ -1,3 +1,6 @@
+import { isTransientAuthError } from "./authFailure";
+import { safeNext } from "./navigation";
+import { headers } from "next/headers";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
@@ -9,7 +12,8 @@ const first = <T,>(value: T | T[] | null | undefined): T | null => Array.isArray
 async function loadWorkspace() {
   const supabase = await createClient();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !user) redirect("/login");
+  if (isTransientAuthError(userError)) throw new Error("Your connection was interrupted. Please try again; you have not been signed out.");
+  if (userError || !user) redirect(`/login?next=${encodeURIComponent(safeNext((await headers()).get("x-fackts-path")))}`);
 
   const admin = createAdminClient();
   const [profileResult, membershipResult] = await Promise.all([
@@ -21,6 +25,7 @@ async function loadWorkspace() {
       .order("joined_at", { ascending: true }),
   ]);
 
+  if (profileResult.error || membershipResult.error) throw new Error("Your workspace could not be loaded. Please try again.");
   let profile = profileResult.data;
   if (!profile) {
     const { data } = await admin.from("profiles").upsert({

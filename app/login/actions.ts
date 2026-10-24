@@ -16,14 +16,20 @@ export async function login(formData: FormData) {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error || !data.user) return fail(error?.message || "Sign in failed.");
+  try {
   const admin = createAdminClient();
   const now = new Date().toISOString();
   await Promise.all([
     admin.from("profiles").update({ last_login_at: now, last_active_at: now }).eq("id", data.user.id),
     admin.from("auth_events").insert({ user_id: data.user.id, event_name: "login_completed", metadata: { surface: "main" } }),
   ]);
+  } catch {
+    console.warn("Login activity logging unavailable");
+  }
+  const admin = createAdminClient();
   const {data:profile}=await admin.from("profiles").select("creator_types").eq("id",data.user.id).maybeSingle();
-  const destination=next==="/home"&&isFanProfile(profile)?"/fan":next;
+  const {count:projectCount}=await admin.from("project_members").select("id",{count:"exact",head:true}).eq("user_id",data.user.id).eq("status","active");
+  const destination=next==="/home"&&isFanProfile(profile)&&!projectCount?"/fan":next;
   revalidatePath("/", "layout");
   redirect(destination);
 }

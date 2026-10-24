@@ -18,6 +18,6 @@ test('email callbacks are public; normal sign-in preserves next',()=>{
   const proxy=readFileSync(new URL('../lib/supabase/proxy.ts',import.meta.url),'utf8');
   assert.match(proxy,/PUBLIC_ROUTES\s*=\s*\[[\s\S]*?"\/auth\/callback"/);
   const login=readFileSync(new URL('../app/login/actions.ts',import.meta.url),'utf8');
-  assert.match(login,/const destination=next===\"\/home\"&&isFanProfile\(profile\)\?\"\/fan\":next/);
+  assert.match(login,/const destination=next===\"\/home\"&&isFanProfile\(profile\)&&!projectCount\?\"\/fan\":next/);
   assert.match(login,/redirect\(destination\)/);
 });

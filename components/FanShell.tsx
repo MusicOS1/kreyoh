@@ -27,6 +27,7 @@ export default function FanShell({
         {creatorMode&&<Link href="/home">Creator workspace</Link>}
       </nav>
       <div className="fan-topbar-actions">
+        {creatorMode&&<Link className="fan-workspace-link" href="/home" aria-label="Open my creator workspace">Workspace ↗</Link>}
         <FanThemePicker compact/>
         <Link className="fan-account-pill" href="/fan/profile" aria-label={"Edit "+name+" fan profile"}>
           <span className="fan-account-avatar">{avatarUrl?<img src={avatarUrl} alt=""/>:initial}</span>

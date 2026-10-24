@@ -12,7 +12,7 @@ const readable=(value:string|null|undefined)=>String(value||"Update").replaceAll
 
 export default async function PlatformHomePage(){
   const{user,profile,admin,activeProjects,project}=await getWorkspace();
-  if(isFanProfile(profile))redirect("/fan");
+  if(isFanProfile(profile)&&!activeProjects?.length)redirect("/fan");
   const projectIds=(activeProjects||[]).map((item:any)=>item.id);
   const now=new Date().toISOString();
 

@@ -44,14 +44,19 @@ async function completeSignOut(request: NextRequest) {
   }
 
   await supabase.auth.signOut({ scope: "local" });
+  response.cookies.set("fackts_project_id", "", {path:"/",maxAge:0});
   response.headers.set("Cache-Control", "no-store");
   return response;
 }
 
 export async function GET(request: NextRequest) {
-  return completeSignOut(request);
+  // A link prefetch or external navigation must never terminate a valid session.
+  const action=safeDestination(request)==="/admin/login"?"/auth/signout?next=/admin/login":"/auth/signout";
+  return new NextResponse(`<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sign out | FACKTS Music</title><body style="background:#080809;color:white;font:18px system-ui;padding:24px"><h1>Sign out of FACKTS Music?</h1><form action="${action}" method="post"><button style="font:inherit;min-height:48px">Sign out</button></form><p><a style="color:#ffad63" href="/home">Keep listening and working</a></p></body></html>`,{headers:{"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store"}});
 }
 
 export async function POST(request: NextRequest) {
+  const origin=request.headers.get("origin");
+  if(origin&&origin!==request.nextUrl.origin)return new NextResponse("Invalid origin",{status:403});
   return completeSignOut(request);
 }

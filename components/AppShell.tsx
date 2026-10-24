@@ -22,7 +22,7 @@ function orderRoles(roles:string[]){
 
 export default async function AppShell({children}:{children:React.ReactNode}){
   const{profile,user,roles,project,membership,activeProjects,admin}=await getWorkspace();
-  if(isFanProfile(profile))return <FanShell name={profile?.full_name||"Listener"}>{children}</FanShell>;
+  if(isFanProfile(profile)&&!activeProjects?.length)return <FanShell name={profile?.full_name||"Listener"}>{children}</FanShell>;
   const orderedRoles=orderRoles(roles);
   const canAccessControlRoom=await isControlRoomUser(user.id);
   const canReplaceTracks=roles.some((role)=>["Super Admin","Admin","Project Lead","A&R"].includes(role));
