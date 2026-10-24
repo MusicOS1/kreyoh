@@ -31,9 +31,19 @@ export default async function AdminUsers({searchParams}:{searchParams:Promise<{q
   const visible=safeUsers.filter((u:any)=>!params.type||(u.creator_types||[]).includes(params.type));
 
   return <>
-    <section className="control-page-hero users"><span className="control-eyebrow">PEOPLE AND ACCESS</span><h1>The whole creative room.</h1><p>Change project leadership without deleting creative history, and keep Admin authority under Super Admin control.</p></section>
+    <section className="control-page-hero users"><span className="control-eyebrow">PEOPLE AND ACCESS</span><h1>The whole creative room.</h1><p>Platform administrator access is separate from artist and project membership. Full-access administrators can grant carefully scoped access.</p></section>
 
-    <section className="control-panel"><header><div><span className="control-eyebrow">PROJECT ACCESS</span><h2>Add existing accounts to a project</h2></div></header>
+    {superAdmin&&<section className="control-panel control-admin-access-panel"><header><div><span className="control-eyebrow">PLATFORM ADMINISTRATION</span><h2>Give someone Control Room access</h2></div></header>
+      <p className="control-helper">Grant platform permissions to an existing FACKTS Music account. No project invitation or project membership is required. If they have no account, they must sign up first. Only an existing full-access administrator can manage these grants.</p>
+      <form action={setScopedAdminAccess} className="control-admin-permission-form">
+        <select name="user_id" required defaultValue=""><option value="" disabled>Choose an existing FACKTS Music account (search above if missing)</option>{safeUsers.map((u:any)=><option key={u.id} value={u.id}>{u.stage_name||u.full_name||u.email} · {u.email}</option>)}</select>
+        <div className="control-permission-checks">{permissionOptions.map(([value,label])=><label key={value}><input type="checkbox" name="permissions" value={value}/><span>{label}</span></label>)}</div>
+        <input type="hidden" name="active" value="true"/><button type="submit">Grant platform admin access</button>
+      </form>
+      <div className="control-admin-grants">{safeControlAdmins.map((g:any)=>{const a=(safeUsers as any[]).find(u=>u.id===g.user_id);return <article key={g.user_id}><span><strong>{a?.stage_name||a?.full_name||a?.email||"Administrator"}</strong><small>{g.active?(g.permissions||[]).join(" · "):"Access disabled"}</small></span>{g.active&&<form action={setScopedAdminAccess}><input type="hidden" name="user_id" value={g.user_id}/><input type="hidden" name="active" value="false"/><button className="control-danger">Disable Admin</button></form>}</article>})}</div>
+    </section>}
+
+    <section className="control-panel"><header><div><span className="control-eyebrow">MUSIC PROJECT ACCESS</span><h2>Add existing accounts to a music project</h2></div></header>
       <form action={addUsersToManagedProject} className="control-picker">
         <select name="project_id" required defaultValue=""><option value="" disabled>Select project</option>{safeProjects.map((p:any)=><option key={p.id} value={p.id}>{p.name}</option>)}</select>
         <select name="role_name" required defaultValue="Artist">{safeRoles.map((r:any)=><option key={r.name}>{r.name}</option>)}</select>
@@ -41,16 +51,6 @@ export default async function AdminUsers({searchParams}:{searchParams:Promise<{q
         <button type="submit">Add selected accounts</button>
       </form>
     </section>
-
-    {superAdmin&&<section className="control-panel control-admin-access-panel"><header><div><span className="control-eyebrow">ADMIN GOVERNANCE</span><h2>Control what each Admin can change</h2></div></header>
-      <p className="control-helper">Admins can work across projects, but only Super Admin can decide their scope.</p>
-      <form action={setScopedAdminAccess} className="control-admin-permission-form">
-        <select name="user_id" required defaultValue=""><option value="" disabled>Choose an existing FACKTS Music account</option>{safeUsers.map((u:any)=><option key={u.id} value={u.id}>{u.stage_name||u.full_name||u.email} · {u.email}</option>)}</select>
-        <div className="control-permission-checks">{permissionOptions.map(([value,label])=><label key={value}><input type="checkbox" name="permissions" value={value}/><span>{label}</span></label>)}</div>
-        <input type="hidden" name="active" value="true"/><button type="submit">Save administrator permissions</button>
-      </form>
-      <div className="control-admin-grants">{safeControlAdmins.map((g:any)=>{const a=(safeUsers as any[]).find(u=>u.id===g.user_id);return <article key={g.user_id}><span><strong>{a?.stage_name||a?.full_name||a?.email||"Administrator"}</strong><small>{g.active?(g.permissions||[]).join(" · "):"Access disabled"}</small></span>{g.active&&<form action={setScopedAdminAccess}><input type="hidden" name="user_id" value={g.user_id}/><input type="hidden" name="active" value="false"/><button className="control-danger">Disable Admin</button></form>}</article>})}</div>
-    </section>}
 
     <section className="control-directory">{visible.map((u:any)=>{const active=(u.project_members||[]).filter((m:any)=>m.status==="active");const removed=(u.project_members||[]).filter((m:any)=>m.status==="removed");return <article className="control-user-card" key={u.id}>
       <div className="control-avatar">{u.avatar_url?<img src={u.avatar_url} alt=""/>:(u.stage_name||u.full_name||"U").slice(0,2).toUpperCase()}</div>

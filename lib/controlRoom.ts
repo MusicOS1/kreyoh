@@ -23,8 +23,21 @@ async function activeRoleNames(userId: string) {
 }
 
 export async function isSuperAdmin(userId: string) {
-  const roles = await activeRoleNames(userId);
-  return roles.includes("Super Admin");
+  const admin = createAdminClient();
+  const [roles, { data: grant, error }] = await Promise.all([
+    activeRoleNames(userId),
+    admin.from("control_room_admins")
+      .select("active,permissions")
+      .eq("user_id", userId)
+      .maybeSingle(),
+  ]);
+  if (roles.includes("Super Admin")) return true;
+  // Full platform grants are independent of music-project membership.
+  // A scoped administrator cannot grant additional privileges.
+  if (error) return false;
+  return grant?.active === true &&
+    Array.isArray(grant.permissions) &&
+    grant.permissions.includes("all");
 }
 
 export async function isControlRoomUser(userId: string) {
