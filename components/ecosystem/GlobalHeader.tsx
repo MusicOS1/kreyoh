@@ -179,6 +179,9 @@ export default function GlobalHeader({
                     <Link href="/fan/profile" onClick={() => setOpen(false)}>
                       My profile
                     </Link>
+                    <Link href="/professional-onboarding" onClick={() => setOpen(false)}>
+                      Professional verification
+                    </Link>
                     <Link href="/messages" onClick={() => setOpen(false)}>
                       Messages
                     </Link>

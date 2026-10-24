@@ -53,7 +53,7 @@ export default async function ProfessionalRecordPage(){
     @media(max-width:800px){.record-stats,.verification-ladder{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:560px){.record-stats,.verification-ladder{grid-template-columns:1fr}}
   `}</style><div className="content operations-page">
-    <div className="heading"><div><span className="eyebrow">CREATOR RECORD / TRUST LAYER</span><h1>My Professional Record</h1><p>Build a credible record of what you actually produced, wrote, performed or engineered. Claims are never treated as verified facts just because you typed them.</p></div></div>
+    <div className="heading"><div><span className="eyebrow">CREATOR RECORD / TRUST LAYER</span><h1>My Professional Record</h1><p><a href="/professional-onboarding">Professional identity &amp; verification →</a></p><p>Build a credible record of what you actually produced, wrote, performed or engineered. Claims are never treated as verified facts just because you typed them.</p></div></div>
 
     <section className="record-stats">
       <article><span>FACKTS internal verified</span><strong>{verifiedInternal}</strong></article>

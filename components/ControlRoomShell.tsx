@@ -17,6 +17,7 @@ const navigation = [
   { label: "Bulk song importer", href: "/admin/releases/bulk", group: "Operations", permission: "music" },
   { label: "Overview", href: "/admin", group: "Command", permission: "overview" },
   { label: "People & access", href: "/admin/users", group: "Management", permission: "people" },
+  { label: "Professional applications", href: "/admin/professional-applications", group: "Management", permission: "people" },
   { label: "Projects", href: "/admin/projects", group: "Management", permission: "projects" },
   { label: "Music operations", href: "/admin/operations", group: "Operations", permission: "music" },
   { label: "Enquiries", href: "/admin/enquiries", group: "Operations", permission: "enquiries" },
