@@ -17,6 +17,6 @@ export async function saveDiscovery(_: {message:string},fd:FormData){
  const{error}=await admin.from('system_settings').upsert({setting_key:id,setting_value:{title,description,kind,image,url,position,published:fd.get('published')==='on'},updated_at:new Date().toISOString()},{onConflict:'setting_key'});if(error)throw error;
  }
  for(const path of ['/listen','/fan','/admin/discovery'])revalidatePath(path);
- return{message:read('intent')==='delete'?'Content removed.':'Content saved.'};
+ return{message:read('intent')==='delete'?'Content removed.':'Content saved.',id,removed:read('intent')==='delete'};
  }catch(e){return{message:e instanceof Error?e.message:'Could not save content.'};}
 }

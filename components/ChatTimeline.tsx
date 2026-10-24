@@ -1,13 +1,16 @@
 "use client";
 
 import {useEffect,useRef} from "react";
+import {useConversation} from "./MemberConversation";
 
 type Message={id:string;body:string;sender_id:string;created_at:string;read_at:string|null};
 function initials(name:string){return name.trim().split(/\s+/).slice(0,2).map(word=>word[0]?.toUpperCase()).join("")||"F";}
 function dayKey(value:string){return new Date(value).toLocaleDateString("en-KE",{year:"numeric",month:"long",day:"numeric",timeZone:"Africa/Nairobi"});}
 function clock(value:string){return new Date(value).toLocaleTimeString("en-KE",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"Africa/Nairobi"});}
 
-export default function ChatTimeline({messages,viewerId,otherName,avatarUrl}:{messages:Message[];viewerId:string;otherName:string;avatarUrl?:string|null}){
+export default function ChatTimeline({messages:initialMessages,viewerId,otherName,avatarUrl}:{messages:Message[];viewerId:string;otherName:string;avatarUrl?:string|null}){
+  const conversation=useConversation();
+  const messages=conversation?.snapshot.messages||initialMessages;
   const scrollRef=useRef<HTMLDivElement>(null);
   const previousLatest=useRef("");
   useEffect(()=>{

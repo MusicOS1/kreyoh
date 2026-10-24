@@ -24,8 +24,8 @@ export default function SessionExperience({children}:{children:React.ReactNode})
     const disconnected=()=>setOffline(true);
     const visible=()=>{if(document.visibilityState==="visible")void check();};
     setOffline(!navigator.onLine);void check();
-    window.addEventListener("online",online);window.addEventListener("offline",disconnected);document.addEventListener("visibilitychange",visible);
-    return()=>{alive=false;subscription.unsubscribe();window.removeEventListener("online",online);window.removeEventListener("offline",disconnected);document.removeEventListener("visibilitychange",visible);};
+    window.addEventListener("fm-identity-refresh",check);window.addEventListener("online",online);window.addEventListener("offline",disconnected);document.addEventListener("visibilitychange",visible);
+    return()=>{alive=false;subscription.unsubscribe();window.removeEventListener("fm-identity-refresh",check);window.removeEventListener("online",online);window.removeEventListener("offline",disconnected);document.removeEventListener("visibilitychange",visible);};
   },[]);
   return <SessionContext.Provider value={{identity,ready}}>{offline&&<div className="connection-notice" role="status">You’re offline. Reconnect to load music and save changes.</div>}{children}</SessionContext.Provider>;
 }

@@ -1,3 +1,4 @@
+import NotificationReadButton from "../../components/NotificationReadButton";
 import Link from "next/link";
 import AppShell from "../../components/AppShell";
 import {getWorkspace} from "../../lib/workspace";
@@ -31,7 +32,7 @@ export default async function InboxPage(){
       <p><Link className="track-file-download" href="/messages">Private messages{unreadMessages?` · ${unreadMessages} unread`:""} →</Link></p>
       <div className="heading">
         <div><span className="eyebrow">YOUR FACKTS MUSIC INBOX</span><h1>Inbox</h1><p>Invitations, project updates, approvals and role-specific messages live here so important changes do not disappear inside a bell menu.</p></div>
-        <form action={markInboxRead}><button>Mark all read</button></form>
+        <NotificationReadButton label="Mark all read"/>
       </div>
 
       <section className="inbox-summary">
@@ -51,7 +52,7 @@ export default async function InboxPage(){
           </div>
           <div className="inbox-actions">
             <Link className="secondary-button-inline" href={notificationLink(item)}>Open →</Link>
-            {!item.read_at&&<form action={markInboxItemRead}><input type="hidden" name="notification_id" value={item.id}/><button>Mark read</button></form>}
+            {!item.read_at&&<NotificationReadButton id={item.id}/>}
           </div>
         </article>)}
       </section>

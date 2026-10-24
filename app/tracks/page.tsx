@@ -1,3 +1,4 @@
+import TrackNotes from "../../components/TrackNotes";
 import Link from "next/link";
 import AppShell from "../../components/AppShell";
 import BeatAudioPlayer from "../../components/BeatAudioPlayer";
@@ -388,18 +389,8 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
                   {canDevelop && <TrackUploadForm trackId={track.id} />}
                 </section>
 
-                <div className="track-comments">
-                  {(track.comments || []).map((comment: any) => {
-                    const profile = Array.isArray(comment.profiles) ? comment.profiles[0] : comment.profiles;
-                    return <div className="track-note-row" key={comment.id}><p><strong>{profile?.stage_name || profile?.full_name || "Contributor"}</strong> {comment.body}</p>{roles.includes("Super Admin") && <form action={deleteTrackNote}><input type="hidden" name="comment_id" value={comment.id} /><button title="Delete this note">Delete</button></form>}</div>;
-                  })}
-                </div>
+                <TrackNotes trackId={track.id} initial={track.comments||[]} canDelete={roles.includes("Super Admin")} ar={roles.includes("A&R")}/>
 
-                <form action={commentOnTrack} className="track-comment-form">
-                  <input type="hidden" name="track_id" value={track.id} />
-                  <input name="comment" required placeholder={roles.includes("A&R") ? "Add A&R note" : "Add a track comment"} />
-                  <button>Comment</button>
-                </form>
                 </div>
               </details>
             );

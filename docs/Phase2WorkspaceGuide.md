@@ -168,3 +168,39 @@ The clicked artist changes immediately to the intended state. Pending requests a
 Browser regression coverage deliberately holds a follow response open, checks the optimistic state and disabled control for that artist, verifies another artist remains enabled, then uses navigation/search and checks Save availability before releasing a failed response and checking rollback. Normal follow/unfollow persistence is still tested separately. Server endpoint tests check input validation and cross-origin rejection before any mutation.
 
 Responsive Follow validation: 66 regression tests, TypeScript, production build, diff check and all 31 isolated browser scenarios passed. No browser page errors were recorded. The delayed-response/rollback scenario passed without blocking the unrelated controls checked above. Physical-device and live-account acceptance remain outstanding.
+
+## Shared interactions and compact music cards
+
+The owner reported page-wide waiting/blinking during song Likes and asked for the same isolated interaction pattern across role portals. The confirmed causes included a shared library busy flag, client Server Actions that could participate in the page action/navigation queue, explicit vote refreshes and whole-route messaging polls. This revision introduces a shared JSON/multipart background transport with an explicit server operation allowlist. Each operation retains its existing session, membership, role, resource and database checks. The endpoint rejects cross-origin requests, unknown operations and payloads above 1 MB; binary media continues through the existing signed upload controls.
+
+| Surface | Implemented interaction behaviour |
+| --- | --- |
+| Listening, Likes and playlists | Optimistic account-library updates, pending state per song/playlist, duplicate protection and rollback for only the failed item. Playlist creation keeps its name on failure. Collection grouping is memoized rather than recomputed on every click. |
+| Billboard votes | Immediate selection/count feedback with per-vote pending state and rollback; no whole-route refresh. Voting remains separate from Liking a song. |
+| Public comments | Local lazy loading, posting, replies and deletion; retry feedback and retained drafts. Concurrent comment refreshes preserve locally deleted tombstones. |
+| Creator listening/ranking | Background listening/rank writes; passive listening progress does not disable the ballot. Ballot saves update locally, preserving playback. |
+| Project track notes | Background posting/deletion and a scoped notes read, with the existing project and Super Admin deletion checks. |
+| Messaging in fan/creator shells | Conversation-only polling and read updates. Sending/blocking refreshes only that conversation. The composer keeps text on failure and newer drafts survive an earlier send. Peer changes remount the conversation boundary deliberately. |
+| Inbox and notifications | Mark-one/all read stays local, including read indicators and a navigation-identity refresh for unread counts. It does not refresh the route. |
+| Credits and split proposals | Existing RPC/version/approval rules remain unchanged. The proposal panel refreshes its own authorised rows/version/status after success so save → send → review can proceed without a page refresh. |
+| Control Room catalogue | Metadata, thumbnail and credit saves stay in the affected editor; deletion removes that record locally and adjusts displayed totals. Existing confirmations and permission checks remain. |
+| Control Room editorial/hero/release tools | Background form results remain local. Newly created editorial IDs are retained for subsequent edits. Release management keeps its confirmed operational status; bulk approval uses the returned actual approved count. |
+| Shared help | The guide/AI helper uses the same background form transport and existing request permission/rate controls. |
+
+The shared components are used by the fan, artist, producer, engineer, A&R, visual, management, studio and administrative shells. This table defines the implemented quick-action coverage. Authentication, workspace/project selection, new-record creation and upload-completion flows retain their existing navigation behaviour; native operational forms outside this table retain their established flow. No database migration, production record edit, permission assignment, payment automation or rights-workflow change is included.
+
+Music cards use compact thumbnail-and-title layouts, two columns on wide desktop and one column on mobile. Play remains on the artwork. Like, Comment and Share are visible without opening More. Billboard voting is visible in the Billboard card. More contains waveform, playlist and follow options. Opening comments expands the affected card. The design uses existing content/artwork and truthful empty states.
+
+Key implementation: `lib/backgroundInteraction.ts`, `app/api/interactions/[action]/route.ts`, shared listener/release/comment components, `lib/conversationSnapshot.ts`, `MemberConversation.tsx`, `ChatTimeline.tsx`, `NotificationReadButton.tsx`, `TrackNotes.tsx`, `SplitPanel.tsx`, `SplitPlanEditor.tsx` and the Control Room editor components. Existing route compatibility and root listening provider are preserved.
+
+Validation uses isolated synthetic accounts/records. Expanded browser coverage deliberately holds and fails Like/vote requests, checks unrelated controls, confirms local rollback and saved Likes after refresh, posts/deletes comments and tests retained failed drafts. It verifies conversation-only message updates, the shared audio element, role switching and mobile overflow. Endpoint tests cover the operation allowlist, origin/payload boundaries, delegation to existing scoped mutations and project/track filters in split snapshots.
+
+Live SMTP, R2, production-account roles/policies, physical devices and real moderation/approval acceptance remain manual checks. The fixture is not proof of every production write. Earlier development checks found a fixture single-release filtering bug and a generated Next cache failure; the fixture was corrected and the generated cache rebuilt before final verification.
+
+Final verification: 74 regression tests, TypeScript, production build and diff checks passed. The full isolated browser suite passed 33 scenarios. The focused interaction harness separately checks optimistic vote rollback, failed-comment draft preservation and compact-card layout at 320/390/768/1440 px. Browser account/media records are synthetic. Native operational forms and new-record/upload completion flows retain the boundaries described above.
+
+Actual implemented card screenshots (synthetic local records): [mobile](Phase2Screenshots/CompactCardsMobile.png) and [desktop](Phase2Screenshots/CompactCardsDesktop.png).
+
+Reproduce the focused checks after the normal build/tests with `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/path/to/chromium node tests/browser/interaction-cards.mjs`, or omit the environment override when Playwright Chromium is installed. Run it separately from the full browser suite because both use the same isolated fixture ports. The harness scrolls the composer into view before clicking, avoiding smooth-scroll movement between pointer down/up.
+
+The final focused harness passed all 3 checks with no page errors or duplicate-key/hydration warnings. Collection card keys now include the actual artist ID so artists with the same display name remain distinct. The final full-suite run passed all 33 scenarios. A blocked npm update-network check interrupted a runner handoff; final unit/build/focused checks were completed directly with Node using installed dependencies.

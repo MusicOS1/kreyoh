@@ -26,10 +26,11 @@ test("private messaging retains identity, read states and permissions",()=>{
  const conversation=file("app/messages/[userId]/page.tsx");
  const composer=file("components/MemberConversation.tsx");
  const timeline=file("components/ChatTimeline.tsx");
- assert.match(conversation,/getWorkspace\(\)/);
- assert.match(conversation,/member_blocks/);
+ assert.match(file("lib/conversationSnapshot.ts"),/getWorkspace\(\)/);
+ assert.match(file("lib/conversationSnapshot.ts"),/member_blocks/);
  assert.match(conversation,/ChatTimeline/);
- assert.match(composer,/sendMessage,markConversationRead,blockMember/);
+ assert.match(composer,/backgroundInteraction/);
+ assert.doesNotMatch(composer,/router.refresh/);
  assert.match(timeline,/read_at/);
  assert.match(file("components/FanMobileTabs.tsx"),/\/messages/);
 });
