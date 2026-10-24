@@ -17,12 +17,18 @@
   background: var(--fm-bg);
   color: var(--fm-text);
   min-height: 100dvh;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
   font-family: 'Avenir Next', 'Helvetica Neue', Arial, sans-serif;
   font-size: 14px;
 }
 .layout {
   display: grid;
   grid-template-columns: 234px minmax(0, 1fr);
+  width: 100%;
+  min-width: 0;
   align-items: start;
   max-width: 1800px;
   margin: auto;
@@ -36,9 +42,12 @@
 }
 .sidebar {
   position: sticky;
+  left: 0;
+  min-width: 0;
   top: 80px;
   height: calc(100dvh - 80px);
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   border-right: 1px solid var(--fm-line);
   padding: 28px 18px 180px;
 }
@@ -76,6 +85,8 @@
   border: 1px solid transparent;
   border-radius: 9px;
   font-size: 12px;
+  min-width: 0;
+  overflow-wrap: anywhere;
   color: #a4a1ad;
   text-decoration: none;
 }

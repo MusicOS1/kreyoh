@@ -123,6 +123,7 @@ export default function EcosystemFrame({
           Notifications{identity?.unread ? ` · ${identity.unread}` : ''}
         </Link>
         <Link href="/professional-record">My professional record</Link>
+        <Link href="/professional-onboarding">Professional onboarding</Link>
         <Link href="/help">Help & guidance</Link>
       </div>
       <Link href="/fan" className={styles.listen}>
