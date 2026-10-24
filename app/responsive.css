@@ -661,3 +661,23 @@ html{scroll-behavior:smooth}.public-workflow-section{scroll-margin-top:88px}
   .creative-home .featured-beats-grid .creative-beat-card{flex-basis:146px;width:146px;min-width:146px;max-width:146px}
   .creative-home>.creative-section .creative-section-heading{align-items:flex-start;flex-direction:column;gap:6px}
 }
+
+/* Session recovery and existing form/navigation usability. */
+.connection-notice{position:sticky;top:0;z-index:150;padding:12px 16px;background:#34250f;color:#fff4dc;font-size:15px;text-align:center}
+.returning-actions{display:flex;gap:10px;flex-wrap:wrap;padding:16px clamp(16px,4vw,64px);background:#111116;color:#fff}
+.returning-actions a{display:flex;align-items:center;min-height:44px;padding:8px 12px;border:1px solid #ffffff30;border-radius:8px;font-size:15px}
+@media(max-width:760px){
+ .login-page{min-height:100dvh;height:auto}
+ .login-form-panel,.login-card,.login-card label{min-width:0;max-width:100%}
+ .login-form-panel{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+ .login-card input,.login-card select,.login-card textarea,.content input,.content textarea,.content select{font-size:16px;scroll-margin-block:100px}
+ .login-card input,.login-card button{min-height:48px}
+ .kreyoh-main-canvas .content{min-width:0;max-width:100%}
+ .topbar-left,.topbar-right,.listener-search-field,.listener-content{min-width:0}
+ .topbar-right{flex-wrap:wrap}
+ .mobile-drawer{max-width:calc(100vw - 28px);height:100dvh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom)}
+ .public-mobile-menu.is-open{max-height:calc(100dvh - 76px);overflow-y:auto;overscroll-behavior:contain}
+ .public-mobile-menu a,.mobile-bottom-nav a,.fan-mobile-nav a,.fan-mobile-nav button{min-height:44px}
+ .content table{display:block;max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain}
+ .content pre{max-width:100%;overflow:auto}
+}

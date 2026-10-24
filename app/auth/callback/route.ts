@@ -11,15 +11,15 @@ export async function GET(request: Request) {
   const next = safeNext(url.searchParams.get("next"));
   const tokenHash = url.searchParams.get("token_hash");
   const type = url.searchParams.get("type");
-  if (!code && !(tokenHash && ["signup", "invite", "recovery", "email"].includes(type || ""))) return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent("Confirmation link is incomplete. Please request a new one.")}`, url.origin));
+  if (!code && !(tokenHash && ["signup", "invite", "recovery", "email"].includes(type || ""))) return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(next)}&error=${encodeURIComponent("Confirmation link is incomplete. Please request a new one.")}`, url.origin));
 
   const supabase = await createClient();
   const { data, error } = code ? await supabase.auth.exchangeCodeForSession(code) : await supabase.auth.verifyOtp({ token_hash: tokenHash!, type: type as "signup" | "invite" | "recovery" | "email" });
-  if (error || !data.user) return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(error?.message || "Confirmation failed.")}`, url.origin));
+  if (error || !data.user) return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(next)}&error=${encodeURIComponent(error?.message || "Confirmation failed.")}`, url.origin));
 
   const admin = createAdminClient();
   const metadata = data.user.user_metadata || {};
-  const { data: existing } = await admin.from("profiles").select("id").eq("id", data.user.id).maybeSingle();
+  const { data: existing } = await admin.from("profiles").select("id,creator_types").eq("id", data.user.id).maybeSingle();
   if (!existing) await admin.from("profiles").upsert({
     id: data.user.id,
     email: data.user.email,
@@ -28,6 +28,6 @@ export async function GET(request: Request) {
     updated_at: new Date().toISOString(),
   }, { onConflict: "id" });
   await admin.from("auth_events").insert({ user_id: data.user.id, event_name: "confirmation_completed", metadata: { next } });
-  const target=next==="/home"&&isFanProfile({creator_types:metadata.creator_types||[metadata.creative_role]})?"/fan":next;
+  const target=next==="/home"&&isFanProfile(existing || {creator_types:metadata.creator_types||[metadata.creative_role]})?"/fan":next;
   return NextResponse.redirect(new URL(target, url.origin));
 }

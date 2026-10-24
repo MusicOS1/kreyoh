@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --test tests/*.mjs"
+    "test": "node --test tests/*.mjs",
+    "typecheck": "tsc --noEmit",
+    "test:browser": "node tests/browser/session-repair.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1116.0",
@@ -22,6 +24,7 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "playwright": "1.62.1",
     "typescript": "^5.0.0"
   }
 }

@@ -1,3 +1,4 @@
+import { authRecoveryHtml, isTransientAuthError } from "../authFailure";
 import { safeNext } from "../navigation";
 import {
   createServerClient,
@@ -19,6 +20,9 @@ const PUBLIC_ROUTES = [
   "/forgot-password",
   "/set-password",
   "/auth/callback",
+  "/auth/signout",
+  "/api/session/status",
+  "/api/listening",
   "/admin/login",
   "/admin/access-unavailable",
 ];
@@ -76,25 +80,24 @@ export async function updateSession(
       return NextResponse.next();
     }
 
-    const url =
-      request.nextUrl.clone();
-
-    url.pathname = pathname.startsWith("/admin") ? "/admin/login" : "/login";
-
-    url.searchParams.set(
-      "error",
-      "FACKTS Music authentication is not configured on this deployment."
-    );
-
-    return NextResponse.redirect(
-      url
-    );
+    return new NextResponse(authRecoveryHtml, { status: 503, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
   }
 
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-fackts-path", pathname + request.nextUrl.search);
   let response =
     NextResponse.next({
-      request,
+      request: { headers: requestHeaders },
     });
+
+  function finish(result = response) {
+    response.cookies.getAll().forEach(cookie => result.cookies.set(cookie));
+    result.headers.set("Cache-Control", "private, no-store");
+    return result;
+  }
+  function unavailable() {
+    return finish(new NextResponse(authRecoveryHtml, { status: 503, headers: { "Content-Type": "text/html; charset=utf-8", "Retry-After": "5" } }));
+  }
 
   try {
     const supabase =
@@ -108,7 +111,8 @@ export async function updateSession(
             },
 
             setAll(
-              cookiesToSet
+              cookiesToSet,
+              cacheHeaders
             ) {
               cookiesToSet.forEach(
                 ({
@@ -122,13 +126,17 @@ export async function updateSession(
                 }
               );
 
+              const previousCookies = response.cookies.getAll();
+              requestHeaders.set("cookie", request.cookies.toString());
               response =
                 NextResponse.next(
                   {
-                    request,
+                    request: { headers: requestHeaders },
                   }
                 );
 
+              previousCookies.forEach(cookie => response.cookies.set(cookie));
+              Object.entries(cacheHeaders || {}).forEach(([name, value]) => response.headers.set(name, value));
               cookiesToSet.forEach(
                 ({
                   name,
@@ -154,6 +162,9 @@ export async function updateSession(
       await supabase.auth
         .getClaims();
 
+    if (isTransientAuthError(error)) {
+      return isPublicRoute(pathname) ? finish() : unavailable();
+    }
     if (error) {
       console.error(
         "FACKTS Music AUTH CLAIM ERROR:",
@@ -161,16 +172,24 @@ export async function updateSession(
       );
     }
 
-    const loggedIn =
+    let loggedIn =
       Boolean(
         data?.claims
       );
+
+    // A locally valid access token may have had its session revoked remotely.
+    // Verify before redirecting away from an authentication screen to avoid loops.
+    if (loggedIn && (pathname === "/login" || pathname === "/signup")) {
+      const verification = await supabase.auth.getUser();
+      if (isTransientAuthError(verification.error)) return unavailable();
+      loggedIn = Boolean(verification.data.user);
+    }
 
     /*
      * Public homepage always stays public.
      */
     if (isPublicRoute(pathname) && pathname !== "/login" && pathname !== "/signup") {
-      return response;
+      return finish();
     }
 
     /*
@@ -189,8 +208,7 @@ export async function updateSession(
       const url = new URL(safeNext(request.nextUrl.searchParams.get("next")), request.url);
 
       const redirected = NextResponse.redirect(url);
-      response.cookies.getAll().forEach(cookie => redirected.cookies.set(cookie));
-      return redirected;
+      return finish(redirected);
     }
 
     /*
@@ -198,7 +216,7 @@ export async function updateSession(
      * for visitors.
      */
     if (isPublicRoute(pathname)) {
-      return response;
+      return finish();
     }
 
     /*
@@ -213,38 +231,17 @@ export async function updateSession(
       url.search = "";
       url.searchParams.set("next", request.nextUrl.pathname + request.nextUrl.search);
 
-      return NextResponse.redirect(
-        url
-      );
+      return finish(NextResponse.redirect(url));
     }
 
-    return response;
+    return finish();
   } catch (error) {
     console.error(
       "FACKTS Music PROXY ERROR:",
       error
     );
 
-    if (
-      isPublicRoute(
-        pathname
-      )
-    ) {
-      return NextResponse.next();
-    }
-
-    const url =
-      request.nextUrl.clone();
-
-    url.pathname = pathname.startsWith("/admin") ? "/admin/login" : "/login";
-
-    url.searchParams.set(
-      "error",
-      "Authentication service temporarily unavailable."
-    );
-
-    return NextResponse.redirect(
-      url
-    );
+    if (isPublicRoute(pathname)) return finish();
+    return unavailable();
   }
 }

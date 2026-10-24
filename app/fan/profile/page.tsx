@@ -10,11 +10,11 @@ export default async function FanProfilePage({
   searchParams
 }:{searchParams:Promise<{saved?:string;error?:string}>}){
   const params=await searchParams;
-  const [{user,profile},heroes]=await Promise.all([getWorkspace(),fanHeroSettings()]);
+  const [{user,profile,activeProjects},heroes]=await Promise.all([getWorkspace(),fanHeroSettings()]);
   const hero=heroes.profile.enabled?heroes.profile:undefined;
   const displayName=profile?.nickname||profile?.full_name||"Listener";
   const initial=displayName.trim()[0]?.toUpperCase()||"F";
-  return <FanShell name={displayName} activeTab="Profile" avatarUrl={profile?.avatar_url} creatorMode={Boolean(profile?.creator_types?.some((type:string)=>type!=="Fan"))}>
+  return <FanShell name={displayName} activeTab="Profile" avatarUrl={profile?.avatar_url} creatorMode={Boolean(activeProjects?.length||profile?.creator_types?.some((type:string)=>type!=="Fan"&&type!=="Listener"))}>
     <main className="fan-profile-page">
       <div className="fan-profile-heading">
         <Link className="fan-back-link" href="/fan">← Back to your music</Link>

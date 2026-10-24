@@ -1,19 +1,47 @@
 "use client";
 
 import {useEffect,useRef,useState,useTransition} from "react";
+import {readPreference,writePreference,restoreListening} from "../lib/listeningState";
+import {useMusicIdentity} from "./SessionExperience";
+import {usePathname} from "next/navigation";
 import {moveQueueTrack,nextPlaybackIndex} from "../lib/playerQueue";
 import {recordTrackVersionListen,setTrackVersionRanking} from "../app/tracks/actions";
 
 export type PlaylistTrack={id:string;title:string;subtitle:string;src:string;artwork?:string;ranking?:number;listened:boolean;eligible:boolean;finalScore?:number;communityScore?:number;arScore?:number;firstPlaceVotes?:number;};
 
-export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedStats=false,enableRanking=true,votingOpen=true,autoStart=false,compact=false,onTrackPlay,onProgress,onPlaybackChange,seekRequest,playRequest}:{tracks:PlaylistTrack[];resultsVisible?:boolean;showDetailedStats?:boolean;enableRanking?:boolean;votingOpen?:boolean;autoStart?:boolean;compact?:boolean;onTrackPlay?:(id:string)=>void;onProgress?:(id:string,position:number,duration:number)=>void;onPlaybackChange?:(id:string,playing:boolean)=>void;seekRequest?:{id:string;time:number;nonce:number};playRequest?:{id:string;nonce:number}}){
+export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedStats=false,enableRanking=true,votingOpen=true,autoStart=false,compact=false,onTrackPlay,onProgress,onPlaybackChange,seekRequest,playRequest,persistenceKey}:{tracks:PlaylistTrack[];resultsVisible?:boolean;showDetailedStats?:boolean;enableRanking?:boolean;votingOpen?:boolean;autoStart?:boolean;compact?:boolean;onTrackPlay?:(id:string)=>void;onProgress?:(id:string,position:number,duration:number)=>void;onPlaybackChange?:(id:string,playing:boolean)=>void;seekRequest?:{id:string;time:number;nonce:number};playRequest?:{id:string;nonce:number};persistenceKey?:string}){
  const[current,setCurrent]=useState(0),[localTracks,setLocalTracks]=useState(tracks),[notice,setNotice]=useState(""),[isPlaying,setIsPlaying]=useState(false),[expanded,setExpanded]=useState(false),[pending,startTransition]=useTransition();
  const [shuffle,setShuffle]=useState(false),[repeat,setRepeat]=useState<"off"|"all"|"one">("off"),[speed,setSpeed]=useState(1),[position,setPosition]=useState(0),[duration,setDuration]=useState(0),[volume,setVolume]=useState(1);
+ const {identity,ready}=useMusicIdentity();
+ const pathname=usePathname();
+ const storageKey=persistenceKey||(identity?`fm-listening:${identity.id}:workspace:${pathname}`:"");
+ const restoredKey=useRef(""),pendingPosition=useRef<{id:string;position:number}|null>(null),lastSaved=useRef(0);
+ const [canResume,setCanResume]=useState(false);
+ const processedCommand=useRef<number|null>(null);
  const playNextId=useRef<string|null>(null);
  const played=useRef<number[]>([]),history=useRef<number[]>([]);
  const audioRef=useRef<HTMLAudioElement>(null),autoPlayRef=useRef(autoStart),listenRecorded=useRef(new Set(tracks.filter(t=>t.listened).map(t=>t.id)));
 
  useEffect(()=>{const id=localTracks[current]?.id;setLocalTracks(tracks);const next=tracks.findIndex(t=>t.id===id);setCurrent(next<0?0:next);played.current=[];history.current=[];},[tracks]);
+ useEffect(()=>{
+  if(!ready||!storageKey||restoredKey.current===storageKey||!tracks.length)return;
+  restoredKey.current=storageKey;
+  const saved=restoreListening(readPreference(storageKey),tracks.map(t=>t.id));
+  if(!saved)return;
+  const byId=new Map(tracks.map(t=>[t.id,t]));
+  const ordered=[...saved.ids.map(id=>byId.get(id)!),...tracks.filter(t=>!saved.ids.includes(t.id))];
+  const requested=playRequest&&ordered.some(t=>t.id===playRequest.id)?playRequest.id:saved.selected;
+  setLocalTracks(ordered);setCurrent(ordered.findIndex(t=>t.id===requested));
+  if(requested!==saved.selected){pendingPosition.current=null;return;}
+  pendingPosition.current={id:saved.selected,position:saved.position};if(audioRef.current&&audioRef.current.readyState>=1&&localTracks[current]?.id===saved.selected){audioRef.current.currentTime=Math.min(saved.position,audioRef.current.duration||saved.position);setPosition(audioRef.current.currentTime);pendingPosition.current=null;}setCanResume(true);autoPlayRef.current=false;
+ },[tracks,storageKey,ready]);
+ function savePosition(force=false){
+  const audio=audioRef.current;if(!storageKey||!audio||restoredKey.current!==storageKey||!selected)return;
+  if(!force&&Date.now()-lastSaved.current<3000)return;
+  lastSaved.current=Date.now();
+  writePreference(storageKey,{version:1,ids:localTracks.map(t=>t.id),selected:selected.id,position:pendingPosition.current?.id===selected.id?pendingPosition.current.position:audio.currentTime,updatedAt:Date.now()});
+ }
+ useEffect(()=>{const save=()=>savePosition(true);window.addEventListener("pagehide",save);document.addEventListener("visibilitychange",save);return()=>{window.removeEventListener("pagehide",save);document.removeEventListener("visibilitychange",save);};},[storageKey,localTracks,current]);
  const selected=localTracks[Math.min(current,Math.max(0,localTracks.length-1))];
 
  useEffect(()=>{const p=audioRef.current;if(!p)return;p.playbackRate=speed;if(autoPlayRef.current){autoPlayRef.current=false;p.play().catch(()=>setIsPlaying(false));}},[current,selected?.src,speed]);
@@ -22,7 +50,9 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
  // A new command targets a song in the existing player: it never remounts the audio queue.
  // Clicking the active song pauses/resumes instead of seeking back to zero.
  useEffect(()=>{
-  if(!playRequest)return;
+  if(!playRequest||processedCommand.current===playRequest.nonce)return;
+  processedCommand.current=playRequest.nonce;
+  setCanResume(false);
   const index=localTracks.findIndex(track=>track.id===playRequest.id);
   if(index<0)return;
   if(index===current){const audio=audioRef.current;if(audio){if(audio.paused)audio.play().catch(()=>setIsPlaying(false));else audio.pause();}}
@@ -30,13 +60,13 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
  },[playRequest]);
  if(!localTracks.length)return <div className="track-chart-empty">Add an audio version to a track and it will enter the listening room.</div>;
 
- function selectTrack(index:number,autoplay=true,restartCurrent=false){const next=Math.max(0,Math.min(index,localTracks.length-1));setNotice("");if(next===current){const p=audioRef.current;if(!p)return;if(restartCurrent){p.currentTime=0;if(autoplay)p.play().catch(()=>setIsPlaying(false));}else togglePlayback();return;}autoPlayRef.current=autoplay;setCurrent(next);}
+ function selectTrack(index:number,autoplay=true,restartCurrent=false){savePosition(true);setCanResume(false);const next=Math.max(0,Math.min(index,localTracks.length-1));setNotice("");if(next===current){const p=audioRef.current;if(!p)return;if(restartCurrent){p.currentTime=0;if(autoplay)p.play().catch(()=>setIsPlaying(false));}else togglePlayback();return;}autoPlayRef.current=autoplay;setCurrent(next);}
  function previousTrack(){if(audioRef.current&&audioRef.current.currentTime>3){audioRef.current.currentTime=0;return;}selectTrack(history.current.pop()??(current<=0?localTracks.length-1:current-1),true,true);}
  function advance(ended:boolean){const queued=localTracks.findIndex(t=>t.id===playNextId.current);const next=queued>=0?queued:nextPlaybackIndex(localTracks.length,current,shuffle,repeat,played.current,ended);playNextId.current=null;if(next===null){setIsPlaying(false);return;}if(next!==current){if(played.current.length>=localTracks.length-1)played.current=[];played.current.push(current);history.current.push(current);}selectTrack(next,true,true);}
  function moveTrack(index:number,target:number){const id=selected.id;const next=moveQueueTrack(localTracks,index,target);setLocalTracks(next);setCurrent(next.findIndex(t=>t.id===id));played.current=[];history.current=[];}
  function nextTrack(){advance(false);}
  function ended(){advance(true);}
- function togglePlayback(){const p=audioRef.current;if(!p)return;p.paused?p.play().catch(()=>setIsPlaying(false)):p.pause();}
+ function togglePlayback(){setCanResume(false);const p=audioRef.current;if(!p)return;p.paused?p.play().catch(()=>setIsPlaying(false)):p.pause();}
 
  function captureListen(){
   if(!enableRanking||!votingOpen)return;
@@ -59,7 +89,10 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
   <div className="track-chart-player">
    <div className={selected.artwork?"track-player-art has-artwork":"track-player-art"}>{selected.artwork?<img src={selected.artwork} alt={`${selected.title} artwork`}/>:<span aria-hidden="true">♫</span>}</div>
    <div className="track-player-copy"><span>NOW PLAYING</span><h3>{selected.title}</h3><p>{selected.subtitle}</p></div>
-   <audio ref={audioRef} key={selected.src} src={selected.src} preload="metadata" onLoadedMetadata={()=>{setDuration(audioRef.current?.duration||0);setPosition(0);if(audioRef.current)audioRef.current.volume=volume;}} onPlay={()=>{setIsPlaying(true);onPlaybackChange?.(selected.id,true);onTrackPlay?.(selected.id);}} onPause={()=>{setIsPlaying(false);onPlaybackChange?.(selected.id,false);}} onTimeUpdate={()=>{setPosition(audioRef.current?.currentTime||0);captureListen();if(audioRef.current)onProgress?.(selected.id,audioRef.current.currentTime,Number.isFinite(audioRef.current.duration)?audioRef.current.duration:0);}} onEnded={ended} onError={()=>{setIsPlaying(false);setNotice("This audio could not be loaded. Refresh the page and try again.");}}/>
+   <audio ref={audioRef} key={selected.src} src={selected.src} preload="metadata" onLoadedMetadata={()=>{setDuration(audioRef.current?.duration||0);const pending=pendingPosition.current;
+    const audio=audioRef.current;
+    if(audio){audio.volume=volume;if(pending?.id===selected.id){const time=Math.min(pending.position,Math.max(0,(Number.isFinite(audio.duration)?audio.duration:pending.position)-.1));audio.currentTime=time;setPosition(time);pendingPosition.current=null;}else setPosition(0);}}} onPlay={()=>{setIsPlaying(true);onPlaybackChange?.(selected.id,true);onTrackPlay?.(selected.id);}} onPause={()=>{savePosition(true);setIsPlaying(false);onPlaybackChange?.(selected.id,false);}} onTimeUpdate={()=>{savePosition();setPosition(audioRef.current?.currentTime||0);captureListen();if(audioRef.current)onProgress?.(selected.id,audioRef.current.currentTime,Number.isFinite(audioRef.current.duration)?audioRef.current.duration:0);}} onEnded={ended} onError={()=>{setIsPlaying(false);setNotice("This audio could not be loaded. Refresh the page and try again.");}}/>
+   {canResume&&<button type="button" className="resume-listening" onClick={togglePlayback}>Resume Listening</button>}
    <div className="player-progress"><input type="range" aria-label="Seek in track" min={0} max={Number.isFinite(duration)?duration:0} step={0.1} value={position} onChange={e=>{if(audioRef.current)audioRef.current.currentTime=Number(e.target.value);setPosition(Number(e.target.value));}}/><div><span>{clock(position)}</span><span>{clock(Number.isFinite(duration)?duration:0)}</span></div></div>
    <div className="track-playlist-transport" aria-label="Playlist controls"><button type="button" aria-label="Shuffle" aria-pressed={shuffle} onClick={()=>{played.current=[];setShuffle(value=>!value);}} title="Shuffle">⤨</button><button type="button" onClick={previousTrack} aria-label="Previous track">◀◀</button><button type="button" className="main" onClick={togglePlayback} aria-label={isPlaying?"Pause":"Play"}>{isPlaying?"Ⅱ":"▶"}</button><button type="button" onClick={nextTrack} aria-label="Next track">▶▶</button><button type="button" aria-label={`Repeat: ${repeat}`} aria-pressed={repeat!=="off"} title={`Repeat: ${repeat}`} onClick={()=>setRepeat(value=>value==="off"?"all":value==="all"?"one":"off")}>{repeat==="one"?"↻ 1":"↻"}</button></div><p className="player-mode-label">{shuffle?"Shuffle on":"In order"} · Repeat {repeat} · {current+1} / {localTracks.length}</p>
    <label className="player-volume">Volume<input type="range" aria-label="Volume" min="0" max="1" step="0.01" value={volume} onChange={e=>{const v=Number(e.target.value);setVolume(v);if(audioRef.current)audioRef.current.volume=v;}}/></label>
@@ -68,13 +101,13 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
    {notice&&<div className="track-ballot-notice" role="status">{notice}</div>}
   </div>
   {compact&&<button className="fan-queue-toggle" type="button" aria-expanded={expanded} onClick={()=>setExpanded(value=>!value)}>{expanded?"Hide queue":"Open queue"} <span aria-hidden="true">{expanded?"⌄":"⌃"}</span></button>}
-  <div className="track-chart-list">{enableRanking&&<div className="ballot-summary"><strong>{votingOpen?(localTracks.filter(t=>t.ranking).length===3?"Your Top 3 is saved":"Build your Top 3"):"Final results · voting closed"}</strong><p>{votingOpen?"Your selections are saved as you vote. You can change them until the round closes.":"The published order is the final chart. Queue changes only change your listening order."}</p>{localTracks.filter(t=>t.ranking).sort((a,b)=>(a.ranking||0)-(b.ranking||0)).map(t=><span key={t.id}>#{t.ranking} {t.title}</span>)}</div>}<header><span>#</span><span>Track</span><span>{enableRanking?(votingOpen?"Your Top 3":"Final results"):"Playing queue"}</span></header>
+  {(!compact||expanded)&&<div className="track-chart-list">{enableRanking&&<div className="ballot-summary"><strong>{votingOpen?(localTracks.filter(t=>t.ranking).length===3?"Your Top 3 is saved":"Build your Top 3"):"Final results · voting closed"}</strong><p>{votingOpen?"Your selections are saved as you vote. You can change them until the round closes.":"The published order is the final chart. Queue changes only change your listening order."}</p>{localTracks.filter(t=>t.ranking).sort((a,b)=>(a.ranking||0)-(b.ranking||0)).map(t=><span key={t.id}>#{t.ranking} {t.title}</span>)}</div>}<header><span>#</span><span>Track</span><span>{enableRanking?(votingOpen?"Your Top 3":"Final results"):"Playing queue"}</span></header>
    {localTracks.map((track,index)=><article className={index===current?"is-current":""} key={track.id}>
     <button type="button" className="track-chart-select" aria-label={index===current&&isPlaying?"Pause "+track.title:"Play "+track.title} onClick={()=>selectTrack(index,true)}><b>{resultsVisible?String(tracks.findIndex(t=>t.id===track.id)+1).padStart(2,"0"):index===current&&isPlaying?"Ⅱ":"▶"}</b><span className={track.artwork?"track-row-art has-artwork":"track-row-art"}>{track.artwork?<img src={track.artwork} alt=""/>:"♫"}</span><span><strong>{track.title}</strong><small>{track.subtitle}</small></span></button>
     {enableRanking&&votingOpen&&<div className={`track-rank-buttons ${track.eligible&&track.listened?"is-unlocked":"is-locked"}`} aria-label={`Rank ${track.title}`}>{[1,2,3].map(rank=><button type="button" key={rank} className={track.ranking===rank?"selected":track.eligible&&track.listened?"available":""} disabled={pending||!track.eligible||!track.listened} onClick={()=>rankTrack(track.id,rank)}>{rank}</button>)}<small className="track-rank-state">{!track.eligible?"CREDITED · CANNOT RANK":track.listened?"RANKING UNLOCKED":"LISTEN 60% TO UNLOCK"}</small></div>}
     <div className="queue-row-actions"><button type="button" disabled={index===0} aria-label={`Move ${track.title} up in queue`} onClick={()=>moveTrack(index,index-1)}>↑</button><button type="button" disabled={index===localTracks.length-1} aria-label={`Move ${track.title} down in queue`} onClick={()=>moveTrack(index,index+1)}>↓</button><button type="button" disabled={index===current} onClick={()=>{playNextId.current=track.id;moveTrack(index,index<current?current:current+1);setNotice(`${track.title} will play next.`);}} aria-label={`Play ${track.title} next`}>Play next</button></div>
     {resultsVisible&&<div className="track-result-score"><strong>{Math.round(track.finalScore||0)}</strong><small>final</small>{showDetailedStats&&<span>{Math.round(track.communityScore||0)} community · {Math.round(track.arScore||0)} A&amp;R · {track.firstPlaceVotes||0} firsts</span>}</div>}
    </article>)}
-  </div>
+  </div>}
  </section>;
 }

@@ -14,6 +14,8 @@ import "./fan-premium.css";
 import "./fan-polish.css";
 import "./music-admin-heros.css";
 import "./music-ecosystem.css";
+import SessionExperience from "../components/SessionExperience";
+import ListeningProvider from "../components/ListeningProvider";
 import PwaRegister from "../components/PwaRegister";
 import GlobalVideoPlayer from "../components/GlobalVideoPlayer";
 import WorkspaceChromeEnhancer from "../components/WorkspaceChromeEnhancer";
@@ -38,12 +40,12 @@ export const metadata:Metadata={
   twitter:{card:"summary_large_image",images:["/branding/fackts-music-logo.png"]},
 };
 
-export const viewport={themeColor:"#080809",width:"device-width",initialScale:1};
+export const viewport={themeColor:"#080809",width:"device-width",initialScale:1,viewportFit:"cover"};
 
 export default function RootLayout({children}:Readonly<{children:React.ReactNode}>){
-  return<html lang="en" className="fm-v3-root">
+  return<html lang="en" data-scroll-behavior="smooth" className="fm-v3-root">
     <body className="fm-v3-body">
-      {children}
+      <SessionExperience><ListeningProvider>{children}</ListeningProvider></SessionExperience>
       <GlobalVideoPlayer/>
       <WorkspaceChromeEnhancer/>
       <PwaRegister/>
