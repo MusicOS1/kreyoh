@@ -115,7 +115,7 @@ export default async function PublicHomePage() {
       <PublicNavigation />
 
       <section className="fm-v3-hero fm-cover-hero" id="top">
-        <HeroCoverWall covers={covers} />
+        <HeroCoverWall covers={covers} source="curated" />
 
         <div className="fm-v3-hero-copy">
           <div className="fm-v3-kicker"><span /> FACKTS MUSIC · NAIROBI / AFRICA</div>

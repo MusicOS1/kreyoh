@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
-import {mkdir,readFile} from 'node:fs/promises';
+import {mkdir} from 'node:fs/promises';
 import {chromium} from 'playwright';
 import {mockSupabase} from '../helpers/mock-supabase.mjs';
 const {server,state}=mockSupabase();state.creator=true;state.hasProject=true;state.externalArtist=true;
@@ -15,7 +15,10 @@ try{
  await page.goto(origin+'/');
  const artwork=page.locator('[data-artwork]');
  await page.waitForFunction(()=>document.querySelector('[data-artwork]')?.getAttribute('data-running')==='true');
- assert.equal(await artwork.getAttribute('data-artwork'),'photography');
+ assert.equal(await artwork.getAttribute('data-artwork'),'curated');
+ const supplied=await artwork.locator('img').evaluateAll(images=>[...new Set(images.map(image=>image.getAttribute('src')))]);
+ assert.equal(supplied.length,12);assert.ok(supplied.every(src=>src.startsWith('/artwork/homepage/')&&src.endsWith('.webp')));
+ for(const src of supplied){const response=await page.request.get(origin+src);assert.equal(response.status(),200,src);assert.match(response.headers()['content-type'],/image\/webp/);}
  const beforeMotion=await artwork.locator('[class*=track]').first().evaluate(node=>getComputedStyle(node).transform);
  await page.waitForFunction(before=>getComputedStyle(document.querySelector('[data-artwork] [class*=track]')).transform!==before,beforeMotion);
 
@@ -30,15 +33,10 @@ try{
  await page.emulateMedia({reducedMotion:'reduce'});await page.getByRole('button',{name:'Background motion disabled by your device preference',exact:true}).waitFor();
  assert.ok(await artwork.locator('[class*=track]').evaluateAll(nodes=>nodes.every(node=>getComputedStyle(node).animationName==='none')));
  await page.emulateMedia({reducedMotion:'no-preference'});
- const artworkImage=await readFile('public/branding/fackts-creator-sky.jpg');
- await page.route('**/api/releases/*/media?kind=cover',route=>route.fulfill({contentType:'image/jpeg',body:artworkImage}));
- state.heroCovers=true;await page.reload();
- await page.waitForFunction(()=>document.querySelector('[data-artwork]')?.getAttribute('data-artwork')==='releases');
  await page.waitForFunction(()=>{const image=document.querySelector('[data-artwork] img');return image?.complete&&image.naturalWidth>0;});
  assert.equal(await page.locator('audio').count(),0,'Decorative art must not start audio');
  for(const width of [390,1440]){await page.setViewportSize({width,height:900});await page.screenshot({path:screenshots+`/MovingArtwork${width}.png`,fullPage:false});}
- state.heroCovers=false;
- console.log('PASS Hero artwork pauses on request, off screen and reduced motion; real-cover transport loads without starting audio');
+ console.log('PASS All 12 supplied hero artworks load; motion pauses on request, off screen and reduced motion without starting audio');
 
  for(const width of [320,390,768,1024,1440]){
   await page.setViewportSize({width,height:900});

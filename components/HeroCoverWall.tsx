@@ -11,7 +11,7 @@ const photography = [
 ];
 
 /** Decorative artwork only. The root player remains the sole music transport. */
-export default function HeroCoverWall({ covers }: { covers: string[] }) {
+export default function HeroCoverWall({ covers, source = 'releases' }: { covers: string[]; source?: 'releases' | 'curated' }) {
   const wall = useRef<HTMLDivElement>(null);
   const [paused, setPaused] = useState(false), [inView, setInView] = useState(false);
   const [foreground, setForeground] = useState(true), [reduced, setReduced] = useState(false);
@@ -29,7 +29,7 @@ export default function HeroCoverWall({ covers }: { covers: string[] }) {
   }, []);
   const images = covers.length ? covers.slice(0, 12) : photography;
   return <>
-    <div ref={wall} className={styles.wall} aria-hidden="true" data-running={!paused && inView && foreground && !reduced} data-artwork={covers.length ? 'releases' : 'photography'}>
+    <div ref={wall} className={styles.wall} aria-hidden="true" data-running={!paused && inView && foreground && !reduced} data-artwork={covers.length ? source : 'photography'}>
       {Array.from({ length: 5 }, (_, lane) => <div className={styles.lane} key={lane}>
         <div className={styles.track}>
           {[0, 1].map(copy => <div className={styles.group} key={copy}>
