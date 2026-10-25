@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
-import {mkdir} from 'node:fs/promises';
+import {mkdir,readFile} from 'node:fs/promises';
 import {chromium} from 'playwright';
 import {mockSupabase} from '../helpers/mock-supabase.mjs';
 const {server,state}=mockSupabase();state.creator=true;state.hasProject=true;state.externalArtist=true;
@@ -13,6 +13,33 @@ try{
  browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE,args:['--no-sandbox','--disable-dev-shm-usage']});
  page=await browser.newPage({viewport:{width:390,height:844}});page.on('pageerror',error=>errors.push(error.message));page.on('console',message=>{if(message.type()==='error'){console.error('BROWSER CONSOLE',message.text());if(/same key|Hydration|hydration|cannot be a descendant/.test(message.text()))errors.push(message.text());}});page.setDefaultTimeout(12000);page.setDefaultNavigationTimeout(45000);
  await page.goto(origin+'/');
+ const artwork=page.locator('[data-artwork]');
+ await page.waitForFunction(()=>document.querySelector('[data-artwork]')?.getAttribute('data-running')==='true');
+ assert.equal(await artwork.getAttribute('data-artwork'),'photography');
+ const beforeMotion=await artwork.locator('[class*=track]').first().evaluate(node=>getComputedStyle(node).transform);
+ await page.waitForFunction(before=>getComputedStyle(document.querySelector('[data-artwork] [class*=track]')).transform!==before,beforeMotion);
+
+ await page.getByRole('button',{name:'Pause background artwork',exact:true}).click();
+ assert.equal(await artwork.getAttribute('data-running'),'false');
+ assert.ok(await artwork.locator('[class*=track]').evaluateAll(nodes=>nodes.every(node=>getComputedStyle(node).animationPlayState==='paused')));
+ await page.getByRole('button',{name:'Play background artwork',exact:true}).click();
+ await page.evaluate(()=>window.scrollTo({top:1600,behavior:'instant'}));
+ await page.waitForFunction(()=>document.querySelector('[data-artwork]')?.getAttribute('data-running')==='false');
+ await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
+ await page.waitForFunction(()=>document.querySelector('[data-artwork]')?.getAttribute('data-running')==='true');
+ await page.emulateMedia({reducedMotion:'reduce'});await page.getByRole('button',{name:'Background motion disabled by your device preference',exact:true}).waitFor();
+ assert.ok(await artwork.locator('[class*=track]').evaluateAll(nodes=>nodes.every(node=>getComputedStyle(node).animationName==='none')));
+ await page.emulateMedia({reducedMotion:'no-preference'});
+ const artworkImage=await readFile('public/branding/fackts-creator-sky.jpg');
+ await page.route('**/api/releases/*/media?kind=cover',route=>route.fulfill({contentType:'image/jpeg',body:artworkImage}));
+ state.heroCovers=true;await page.reload();
+ await page.waitForFunction(()=>document.querySelector('[data-artwork]')?.getAttribute('data-artwork')==='releases');
+ await page.waitForFunction(()=>{const image=document.querySelector('[data-artwork] img');return image?.complete&&image.naturalWidth>0;});
+ assert.equal(await page.locator('audio').count(),0,'Decorative art must not start audio');
+ for(const width of [390,1440]){await page.setViewportSize({width,height:900});await page.screenshot({path:screenshots+`/MovingArtwork${width}.png`,fullPage:false});}
+ state.heroCovers=false;
+ console.log('PASS Hero artwork pauses on request, off screen and reduced motion; real-cover transport loads without starting audio');
+
  for(const width of [320,390,768,1024,1440]){
   await page.setViewportSize({width,height:900});
   const desktop=await page.getByRole('navigation',{name:'Public navigation',exact:true}).isVisible();

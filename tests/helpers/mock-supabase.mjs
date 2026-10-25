@@ -7,7 +7,7 @@ export const secondId='33333333-3333-4333-8333-333333333333';
 const user={id:userId,aud:'authenticated',role:'authenticated',email:'listener@example.test',email_confirmed_at:new Date().toISOString(),created_at:new Date().toISOString(),app_metadata:{provider:'email',providers:['email']},user_metadata:{full_name:'Test Listener',creator_types:['Fan']}};
 function token(){const b=v=>Buffer.from(JSON.stringify(v)).toString('base64url');const head=b({alg:'HS256',typ:'JWT'}),payload=b({sub:userId,aud:'authenticated',role:'authenticated',email:user.email,iat:Math.floor(Date.now()/1000),exp:Math.floor(Date.now()/1000)+3600,session_id:'44444444-4444-4444-8444-444444444444'});return `${head}.${payload}.${createHmac('sha256','local-test-only').update(head+'.'+payload).digest('base64url')}`;}
 export function mockSupabase(){
- const state={externalArtist:false,comments:[],messages:[],blocks:[],conversation:false,publicArtist:false,library:[],revoked:false,outage:false,refreshes:0,creator:false,hasProject:false,admin:false,types:null,roles:null,documents:[],files:[],requests:[]};
+ const state={heroCovers:false,externalArtist:false,comments:[],messages:[],blocks:[],conversation:false,publicArtist:false,library:[],revoked:false,outage:false,refreshes:0,creator:false,hasProject:false,admin:false,types:null,roles:null,documents:[],files:[],requests:[]};
  const server=http.createServer(async(req,res)=>{
   const url=new URL(req.url,'http://localhost');let body='';for await(const chunk of req)body+=chunk;
   res.setHeader('Access-Control-Allow-Origin','*');res.setHeader('Access-Control-Allow-Headers','*');res.setHeader('Access-Control-Allow-Methods','GET,POST,PATCH,DELETE,HEAD,OPTIONS');
@@ -55,7 +55,8 @@ export function mockSupabase(){
    if(url.searchParams.has('id'))rows=rows.filter(row=>'eq.'+row.id===url.searchParams.get('id'));
   }
   if(table==='profiles'&&state.conversation&&url.searchParams.get('id')==='eq.bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')rows=[{id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',full_name:'Fixture Collaborator',account_status:'active',profile_visibility:'public'}];
-  if(table==='music_weekly_chart')rows=[releaseId,secondId].map((id,i)=>({id,title:`Test song ${i+1}`,artist_id:state.externalArtist&&i===1?'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb':userId,artist_name:'Test artist',collection:'Test EP',has_cover:false,release_at:'2026-10-01T12:00:00Z',votes:0}));
+  if(table==='music_weekly_chart')rows=[releaseId,secondId].map((id,i)=>({id,title:`Test song ${i+1}`,artist_id:state.externalArtist&&i===1?'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb':userId,artist_name:'Test artist',collection:'Test EP',has_cover:state.heroCovers,release_at:'2026-10-01T12:00:00Z',votes:0}));
+  if(table==='music_weekly_chart'&&url.searchParams.get('has_cover')==='eq.true')rows=rows.filter(row=>row.has_cover);
   if(['music_weekly_chart','music_release_comments'].includes(table))for(const key of ['id','artist_id','author_id']){const value=url.searchParams.get(key);if(value?.startsWith('eq.'))rows=rows.filter(row=>row[key]===value.slice(3));}
   if(table==='control_room_admins'&&state.admin)rows=[{user_id:userId,active:true,permissions:['all']}];
   if(table==='project_members'&&state.hasProject)rows=[{id:'55555555-5555-4555-8555-555555555555',user_id:userId,project_id:'66666666-6666-4666-8666-666666666666',status:'active',joined_at:'2026-01-01',projects:{id:'66666666-6666-4666-8666-666666666666',name:'Test creative project',code:'TEST',status:'active'},member_roles:(state.roles||['Artist']).map(name=>({roles:{name}}))}];

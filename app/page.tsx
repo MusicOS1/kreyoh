@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import PublicNavigation from "../components/PublicNavigation";
 import PublicFooter from "../components/PublicFooter";
+import HeroCoverWall from "../components/HeroCoverWall";
+import { publicHeroCovers } from "../lib/heroCovers";
 import { ArrowUpRight, CheckCircleIcon, DiscIcon, MicIcon, MusicIcon, UsersIcon } from "../components/Icons";
 import { createAdminClient } from "../lib/supabase/admin";
 
@@ -103,7 +105,7 @@ const systems = [
 const flow = ["IDEA", "BEAT", "BUILD", "STUDIO", "REVIEW", "RELEASE READY"];
 
 export default async function PublicHomePage() {
-  const creators = await getPublicCreators();
+  const [creators, covers] = await Promise.all([getPublicCreators(), publicHeroCovers()]);
   const featured = creators.slice(0, 6);
   const ticker = creators.length ? [...creators, ...creators] : [];
   const interviews = creators.filter((creator) => creator.interviewUrl).slice(0, 3);
@@ -112,11 +114,8 @@ export default async function PublicHomePage() {
     <main className="public-site fm-v3-site">
       <PublicNavigation />
 
-      <section className="fm-v3-hero" id="top">
-        <div className="fm-v3-hero-noise" aria-hidden="true" />
-        <div className="fm-v3-hero-grid" aria-hidden="true" />
-        <div className="fm-v3-hero-glow fm-v3-hero-glow-a" aria-hidden="true" />
-        <div className="fm-v3-hero-glow fm-v3-hero-glow-b" aria-hidden="true" />
+      <section className="fm-v3-hero fm-cover-hero" id="top">
+        <HeroCoverWall covers={covers} />
 
         <div className="fm-v3-hero-copy">
           <div className="fm-v3-kicker"><span /> FACKTS MUSIC · NAIROBI / AFRICA</div>
@@ -135,24 +134,6 @@ export default async function PublicHomePage() {
           </div>
         </div>
 
-        <div className="fm-v3-hero-world" aria-label="FACKTS Music visual world">
-          <div className="fm-v3-frame fm-v3-frame-main">
-            <img src="/branding/fackts-creative-community.jpg" alt="FACKTS Music creative community" />
-            <span className="fm-v3-frame-tag">THE CREATIVE ROOM</span>
-          </div>
-          <div className="fm-v3-frame fm-v3-frame-top">
-            <img src="/branding/fackts-creator-red-wide.jpg" alt="FACKTS Music creator" />
-          </div>
-          <div className="fm-v3-frame fm-v3-frame-bottom">
-            <img src="/branding/fackts-creator-sky.jpg" alt="FACKTS Music creator" />
-          </div>
-          <div className="fm-v3-orbit-card">
-            <video autoPlay loop muted playsInline preload="metadata" poster="/branding/fackts-music-logo.png">
-              <source src="/branding/fackts-music-premium-orbit.mp4" type="video/mp4" />
-            </video>
-          </div>
-          <div className="fm-v3-live-chip"><span /> LIVE PLATFORM</div>
-        </div>
       </section>
 
       <section className="fm-v3-ticker-section" aria-label="FACKTS Music creator network">

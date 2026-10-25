@@ -42,3 +42,16 @@ The extended full browser suite passed 36 scenarios against the running Next app
 All 74 existing unit/regression tests passed. Standalone TypeScript checking, the production build and `git diff --check` also passed. No production data was used or modified.
 
 Menu scale revision: enlarged desktop panels were visually checked at 1366×768, 1440×900 and 1920×1080 with no horizontal content overflow. Six focused browser scenarios, 74 unit/regression tests, TypeScript, production build and diff check passed. Menu keyboard and reduced-motion behaviour remain intact.
+
+
+## Moving homepage artwork
+
+The homepage hero now has five slowly drifting cover-art columns on desktop and three on mobile, alternating direction with seamless duplicated tracks. The centered headline and existing CTAs sit above a dark readability overlay. All original company/creator/project/workflow/partnership/footer sections remain below it.
+
+`lib/heroCovers.ts` reads at most 12 IDs from the existing `music_weekly_chart` view, filtered to `has_cover=true`. That existing projection only includes published, already-released music. Images use the existing permission-checked release cover endpoint; no storage keys or credentials enter the client. If no eligible artwork is available or the query fails, the wall uses existing FACKTS editorial photographs rather than inventing release covers.
+
+`HeroCoverWall` uses CSS transform animation without a frame-by-frame JavaScript loop. The Pause artwork control stops it. Intersection and page-visibility observers pause it off screen or in a hidden tab; reduced-motion preferences keep it static. Background images have low fetch priority and async decoding, with lazy loading for later tiles. This is decorative imagery only: it creates no audio/video player and does not change the persistent music transport.
+
+Moving-artwork browser validation passed seven focused scenarios, including actual transform movement, user pause, off-screen pause, reduced motion, image loading through the existing cover URL, no audio autoplay, and the existing menu/card checks. The 36-scenario full browser regression also passed, preserving session recovery, deep links, all nine workspace switches, uploads and audio continuity. Fixture cover responses use a labelled synthetic catalogue and existing repository photography; live R2 artwork and physical-device acceptance remain manual.
+
+The moving-hero revision also passed all 74 unit/regression tests, standalone TypeScript checking, the production build and diff check. No production data or permissions changed.

@@ -87,3 +87,18 @@ body.fm-v3-body [data-fm-workspace] :is(input,textarea,select) { font-size: max(
  html.fm-v3-root { scroll-behavior: auto!important; }
  body.fm-v3-body *,body.fm-v3-body *::before,body.fm-v3-body *::after { animation: none!important; transition: none!important; scroll-behavior: auto!important; }
 }
+
+/* A living artwork wall, kept separate from the listening transport. */
+.public-site .fm-v3-hero.fm-cover-hero { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; overflow: hidden; max-width: none; min-height: 730px; padding: 90px 24px 100px; isolation: isolate; background: #0b0b0e; }
+.public-site .fm-cover-hero::before { content: ''; position: absolute; inset: 0; z-index: -2; pointer-events: none; background: radial-gradient(ellipse at 50% 45%,#0b0b0ec9 5%,#0b0b0e6b 90%),linear-gradient(180deg,#0b0b0e35,#0b0b0e15 60%,#0b0b0ef5); }
+.public-site .fm-cover-hero .fm-v3-hero-copy { max-width: 1000px; }
+.public-site .fm-cover-hero .fm-v3-hero-copy h1 { max-width: 1000px; font-size: clamp(52px,5.5vw,88px); margin: 26px auto; line-height: 1.02; }
+.public-site .fm-cover-hero .fm-v3-kicker,.public-site .fm-cover-hero .fm-v3-hero-actions,.public-site .fm-cover-hero .fm-v3-hero-foot { justify-content: center; }
+.public-site .fm-cover-hero .fm-v3-hero-copy > p { max-width: 640px; margin: auto; color: #ded8d1; text-wrap: balance; }
+.public-site .fm-cover-hero .fm-v3-hero-foot { color: #c7bbae; }
+@media(max-width:700px) {
+ .public-site .fm-v3-hero.fm-cover-hero { min-height: 660px; padding: 70px 20px 100px; }
+ .public-site .fm-cover-hero .fm-v3-hero-copy h1 { font-size: clamp(37px,9.5vw,60px); letter-spacing: -.055em; }
+ .public-site .fm-cover-hero .fm-v3-hero-copy > p { font-size: 15px; line-height: 1.8; }
+ .public-site .fm-cover-hero .fm-v3-hero-foot { font-size: 8px; gap: 10px; }
+}
