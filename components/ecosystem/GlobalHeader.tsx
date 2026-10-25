@@ -1,8 +1,8 @@
 'use client';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { BellIcon, MenuIcon } from '../Icons';
+import { BellIcon, MenuIcon, MusicIcon, BriefcaseIcon } from '../Icons';
 import { FacktsMusicLogo } from '../Branding';
 import { useMusicIdentity } from '../SessionExperience';
 import { switchWorkspace } from '../../app/workspaces/actions';
@@ -24,6 +24,7 @@ export default function GlobalHeader({
 }) {
   const { identity: live, ready } = useMusicIdentity();
   const identity = ready ? live : initialIdentity;
+  const searchParams = useSearchParams();
   const creatorWorkspace = identity?.workspaces.find(item => item.kind === 'artist') || identity?.workspaces.find(item => !['listener', 'admin'].includes(item.kind));
   const [open, setOpen] = useState(false),
     [resume, setResume] = useState('');
@@ -113,10 +114,10 @@ export default function GlobalHeader({
         <span className={styles.edition}>MUSIC · PEOPLE · POSSIBILITY</span>
       </div>
       <nav className={styles.navigation} aria-label="Global navigation">
-        <Link href={identity ? '/fan' : '/listen'}>Discover</Link>
-        <Link href={identity ? '/fan?tab=Artists' : '/creators'}>Artists</Link>
-        <Link href="/billboard">Billboard</Link>
-        {identity && <Link href="/fan?tab=My%20Library">Library</Link>}
+        <Link href={identity ? '/fan' : '/listen'} aria-current={['/fan', '/listen'].includes(pathname) && (!searchParams.get('tab') || searchParams.get('tab') === 'For You') ? 'page' : undefined}>Discover</Link>
+        <Link href={identity ? '/fan?tab=Artists' : '/creators'} aria-current={pathname.startsWith('/creators') || (pathname === '/fan' && searchParams.get('tab') === 'Artists') ? 'page' : undefined}>Artists</Link>
+        <Link href="/billboard" aria-current={pathname.startsWith('/billboard') || (pathname === '/fan' && searchParams.get('tab') === 'Billboard') ? 'page' : undefined}>Billboard</Link>
+        {identity && <Link href="/fan?tab=My%20Library" aria-current={pathname === '/fan' && searchParams.get('tab') === 'My Library' ? 'page' : undefined}>Library</Link>}
       </nav>
       <div className={styles.actions}>
         {identity ? (
@@ -163,6 +164,7 @@ export default function GlobalHeader({
                   aria-label="Account and workspaces"
                 >
                   <div className={styles.identity}>
+                    <span className={styles.label}>YOUR FACKTS ACCOUNT</span>
                     <strong>{identity.name}</strong>
                     <small>One account. Your music and your work.</small>
                   </div>
@@ -198,12 +200,15 @@ export default function GlobalHeader({
                         key={item.kind}
                         aria-current={active === item.kind ? 'page' : undefined}
                       >
-                        <span>
+                        <span className={styles.workspaceCopy}>
+                          <span className={styles.workspaceIcon} aria-hidden="true">{item.kind === 'listener' ? <MusicIcon size={18} /> : <BriefcaseIcon size={18} />}</span>
+                          <span>
                           <strong>{item.label}</strong>
                           <small>{item.description}</small>
+                          </span>
                         </span>
                         <span aria-hidden="true">
-                          {active === item.kind ? '●' : '↗'}
+                          {active === item.kind ? 'Current' : '↗'}
                         </span>
                       </button>
                     ))}

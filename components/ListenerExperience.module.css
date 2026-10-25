@@ -6,7 +6,7 @@
   background: #0b0b0e;
   color: #f3f0e9;
   min-height: 85dvh;
-  font-family: 'Avenir Next', 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--fm-font-body);
   --fan-text: #f3f0e9;
   --fan-muted: #9a929f;
   --fan-surface: #15151a;
@@ -979,3 +979,13 @@
 
 .songActions > div { display: contents; }
 .songActions p[role="status"], .songActions small[role="alert"] { flex-basis: 100%; order: 11; margin: 0; font-size: 12px; }
+
+/* Shared editorial type scale without enlarging the compact music cards. */
+.heroCopy > span,.section > header > div > span { font-size: 10px; font-weight: 700; color: #bea47f; }
+.heroCopy > p { font-size: 14px; color: #beb5c5; line-height: 1.8; }
+.heroCopy button,.heroCopy a { font-size: 12px; font-weight: 750; border-radius: 10px; transition: background .18s,transform .18s; }
+.heroCopy button:hover,.heroCopy a:hover { transform: translateY(-1px); }
+.songCopy h3 { font-size: 14px; color: #eee8f2; font-weight: 650; }
+.songCopy > button,.songCopy p,.songCopy small { color: #b2a6bc; }
+.section > header > span,.section > header > button { font-size: 11px; }
+@media(prefers-reduced-motion:reduce) { .heroCopy button,.heroCopy a { transition: none; } }

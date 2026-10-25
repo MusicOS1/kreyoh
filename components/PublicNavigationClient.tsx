@@ -1,72 +1,76 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import {useMusicIdentity} from "./SessionExperience";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { ArrowUpRight } from "./Icons";
-import { FacktsMusicLogo } from "./Branding";
+import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useMusicIdentity } from './SessionExperience';
+import { ArrowUpRight, DiscIcon, MusicIcon, UsersIcon, BriefcaseIcon } from './Icons';
+import { FacktsMusicLogo } from './Branding';
+import styles from './PublicNavigation.module.css';
 
 const links = [
-  ["About", "/about"],
-  ["How It Works", "/#how-it-works"],
-  ["Creators", "/creators"],
-  ["Explore Music", "/listen"],
-  ["Partners", "/partner"],
-  ["Contact", "/contact"],
+  ['About', '/about'], ['How It Works', '/#how-it-works'],
+  ['Creators', '/creators'], ['Explore Music', '/listen'],
+  ['Partners', '/partner'], ['Contact', '/contact'],
 ] as const;
+const musicLinks = [
+  { title: 'Discover music', copy: 'Independent releases. Your next favourite.', href: '/listen', icon: MusicIcon },
+  { title: 'Meet the artists', copy: 'The people and stories behind the sound.', href: '/creators', icon: UsersIcon },
+  { title: 'The Billboard', copy: 'Listen, vote and champion a record.', href: '/billboard', icon: DiscIcon },
+];
 
-export default function PublicNavigationClient({identity:initialIdentity}:{identity:{id:string;creator:boolean}|null}) {
-  const {identity:clientIdentity,ready}=useMusicIdentity();
-  const identity=ready?clientIdentity:initialIdentity;
-  const [open, setOpen] = useState(false);
+export default function PublicNavigationClient({ identity: initialIdentity }: { identity: { id: string; creator: boolean } | null }) {
+  const { identity: live, ready } = useMusicIdentity();
+  const identity = ready ? live : initialIdentity;
+  const [open, setOpen] = useState(false), [explore, setExplore] = useState(false);
+  const root = useRef<HTMLElement>(null), trigger = useRef<HTMLButtonElement>(null), mobileTrigger = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
-  const close = () => setOpen(false);
-  useEffect(()=>setOpen(false),[pathname]);
-  useEffect(()=>{if(!open)return;const escape=(event:KeyboardEvent)=>{if(event.key==="Escape")setOpen(false);};window.addEventListener("keydown",escape);return()=>window.removeEventListener("keydown",escape);},[open]);
+  const close = () => { setOpen(false); setExplore(false); };
+  useEffect(() => { setOpen(false); setExplore(false); }, [pathname]);
+  useEffect(() => {
+    if (!open && !explore) return;
+    const outside = (event: PointerEvent) => { if (root.current && !root.current.contains(event.target as Node)) close(); };
+    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') { close(); (explore ? trigger : mobileTrigger).current?.focus(); } };
+    const resize = () => close();
+    document.addEventListener('pointerdown', outside);
+    document.addEventListener('keydown', escape);
+    window.addEventListener('resize', resize);
+    return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape); window.removeEventListener('resize', resize); };
+  }, [open, explore]);
+  const accountLinks = <>
+    {identity ? <><Link href="/fan?tab=My%20Library" onClick={close}>My Library</Link><Link href="/home" onClick={close}>My Workspace</Link></> : <Link href="/login" onClick={close}>Sign In</Link>}
+    <Link href={identity ? '/fan' : '/signup'} className={styles.cta} onClick={close}>{identity ? 'Continue Listening' : 'Join FACKTS'} <ArrowUpRight size={15} /></Link>
+  </>;
 
-  return (
-    <header className="public-nav-wrap fm-public-nav-wrap">
-      <div className="public-nav fm-public-nav">
-        <Link href="/" className="public-brand fm-public-brand" aria-label="FACKTS Music home" onClick={close}>
-          <FacktsMusicLogo size={38} showTagline={false} />
-        </Link>
-
-        <nav className="public-nav-links fm-public-nav-links" aria-label="Public navigation">
-          {links.map(([label, href]) => (
-            <Link key={label} href={href} className={pathname === href ? "is-active" : ""}>
-              {label}
-            </Link>
-          ))}
-          {identity ? <><Link href="/fan?tab=My%20Library">My Library</Link><Link href="/home">My Workspace</Link></> : <Link href="/login" className="fm-nav-signin">Sign In</Link>}
-          <Link href={identity?"/fan":"/signup"} className="public-nav-cta fm-nav-cta">
-            {identity?"Continue Listening":"Join FACKTS"} <ArrowUpRight size={14} />
-          </Link>
-        </nav>
-
-        <button
-          type="button"
-          className={open ? "public-menu-trigger is-open" : "public-menu-trigger"}
-          onClick={() => setOpen(!open)}
-          aria-controls="fm-public-mobile-menu"
-          aria-expanded={open}
-          aria-label="Toggle navigation"
-        >
-          <span />
-          <span />
-          <span />
-        </button>
-      </div>
-
-      <nav id="fm-public-mobile-menu" className={open ? "public-mobile-menu is-open" : "public-mobile-menu"} aria-label="Mobile navigation">
-        {links.map(([label, href]) => (
-          <Link key={label} href={href} onClick={close}>{label}</Link>
-        ))}
-        {identity ? <><Link href="/fan?tab=My%20Library" onClick={close}>My Library</Link><Link href="/home" onClick={close}>My Workspace</Link></> : <Link href="/login" onClick={close}>Sign In</Link>}
-        <Link href={identity?"/fan":"/signup"} className="public-mobile-cta" onClick={close}>
-          {identity?"Continue Listening":"Join FACKTS"} <ArrowUpRight size={15} />
-        </Link>
+  return <header className={styles.header} ref={root}>
+    <div className={styles.bar}>
+      <Link href="/" className={styles.brand} aria-label="FACKTS Music home" onClick={close}><FacktsMusicLogo size={36} showTagline={false} /></Link>
+      <nav className={styles.desktop} aria-label="Public navigation">
+        <div className={styles.links}>{links.map(([label, href]) => <div className={styles.navItem} key={href}>
+          <Link href={href} onClick={close} aria-current={pathname === href ? 'page' : undefined}>{label}</Link>
+          {href === '/listen' && <button ref={trigger} type="button" className={styles.chevron} aria-label="Explore music menu" aria-expanded={explore} aria-controls="fm-explore-panel" onKeyDown={event => {
+            if (event.key === 'ArrowDown' || (event.key === 'Tab' && !event.shiftKey && explore)) {
+              event.preventDefault();
+              setExplore(true);
+              const firstLink = root.current?.querySelector<HTMLAnchorElement>('#fm-explore-panel a');
+              if (firstLink) firstLink.focus();
+              else requestAnimationFrame(() => root.current?.querySelector<HTMLAnchorElement>('#fm-explore-panel a')?.focus());
+            }
+          }} onClick={() => setExplore(value => !value)}><span aria-hidden="true">⌄</span></button>}
+        </div>)}</div>
+        <div className={styles.account}>{accountLinks}</div>
       </nav>
-    </header>
-  );
+      <button ref={mobileTrigger} type="button" className={styles.mobileTrigger} aria-controls="fm-public-mobile-menu" aria-expanded={open} aria-label="Toggle navigation" onClick={() => { setOpen(value => !value); setExplore(false); }}><span>{open ? 'Close' : 'Menu'}</span><span aria-hidden="true">{open ? '×' : '☰'}</span></button>
+    </div>
+    {explore && <nav id="fm-explore-panel" className={styles.mega} aria-label="Explore music">
+      <div className={styles.musicGroup}><p className={styles.eyebrow}>FIND YOUR FREQUENCY</p>{musicLinks.map(({ title, copy, href, icon: Icon }) => <Link className={styles.menuLink} href={href} key={href} onClick={close}><span className={styles.icon}><Icon size={21} /></span><span><strong>{title}</strong><small>{copy}</small></span><ArrowUpRight size={16} /></Link>)}</div>
+      <div className={styles.personalGroup}><p className={styles.eyebrow}>MAKE IT YOURS</p><Link className={styles.textLink} href="/fan?tab=My%20Library" onClick={close}><strong>Your music library</strong><small>Keep the records you come back to.</small></Link><Link className={styles.textLink} href="/home" onClick={close}><strong>Your creative workspace</strong><small>One account. A place for your craft.</small></Link><Link className={styles.textLink} href="/messages" onClick={close}><strong>Stay connected</strong><small>Continue the conversation.</small></Link>{!identity && <p className={styles.memberNote}>Sign in to collect music and connect.</p>}</div>
+      <Link className={styles.feature} href="/about" onClick={close}><img src="/branding/fackts-creative-community.jpg" alt="" /><div><span className={styles.eyebrow}>THE FACKTS COMMUNITY</span><h2>More than<br />a listening room.</h2><p>Meet the creative world around the music.</p><span className={styles.featureCta}>Step inside <ArrowUpRight size={17} /></span></div></Link>
+    </nav>}
+    {open && <nav id="fm-public-mobile-menu" className={styles.mobile} aria-label="Mobile navigation">
+      <p className={styles.eyebrow}>MUSIC. PEOPLE. POSSIBILITY.</p><div className={styles.mobileLinks}>{links.map(([label, href]) => <Link href={href} key={href} onClick={close} aria-current={pathname === href ? 'page' : undefined}>{label}<ArrowUpRight size={17} /></Link>)}</div>
+      <div className={styles.mobileMusic}><Link href="/billboard" onClick={close}><DiscIcon size={18} />Billboard</Link><Link href="/home" onClick={close}><BriefcaseIcon size={18} />Your workspace</Link></div>
+      <div className={styles.mobileAccount}>{accountLinks}</div>
+    </nav>}
+  </header>;
 }

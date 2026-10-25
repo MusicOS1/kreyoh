@@ -21,6 +21,12 @@ async function media(context){context.on('page',page=>page.on('pageerror',error=
  const start=range?Number(range[1]):0,end=range&&range[2]?Math.min(Number(range[2]),wav.length-1):wav.length-1;
  return route.fulfill({status:range?206:200,contentType:'audio/wav',headers:{'Accept-Ranges':'bytes',...(range?{'Content-Range':`bytes ${start}-${end}/${wav.length}`}:{})},body:wav.subarray(start,end+1)});
 });}
+async function publicIdentity(page){
+ const mobile=await page.getByRole('button',{name:'Toggle navigation',exact:true}).isVisible();
+ if(mobile)await page.getByRole('button',{name:'Toggle navigation',exact:true}).click();
+ await page.getByRole('link',{name:'My Workspace',exact:true}).first().waitFor();
+ if(mobile)await page.getByRole('button',{name:'Toggle navigation',exact:true}).click();
+}
 async function overflow(page,label){const size=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:innerWidth}));assert.ok(size.scroll<=size.width+1,`${label} overflow: ${JSON.stringify(size)}`);}
 try{
  for(let attempt=0;attempt<90;attempt++){try{if((await fetch(origin+'/offline.html',{signal:AbortSignal.timeout(3000)})).ok)break;}catch{}await new Promise(resolve=>setTimeout(resolve,500));if(attempt===89)throw Error('Dev server did not start');}
@@ -42,13 +48,13 @@ try{
  await page.goto(origin+'/auth/callback?token_hash=local-confirmation&type=signup&next=%2Ffan%3Ftab%3DArtists');
  await page.waitForURL('**/fan?tab=Artists');await page.getByRole('heading',{name:'Artists',exact:true}).waitFor();pass('Email token confirmation callback preserves deep link (mock verification)');
  await page.reload();await page.getByRole('heading',{name:'Artists',exact:true}).waitFor();pass('Authenticated refresh');
- await page.goto(origin+'/');await page.getByRole('link',{name:'My Workspace',exact:true}).first().waitFor();assert.equal(await page.getByRole('heading',{name:'Discover music. Find your people. Be part of it.'}).count(),1);assert.equal(await page.locator('[data-fm-header]').count(),0);pass('Signed-in homepage keeps original public content and one public header');
+ await page.goto(origin+'/');await publicIdentity(page);assert.equal(await page.getByRole('heading',{name:'Discover music. Find your people. Be part of it.'}).count(),1);assert.equal(await page.locator('[data-fm-header]').count(),0);pass('Signed-in homepage keeps original public content and one public header');
  const beforeRefresh=state.refreshes;
  const expiring=(await browser.cookies()).find(c=>c.name.endsWith('-auth-token')&&c.value.startsWith('base64-'));
  assert.ok(expiring);
  const session=JSON.parse(Buffer.from(expiring.value.slice(7),'base64url').toString());session.expires_at=Math.floor(Date.now()/1000)-60;
  await browser.addCookies([{...expiring,value:'base64-'+Buffer.from(JSON.stringify(session)).toString('base64url')}]);
- await page.reload();await page.getByRole('link',{name:'My Workspace',exact:true}).first().waitFor();assert.ok(state.refreshes>beforeRefresh);pass('Expired access session refresh rotates cookies (mock refresh endpoint)');
+ await page.reload();await publicIdentity(page);assert.ok(state.refreshes>beforeRefresh);pass('Expired access session refresh rotates cookies (mock refresh endpoint)');
  await mkdir(screenshotDir,{recursive:true});
  const cookies=await browser.cookies();assert.ok(cookies.some(c=>/-auth-token(?:\.\d+)?$/.test(c.name)&&c.expires>Date.now()/1000+86400));pass('Auth cookies persist beyond browser session');
  await browser.close();browser=await chromium.launchPersistentContext(profile,{...options,...devices['Pixel 7'],viewport:{width:390,height:844}});await media(browser);page=await browser.newPage();page.setDefaultTimeout(12000);page.setDefaultNavigationTimeout(45000);
@@ -72,7 +78,7 @@ try{
  await page.goto(origin+'/?source=pwa');await page.getByRole('button',{name:'Resume Listening',exact:true}).waitFor();await page.waitForFunction(()=>document.querySelector('.global-listening-player audio')?.currentTime>=23);assert.equal(await page.locator('.global-listening-player audio').evaluate(a=>a.paused),true);pass('Browser reopen / manifest startup restores position without autoplay');
  await page.getByRole('button',{name:'Resume Listening',exact:true}).click();await page.waitForFunction(()=>!document.querySelector('.global-listening-player audio')?.paused);pass('Explicit Resume Listening starts audio');
  await browser.setOffline(true);await page.getByRole('status').filter({hasText:'You’re offline'}).waitFor();await browser.setOffline(false);pass('Network loss and recovery notification');
- for(const width of [320,390,768,1440]){
+ for(const width of [320,390,768,1024,1280,1440]){
  await page.setViewportSize({width,height:900});await overflow(page,`Homepage ${width}`);
  if(width===390||width===1440)await page.screenshot({path:path.join(screenshotDir,`PublicHomepage${width}.png`),fullPage:true,scale:'css'});
  }
@@ -184,8 +190,8 @@ try{
   if(kind==='artist'){await page.setViewportSize({width:1440,height:1000});assert.ok((await page.locator('.global-listening-player').boundingBox()).height<150,'Desktop workspace player must stay compact');await page.mouse.move(10,10);await page.screenshot({path:path.join(screenshotDir,'ArtistDesktop.png'),fullPage:false,scale:'css'});await page.setViewportSize({width:390,height:844});}
  }
  pass('All nine professional workspace choices switch through one account without another login');
- await page.getByRole('button',{name:'Open account and workspaces',exact:true}).click();await page.screenshot({path:path.join(screenshotDir,'WorkspaceSwitcherMobile.png'),fullPage:false,scale:'css'});await page.keyboard.press('Escape');
- await page.goto(origin+'/documents');await page.waitForLoadState('networkidle');await page.locator('select[name=document_type]').selectOption('brief');await page.locator('input[name=title]').fill('Fixture visual brief');await page.locator('input[type=file][name=file]').setInputFiles({name:'FixtureBrief.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic visual production brief for local test only.')});await page.getByRole('button',{name:'Save Project Record',exact:true}).click();await page.getByRole('heading',{name:'Fixture visual brief',exact:true}).waitFor();assert.equal(state.files.length,1);assert.equal(state.documents[0].file_name,'FixtureBrief.txt');const fileLink=page.getByRole('link',{name:'Open File ↗',exact:true});assert.ok((await fileLink.getAttribute('href')).includes('/storage/v1/object/sign/'));const downloaded=await browser.request.get(await fileLink.getAttribute('href'));assert.equal(downloaded.status(),200);assert.match(await downloaded.text(),/Synthetic project brief/);pass('Project-linked visual brief upload and signed file retrieval work against isolated fixture storage');
+ await page.getByRole('button',{name:'Open account and workspaces',exact:true}).click();await page.locator('[aria-label="Account and workspaces"]').evaluate(node=>Promise.all(node.getAnimations().map(animation=>animation.finished)));await page.screenshot({path:path.join(screenshotDir,'WorkspaceSwitcherMobile.png'),fullPage:false,scale:'css'});await page.keyboard.press('Escape');
+ await page.goto(origin+'/documents');await page.waitForLoadState('networkidle');await page.locator('select[name=document_type]').selectOption('brief');await page.locator('input[name=title]').fill('Fixture visual brief');await page.locator('input[type=file][name=file]').setInputFiles({name:'FixtureBrief.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic visual production brief for local test only.')});await page.getByRole('button',{name:'Save Project Record',exact:true}).evaluate(node=>node.scrollIntoView({block:'center',behavior:'instant'}));await page.getByRole('button',{name:'Save Project Record',exact:true}).click();await page.getByRole('heading',{name:'Fixture visual brief',exact:true}).waitFor();assert.equal(state.files.length,1);assert.equal(state.documents[0].file_name,'FixtureBrief.txt');const fileLink=page.getByRole('link',{name:'Open File ↗',exact:true});assert.ok((await fileLink.getAttribute('href')).includes('/storage/v1/object/sign/'));const downloaded=await browser.request.get(await fileLink.getAttribute('href'));assert.equal(downloaded.status(),200);assert.match(await downloaded.text(),/Synthetic project brief/);pass('Project-linked visual brief upload and signed file retrieval work against isolated fixture storage');
 
  state.types=['Fan'];state.roles=[];state.hasProject=false;await page.goto(origin+'/workspaces/ar');await page.getByRole('heading',{name:'404',exact:true}).waitFor();assert.equal(await page.getByRole('heading',{name:'Find what deserves to be heard.',exact:true}).count(),0);await page.goto(origin+'/home');await page.waitForURL('**/fan');pass('Revoked workspace assignment and stale preference cannot open privileged views');
  state.creator=true;state.hasProject=true;state.types=null;state.roles=null;

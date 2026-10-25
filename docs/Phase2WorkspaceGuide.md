@@ -232,3 +232,8 @@ Keep the existing local environment configuration. Open `http://localhost:3000/`
 
 
 Validation for this correction: 74 existing unit/regression tests passed; TypeScript and a normal production build passed. The extended full browser suite passed 36 scenarios, including logged-out `/` to `/listen`, signed-in `/`, persistent audio continuity across the public homepage, session recovery, deep links, nine role workspaces, workspace switching and revoked access. Four focused checks passed, including public navigation/brand visibility and overflow at 320/390/768/1024/1440px, compact card actions, optimistic vote rollback and failed comment draft retention. Original branding images loaded and local mobile/desktop screenshots were visually inspected. Browser checks use isolated auth/data/media fixtures, not production data. Real account/email/device/R2 acceptance remains as documented above.
+
+
+## Premium design fidelity pass
+
+The restored homepage content remains intact while a FACKTS-specific visual system refines type, navigation, menus, buttons, surfaces and spacing. See [PremiumDesignGuide.md](PremiumDesignGuide.md) for the hierarchy, self-hosted font licensing, navigation behaviour and interaction rules. Public discovery and authenticated workspace/account menus retain the same destinations and server permissions. The focused browser harness now covers keyboard menu entry, Escape and outside click, reduced motion, loaded custom fonts, account panel readability and compact music interactions.

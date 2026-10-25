@@ -13,7 +13,7 @@
   border-bottom: 1px solid #ffffff10;
   color: #f4f2ed;
   backdrop-filter: blur(20px);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--fm-font-body);
 }
 .brandGroup,
 .actions,
@@ -331,3 +331,33 @@
   .workspaceShortcut { max-width: 80px; font-size: 11px; padding: 6px; }
   .actions { gap: 4px; }
 }
+
+/* Shared account surface: readable hierarchy and restrained FACKTS gold. */
+.header { background: #0c0c0ef2; }
+.navigation a { min-height: 44px; display: inline-flex; align-items: center; font-weight: 650; letter-spacing: -.02em; position: relative; transition: color .18s; }
+.join { border-radius: 10px; min-height: 44px; display: inline-flex; align-items: center; transition: background .18s, transform .18s; }
+.join:hover { background: #edc58d; transform: translateY(-1px); }
+.panel { width: 410px; padding: 18px; border-color: #ffffff1a; border-radius: 18px; background: #151517; box-shadow: 0 24px 64px #0008; animation: accountReveal .18s ease both; }
+.identity { padding: 10px 12px 22px; }
+.identity .label { padding: 0; margin: 0 0 8px; font-size: 9px; letter-spacing: .13em; color: #b5a183; }
+.identity strong { font-family: var(--fm-font-display); font-weight: 600; letter-spacing: -.04em; font-size: 23px; line-height: 1.25; }
+.identity small { font-size: 12px; color: #a8a2ae; margin-top: 5px; }
+.personal { gap: 6px; padding: 16px 0 8px; }
+.personal a { font-weight: 650; font-size: 12px; background: #ffffff03; border: 1px solid #ffffff08; min-height: 44px; display: flex; align-items: center; padding: 10px 12px; transition: background .18s; }
+.personal a:hover { background: #ffffff08; }
+.label { font-size: 9px; font-weight: 700; letter-spacing: .13em; color: #b5a183; margin: 22px 12px 12px; }
+.header .workspaces button { padding: 12px; min-height: 70px; border-radius: 11px; transition: background .18s,border-color .18s; }
+.header .workspaces button > span.workspaceCopy { display: flex; align-items: center; gap: 12px; }
+.workspaceCopy > span:last-child { display: grid; gap: 5px; }
+.workspaceIcon { display: grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; border: 1px solid #ffffff12; border-radius: 10px; color: #b9a282; background: #ffffff03; }
+.workspaces strong { font-size: 13px; font-weight: 700; letter-spacing: -.02em; }
+.workspaces small { font-size: 11px; line-height: 1.65; color: #aaa3b1; }
+.header .workspaces button > span:last-child { font-size: 10px; font-weight: 650; color: #c6a46f; }
+.secondary { flex-wrap: wrap; gap: 2px; padding-top: 12px; margin-top: 18px; }
+.secondary a { min-height: 44px; display: flex; align-items: center; }
+.signout,.install { font-weight: 650!important; }
+@keyframes accountReveal { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+@media(max-width:700px) { .panel { width: 410px; padding: 14px; } .identity strong { font-size: 21px; } }
+@media(prefers-reduced-motion:reduce) { .header * { animation: none!important; transition: none!important; } }
+
+.navigation a[aria-current=page] { color: #e4bd85; box-shadow: inset 0 -2px #d9ad68; }

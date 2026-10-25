@@ -15,7 +15,7 @@
   padding: 14px 170px 14px 24px;
   color: var(--fan-text);
   box-shadow: 0 -10px 50px #0004;
-  font-family: 'Avenir Next', Arial, sans-serif;
+  font-family: var(--fm-font-body);
 }
 .dock :global(.track-chart-room) {
   margin: 0 !important;

@@ -473,9 +473,8 @@ select:focus,
 textarea:focus { border-color:rgba(255,138,31,.5) !important; box-shadow:0 0 0 4px rgba(255,138,31,.06) !important; outline:none !important; }
 .submit-beat-btn,
 .primary-button,
-.action-primary,
-button[type="submit"]:not(.quick-signout-btn):not(.topbar-search-submit) {
-  border-radius:999px !important;
+.action-primary {
+  border-radius:10px;
 }
 .submit-beat-btn,
 .primary-button,

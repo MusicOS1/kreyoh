@@ -30,7 +30,32 @@ try{
  }
  await page.screenshot({path:screenshots+'/PublicHomepageHeader.png',fullPage:false});
  console.log('PASS Public homepage navigation and brand stay accessible across phone, tablet and desktop widths');
+ const explore=page.getByRole('button',{name:'Explore music menu',exact:true});
+ await explore.focus();await page.keyboard.press('Enter');
+ const mega=page.getByRole('navigation',{name:'Explore music',exact:true});await mega.waitFor();
+ assert.equal(await mega.getByRole('link').count(),7);
+ await page.keyboard.press('Tab');assert.ok(await mega.evaluate(node=>node.contains(document.activeElement)));
+ await page.keyboard.press('Escape');assert.equal(await mega.count(),0);assert.equal(await explore.evaluate(node=>node===document.activeElement),true);
+ await explore.click();await page.mouse.click(8,600);assert.equal(await mega.count(),0);
+ await page.emulateMedia({reducedMotion:'reduce'});await explore.click();assert.equal(await mega.evaluate(node=>getComputedStyle(node).animationName),'none');
+ await page.screenshot({path:screenshots+'/PublicMusicMenu.png',fullPage:false});
+ await mega.getByRole('link',{name:'Discover music',exact:false}).click();await page.waitForURL('**/listen',{waitUntil:'domcontentloaded'});assert.equal(await mega.count(),0);
+ await page.emulateMedia({reducedMotion:'no-preference'});
+ const fontFamily=await page.locator('h1').first().evaluate(node=>getComputedStyle(node).fontFamily);
+ const loadedType=await page.evaluate(async()=>{await document.fonts.ready;const family=getComputedStyle(document.querySelector('h1')).fontFamily;return [...document.fonts].some(face=>!face.family.includes('Fallback')&&family.includes(face.family)&&face.status==='loaded');});
+ assert.ok(loadedType,fontFamily);
+ console.log('PASS Music menu supports keyboard, Escape, outside click, links and reduced motion; self-hosted type reaches /listen');
+
+ await page.setViewportSize({width:390,height:844});
  await page.goto(origin+'/auth/callback?token_hash=fixture&type=signup&next=/fan?tab=Billboard');await page.waitForLoadState('networkidle');
+ const account=page.getByRole('button',{name:'Open account and workspaces',exact:true});await account.click();
+ const accountPanel=page.locator('[aria-label="Account and workspaces"]');await accountPanel.waitFor();
+ await accountPanel.evaluate(node=>Promise.all(node.getAnimations().map(animation=>animation.finished)));
+ assert.ok(await accountPanel.locator('button[name=workspace]').count()>=2);
+ assert.equal(await accountPanel.evaluate(node=>getComputedStyle(node).backgroundColor),'rgb(21, 21, 23)');
+ await page.screenshot({path:screenshots+'/PremiumAccountMobile.png',fullPage:false});
+ await page.keyboard.press('Escape');assert.equal(await accountPanel.count(),0);assert.equal(await account.evaluate(node=>node===document.activeElement),true);
+ console.log('PASS Authenticated account menu has an opaque readable surface, authorised workspace cards and keyboard dismissal');
  const header=await page.locator('[data-fm-header]').elementHandle();let requests=0;page.on('request',request=>{if(request.headers()['next-action'])requests++});
  let delayed;await page.route('**/api/interactions/releaseVote',route=>{delayed=route});
  await page.getByRole('button',{name:'Vote this week',exact:true}).click();

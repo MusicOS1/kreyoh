@@ -7,7 +7,7 @@
   --fan-muted:#a4a4a8;--fan-soft:#d8d6d1;--fan-accent:#f97316;
   --fan-glow:rgba(249,115,22,.17);--fan-hover:rgba(255,255,255,.055);
   color:var(--fan-text);
-  font-family:"Avenir Next","Helvetica Neue",Inter,system-ui,sans-serif;
+  font-family:var(--fm-font-body);
 }
 html[data-fackts-fan-theme="ivory"] .fan-shell,
 html[data-fackts-fan-theme="ivory"] .listener-home{

@@ -17,7 +17,7 @@
   background: var(--fm-bg);
   color: var(--fm-text);
   min-height: 100dvh;
-  font-family: 'Avenir Next', 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--fm-font-body);
   font-size: 14px;
 }
 .layout {
