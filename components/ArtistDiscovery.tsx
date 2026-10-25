@@ -6,9 +6,9 @@ import {creditedToArtist} from "../lib/releaseArtistMatch";
 type Release={id:string;title:string;artist_id:string;artist_name:string;has_cover:boolean;collection:string;genre?:string;release_at:string;votes:number};
 type ArtistEntry=MusicArtist&{catalogueOnly?:boolean};
 export default function ArtistDiscovery({
- artists,releases,viewerId,following,onFollow,onPlay,initialArtistId
+ artists,releases,viewerId,following,onFollow,onPlay,initialArtistId,followPending=()=>false,followNotice
 }:{artists:MusicArtist[];releases:Release[];viewerId?:string;
- following:(id:string)=>boolean;onFollow:(id:string)=>void;onPlay:(release:Release)=>void;initialArtistId?:string|null}){
+ following:(id:string)=>boolean;onFollow:(id:string)=>void;onPlay:(release:Release)=>void;initialArtistId?:string|null;followPending?:(id:string)=>boolean;followNotice?:string}){
  const [selected,setSelected]=useState<string|null>(initialArtistId||null);
  const [search,setSearch]=useState("");
  const [genre,setGenre]=useState("All");
@@ -46,6 +46,7 @@ export default function ArtistDiscovery({
    <h2>Meet the artists. Stay for the sound.</h2>
    <p>Explore actual FACKTS artist profiles, follow the voices you love and play their published songs without leaving this listening space.</p>
   </div>
+  {followNotice&&<p role="status">{followNotice}</p>}
   {selectedArtist?<div className="fm-artist-detail" key={selectedArtist.id}>
    <button type="button" className="fm-artist-back" onClick={()=>setSelected(null)}>← All artists</button>
    <div className="fm-artist-detail-hero">
@@ -57,7 +58,7 @@ export default function ArtistDiscovery({
      {selectedArtist.location&&<small>{selectedArtist.location}</small>}
      {selectedArtist.genres.length>0&&<div className="fm-artist-tags">{selectedArtist.genres.map(g=><span key={g}>{g}</span>)}</div>}
      <div className="fm-artist-detail-actions">
-      {selectedArtist.catalogueOnly?<span>Official profile coming soon</span>:viewerId?<button type="button" onClick={()=>onFollow(selectedArtist.id)} aria-pressed={following(selectedArtist.id)}>{following(selectedArtist.id)?"✓ Following":"+ Follow artist"}</button>:<Link href={"/login?next="+encodeURIComponent("/fan?tab=Artists")}>Sign in to follow</Link>}
+      {selectedArtist.catalogueOnly?<span>Official profile coming soon</span>:viewerId?<button type="button" disabled={followPending(selectedArtist.id)} aria-busy={followPending(selectedArtist.id)} onClick={()=>onFollow(selectedArtist.id)} aria-pressed={following(selectedArtist.id)}>{following(selectedArtist.id)?"✓ Following":"+ Follow artist"}</button>:<Link href={"/login?next="+encodeURIComponent("/fan?tab=Artists")}>Sign in to follow</Link>}
       <span>{artistReleases.length} released track{artistReleases.length===1?"":"s"} on FACKTS</span>
      </div>
     </div>
@@ -88,7 +89,7 @@ export default function ArtistDiscovery({
     </button>
     <div className="fm-artist-card-actions">
      <button type="button" onClick={()=>setSelected(artist.id)}>Explore music →</button>
-     {viewerId&&!artist.catalogueOnly&&<button type="button" aria-label={(following(artist.id)?"Unfollow ":"Follow ")+artist.name} aria-pressed={following(artist.id)} onClick={()=>onFollow(artist.id)}>{following(artist.id)?"♥":"♡"}</button>}
+     {viewerId&&!artist.catalogueOnly&&<button type="button" disabled={followPending(artist.id)} aria-busy={followPending(artist.id)} aria-label={(following(artist.id)?"Unfollow ":"Follow ")+artist.name} aria-pressed={following(artist.id)} onClick={()=>onFollow(artist.id)}>{following(artist.id)?"♥":"♡"}</button>}
     </div>
    </article>)}</div>
    {!filtered.length&&<div className="fm-artist-empty">No public artist profiles match that search. Try a different sound or name.</div>}

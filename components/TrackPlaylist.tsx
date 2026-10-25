@@ -1,16 +1,16 @@
 "use client";
 
-import {useEffect,useRef,useState,useTransition} from "react";
+import {useEffect,useRef,useState} from "react";
 import {readPreference,writePreference,restoreListening} from "../lib/listeningState";
 import {useMusicIdentity} from "./SessionExperience";
 import {usePathname} from "next/navigation";
 import {moveQueueTrack,nextPlaybackIndex} from "../lib/playerQueue";
-import {recordTrackVersionListen,setTrackVersionRanking} from "../app/tracks/actions";
+import {backgroundInteraction} from "../lib/backgroundInteraction";
 
 export type PlaylistTrack={id:string;title:string;subtitle:string;src:string;artwork?:string;ranking?:number;listened:boolean;eligible:boolean;finalScore?:number;communityScore?:number;arScore?:number;firstPlaceVotes?:number;};
 
 export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedStats=false,enableRanking=true,votingOpen=true,autoStart=false,compact=false,onTrackPlay,onProgress,onPlaybackChange,seekRequest,playRequest,persistenceKey}:{tracks:PlaylistTrack[];resultsVisible?:boolean;showDetailedStats?:boolean;enableRanking?:boolean;votingOpen?:boolean;autoStart?:boolean;compact?:boolean;onTrackPlay?:(id:string)=>void;onProgress?:(id:string,position:number,duration:number)=>void;onPlaybackChange?:(id:string,playing:boolean)=>void;seekRequest?:{id:string;time:number;nonce:number};playRequest?:{id:string;nonce:number};persistenceKey?:string}){
- const[current,setCurrent]=useState(0),[localTracks,setLocalTracks]=useState(tracks),[notice,setNotice]=useState(""),[isPlaying,setIsPlaying]=useState(false),[expanded,setExpanded]=useState(false),[pending,startTransition]=useTransition();
+ const[current,setCurrent]=useState(0),[localTracks,setLocalTracks]=useState(tracks),[notice,setNotice]=useState(""),[isPlaying,setIsPlaying]=useState(false),[expanded,setExpanded]=useState(false),[pending,setRankPending]=useState(false);
  const [shuffle,setShuffle]=useState(false),[repeat,setRepeat]=useState<"off"|"all"|"one">("off"),[speed,setSpeed]=useState(1),[position,setPosition]=useState(0),[duration,setDuration]=useState(0),[volume,setVolume]=useState(1);
  const {identity,ready}=useMusicIdentity();
  const pathname=usePathname();
@@ -42,6 +42,7 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
   writePreference(storageKey,{version:1,ids:localTracks.map(t=>t.id),selected:selected.id,position:pendingPosition.current?.id===selected.id?pendingPosition.current.position:audio.currentTime,updatedAt:Date.now()});
  }
  useEffect(()=>{const save=()=>savePosition(true);window.addEventListener("pagehide",save);document.addEventListener("visibilitychange",save);return()=>{window.removeEventListener("pagehide",save);document.removeEventListener("visibilitychange",save);};},[storageKey,localTracks,current]);
+ const rankLock=useRef(false);
  const selected=localTracks[Math.min(current,Math.max(0,localTracks.length-1))];
 
  useEffect(()=>{const p=audioRef.current;if(!p)return;p.playbackRate=speed;if(autoPlayRef.current){autoPlayRef.current=false;p.play().catch(()=>setIsPlaying(false));}},[current,selected?.src,speed]);
@@ -74,10 +75,18 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
   const percent=Math.round((p.currentTime/p.duration)*100);if(percent<60)return;
   listenRecorded.current.add(selected.id);setLocalTracks(items=>items.map(item=>item.id===selected.id?{...item,listened:true}:item));
   const eligible=selected.eligible;
-  startTransition(async()=>{try{const result=await recordTrackVersionListen(selected.id,percent);if(!result.ok)throw new Error(result.error);setNotice(eligible?"Ranking unlocked. Choose #1, #2 or #3.":"Listening complete. You are credited on this track, so it cannot be included in your own ballot.");}catch(cause){listenRecorded.current.delete(selected.id);setLocalTracks(items=>items.map(item=>item.id===selected.id?{...item,listened:false}:item));setNotice(cause instanceof Error?cause.message:"Listening progress could not be saved.");}});
+  void (async()=>{try{const result=await backgroundInteraction<{ok:boolean;error?:string}>("versionListen",{id:selected.id,value:percent});if(!result.ok)throw new Error(result.error);setNotice(eligible?"Ranking unlocked. Choose #1, #2 or #3.":"Listening complete. You are credited on this track, so it cannot be included in your own ballot.");}catch(cause){listenRecorded.current.delete(selected.id);setLocalTracks(items=>items.map(item=>item.id===selected.id?{...item,listened:false}:item));setNotice(cause instanceof Error?cause.message:"Listening progress could not be saved.");}})();
  }
 
- function rankTrack(trackId:string,rank:number){setNotice("");startTransition(async()=>{try{const result=await setTrackVersionRanking(trackId,rank);if(!result.ok)throw new Error(result.error);setLocalTracks(items=>items.map(item=>({...item,ranking:item.id===trackId?rank:item.ranking===rank?undefined:item.ranking})));setNotice(`Your #${rank} selection is recorded.`);}catch(cause){setNotice(cause instanceof Error?cause.message:"Your selection could not be recorded.");}});}
+ async function rankTrack(trackId:string,rank:number){
+  if(rankLock.current)return;rankLock.current=true;setRankPending(true);setNotice('');
+  const previous=localTracks.map(item=>({id:item.id,ranking:item.ranking}));
+  setLocalTracks(items=>items.map(item=>({...item,ranking:item.id===trackId?rank:item.ranking===rank?undefined:item.ranking})));
+  try{const result=await backgroundInteraction<{ok:boolean;error?:string}>('versionRank',{id:trackId,value:rank});if(!result.ok)throw new Error(result.error);setNotice(`Your #${rank} selection is recorded.`);}
+  catch(cause){setLocalTracks(items=>items.map(item=>({...item,ranking:previous.find(old=>old.id===item.id)?.ranking})));setNotice(cause instanceof Error?cause.message:'Your selection could not be recorded.');}
+  finally{rankLock.current=false;setRankPending(false);}
+ }
+
 
  const clock=(value:number)=>`${Math.floor(value/60)}:${String(Math.floor(value%60)).padStart(2,"0")}`;
  return <section className={"track-chart-room spotify-room refined-player"+(compact?" fan-player-compact":"")+(expanded?" is-expanded":"")}><style>{`

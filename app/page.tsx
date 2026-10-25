@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import PublicNavigation from "../components/PublicNavigation";
+import "./homepage-stability.css";
 import PublicFooter from "../components/PublicFooter";
 import { ArrowUpRight, CheckCircleIcon, DiscIcon, MicIcon, MusicIcon, UsersIcon } from "../components/Icons";
 import { createAdminClient } from "../lib/supabase/admin";

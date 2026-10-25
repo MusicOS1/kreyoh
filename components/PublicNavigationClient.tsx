@@ -8,12 +8,11 @@ import { ArrowUpRight } from "./Icons";
 import { FacktsMusicLogo } from "./Branding";
 
 const links = [
-  ["Discover music", "/listen"],
-  ["Billboard", "/billboard"],
-  ["Creators", "/creators"],
-  ["How It Works", "/#how-it-works"],
   ["About", "/about"],
-  ["Partner", "/partner"],
+  ["How It Works", "/#how-it-works"],
+  ["Creators", "/creators"],
+  ["Explore Music", "/listen"],
+  ["Partners", "/partner"],
   ["Contact", "/contact"],
 ] as const;
 
@@ -39,7 +38,7 @@ export default function PublicNavigationClient({identity:initialIdentity}:{ident
               {label}
             </Link>
           ))}
-          {identity ? <><Link href="/fan?tab=My%20Library">My Library</Link><Link href={identity.creator?"/home":"/fan/profile"}>{identity.creator?"My Workspace":"My Profile"}</Link></> : <Link href="/login" className="fm-nav-signin">Sign In</Link>}
+          {identity ? <><Link href="/fan?tab=My%20Library">My Library</Link><Link href="/home">My Workspace</Link></> : <Link href="/login" className="fm-nav-signin">Sign In</Link>}
           <Link href={identity?"/fan":"/signup"} className="public-nav-cta fm-nav-cta">
             {identity?"Continue Listening":"Join FACKTS"} <ArrowUpRight size={14} />
           </Link>
@@ -63,7 +62,7 @@ export default function PublicNavigationClient({identity:initialIdentity}:{ident
         {links.map(([label, href]) => (
           <Link key={label} href={href} onClick={close}>{label}</Link>
         ))}
-        {identity ? <><Link href="/fan?tab=My%20Library" onClick={close}>My Library</Link><Link href={identity.creator?"/home":"/fan/profile"} onClick={close}>{identity.creator?"My Workspace":"My Profile"}</Link></> : <Link href="/login" onClick={close}>Sign In</Link>}
+        {identity ? <><Link href="/fan?tab=My%20Library" onClick={close}>My Library</Link><Link href="/home" onClick={close}>My Workspace</Link></> : <Link href="/login" onClick={close}>Sign In</Link>}
         <Link href={identity?"/fan":"/signup"} className="public-mobile-cta" onClick={close}>
           {identity?"Continue Listening":"Join FACKTS"} <ArrowUpRight size={15} />
         </Link>

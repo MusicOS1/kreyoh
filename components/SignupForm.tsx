@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { signup } from "../app/signup/actions";
+import Link from "next/link";
 
 export default function SignupForm({ error, next="/home" }: { error?: string; next?: string }) {
   const [visible, setVisible] = useState(false);
@@ -108,7 +109,7 @@ export default function SignupForm({ error, next="/home" }: { error?: string; ne
 
       <label className="terms-check">
         <input name="accepted_terms" type="checkbox" required />
-        <span>I accept the basic terms and privacy notice.</span>
+        <span>I agree to the <Link href="/terms" target="_blank" rel="noopener noreferrer">Terms of Use</Link> and acknowledge the <Link href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Notice</Link> and <Link href="/copyright" target="_blank" rel="noopener noreferrer">Copyright Policy</Link>.</span>
       </label>
 
       <button className="login-submit-btn" type="submit">

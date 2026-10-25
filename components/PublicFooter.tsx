@@ -26,6 +26,12 @@ export default function PublicFooter() {
           <Link href="/contact">Contact</Link>
         </div>
         <div>
+          <span>Legal & trust</span>
+          <Link href="/privacy">Privacy & data rights</Link>
+          <Link href="/terms">Terms of use</Link>
+          <Link href="/copyright">Copyright & takedowns</Link>
+        </div>
+        <div>
           <span>Reach us</span>
           <a href="mailto:info@facktsafrica.co.ke">info@facktsafrica.co.ke</a>
           <a href="tel:+254711468303">+254 711 468 303</a>
@@ -36,6 +42,7 @@ export default function PublicFooter() {
       <div className="fm-footer-bottom">
         <span>© {new Date().getFullYear()} FACKTS Music</span>
         <span>A FACKTS Africa platform</span>
+        <span className="fm-footer-legal-compact"><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/copyright">Copyright</Link></span>
       </div>
     </footer>
   );
