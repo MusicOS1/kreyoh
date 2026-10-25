@@ -1,61 +1,27 @@
 import Link from "next/link";
-import AdminRevokeAccessForm from "../../../../components/AdminRevokeAccessForm";
 import { createAdminClient } from "../../../../lib/supabase/admin";
-import { requireControlRoomPermission, isSuperAdmin } from "../../../../lib/controlRoom";
+import { requireControlRoomPermission } from "../../../../lib/controlRoom";
 import { addUsersToManagedProject, removeManagedMember, restoreManagedMember } from "../actions";
-import { setManagedProjectLead, setScopedAdminAccess } from "../projectManagementActions";
+import { setManagedProjectLead } from "../projectManagementActions";
 
 const first=(v:any)=>Array.isArray(v)?v[0]:v;
-const permissionOptions=[
-["people","People & access"],["projects","All projects & project editing"],["music","Music operations"],
-["tasks","Tasks & assignments"],["sessions","Studio sessions"],["documents","Documents & minutes"],
-["commercial","Commercial opportunities"],["finance","Finance"],["enquiries","Enquiries"],
-["intelligence","Voting & analytics"],["reports","Project reports"],["system","System settings"],
-] as const;
-
-export default async function AdminUsers({searchParams}:{searchParams:Promise<{q?:string;type?:string;admin_user?:string}>}) {
+export default async function AdminUsers({searchParams}:{searchParams:Promise<{q?:string;type?:string}>}) {
   const actor=await requireControlRoomPermission("people");
-  const superAdmin=await isSuperAdmin(actor.id);
   const params=await searchParams; const admin=createAdminClient();
-  const selectedUserId=/^[0-9a-fA-F-]{36}$/.test(params.admin_user||"")?params.admin_user:"";
   let query=admin.from("profiles").select("id,full_name,stage_name,email,avatar_url,creator_types,account_status,project_members(id,status,projects(id,name),member_roles(roles(name)))").order("created_at",{ascending:false}).limit(100);
   if(params.q){const q=params.q.replace(/[,%()]/g," ");query=query.or(`full_name.ilike.%${q}%,stage_name.ilike.%${q}%,email.ilike.%${q}%`)}
-  const [{data:users=[]},{data:projects=[]},{data:roles=[]},{data:controlAdmins=[]}]=await Promise.all([
+  const [{data:users=[]},{data:projects=[]},{data:roles=[]}]=await Promise.all([
     query,
     admin.from("projects").select("id,name,status").order("name"),
     admin.from("roles").select("name").not("name","in","(Admin,Super Admin,Control Room Admin)").order("name"),
-    admin.from("control_room_admins").select("user_id,active,permissions").order("created_at",{ascending:false}),
   ]);
   const safeUsers = users ?? [];
-  const selectedUserResponse = selectedUserId ? await admin.from("profiles")
-    .select("id,full_name,stage_name,email").eq("id",selectedUserId).maybeSingle() : null;
-  const selectedUser=selectedUserResponse?.data;
-  const adminOptions=selectedUser && !safeUsers.some((u:any)=>u.id===selectedUser.id)
-    ? [selectedUser,...safeUsers] : safeUsers;
   const safeProjects = projects ?? [];
   const safeRoles = roles ?? [];
-  const safeControlAdmins = controlAdmins ?? [];
   const visible=safeUsers.filter((u:any)=>!params.type||(u.creator_types||[]).includes(params.type));
 
   return <>
-    <section className="control-page-hero users"><span className="control-eyebrow">PEOPLE AND ACCESS</span><h1>The whole creative room.</h1><p>Platform administrator access is separate from artist and project membership. Full-access administrators can grant carefully scoped access.</p></section>
-
-    <section id="admin-access" className="control-panel control-admin-access-panel"><header><div><span className="control-eyebrow">PLATFORM ADMINISTRATION</span><h2>Give someone Control Room access</h2></div></header>
-      <p className="control-helper">Grant platform permissions to an existing FACKTS Music account. No project invitation or project membership is required. If they have no account, they must sign up first. Only an existing full-access administrator can manage these grants.</p>
-      {superAdmin ? <form action={setScopedAdminAccess} className="control-admin-permission-form">
-        <label className="control-admin-account-selector">Select FACKTS Music account
-          <select name="user_id" aria-label="Account to appoint as a platform administrator" required defaultValue={selectedUser?.id||""}>
-            <option value="" disabled>Choose account (use search above if missing)</option>
-            {adminOptions.map((u:any)=><option key={u.id} value={u.id}>{u.stage_name||u.full_name||u.email} · {u.email}</option>)}
-          </select>
-        </label>
-        <div className="control-permission-checks">{permissionOptions.map(([value,label])=><label key={value}><input type="checkbox" name="permissions" value={value}/><span>{label}</span></label>)}</div>
-        <input type="hidden" name="active" value="true"/><button type="submit">Grant platform admin access</button>
-      </form> : <p className="control-admin-access-restricted" role="status"><strong>Administrator appointments are restricted.</strong> Your current account can manage people, but it does not have full platform administrator authority. Sign in with an existing full-access administrator account to grant or revoke platform permissions. You do not need to add anyone to a music project.</p>}
-      {superAdmin&&<div className="control-admin-grants">{safeControlAdmins.map((g:any)=>{const a=(safeUsers as any[]).find(u=>u.id===g.user_id);return <article key={g.user_id}><span><strong>{a?.stage_name||a?.full_name||a?.email||"Administrator"}</strong><small>{g.active?(g.permissions||[]).join(" · "):"Access disabled"}</small></span>{g.active && (g.user_id === actor.id
-  ? <small className="control-admin-protected">Your administrator account · protected</small>
-  : <AdminRevokeAccessForm userId={g.user_id} name={a?.stage_name||a?.full_name||a?.email||"this account"}/>)}</article>})}</div>}
-    </section>
+    <section className="control-page-hero users"><span className="control-eyebrow">PEOPLE AND ACCESS</span><h1>The whole creative room.</h1><p>Manage creators and music-project memberships. <Link href="/admin/administrators">Platform administrator permissions →</Link></p></section>
 
     <section className="control-panel"><header><div><span className="control-eyebrow">MUSIC PROJECT ACCESS</span><h2>Add existing accounts to a music project</h2></div></header>
       <form action={addUsersToManagedProject} className="control-picker">

@@ -21,9 +21,9 @@ test("only full-access administrators grant project-independent Control Room acc
  assert.doesNotMatch(scope,/all.*ADMIN_PERMISSIONS/);
 });
 test("admin grants are above project membership tools in the UI",()=>{
- const view=file("app/admin/(control)/users/page.tsx");
- assert.ok(view.indexOf("PLATFORM ADMINISTRATION") < view.indexOf("MUSIC PROJECT ACCESS"));
- assert.match(view,/No project invitation or project membership is required/);
+ const view=file("app/admin/(control)/administrators/page.tsx");
+ assert.match(view,/Appoint administrators, manage their permissions/);
+ assert.match(view,/music project/);
 });
 
 test("full global admins can revoke another full global admin without project involvement",()=>{
@@ -38,11 +38,11 @@ test("full global admins can revoke another full global admin without project in
 test("revocation does not delete a music account and handles errors inline",()=>{
  const form=file("components/AdminRevokeAccessForm.tsx");
  const actions=file("app/admin/(control)/projectManagementActions.ts");
- const list=file("app/admin/(control)/users/page.tsx");
+ const list=file("app/admin/(control)/administrators/page.tsx");
  assert.match(form,/useActionState\(revokeScopedAdminAccess/);
  assert.match(form,/Confirm disable/);
  assert.match(form,/role="alert"/);
- assert.match(list,/g.user_id === actor.id/);
+ assert.match(list,/grant.user_id===actor.id/);
  assert.match(list,/<AdminRevokeAccessForm/);
  const fn=actions.slice(actions.indexOf("async function changeScopedAdminAccess"),actions.indexOf("export async function setManagedProjectLead"));
  assert.doesNotMatch(fn,/\bdelete\(/);

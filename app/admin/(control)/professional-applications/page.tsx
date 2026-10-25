@@ -20,32 +20,43 @@ export default async function ProfessionalApplicationsReviewPage(){
   const rows=(applications.data||[]) as Row[];
   const eventResponse=rows.length?await admin.from("professional_application_events").select("application_id,from_status,to_status,note,created_at").in("application_id",rows.map(row=>row.id)).order("created_at",{ascending:false}).limit(1000):null;
   const events=(eventResponse?.data||[]) as EventRow[];
-  return <main className="content professional-review">
-    <style>{".professional-review .review-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px}.professional-review .review-card{padding:20px;border:1px solid #40382c;background:#121317;border-radius:14px}.professional-review .review-card h2{font-size:20px}.professional-review .review-card p{color:#c5c0b8}.professional-review .review-card textarea{width:100%;min-height:86px;background:#202127;color:#fff;padding:12px;border:1px solid #776144;border-radius:8px}.professional-review .review-card button{padding:10px 12px;border-radius:9px;background:#d6a95b;color:#15120b;border:0;margin:5px 5px 5px 0;font-weight:700;cursor:pointer}.professional-review .review-card button.alt{background:#343439;color:#f5eee4}.professional-review .review-card button:disabled{opacity:.5;cursor:wait}.professional-review .review-card a{color:#e9bd70}"}</style>
-    <div className="heading"><div><span className="eyebrow">CONTROL ROOM / PROFESSIONAL APPLICATIONS</span>
+  return <main className="control-professional-review">
+    <header className="control-admin-page-header">
+      <span className="control-eyebrow">CONTROL ROOM / PROFESSIONAL APPLICATIONS</span>
       <h1>Professional identity reviews</h1>
-      <p>Check actual work evidence before verifying professional identities. Approval does not grant project roles or Control Room permissions.</p>
-    </div></div>
-    <p><strong>{counts.error?"—":counts.count??0}</strong> awaiting a decision · <Link href="/admin/users">People & access</Link></p>
-    {applications.error?<p role="alert">{missingApplicationsSchema(applications.error)
-      ?"Database setup required: apply and verify the Session 2 migration before reviewing applications."
-      :"The review queue is unavailable right now."}</p>:
-    <div className="review-grid">{rows.length===0?<p>No submitted applications.</p>:rows.map(row=>
-      <article key={row.id} className="review-card">
-        <span className="eyebrow">{row.profession} · {applicationStatusLabel(row.status)}</span>
+      <p>Review actual work evidence before verifying professional identities.
+        Verification does not grant music-project roles or Control Room privileges.</p>
+      <Link href="/admin/users">People & access →</Link>
+    </header>
+    <section className="control-review-overview">
+      <strong>{counts.error?"—":counts.count??0}</strong><span>Applications awaiting a decision</span>
+    </section>
+    {applications.error?<section className="control-panel" role="alert">
+      {missingApplicationsSchema(applications.error)?"Database configuration is required before reviews can begin.":"The review queue is unavailable right now."}
+    </section>:
+    <section className="control-review-grid" aria-label="Submitted professional applications">
+      {rows.length===0?<div className="control-review-empty">
+        <h2>No submitted applications</h2>
+        <p>Submitted professional profiles will appear here for review.</p>
+      </div>:rows.map(row=><article key={row.id} className="control-review-card">
+        <span className="control-eyebrow">{row.profession} · {applicationStatusLabel(row.status)}</span>
         <h2>{row.display_name}</h2>
         <p>{row.bio}</p>
-        {row.skills?.length>0&&<p><small>Skills: {row.skills.join(" · ")}</small></p>}
+        {row.skills?.length>0&&<p><strong>Skills:</strong> {row.skills.join(" · ")}</p>}
         {row.portfolio_url&&<p><a href={row.portfolio_url} target="_blank" rel="noopener noreferrer">Open portfolio ↗</a></p>}
         {row.submitted_at&&<p><small>Submitted {new Date(row.submitted_at).toLocaleString("en-KE")}</small></p>}
         {row.review_note&&<p><strong>Previous feedback:</strong> {row.review_note}</p>}
         <ProfessionalReviewForm id={row.id} status={row.status}/>
         <h3>Review history</h3>
-        {eventResponse?.error?<p role="alert">Review history could not load.</p>
-          :events.filter(event=>event.application_id===row.id).slice(0,10).map((event,index)=>
-            <p key={event.created_at+"-"+index}><strong>{applicationStatusLabel(event.to_status)}</strong>
-              {" · "}{new Date(event.created_at).toLocaleString("en-KE")}
-              {event.note?<small> · {event.note}</small>:null}</p>)}
-      </article>)}</div>}
+        {eventResponse?.error?<p role="alert">Review history could not load.</p>:
+        events.filter(event=>event.application_id===row.id).slice(0,10).map((event,index)=>
+          <p key={event.created_at+"-"+index} className="control-review-history">
+            <strong>{applicationStatusLabel(event.to_status)}</strong>
+            {" · "}{new Date(event.created_at).toLocaleString("en-KE")}
+            {event.note&&<small> · {event.note}</small>}
+          </p>)}
+      </article>)}
+    </section>}
   </main>;
+
 }

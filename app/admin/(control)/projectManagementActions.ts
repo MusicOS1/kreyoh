@@ -92,6 +92,7 @@ async function changeScopedAdminAccess(
     console.warn("Could not send Control Room access notification",error);
   }
   revalidatePath("/admin/users");
+  revalidatePath("/admin/administrators");
   revalidatePath("/notifications");
 }
 
@@ -100,6 +101,18 @@ export async function setScopedAdminAccess(fd:FormData) {
   const actor = await requireSuperAdmin();
   return changeScopedAdminAccess(fd,actor,"manage");
 }
+export async function savePlatformAdministrator(
+ _previous:{error:string;success:string},fd:FormData,
+):Promise<{error:string;success:string}>{
+ const actor=await requireSuperAdmin();
+ try{
+   await changeScopedAdminAccess(fd,actor,"manage");
+   return {error:"",success:"Platform administrator permissions saved."};
+ }catch(e){
+   return {error:e instanceof Error?e.message:"Unable to save permissions.",success:""};
+ }
+}
+
 
 // Revocation reports expected failures inline rather than a runtime error.
 export async function revokeScopedAdminAccess(

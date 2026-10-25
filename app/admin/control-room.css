@@ -292,3 +292,136 @@
   color: #c9c4cf !important;
   opacity: 1;
 }
+
+
+/* Session 2: native, accessible Control Room pages and bounded layout */
+.control-room{width:100%;max-width:100%;min-width:0;overflow-x:clip}
+.control-room [data-fm-header]{width:100%;max-width:100%;min-width:0}
+.control-room .control-shell{width:100%;min-width:0;max-width:100%;grid-template-columns:248px minmax(0,1fr)}
+.control-room .control-sidebar{min-width:0;left:0;overflow-x:hidden}
+.control-room .control-content{min-width:0;max-width:100%;overflow-x:clip}
+.control-room .control-admin-directory,.control-room .control-professional-review{
+  max-width:100%;width:100%;min-width:0;color:#251c14;overflow-wrap:anywhere;
+}
+.control-room .control-admin-page-header{
+  padding:clamp(22px,3vw,36px);margin-bottom:18px;background:#fffaf0;
+  border:1px solid #d6c3a7;border-radius:18px;
+}
+.control-room .control-admin-page-header h1{font-size:clamp(28px,3.5vw,42px);
+  line-height:1.12;color:#1b1712;margin:12px 0;letter-spacing:-.035em}
+.control-room .control-admin-page-header p{font-size:14px;color:#51463a;
+  line-height:1.6;max-width:790px;margin:0 0 14px}
+.control-room .control-admin-page-header a,.control-room .control-admin-register-actions>a{
+  color:#7a4112;font-size:13px;font-weight:800;
+}
+.control-room .control-admin-directory .control-panel{margin-bottom:18px}
+.control-room .control-admin-lookup form.control-admin-search{display:grid;gap:10px}
+.control-room .control-admin-search label{font-size:13px;color:#35291d;font-weight:800}
+.control-room .control-admin-search>div{display:flex;gap:10px;align-items:center}
+.control-room .control-admin-search input{
+  background:#fffdf9!important;color:#21180f!important;font-size:14px;
+  border:1px solid #baa68d;flex:1 1 auto;min-width:0;
+}
+.control-room .control-admin-search button,.control-room .control-admin-grant-form>button{
+  min-height:44px;padding:10px 15px;background:#291e14;color:#fff8ec;
+  border:1px solid #291e14;border-radius:10px;font-size:13px;
+  font-weight:800;cursor:pointer;
+}
+.control-room .control-admin-search-results{
+  margin:20px 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;max-height:300px;overflow:auto;
+}
+.control-room .control-admin-search-results>a{
+  display:grid;gap:5px;padding:12px;background:#fffdf8;color:#2d2219;
+  border:1px solid #decdb6;border-radius:10px;text-decoration:none;min-width:0;
+}
+.control-room .control-admin-search-results a:hover,
+.control-room .control-admin-search-results a:focus-visible{outline:2px solid #a87332}
+.control-room .control-admin-search-results small{color:#5d5146;overflow-wrap:anywhere}
+.control-room .control-admin-selected{padding-top:20px;margin-top:20px;
+  border-top:1px solid #dac8af;scroll-margin-top:95px}
+.control-room .control-admin-selected h3{font-size:20px;color:#281e15;margin:0 0 14px}
+.control-room .control-admin-grant-form{display:grid;gap:13px;max-width:930px}
+.control-room .control-admin-grant-form p{font-size:13px;color:#3d3026}
+.control-room .control-admin-grant-form p small{display:block;color:#645445;margin-top:6px}
+.control-room .control-admin-grant-form .control-permission-checks{border:0;padding:0;
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.control-room .control-admin-grant-form .control-permission-checks legend{
+  font-size:13px;font-weight:800;color:#2d2116;margin-bottom:12px}
+.control-room .control-admin-grant-form .control-permission-checks label{
+  display:flex;align-items:center;gap:10px;min-width:0;
+  font-size:13px;color:#261c14;background:#fffdf8;border:1px solid #deceb9;
+}
+.control-room .control-admin-grant-form input[type=checkbox]{
+  appearance:auto;flex:0 0 18px;width:18px!important;min-width:18px!important;
+  height:18px!important;min-height:18px!important;max-height:18px;
+  padding:0!important;margin:0;background:#fff!important;color-scheme:light;
+  accent-color:#995d1e;box-shadow:none!important
+}
+.control-room .control-admin-grant-form>button{justify-self:start}
+.control-room .control-admin-feedback{padding:12px;border-radius:9px;font-size:13px;font-weight:700}
+.control-room .control-admin-feedback.error{background:#f8e7e4;color:#8d251f}
+.control-room .control-admin-feedback.success{background:#e4f4e9;color:#23633b}
+.control-room .control-admin-full-access{
+  color:#493522;font-size:13px;padding:15px;border:1px solid #c6a26f;
+  background:#fff5e7;border-radius:10px;
+}
+.control-room .control-admin-register-actions{display:flex;align-items:center;flex-wrap:wrap;
+  justify-content:flex-end;gap:12px}
+.control-room .control-admin-active-list .control-admin-grants article{
+  background:#fffdf8;color:#231a13;border:1px solid #d8c5ac;
+}
+.control-room .control-admin-active-list .control-admin-grants article strong{
+  font-size:15px;color:#241b14;font-weight:800;
+}
+.control-room .control-admin-active-list .control-admin-grants article small{
+  font-size:12px;color:#594b3d;font-weight:600
+}
+.control-room .control-admin-active-list .control-revoke-admin form p,
+.control-room .control-admin-active-list .control-revoke-admin form p strong{color:#281e15}
+.control-room .control-admin-active-list .control-revoke-admin button.control-danger{
+  background:#923028!important;color:#fff!important;border-color:#923028!important;
+  font-size:13px;font-weight:800;
+}
+.control-room .control-admin-active-list .control-revoke-admin form button[type=button]{
+  background:#fffaf0;color:#241b14;font-size:13px;font-weight:800;
+  border:1px solid #c5aa89;border-radius:9px;padding:10px;min-height:44px;
+}
+.control-room .control-review-overview{display:flex;align-items:center;gap:14px;
+  padding:18px 22px;margin:0 0 18px;border:1px solid #decbb0;
+  border-radius:14px;background:#fffaf0;color:#453526;font-size:14px}
+.control-room .control-review-overview strong{color:#261b11;font-size:34px}
+.control-room .control-review-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:16px}
+.control-room .control-review-card,.control-room .control-review-empty{
+  padding:clamp(20px,3vw,28px);background:#fffaf0;color:#2a1e14;
+  border:1px solid #ddc9ac;border-radius:14px;
+}
+.control-room .control-review-card h2,.control-room .control-review-empty h2{
+  color:#21180f;font-size:22px;margin:4px 0 12px
+}
+.control-room .control-review-card h3{color:#291e14;font-size:16px;margin:20px 0 10px}
+.control-room .control-review-card p,.control-room .control-review-empty p{
+  color:#51463b;font-size:14px;line-height:1.65;margin:10px 0
+}
+.control-room .control-review-card small{color:#645648;font-size:12px}
+.control-room .control-review-card a{color:#7b4311;font-weight:750}
+.control-room .control-review-card form{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
+.control-room .control-review-card form label{display:grid;gap:8px;flex-basis:100%;
+  font-size:13px;font-weight:750;color:#2c2118}
+.control-room .control-review-card textarea{min-height:90px;
+  background:#fffdf8!important;color:#241911!important;border:1px solid #baa58a}
+.control-room .control-review-card form button{
+  min-height:44px;background:#2c2118;color:#fff7ec;border-radius:9px;
+  border:1px solid #2c2118;padding:10px 13px;font-size:13px;font-weight:750
+}
+.control-room .control-review-card form button.alt{background:#fffdf8;color:#2b2118;border-color:#ab9678}
+.control-room .control-review-card .control-review-history{border-top:1px solid #decbb0;padding-top:8px}
+@media (max-width:1120px) and (min-width:821px){
+  .control-room .control-shell{grid-template-columns:190px minmax(0,1fr)}
+}
+@media (max-width:820px){.control-room .control-shell{display:block}
+ .control-room .control-sidebar{position:fixed;left:0}}
+@media (max-width:680px){.control-room .control-admin-search>div{flex-direction:column;align-items:stretch}
+ .control-room .control-admin-search-results,
+ .control-room .control-admin-grant-form .control-permission-checks{grid-template-columns:1fr}
+ .control-room .control-admin-register-actions{justify-content:flex-start}}
