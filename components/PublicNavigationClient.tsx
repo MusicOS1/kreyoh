@@ -1,20 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {useMusicIdentity} from "./SessionExperience";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowUpRight } from "./Icons";
 import { FacktsMusicLogo } from "./Branding";
 
-const primaryLinks = [
-  ["Discover", "/listen"],
-  ["Creators", "/creators"],
-  ["How it works", "/#how-it-works"],
-] as const;
-
-const aboutLinks = [
+const links = [
   ["About", "/about"],
+  ["How It Works", "/#how-it-works"],
+  ["Creators", "/creators"],
+  ["Explore Music", "/listen"],
   ["Partners", "/partner"],
   ["Contact", "/contact"],
 ] as const;
@@ -23,10 +20,9 @@ export default function PublicNavigationClient({identity:initialIdentity}:{ident
   const {identity:clientIdentity,ready}=useMusicIdentity();
   const identity=ready?clientIdentity:initialIdentity;
   const [open, setOpen] = useState(false);
-  const moreRef = useRef<HTMLDetailsElement>(null);
   const pathname = usePathname();
-  const close = () => {setOpen(false);if(moreRef.current)moreRef.current.open=false;};
-  useEffect(()=>{setOpen(false);if(moreRef.current)moreRef.current.open=false;},[pathname]);
+  const close = () => setOpen(false);
+  useEffect(()=>setOpen(false),[pathname]);
   useEffect(()=>{if(!open)return;const escape=(event:KeyboardEvent)=>{if(event.key==="Escape")setOpen(false);};window.addEventListener("keydown",escape);return()=>window.removeEventListener("keydown",escape);},[open]);
 
   return (
@@ -37,20 +33,14 @@ export default function PublicNavigationClient({identity:initialIdentity}:{ident
         </Link>
 
         <nav className="public-nav-links fm-public-nav-links" aria-label="Public navigation">
-          {primaryLinks.map(([label,href])=>(
-            <Link key={label} href={href} className={pathname===href?"is-active":""}>{label}</Link>
+          {links.map(([label, href]) => (
+            <Link key={label} href={href} className={pathname === href ? "is-active" : ""}>
+              {label}
+            </Link>
           ))}
-          <details className="fm-public-more" ref={moreRef}>
-            <summary>More <span aria-hidden="true">⌄</span></summary>
-            <div className="fm-public-more-list">
-              {aboutLinks.map(([label,href])=><Link key={label} href={href} onClick={close}>{label}</Link>)}
-              {identity&&<><Link href="/fan?tab=My%20Library" onClick={close}>My Library</Link>
-                <Link href="/home" onClick={close}>My Workspace</Link></>}
-            </div>
-          </details>
-          {!identity&&<Link href="/login" className="fm-nav-signin">Sign in</Link>}
+          {identity ? <><Link href="/fan?tab=My%20Library">My Library</Link><Link href="/home">My Workspace</Link></> : <Link href="/login" className="fm-nav-signin">Sign In</Link>}
           <Link href={identity?"/fan":"/signup"} className="public-nav-cta fm-nav-cta">
-            {identity?"Continue listening":"Join FACKTS"} <ArrowUpRight size={15}/>
+            {identity?"Continue Listening":"Join FACKTS"} <ArrowUpRight size={14} />
           </Link>
         </nav>
 
@@ -68,15 +58,13 @@ export default function PublicNavigationClient({identity:initialIdentity}:{ident
         </button>
       </div>
 
-      <nav id="fm-public-mobile-menu" className={open ? "public-mobile-menu is-open" : "public-mobile-menu"}
-        aria-label="Mobile navigation" aria-hidden={!open} inert={!open}>
-        {primaryLinks.map(([label,href])=><Link key={label} href={href} onClick={close}>{label}</Link>)}
-        {aboutLinks.map(([label,href])=><Link key={label} href={href} onClick={close}>{label}</Link>)}
-        {identity?<><Link href="/fan?tab=My%20Library" onClick={close}>My Library</Link>
-          <Link href="/home" onClick={close}>My Workspace</Link></>:
-          <Link href="/login" onClick={close}>Sign in</Link>}
+      <nav id="fm-public-mobile-menu" className={open ? "public-mobile-menu is-open" : "public-mobile-menu"} aria-label="Mobile navigation">
+        {links.map(([label, href]) => (
+          <Link key={label} href={href} onClick={close}>{label}</Link>
+        ))}
+        {identity ? <><Link href="/fan?tab=My%20Library" onClick={close}>My Library</Link><Link href="/home" onClick={close}>My Workspace</Link></> : <Link href="/login" onClick={close}>Sign In</Link>}
         <Link href={identity?"/fan":"/signup"} className="public-mobile-cta" onClick={close}>
-          {identity?"Continue listening":"Join FACKTS"} <ArrowUpRight size={15}/>
+          {identity?"Continue Listening":"Join FACKTS"} <ArrowUpRight size={15} />
         </Link>
       </nav>
     </header>
