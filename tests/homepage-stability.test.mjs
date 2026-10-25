@@ -3,15 +3,13 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 const read=path=>readFileSync(new URL("../"+path,import.meta.url),"utf8");
 
-test("homepage CSS is scoped to the homepage, not app/layout or other routes",()=>{
- const homepage=read("app/page.tsx");
- const root=read("app/layout.tsx");
- const css=read("app/homepage-stability.css");
- assert.match(homepage,/import "\.\/homepage-stability\.css";/);
- assert.doesNotMatch(root,/homepage-stability\.css/);
- assert.ok(css.includes(".fm-v3-site .fm-v3-hero-copy h1"));
- assert.ok(css.includes(".fm-v3-site .fm-public-nav"));
- assert.doesNotMatch(css,/^\s*(body|html|\.fm-public-nav|\.fm-v3-hero-copy)\s*[{,]/m);
+test("homepage uses scoped components without changing the shared default header",()=>{
+ const homepage=read("app/page.tsx"),root=read("app/layout.tsx"),nav=read("components/PublicNavigation.tsx");
+ assert.match(homepage,/<PublicNavigation homepage/);
+ assert.match(homepage,/HomepageHero.module.css/);
+ assert.doesNotMatch(root,/HomepageHero|HomepageNavigation|homepage-stability/);
+ assert.match(nav,/homepage=false/);
+ assert.match(nav,/<PublicNavigationClient identity=/);
 });
 test("original copy, creative images and original nav links remain intact",()=>{
  const home=read("app/page.tsx");
@@ -23,15 +21,6 @@ test("original copy, creative images and original nav links remain intact",()=>{
  for(const link of ["About","How It Works","Creators","Explore Music","Partners","Contact"]){
   assert.ok(nav.includes('["'+link+'",'),link);
  }
-});
-test("headline is bounded, and navigation collapses before overflowing",()=>{
- const css=read("app/homepage-stability.css");
- assert.match(css,/font-size: clamp\(43px, 4\.3vw, 65px\)/);
- assert.match(css,/grid-template-columns: minmax\(0, 1\.08fr\) minmax\(0, \.92fr\)/);
- assert.match(css,/@media \(min-width: 941px\) and \(max-width: 1690px\)/);
- assert.match(css,/@media \(max-width: 940px\)/);
- assert.match(css,/\.public-mobile-menu\.is-open/);
- assert.match(css,/@media \(max-width: 600px\)/);
 });
 test("footer legal links remain untouched",()=>{
  const footer=read("components/PublicFooter.tsx");

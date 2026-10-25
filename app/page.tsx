@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import PublicNavigation from "../components/PublicNavigation";
-import "./homepage-stability.css";
+import hero from "./HomepageHero.module.css";
 import PublicFooter from "../components/PublicFooter";
 import { ArrowUpRight, CheckCircleIcon, DiscIcon, MicIcon, MusicIcon, UsersIcon } from "../components/Icons";
 import { createAdminClient } from "../lib/supabase/admin";
@@ -110,49 +110,48 @@ export default async function PublicHomePage() {
   const interviews = creators.filter((creator) => creator.interviewUrl).slice(0, 3);
 
   return (
-    <main className="public-site fm-v3-site">
-      <PublicNavigation />
+    <main className={hero.site}>
+      <PublicNavigation homepage />
 
-      <section className="fm-v3-hero" id="top">
-        <div className="fm-v3-hero-noise" aria-hidden="true" />
-        <div className="fm-v3-hero-grid" aria-hidden="true" />
-        <div className="fm-v3-hero-glow fm-v3-hero-glow-a" aria-hidden="true" />
-        <div className="fm-v3-hero-glow fm-v3-hero-glow-b" aria-hidden="true" />
+      <section className={hero.hero} id="top">
+        <div className={hero.grid} aria-hidden="true" />
+        <div className={hero.glowA} aria-hidden="true" />
+        <div className={hero.glowB} aria-hidden="true" />
 
-        <div className="fm-v3-hero-copy">
-          <div className="fm-v3-kicker"><span /> FACKTS MUSIC · NAIROBI / AFRICA</div>
-          <h1>Discover music.<br /><em>Find your people.</em><br />Be part of it.</h1>
+        <div className={hero.copy}>
+          <div className={hero.kicker}><span /> FACKTS MUSIC · NAIROBI / AFRICA</div>
+          <h1><span>Discover music.</span><span><em>Find your people.</em></span><span>Be part of it.</span></h1>
           <p>
             Hear independent releases, meet the artists behind them, and follow the sounds you love. Your next favourite starts here.
           </p>
-          <div className="fm-v3-hero-actions">
-            <Link href="/listen" className="fm-v3-btn fm-v3-btn-primary">Explore the music <ArrowUpRight size={16} /></Link>
-            <Link href="/creators" className="fm-v3-btn fm-v3-btn-ghost">Meet the creators <ArrowUpRight size={16} /></Link>
+          <div className={hero.actions}>
+            <Link href="/listen" className={`${hero.button} ${hero.primary}`}>Explore the music <ArrowUpRight size={16} /></Link>
+            <Link href="/creators" className={`${hero.button} ${hero.secondary}`}>Meet the creators <ArrowUpRight size={16} /></Link>
           </div>
-          <div className="fm-v3-hero-foot">
+          <div className={hero.foot}>
             <span>Built in Nairobi</span>
             <span>Creators first</span>
             <span>Projects in motion</span>
           </div>
         </div>
 
-        <div className="fm-v3-hero-world" aria-label="FACKTS Music visual world">
-          <div className="fm-v3-frame fm-v3-frame-main">
+        <div className={hero.world} aria-label="FACKTS Music visual world">
+          <div className={`${hero.frame} ${hero.main}`}>
             <img src="/branding/fackts-creative-community.jpg" alt="FACKTS Music creative community" />
-            <span className="fm-v3-frame-tag">THE CREATIVE ROOM</span>
+            <span className={hero.tag}>THE CREATIVE ROOM</span>
           </div>
-          <div className="fm-v3-frame fm-v3-frame-top">
+          <div className={`${hero.frame} ${hero.top}`}>
             <img src="/branding/fackts-creator-red-wide.jpg" alt="FACKTS Music creator" />
           </div>
-          <div className="fm-v3-frame fm-v3-frame-bottom">
+          <div className={`${hero.frame} ${hero.bottom}`}>
             <img src="/branding/fackts-creator-sky.jpg" alt="FACKTS Music creator" />
           </div>
-          <div className="fm-v3-orbit-card">
+          <div className={hero.orbit}>
             <video autoPlay loop muted playsInline preload="metadata" poster="/branding/fackts-music-logo.png">
               <source src="/branding/fackts-music-premium-orbit.mp4" type="video/mp4" />
             </video>
           </div>
-          <div className="fm-v3-live-chip"><span /> LIVE PLATFORM</div>
+          <div className={hero.live}><span /> LIVE PLATFORM</div>
         </div>
       </section>
 

@@ -1,0 +1,681 @@
+[
+  {
+    "viewport": 375,
+    "scroll": 375,
+    "brand": {
+      "x": 18,
+      "y": 17,
+      "width": 180.90625,
+      "height": 38,
+      "display": "flex",
+      "font": "15px",
+      "position": "static",
+      "grid": "none"
+    },
+    "nav": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "display": "none",
+      "font": "15px",
+      "position": "static",
+      "grid": "none"
+    },
+    "hero": {
+      "x": 0,
+      "y": 73,
+      "width": 375,
+      "height": 857.09375,
+      "display": "grid",
+      "font": "15px",
+      "position": "relative",
+      "grid": "335px"
+    },
+    "title": {
+      "x": 20,
+      "y": 151.390625,
+      "width": 335,
+      "height": 107.0625,
+      "display": "block",
+      "font": "31.875px",
+      "position": "static",
+      "grid": "none"
+    },
+    "world": {
+      "x": 20,
+      "y": 555.09375,
+      "width": 335,
+      "height": 335,
+      "display": "block",
+      "font": "15px",
+      "position": "relative",
+      "grid": "none"
+    },
+    "links": [
+      {
+        "text": "Explore Music",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "Creators",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "About",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      }
+    ]
+  },
+  {
+    "viewport": 390,
+    "scroll": 390,
+    "brand": {
+      "x": 18,
+      "y": 17,
+      "width": 180.90625,
+      "height": 38,
+      "display": "flex",
+      "font": "15px",
+      "position": "static",
+      "grid": "none"
+    },
+    "nav": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "display": "none",
+      "font": "15px",
+      "position": "static",
+      "grid": "none"
+    },
+    "hero": {
+      "x": 0,
+      "y": 73,
+      "width": 390,
+      "height": 876.40625,
+      "display": "grid",
+      "font": "15px",
+      "position": "relative",
+      "grid": "350px"
+    },
+    "title": {
+      "x": 20,
+      "y": 151.390625,
+      "width": 350,
+      "height": 111.375,
+      "display": "block",
+      "font": "33.15px",
+      "position": "static",
+      "grid": "none"
+    },
+    "world": {
+      "x": 20,
+      "y": 559.40625,
+      "width": 350,
+      "height": 350,
+      "display": "block",
+      "font": "15px",
+      "position": "relative",
+      "grid": "none"
+    },
+    "links": [
+      {
+        "text": "Explore Music",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "Creators",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "About",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      }
+    ]
+  },
+  {
+    "viewport": 768,
+    "scroll": 768,
+    "brand": {
+      "x": 28,
+      "y": 19,
+      "width": 180.90625,
+      "height": 38,
+      "display": "flex",
+      "font": "16px",
+      "position": "static",
+      "grid": "none"
+    },
+    "nav": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "display": "none",
+      "font": "16px",
+      "position": "static",
+      "grid": "none"
+    },
+    "hero": {
+      "x": 0,
+      "y": 77,
+      "width": 768,
+      "height": 1106.40625,
+      "display": "grid",
+      "font": "16px",
+      "position": "relative",
+      "grid": "704px"
+    },
+    "title": {
+      "x": 64,
+      "y": 169,
+      "width": 640,
+      "height": 161.71875,
+      "display": "block",
+      "font": "49.92px",
+      "position": "static",
+      "grid": "none"
+    },
+    "world": {
+      "x": 74,
+      "y": 588.28125,
+      "width": 620,
+      "height": 539.125,
+      "display": "block",
+      "font": "16px",
+      "position": "relative",
+      "grid": "none"
+    },
+    "links": [
+      {
+        "text": "Explore Music",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "Creators",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "About",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      }
+    ]
+  },
+  {
+    "viewport": 1024,
+    "scroll": 1024,
+    "brand": {
+      "x": 28,
+      "y": 19,
+      "width": 180.90625,
+      "height": 38,
+      "display": "flex",
+      "font": "16px",
+      "position": "static",
+      "grid": "none"
+    },
+    "nav": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "display": "none",
+      "font": "16px",
+      "position": "static",
+      "grid": "none"
+    },
+    "hero": {
+      "x": 0,
+      "y": 77,
+      "width": 1024,
+      "height": 600,
+      "display": "grid",
+      "font": "16px",
+      "position": "relative",
+      "grid": "481.453px 458.547px"
+    },
+    "title": {
+      "x": 28,
+      "y": 213.046875,
+      "width": 481.453125,
+      "height": 134.34375,
+      "display": "block",
+      "font": "41.472px",
+      "position": "static",
+      "grid": "none"
+    },
+    "world": {
+      "x": 537.453125,
+      "y": 134.5625,
+      "width": 458.546875,
+      "height": 476.875,
+      "display": "block",
+      "font": "16px",
+      "position": "relative",
+      "grid": "none"
+    },
+    "links": [
+      {
+        "text": "Explore Music",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "Creators",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "About",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      }
+    ]
+  },
+  {
+    "viewport": 1366,
+    "scroll": 1366,
+    "brand": {
+      "x": 40,
+      "y": 23,
+      "width": 180.90625,
+      "height": 38,
+      "display": "flex",
+      "font": "16px",
+      "position": "static",
+      "grid": "none"
+    },
+    "nav": {
+      "x": 252.90625,
+      "y": 20,
+      "width": 716.671875,
+      "height": 44,
+      "display": "flex",
+      "font": "16px",
+      "position": "static",
+      "grid": "none"
+    },
+    "hero": {
+      "x": 0,
+      "y": 85,
+      "width": 1366,
+      "height": 756,
+      "display": "grid",
+      "font": "16px",
+      "position": "relative",
+      "grid": "638.188px 607.797px"
+    },
+    "title": {
+      "x": 40,
+      "y": 274.109375,
+      "width": 638.1875,
+      "height": 179.25,
+      "display": "block",
+      "font": "55.323px",
+      "position": "static",
+      "grid": "none"
+    },
+    "world": {
+      "x": 718.1875,
+      "y": 149,
+      "width": 607.796875,
+      "height": 620,
+      "display": "block",
+      "font": "16px",
+      "position": "relative",
+      "grid": "none"
+    },
+    "links": [
+      {
+        "text": "Explore Music",
+        "x": 477.984375,
+        "y": 20,
+        "width": 102.84375,
+        "height": 44,
+        "top": 20,
+        "right": 580.828125,
+        "bottom": 64,
+        "left": 477.984375,
+        "display": "flex"
+      },
+      {
+        "text": "Creators",
+        "x": 608.828125,
+        "y": 20,
+        "width": 63.484375,
+        "height": 44,
+        "top": 20,
+        "right": 672.3125,
+        "bottom": 64,
+        "left": 608.828125,
+        "display": "flex"
+      },
+      {
+        "text": "About",
+        "x": 700.3125,
+        "y": 20,
+        "width": 44.171875,
+        "height": 44,
+        "top": 20,
+        "right": 744.484375,
+        "bottom": 64,
+        "left": 700.3125,
+        "display": "flex"
+      }
+    ]
+  },
+  {
+    "viewport": 1440,
+    "scroll": 1440,
+    "brand": {
+      "x": 40,
+      "y": 23,
+      "width": 180.90625,
+      "height": 38,
+      "display": "flex",
+      "font": "16px",
+      "position": "static",
+      "grid": "none"
+    },
+    "nav": {
+      "x": 252.90625,
+      "y": 20,
+      "width": 790.671875,
+      "height": 44,
+      "display": "flex",
+      "font": "16px",
+      "position": "static",
+      "grid": "none"
+    },
+    "hero": {
+      "x": 0,
+      "y": 85,
+      "width": 1440,
+      "height": 756,
+      "display": "grid",
+      "font": "16px",
+      "position": "relative",
+      "grid": "676.094px 643.906px"
+    },
+    "title": {
+      "x": 40,
+      "y": 269.28125,
+      "width": 676.09375,
+      "height": 188.90625,
+      "display": "block",
+      "font": "58.32px",
+      "position": "static",
+      "grid": "none"
+    },
+    "world": {
+      "x": 756.09375,
+      "y": 149,
+      "width": 643.90625,
+      "height": 620,
+      "display": "block",
+      "font": "16px",
+      "position": "relative",
+      "grid": "none"
+    },
+    "links": [
+      {
+        "text": "Explore Music",
+        "x": 514.984375,
+        "y": 20,
+        "width": 102.84375,
+        "height": 44,
+        "top": 20,
+        "right": 617.828125,
+        "bottom": 64,
+        "left": 514.984375,
+        "display": "flex"
+      },
+      {
+        "text": "Creators",
+        "x": 645.828125,
+        "y": 20,
+        "width": 63.484375,
+        "height": 44,
+        "top": 20,
+        "right": 709.3125,
+        "bottom": 64,
+        "left": 645.828125,
+        "display": "flex"
+      },
+      {
+        "text": "About",
+        "x": 737.3125,
+        "y": 20,
+        "width": 44.171875,
+        "height": 44,
+        "top": 20,
+        "right": 781.484375,
+        "bottom": 64,
+        "left": 737.3125,
+        "display": "flex"
+      }
+    ]
+  },
+  {
+    "viewport": 1920,
+    "scroll": 1920,
+    "brand": {
+      "x": 250,
+      "y": 23,
+      "width": 180.90625,
+      "height": 38,
+      "display": "flex",
+      "font": "16px",
+      "position": "static",
+      "grid": "none"
+    },
+    "nav": {
+      "x": 462.90625,
+      "y": 20,
+      "width": 850.671875,
+      "height": 44,
+      "display": "flex",
+      "font": "16px",
+      "position": "static",
+      "grid": "none"
+    },
+    "hero": {
+      "x": 210,
+      "y": 85,
+      "width": 1500,
+      "height": 756,
+      "display": "grid",
+      "font": "16px",
+      "position": "relative",
+      "grid": "706.828px 673.172px"
+    },
+    "title": {
+      "x": 250,
+      "y": 266.53125,
+      "width": 706.828125,
+      "height": 194.390625,
+      "display": "block",
+      "font": "60px",
+      "position": "static",
+      "grid": "none"
+    },
+    "world": {
+      "x": 996.828125,
+      "y": 149,
+      "width": 673.171875,
+      "height": 620,
+      "display": "block",
+      "font": "16px",
+      "position": "relative",
+      "grid": "none"
+    },
+    "links": [
+      {
+        "text": "Explore Music",
+        "x": 754.984375,
+        "y": 20,
+        "width": 102.84375,
+        "height": 44,
+        "top": 20,
+        "right": 857.828125,
+        "bottom": 64,
+        "left": 754.984375,
+        "display": "flex"
+      },
+      {
+        "text": "Creators",
+        "x": 885.828125,
+        "y": 20,
+        "width": 63.484375,
+        "height": 44,
+        "top": 20,
+        "right": 949.3125,
+        "bottom": 64,
+        "left": 885.828125,
+        "display": "flex"
+      },
+      {
+        "text": "About",
+        "x": 977.3125,
+        "y": 20,
+        "width": 44.171875,
+        "height": 44,
+        "top": 20,
+        "right": 1021.484375,
+        "bottom": 64,
+        "left": 977.3125,
+        "display": "flex"
+      }
+    ]
+  },
+  {
+    "route": "/listen",
+    "status": 200,
+    "url": "http://localhost:3100/listen"
+  },
+  {
+    "route": "/creators",
+    "status": 200,
+    "url": "http://localhost:3100/creators"
+  },
+  {
+    "route": "/about",
+    "status": 200,
+    "url": "http://localhost:3100/about"
+  },
+  {
+    "route": "/admin/users",
+    "status": 200,
+    "url": "http://localhost:3100/admin/login?next=%2Fadmin%2Fusers"
+  },
+  {
+    "route": "/privacy",
+    "status": 200,
+    "url": "http://localhost:3100/login?next=%2Fprivacy"
+  },
+  {
+    "route": "/terms",
+    "status": 200,
+    "url": "http://localhost:3100/login?next=%2Fterms"
+  },
+  {
+    "route": "/copyright",
+    "status": 200,
+    "url": "http://localhost:3100/login?next=%2Fcopyright"
+  }
+]

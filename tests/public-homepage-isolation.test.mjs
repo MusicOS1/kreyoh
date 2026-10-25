@@ -17,7 +17,7 @@ test("premium hero redesign styles do not overwrite original homepage",()=>{
   assert.doesNotMatch(layout,/public-home-refinement\.css/);
   assert.match(layout,/import "\.\/legal\.css";/);
   const home=read("app/page.tsx");
-  assert.match(home,/fm-v3-hero/);
+  assert.match(home,/HomepageHero.module.css/);
   assert.match(home,/id="how-it-works"/);
   assert.match(home,/<PublicFooter/);
 });

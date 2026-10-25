@@ -1,0 +1,1101 @@
+[
+  {
+    "viewport": 375,
+    "scroll": 375,
+    "brand": {
+      "x": 16,
+      "y": 44.5,
+      "width": 160.765625,
+      "height": 38,
+      "display": "flex",
+      "font": "15px",
+      "position": "static",
+      "grid": "none"
+    },
+    "nav": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "display": "none",
+      "font": "12.6px",
+      "position": "static",
+      "grid": "none"
+    },
+    "hero": {
+      "x": 0,
+      "y": 99,
+      "width": 375,
+      "height": 974.59375,
+      "display": "grid",
+      "font": "15px",
+      "position": "relative",
+      "grid": "339px"
+    },
+    "title": {
+      "x": 18,
+      "y": 186,
+      "width": 339,
+      "height": 161.0625,
+      "display": "block",
+      "font": "38px",
+      "position": "static",
+      "grid": "none"
+    },
+    "world": {
+      "x": 18,
+      "y": 690.59375,
+      "width": 339,
+      "height": 345,
+      "display": "block",
+      "font": "15px",
+      "position": "relative",
+      "grid": "none"
+    },
+    "links": [
+      {
+        "text": "About",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "How It Works",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "Creators",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "Explore Music",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "Partners",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "Contact",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "Sign In",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "Join FACKTS ",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      }
+    ]
+  },
+  {
+    "viewport": 390,
+    "scroll": 390,
+    "brand": {
+      "x": 16,
+      "y": 44.5,
+      "width": 160.765625,
+      "height": 38,
+      "display": "flex",
+      "font": "15px",
+      "position": "static",
+      "grid": "none"
+    },
+    "nav": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "display": "none",
+      "font": "12.6px",
+      "position": "static",
+      "grid": "none"
+    },
+    "hero": {
+      "x": 0,
+      "y": 99,
+      "width": 390,
+      "height": 974.59375,
+      "display": "grid",
+      "font": "15px",
+      "position": "relative",
+      "grid": "354px"
+    },
+    "title": {
+      "x": 18,
+      "y": 186,
+      "width": 354,
+      "height": 161.0625,
+      "display": "block",
+      "font": "38px",
+      "position": "static",
+      "grid": "none"
+    },
+    "world": {
+      "x": 18,
+      "y": 690.59375,
+      "width": 354,
+      "height": 345,
+      "display": "block",
+      "font": "15px",
+      "position": "relative",
+      "grid": "none"
+    },
+    "links": [
+      {
+        "text": "About",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "How It Works",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "Creators",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "Explore Music",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "Partners",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "Contact",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "Sign In",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "Join FACKTS ",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      }
+    ]
+  },
+  {
+    "viewport": 768,
+    "scroll": 768,
+    "brand": {
+      "x": 19.953125,
+      "y": 46.5,
+      "width": 157.859375,
+      "height": 38,
+      "display": "flex",
+      "font": "16px",
+      "position": "static",
+      "grid": "none"
+    },
+    "nav": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "display": "none",
+      "font": "12.6px",
+      "position": "static",
+      "grid": "none"
+    },
+    "hero": {
+      "x": 0,
+      "y": 103,
+      "width": 768,
+      "height": 1029.0625,
+      "display": "grid",
+      "font": "16px",
+      "position": "relative",
+      "grid": "691.219px"
+    },
+    "title": {
+      "x": 38.390625,
+      "y": 203,
+      "width": 691.21875,
+      "height": 179.671875,
+      "display": "block",
+      "font": "57.6px",
+      "position": "static",
+      "grid": "none"
+    },
+    "world": {
+      "x": 38.390625,
+      "y": 606.0625,
+      "width": 691.21875,
+      "height": 480,
+      "display": "block",
+      "font": "16px",
+      "position": "relative",
+      "grid": "none"
+    },
+    "links": [
+      {
+        "text": "About",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "How It Works",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "Creators",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "Explore Music",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "Partners",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "Contact",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "Sign In",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      },
+      {
+        "text": "Join FACKTS ",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "inline-flex"
+      }
+    ]
+  },
+  {
+    "viewport": 1024,
+    "scroll": 1024,
+    "brand": {
+      "x": 26.609375,
+      "y": 52.5,
+      "width": 157.859375,
+      "height": 38,
+      "display": "flex",
+      "font": "16px",
+      "position": "static",
+      "grid": "none"
+    },
+    "nav": {
+      "x": 221.3125,
+      "y": 48.90625,
+      "width": 707.5625,
+      "height": 45.1875,
+      "display": "flex",
+      "font": "12.6px",
+      "position": "static",
+      "grid": "none"
+    },
+    "hero": {
+      "x": 0,
+      "y": 115,
+      "width": 1024,
+      "height": 790,
+      "display": "grid",
+      "font": "16px",
+      "position": "relative",
+      "grid": "483.766px 446.562px"
+    },
+    "title": {
+      "x": 35.828125,
+      "y": 358.234375,
+      "width": 483.765625,
+      "height": 146.953125,
+      "display": "block",
+      "font": "47.104px",
+      "position": "static",
+      "grid": "none"
+    },
+    "world": {
+      "x": 541.59375,
+      "y": 265.40625,
+      "width": 446.5625,
+      "height": 490,
+      "display": "block",
+      "font": "16px",
+      "position": "relative",
+      "grid": "none"
+    },
+    "links": [
+      {
+        "text": "About",
+        "x": 424.75,
+        "y": 49.5,
+        "width": 45.171875,
+        "height": 44,
+        "top": 49.5,
+        "right": 469.921875,
+        "bottom": 93.5,
+        "left": 424.75,
+        "display": "flex"
+      },
+      {
+        "text": "How It Works",
+        "x": 481.171875,
+        "y": 49.5,
+        "width": 102.296875,
+        "height": 44,
+        "top": 49.5,
+        "right": 583.46875,
+        "bottom": 93.5,
+        "left": 481.171875,
+        "display": "flex"
+      },
+      {
+        "text": "Creators",
+        "x": 594.71875,
+        "y": 49.5,
+        "width": 68.9375,
+        "height": 44,
+        "top": 49.5,
+        "right": 663.65625,
+        "bottom": 93.5,
+        "left": 594.71875,
+        "display": "flex"
+      },
+      {
+        "text": "Explore Music",
+        "x": 674.90625,
+        "y": 49.5,
+        "width": 106.25,
+        "height": 44,
+        "top": 49.5,
+        "right": 781.15625,
+        "bottom": 93.5,
+        "left": 674.90625,
+        "display": "flex"
+      },
+      {
+        "text": "Partners",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "none"
+      },
+      {
+        "text": "Contact",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "none"
+      },
+      {
+        "text": "Sign In",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "none"
+      },
+      {
+        "text": "Join FACKTS ",
+        "x": 792.40625,
+        "y": 48.90625,
+        "width": 136.46875,
+        "height": 45.1875,
+        "top": 48.90625,
+        "right": 928.875,
+        "bottom": 94.09375,
+        "left": 792.40625,
+        "display": "flex"
+      }
+    ]
+  },
+  {
+    "viewport": 1366,
+    "scroll": 1366,
+    "brand": {
+      "x": 35.515625,
+      "y": 52.5,
+      "width": 157.859375,
+      "height": 38,
+      "display": "flex",
+      "font": "16px",
+      "position": "static",
+      "grid": "none"
+    },
+    "nav": {
+      "x": 242.53125,
+      "y": 48.90625,
+      "width": 1011.90625,
+      "height": 45.1875,
+      "display": "flex",
+      "font": "12.6px",
+      "position": "static",
+      "grid": "none"
+    },
+    "hero": {
+      "x": 0,
+      "y": 115,
+      "width": 1366,
+      "height": 790,
+      "display": "grid",
+      "font": "16px",
+      "position": "relative",
+      "grid": "663.891px 565.547px"
+    },
+    "title": {
+      "x": 47.796875,
+      "y": 336.515625,
+      "width": 663.890625,
+      "height": 183.234375,
+      "display": "block",
+      "font": "58.738px",
+      "position": "static",
+      "grid": "none"
+    },
+    "world": {
+      "x": 752.65625,
+      "y": 243.78125,
+      "width": 565.546875,
+      "height": 532.734375,
+      "display": "block",
+      "font": "16px",
+      "position": "relative",
+      "grid": "none"
+    },
+    "links": [
+      {
+        "text": "About",
+        "x": 735.25,
+        "y": 49.5,
+        "width": 45.171875,
+        "height": 44,
+        "top": 49.5,
+        "right": 780.421875,
+        "bottom": 93.5,
+        "left": 735.25,
+        "display": "flex"
+      },
+      {
+        "text": "How It Works",
+        "x": 795.4375,
+        "y": 49.5,
+        "width": 102.296875,
+        "height": 44,
+        "top": 49.5,
+        "right": 897.734375,
+        "bottom": 93.5,
+        "left": 795.4375,
+        "display": "flex"
+      },
+      {
+        "text": "Creators",
+        "x": 912.75,
+        "y": 49.5,
+        "width": 68.9375,
+        "height": 44,
+        "top": 49.5,
+        "right": 981.6875,
+        "bottom": 93.5,
+        "left": 912.75,
+        "display": "flex"
+      },
+      {
+        "text": "Explore Music",
+        "x": 996.703125,
+        "y": 49.5,
+        "width": 106.25,
+        "height": 44,
+        "top": 49.5,
+        "right": 1102.953125,
+        "bottom": 93.5,
+        "left": 996.703125,
+        "display": "flex"
+      },
+      {
+        "text": "Partners",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "none"
+      },
+      {
+        "text": "Contact",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "none"
+      },
+      {
+        "text": "Sign In",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "none"
+      },
+      {
+        "text": "Join FACKTS ",
+        "x": 1117.96875,
+        "y": 48.90625,
+        "width": 136.46875,
+        "height": 45.1875,
+        "top": 48.90625,
+        "right": 1254.4375,
+        "bottom": 94.09375,
+        "left": 1117.96875,
+        "display": "flex"
+      }
+    ]
+  },
+  {
+    "viewport": 1440,
+    "scroll": 1440,
+    "brand": {
+      "x": 36,
+      "y": 52.5,
+      "width": 157.859375,
+      "height": 38,
+      "display": "flex",
+      "font": "16px",
+      "position": "static",
+      "grid": "none"
+    },
+    "nav": {
+      "x": 245.6875,
+      "y": 48.90625,
+      "width": 1080.640625,
+      "height": 45.1875,
+      "display": "flex",
+      "font": "12.6px",
+      "position": "static",
+      "grid": "none"
+    },
+    "hero": {
+      "x": 0,
+      "y": 115,
+      "width": 1440,
+      "height": 790,
+      "display": "grid",
+      "font": "16px",
+      "position": "relative",
+      "grid": "700.266px 596.547px"
+    },
+    "title": {
+      "x": 50,
+      "y": 331.921875,
+      "width": 700.265625,
+      "height": 193.171875,
+      "display": "block",
+      "font": "61.92px",
+      "position": "static",
+      "grid": "none"
+    },
+    "world": {
+      "x": 793.453125,
+      "y": 231.203125,
+      "width": 596.546875,
+      "height": 561.59375,
+      "display": "block",
+      "font": "16px",
+      "position": "relative",
+      "grid": "none"
+    },
+    "links": [
+      {
+        "text": "About",
+        "x": 803.890625,
+        "y": 49.5,
+        "width": 45.171875,
+        "height": 44,
+        "top": 49.5,
+        "right": 849.0625,
+        "bottom": 93.5,
+        "left": 803.890625,
+        "display": "flex"
+      },
+      {
+        "text": "How It Works",
+        "x": 864.890625,
+        "y": 49.5,
+        "width": 102.296875,
+        "height": 44,
+        "top": 49.5,
+        "right": 967.1875,
+        "bottom": 93.5,
+        "left": 864.890625,
+        "display": "flex"
+      },
+      {
+        "text": "Creators",
+        "x": 983.015625,
+        "y": 49.5,
+        "width": 68.9375,
+        "height": 44,
+        "top": 49.5,
+        "right": 1051.953125,
+        "bottom": 93.5,
+        "left": 983.015625,
+        "display": "flex"
+      },
+      {
+        "text": "Explore Music",
+        "x": 1067.78125,
+        "y": 49.5,
+        "width": 106.25,
+        "height": 44,
+        "top": 49.5,
+        "right": 1174.03125,
+        "bottom": 93.5,
+        "left": 1067.78125,
+        "display": "flex"
+      },
+      {
+        "text": "Partners",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "none"
+      },
+      {
+        "text": "Contact",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "none"
+      },
+      {
+        "text": "Sign In",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "display": "none"
+      },
+      {
+        "text": "Join FACKTS ",
+        "x": 1189.859375,
+        "y": 48.90625,
+        "width": 136.46875,
+        "height": 45.1875,
+        "top": 48.90625,
+        "right": 1326.328125,
+        "bottom": 94.09375,
+        "left": 1189.859375,
+        "display": "flex"
+      }
+    ]
+  },
+  {
+    "viewport": 1920,
+    "scroll": 1920,
+    "brand": {
+      "x": 226,
+      "y": 52.5,
+      "width": 157.859375,
+      "height": 38,
+      "display": "flex",
+      "font": "16px",
+      "position": "static",
+      "grid": "none"
+    },
+    "nav": {
+      "x": 443.859375,
+      "y": 48.90625,
+      "width": 1250.140625,
+      "height": 45.1875,
+      "display": "flex",
+      "font": "12.6px",
+      "position": "static",
+      "grid": "none"
+    },
+    "hero": {
+      "x": 210,
+      "y": 115,
+      "width": 1500,
+      "height": 790,
+      "display": "grid",
+      "font": "16px",
+      "position": "relative",
+      "grid": "730.078px 621.922px"
+    },
+    "title": {
+      "x": 260,
+      "y": 328.609375,
+      "width": 730.078125,
+      "height": 202.78125,
+      "display": "block",
+      "font": "65px",
+      "position": "static",
+      "grid": "none"
+    },
+    "world": {
+      "x": 1038.078125,
+      "y": 208.5,
+      "width": 621.921875,
+      "height": 610,
+      "display": "block",
+      "font": "16px",
+      "position": "relative",
+      "grid": "none"
+    },
+    "links": [
+      {
+        "text": "About",
+        "x": 922.0625,
+        "y": 49.5,
+        "width": 45.171875,
+        "height": 44,
+        "top": 49.5,
+        "right": 967.234375,
+        "bottom": 93.5,
+        "left": 922.0625,
+        "display": "flex"
+      },
+      {
+        "text": "How It Works",
+        "x": 986.234375,
+        "y": 49.5,
+        "width": 102.296875,
+        "height": 44,
+        "top": 49.5,
+        "right": 1088.53125,
+        "bottom": 93.5,
+        "left": 986.234375,
+        "display": "flex"
+      },
+      {
+        "text": "Creators",
+        "x": 1107.53125,
+        "y": 49.5,
+        "width": 68.9375,
+        "height": 44,
+        "top": 49.5,
+        "right": 1176.46875,
+        "bottom": 93.5,
+        "left": 1107.53125,
+        "display": "flex"
+      },
+      {
+        "text": "Explore Music",
+        "x": 1195.46875,
+        "y": 49.5,
+        "width": 106.25,
+        "height": 44,
+        "top": 49.5,
+        "right": 1301.71875,
+        "bottom": 93.5,
+        "left": 1195.46875,
+        "display": "flex"
+      },
+      {
+        "text": "Partners",
+        "x": 1320.71875,
+        "y": 49.5,
+        "width": 68.125,
+        "height": 44,
+        "top": 49.5,
+        "right": 1388.84375,
+        "bottom": 93.5,
+        "left": 1320.71875,
+        "display": "flex"
+      },
+      {
+        "text": "Contact",
+        "x": 1407.84375,
+        "y": 49.5,
+        "width": 60.84375,
+        "height": 44,
+        "top": 49.5,
+        "right": 1468.6875,
+        "bottom": 93.5,
+        "left": 1407.84375,
+        "display": "flex"
+      },
+      {
+        "text": "Sign In",
+        "x": 1487.6875,
+        "y": 49.5,
+        "width": 50.84375,
+        "height": 44,
+        "top": 49.5,
+        "right": 1538.53125,
+        "bottom": 93.5,
+        "left": 1487.6875,
+        "display": "flex"
+      },
+      {
+        "text": "Join FACKTS ",
+        "x": 1557.53125,
+        "y": 48.90625,
+        "width": 136.46875,
+        "height": 45.1875,
+        "top": 48.90625,
+        "right": 1694,
+        "bottom": 94.09375,
+        "left": 1557.53125,
+        "display": "flex"
+      }
+    ]
+  },
+  {
+    "route": "/listen",
+    "status": 200,
+    "url": "http://localhost:3100/listen"
+  },
+  {
+    "route": "/creators",
+    "status": 200,
+    "url": "http://localhost:3100/creators"
+  },
+  {
+    "route": "/about",
+    "status": 200,
+    "url": "http://localhost:3100/about"
+  },
+  {
+    "route": "/admin/users",
+    "status": 200,
+    "url": "http://localhost:3100/admin/login?next=%2Fadmin%2Fusers"
+  },
+  {
+    "route": "/privacy",
+    "status": 200,
+    "url": "http://localhost:3100/login?next=%2Fprivacy"
+  },
+  {
+    "route": "/terms",
+    "status": 200,
+    "url": "http://localhost:3100/login?next=%2Fterms"
+  },
+  {
+    "route": "/copyright",
+    "status": 200,
+    "url": "http://localhost:3100/login?next=%2Fcopyright"
+  }
+]
