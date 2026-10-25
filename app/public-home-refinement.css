@@ -1,0 +1,226 @@
+/* FACKTS Music: public homepage navigation and hero.
+   Scoped to the public site so it never changes authenticated workspaces or Control Room. */
+
+.fm-v3-site { width:100%; max-width:100%; overflow-x:clip; }
+.fm-v3-site .fm-public-nav-wrap {
+  position:sticky !important;
+  top:0; left:0; right:0;
+  z-index:1000;
+  width:100%; max-width:100%;
+  padding:0 !important;
+  border-bottom:1px solid rgba(255,255,255,.085);
+  background:rgba(8,8,10,.94) !important;
+  backdrop-filter:blur(20px) saturate(125%);
+}
+.fm-v3-site .fm-public-nav {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:clamp(18px,3vw,52px);
+  width:100%;max-width:1460px;
+  min-width:0;
+  min-height:82px !important;
+  padding:0 clamp(18px,3vw,42px) !important;
+  margin:0 auto;
+  border-bottom:0;
+}
+.fm-v3-site .fm-public-brand{
+  display:inline-flex;
+  flex:0 0 auto;
+  align-items:center;
+  min-width:0;
+  margin:0;
+  white-space:nowrap;
+  text-decoration:none;
+}
+.fm-v3-site .fm-public-brand .fackts-music-logo-lockup { gap:11px; }
+.fm-v3-site .fm-public-brand .fackts-music-mark { width:39px;height:39px; }
+.fm-v3-site .fm-public-brand .fackts-music-wordmark,
+.fm-v3-site .fm-public-brand .fackts-music-wordmark strong {
+  color:#f4f1ea !important;
+  font-size:14px !important;
+  font-weight:850;
+  letter-spacing:.045em;
+  line-height:1.15;
+}
+.fm-v3-site .fm-public-brand .fackts-music-wordmark strong { color:#e5b765 !important; }
+.fm-v3-site .fm-public-nav-links{
+  flex:1 1 auto;min-width:0;
+  display:flex;align-items:center;justify-content:flex-end;
+  gap:clamp(14px,1.75vw,28px) !important;
+}
+.fm-v3-site .fm-public-nav-links>a:not(.fm-nav-cta) {
+  display:inline-flex;align-items:center;flex:0 0 auto;
+  min-height:42px;
+  color:#e4dfe6 !important;
+  font-size:12px !important;font-weight:720 !important;
+  letter-spacing:.035em;text-transform:none;
+  white-space:nowrap;text-decoration:none;
+}
+.fm-v3-site .fm-public-nav-links>a:not(.fm-nav-cta):hover,
+.fm-v3-site .fm-public-nav-links>a.is-active { color:#e8ba74 !important; }
+.fm-v3-site .fm-public-more { position:relative;flex:0 0 auto; }
+.fm-v3-site .fm-public-more summary{
+  display:flex;align-items:center;gap:8px;
+  min-height:42px;
+  color:#e4dfe6;font-size:12px;font-weight:720;
+  cursor:pointer;list-style:none;
+}
+.fm-v3-site .fm-public-more summary::-webkit-details-marker{display:none}
+.fm-v3-site .fm-public-more summary>span{color:#dcb276;font-size:18px;line-height:1}
+.fm-v3-site .fm-public-more[open] summary{color:#e8ba74}
+.fm-v3-site .fm-public-more-list{
+  position:absolute;top:calc(100% + 12px);right:-14px;
+  display:grid;gap:2px;
+  min-width:190px;
+  padding:9px;
+  border:1px solid rgba(255,255,255,.14);border-radius:15px;
+  background:#131217;box-shadow:0 22px 60px rgba(0,0,0,.5);
+}
+.fm-v3-site .fm-public-more-list a{
+  display:block;padding:11px 12px;
+  color:#eae6ec;text-decoration:none;
+  font-size:13px;font-weight:640;
+  border-radius:9px;white-space:nowrap;
+}
+.fm-v3-site .fm-public-more-list a:hover,
+.fm-v3-site .fm-public-more-list a:focus-visible{background:rgba(231,182,105,.12);color:#f2c483}
+.fm-v3-site .fm-nav-signin { color:#f1eeee !important; }
+.fm-v3-site .fm-nav-cta {
+  flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;
+  min-height:46px;padding:10px 18px;
+  background:#e2b771 !important;color:#18120a !important;
+  border:1px solid #e2b771 !important;border-radius:999px;
+  font-size:12px !important;font-weight:850 !important;
+  text-decoration:none;white-space:nowrap;
+  box-shadow:none;
+}
+.fm-v3-site .fm-nav-cta:hover {background:#f2c887!important}
+.fm-v3-site .fm-public-nav :is(a,button,summary):focus-visible{
+  outline:2px solid #efbc6d;outline-offset:4px;
+}
+
+/* Keep every headline within its own column; never clip letters off-screen. */
+.fm-v3-site .fm-v3-hero{
+  width:100%; max-width:1460px;
+  display:grid;
+  grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr);
+  align-items:center;
+  gap:clamp(24px,3.5vw,58px);
+  min-height:min(790px,calc(100svh - 82px));
+  padding:clamp(55px,6vw,95px) clamp(22px,3.2vw,48px) clamp(48px,6vw,88px);
+  overflow:visible;
+}
+.fm-v3-site .fm-v3-hero-copy{position:relative;min-width:0;max-width:100%;overflow-wrap:normal}
+.fm-v3-site .fm-v3-hero-copy h1{
+  max-width:100%;
+  margin:22px 0 24px;
+  font-size:clamp(43px,5vw,76px);
+  line-height:1.04;
+  letter-spacing:-.06em;
+  font-weight:850;
+  color:#f4f1ef;
+  text-wrap:balance;
+}
+.fm-v3-site .fm-v3-hero-copy h1 em{
+  color:#e8bb7b;
+  -webkit-text-stroke:0;
+  font-style:normal;
+}
+.fm-v3-site .fm-v3-hero-copy>p{
+  max-width:560px;
+  color:#c5c0c9;
+  font-size:clamp(15px,1.3vw,18px);
+  line-height:1.65;
+}
+.fm-v3-site .fm-v3-hero-actions {margin-top:30px;gap:12px}
+.fm-v3-site .fm-v3-hero-foot{
+  margin-top:32px;color:#aca6b2;
+  font-size:10px;letter-spacing:.09em;
+}
+.fm-v3-site .fm-v3-hero-world{
+  min-width:0;
+  min-height:clamp(470px,43vw,650px);
+  max-width:100%;
+}
+.fm-v3-site .fm-v3-frame-main {left:6%;top:11%;width:69%;height:73%}
+.fm-v3-site .fm-v3-frame-top {right:2%;width:35%}
+.fm-v3-site .fm-v3-frame-bottom {right:1%;width:41%}
+.fm-v3-site .fm-v3-orbit-card {left:0;max-width:28%}
+
+@media(max-width:1120px){
+  .fm-v3-site .fm-public-nav-links{gap:14px !important}
+  .fm-v3-site .fm-v3-hero{grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr);gap:22px}
+  .fm-v3-site .fm-v3-hero-copy h1{font-size:clamp(41px,4.9vw,59px)}
+  .fm-v3-site .fm-v3-hero-world{min-height:510px}
+}
+@media(max-width:940px){
+  .fm-v3-site .fm-public-nav{min-height:72px!important}
+  .fm-v3-site .fm-public-nav-links{display:none}
+  .fm-v3-site .public-menu-trigger{
+    display:grid;flex:0 0 44px;
+    width:44px;height:44px;min-height:44px;
+    align-content:center;justify-items:center;
+    border:1px solid rgba(255,255,255,.2);
+    border-radius:13px;background:rgba(255,255,255,.035);
+  }
+  .fm-v3-site .public-mobile-menu{
+    position:absolute;top:calc(100% + 3px);right:16px;
+    display:flex;flex-direction:column;gap:3px;
+    width:min(360px,calc(100vw - 32px));
+    max-height:calc(100dvh - 90px);overflow-y:auto;
+    margin:0;padding:12px;
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:16px;background:#141318;
+    opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-7px);
+    box-shadow:0 24px 65px rgba(0,0,0,.55);
+    transition:opacity .2s ease,transform .2s ease,visibility .2s ease;
+  }
+  .fm-v3-site .public-mobile-menu.is-open{
+    opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0);
+  }
+  .fm-v3-site .public-mobile-menu>a{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 13px;min-height:44px;
+    color:#eee9ec;text-decoration:none;border-radius:9px;
+    font-size:14px;font-weight:650;
+  }
+  .fm-v3-site .public-mobile-menu>a:hover {background:rgba(255,255,255,.07)}
+  .fm-v3-site .public-mobile-menu>a.public-mobile-cta{justify-content:center;color:#18120a!important;background:#e2b771!important}
+  .fm-v3-site .fm-v3-hero{
+    grid-template-columns:1fr;
+    padding:65px clamp(18px,5vw,42px) 58px;
+    gap:20px;min-height:auto;
+  }
+  .fm-v3-site .fm-v3-hero-copy h1{max-width:780px;font-size:clamp(46px,8.5vw,77px)}
+  .fm-v3-site .fm-v3-hero-world{min-height:480px;margin-top:20px}
+  .fm-v3-site .fm-v3-frame-main{left:8%;width:67%}
+}
+@media(max-width:600px){
+  .fm-v3-site .fm-public-nav{min-height:68px!important;padding:0 16px!important}
+  .fm-v3-site .fm-public-brand .fackts-music-wordmark,
+  .fm-v3-site .fm-public-brand .fackts-music-wordmark strong{font-size:12px!important;letter-spacing:.015em}
+  .fm-v3-site .fm-public-brand .fackts-music-mark{width:34px;height:34px}
+  .fm-v3-site .fm-v3-hero{padding:50px 18px 32px}
+  .fm-v3-site .fm-v3-kicker{font-size:9px;letter-spacing:.12em}
+  .fm-v3-site .fm-v3-hero-copy h1{
+    margin:18px 0 20px;
+    font-size:clamp(38px,9.7vw,57px);
+    line-height:1.06;letter-spacing:-.052em;
+  }
+  .fm-v3-site .fm-v3-hero-copy>p{font-size:15px;line-height:1.55}
+  .fm-v3-site .fm-v3-hero-actions{margin-top:25px}
+  .fm-v3-site .fm-v3-btn{min-height:48px;padding:0 17px;font-size:10px}
+  .fm-v3-site .fm-v3-hero-foot{gap:10px;margin-top:23px;font-size:9px}
+  .fm-v3-site .fm-v3-hero-world{min-height:360px;margin-top:12px}
+  .fm-v3-site .fm-v3-frame-main{left:4%;width:76%;height:73%}
+  .fm-v3-site .fm-v3-frame-top{width:37%;height:33%}
+  .fm-v3-site .fm-v3-frame-bottom{width:47%;height:34%}
+  .fm-v3-site .fm-v3-orbit-card{width:96px;max-width:26%}
+  .fm-v3-site .fm-v3-live-chip{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .fm-v3-site .fm-v3-frame,
+  .fm-v3-site .fm-v3-hero-grid,
+  .fm-v3-site .fm-v3-orbit-card{animation:none}
+}
