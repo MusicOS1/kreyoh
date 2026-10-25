@@ -1,11 +1,11 @@
 "use client";
 import {useActionState,useState} from "react";
-import {saveFanHero} from "../app/admin/(control)/discovery/hero-actions";
+import {backgroundFormAction} from "../lib/backgroundInteraction";
 import {fanHeroAreas,type FanHeroArea,type FanHeroConfig} from "../lib/fanHeroConfig";
 
 type Artwork={id:string;title:string;artist_name:string;has_cover:boolean};
 function SingleHeroEditor({area,config,artwork}:{area:FanHeroArea;config:FanHeroConfig;artwork:Artwork[]}){
- const [state,action,pending]=useActionState(saveFanHero,{message:"",ok:false});
+ const [state,action,pending]=useActionState(backgroundFormAction<{message:string;ok:boolean}>("hero",{message:"",ok:false}),{message:"",ok:false});
  const [title,setTitle]=useState(config.title),[eyebrow,setEyebrow]=useState(config.eyebrow),
   [description,setDescription]=useState(config.description),[image,setImage]=useState(config.image),
   [releaseId,setReleaseId]=useState(config.releaseId),[layout,setLayout]=useState(config.layout),

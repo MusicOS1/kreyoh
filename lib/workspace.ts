@@ -19,7 +19,7 @@ async function loadWorkspace() {
   const [profileResult, membershipResult] = await Promise.all([
     admin.from("profiles").select("*").eq("id", user.id).maybeSingle(),
     admin.from("project_members")
-      .select("id, project_id, user_id, status, joined_at, projects(*)")
+      .select("id, project_id, user_id, status, joined_at, projects(*), member_roles(roles(name))")
       .eq("user_id", user.id)
       .eq("status", "active")
       .order("joined_at", { ascending: true }),
@@ -70,7 +70,8 @@ async function loadWorkspace() {
     legacyInvitation = data;
   }
 
-  return { supabase, admin, user, profile, membership, invitation: legacyInvitation, project, activeProjects, roles };
+  const memberships = activeMemberships.map((row:any)=>({project_id:row.project_id,roles:(row.member_roles||[]).map((item:any)=>first(item.roles)?.name).filter(Boolean)}));
+  return { supabase, admin, user, profile, membership, invitation: legacyInvitation, project, activeProjects, roles, memberships };
 }
 
 export const getWorkspace = cache(loadWorkspace);

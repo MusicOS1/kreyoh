@@ -1,5 +1,7 @@
 "use client";
 
+import GlobalHeader from './ecosystem/GlobalHeader';
+import type {HeaderIdentity} from '../lib/workspaceExperience';
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -27,10 +29,12 @@ const navigation = [
 
 export default function ControlRoomShell({
   email,
+  identity,
   permissions = ["all"],
   children,
 }: {
   email?: string;
+  identity?: HeaderIdentity;
   permissions?: ControlRoomPermission[];
   children: React.ReactNode;
 }) {
@@ -82,22 +86,11 @@ export default function ControlRoomShell({
   );
 
   return (
-    <main className="control-room">
+    <div className="control-room">
       <AppExperienceEnhancer />
       <PresenceHeartbeat />
-      <header className="control-topbar">
-        <div className="control-brand"><FacktsMusicLogo size={42}/><span>CONTROL ROOM</span></div>
-        <form className="control-top-search" action={searchTarget} method="get">
-          <input type="search" name="q" defaultValue={searchParams.get("q") || ""} placeholder={searchPlaceholder} aria-label={searchPlaceholder}/>
-          <button type="submit">Search</button>
-        </form>
-        <button type="button" className="control-menu-trigger" onClick={() => setMobileOpen(true)} aria-label="Open Control Room menu"><span/><span/><span/></button>
-        <div className="control-top-actions">
-          <InstallControlRoomButton/>
-          <span className="control-admin-identity">{email}</span>
-          <form action="/auth/signout?next=/admin/login" method="post"><button type="submit" className="control-logout">Sign out</button></form>
-        </div>
-      </header>
+      <GlobalHeader identity={identity} active="admin" onMenu={()=>setMobileOpen(true)}/>
+      <form className="control-context-search" action={searchTarget} method="get"><label>{searchPlaceholder}<input type="search" name="q" defaultValue={searchParams.get("q")||""} placeholder={searchPlaceholder}/></label><button type="submit">Search</button></form>
 
       <div className={`control-nav-backdrop ${mobileOpen ? "open" : ""}`} onClick={() => setMobileOpen(false)}/>
       <div className="control-shell">
@@ -111,6 +104,6 @@ export default function ControlRoomShell({
         {can("music") && <Link className={isActive("/admin/operations") ? "active" : ""} href="/admin/operations">Operations</Link>}
         <button type="button" onClick={() => setMobileOpen(true)}>More</button>
       </nav>
-    </main>
+    </div>
   );
 }

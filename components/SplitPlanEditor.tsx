@@ -1,6 +1,10 @@
 "use client";
-import { useActionState, useState } from "react";
-import { updateSplitPlan, type SplitActionState } from "../app/splits/actions";
+import { createContext, useContext, useActionState, useState } from "react";
+import { type SplitActionState } from "../app/splits/actions";
+
+import {backgroundInteraction} from "../lib/backgroundInteraction";
+export const SplitUpdateContext=createContext<((result:any)=>void)|null>(null);
+function useSplitAction(){const update=useContext(SplitUpdateContext);return useActionState(async(_state:SplitActionState,form:FormData):Promise<SplitActionState>=>{try{const result=await backgroundInteraction<SplitActionState&{snapshot?:unknown}>("split",form);if(result.success)update?.(result);return result;}catch{return {error:"Could not save. Reload this proposal before retrying to check its current version."};}},{});}
 
 type Row = { contributor_id: string; contribution_role: string; percentage: string };
 type Member = { id: string; name: string };
@@ -12,7 +16,7 @@ function Feedback({ state }: { state: SplitActionState }) {
   return <>{state.error && <p role="alert" className="form-error-alert">{state.error}</p>}{state.success && <p role="status" className="form-success-alert">{state.success}</p>}</>;
 }
 export function SplitAction({ context, operation, splitId, label, disabled = false }: { context: Context; operation: "send" | "confirm" | "request_change"; splitId?: string; label: string; disabled?: boolean }) {
-  const [state, action, pending] = useActionState(updateSplitPlan, {});
+  const [state, action, pending] = useSplitAction();
   return <form action={action} className="split-response-form"><ContextFields {...context}/><input type="hidden" name="operation" value={operation}/><input type="hidden" name="split_id" value={splitId || ""}/>
     {operation === "request_change" && <label>What needs to change?<textarea name="reason" required maxLength={2000} placeholder="Explain the percentage or role that needs correcting."/></label>}
     <button disabled={disabled || pending}>{pending ? "Saving…" : label}</button><Feedback state={state}/>
@@ -20,7 +24,7 @@ export function SplitAction({ context, operation, splitId, label, disabled = fal
 }
 export default function SplitPlanEditor({ context, members, initialRows, status }: { context: Context; members: Member[]; initialRows: Row[]; status: string }) {
   const [rows, setRows] = useState<Row[]>(initialRows);
-  const [state, action, pending] = useActionState(updateSplitPlan, {});
+  const [state, action, pending] = useSplitAction();
   const total = rows.reduce((sum, row) => sum + Math.round(Number(row.percentage || 0) * 100), 0) / 100;
   const dirty = JSON.stringify(rows) !== JSON.stringify(initialRows);
   const update = (index: number, key: keyof Row, value: string) => setRows(current => current.map((row, i) => i === index ? { ...row, [key]: value } : row));

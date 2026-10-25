@@ -1,0 +1,307 @@
+.dock {
+  --fan-text: #e8deef;
+  --fan-muted: #86778f;
+  --fan-surface: #16131b;
+  --fan-border: #ffffff12;
+  --fan-accent: #d9ad68;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 115;
+  background: #141117fa;
+  border-top: 1px solid #ffffff14;
+  backdrop-filter: blur(25px);
+  padding: 14px 170px 14px 24px;
+  color: var(--fan-text);
+  box-shadow: 0 -10px 50px #0004;
+  font-family: var(--fm-font-body);
+}
+.dock :global(.track-chart-room) {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  display: block !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+.dock :global(.track-chart-player) {
+  min-height: 0 !important;
+  height: auto !important;
+  align-content: center !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  display: grid !important;
+  grid-template-columns: 52px minmax(100px, 1fr) minmax(220px, 1.6fr) auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 5px 16px;
+  padding: 0 !important;
+  max-width: 1500px;
+  margin: auto;
+  min-width: 0;
+}
+.dock :global(.track-player-art) {
+  width: 52px !important;
+  height: 52px !important;
+  grid-column: 1;
+  grid-row: 1/3;
+  margin: 0 !important;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.dock :global(.track-player-art) img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+}
+.dock :global(.track-player-copy) {
+  grid-column: 2;
+  grid-row: 1/3;
+  min-width: 0;
+  text-align: left !important;
+}
+.dock :global(.track-player-copy) > span {
+  display: none;
+}
+.dock :global(.track-player-copy) h3 {
+  font-size: 13px !important;
+  font-weight: 500;
+  margin: 0 0 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--fan-text) !important;
+}
+.dock :global(.track-player-copy) p {
+  font-size: 11px !important;
+  color: var(--fan-muted) !important;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dock :global(.track-playlist-transport) {
+  grid-column: 3;
+  grid-row: 1;
+  gap: 9px !important;
+  margin: 0 !important;
+  justify-content: center;
+}
+.dock :global(.track-playlist-transport) button {
+  display: grid !important;
+  place-items: center;
+  width: 34px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  font-size: 11px !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  color: #bfa9ca !important;
+}
+.dock :global(.track-playlist-transport) button:global(.main) {
+  background: #d9ad68 !important;
+  color: #1d150e !important;
+  width: 38px !important;
+  height: 38px !important;
+}
+.dock :global(.player-progress) {
+  grid-column: 3;
+  grid-row: 2;
+  margin: 0 !important;
+}
+.dock :global(.player-progress) input {
+  width: 100%;
+  accent-color: #d9ad68;
+  min-height: 16px !important;
+  height: 16px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.dock :global(.player-progress) > div {
+  display: flex !important;
+  justify-content: space-between;
+  font-size: 9px;
+  color: #73607d;
+}
+.dock :global(.player-speed),
+.dock :global(.player-volume),
+.dock :global(.player-mode-label) {
+  display: none !important;
+}
+.dock :global(.fan-queue-toggle) {
+  position: absolute;
+  right: 62px;
+  top: 25px;
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px solid #ffffff18;
+  background: #211827;
+  color: #bda7c9;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 10px;
+}
+.dock :global(.dismiss-listening) {
+  position: absolute;
+  right: 12px;
+  top: 25px;
+  width: 40px;
+  min-height: 42px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #8c799a;
+  font-size: 20px;
+  cursor: pointer;
+}
+.dock :global(.resume-listening) {
+  grid-column: 4;
+  grid-row: 1/3;
+  min-height: 42px;
+  max-width: 140px;
+  padding: 10px 15px;
+  border: 1px solid #d9ad6840;
+  border-radius: 8px;
+  background: #d9ad6815;
+  color: #d9ad68;
+  font: inherit;
+  font-size: 11px;
+  margin-right: 0;
+  cursor: pointer;
+}
+.dock :global(.track-chart-list) {
+  display: none;
+}
+.dock :global(.is-expanded .track-chart-list) {
+  display: block;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 20px;
+  width: min(500px, calc(100vw - 40px));
+  max-height: 50dvh;
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid #ffffff15;
+  border-radius: 14px;
+  background: #18121f;
+  box-shadow: 0 -20px 90px #0008;
+}
+.dock :global(.track-chart-list) article {
+  grid-template-columns: 1fr !important;
+}
+.dock :global(.track-ballot-notice) {
+  grid-column: 1/-1;
+  margin: 5px 0;
+  font-size: 11px;
+  color: #c9b29b;
+}
+@media (max-width: 760px) {
+  .dock {
+    bottom: calc(70px + env(safe-area-inset-bottom));
+    padding: 11px 50px 9px 14px;
+  }
+  .dock :global(.track-chart-player) {
+    grid-template-columns: 40px minmax(0, 1fr) 78px;
+    grid-template-rows: auto auto;
+    gap: 4px 11px;
+  }
+  .dock :global(.track-player-art) {
+    width: 40px !important;
+    height: 40px !important;
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .dock :global(.track-player-copy) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .dock :global(.track-player-copy) h3 {
+    font-size: 12px !important;
+  }
+  .dock :global(.track-player-copy) p {
+    font-size: 10px !important;
+  }
+  .dock :global(.track-playlist-transport) {
+    grid-column: 3;
+    grid-row: 1;
+    gap: 1px !important;
+    justify-content: end;
+  }
+  .dock :global(.track-playlist-transport) button {
+    display: none !important;
+  }
+  .dock :global(.track-playlist-transport) button:global(.main),
+  .dock :global(.track-playlist-transport) button:nth-child(4) {
+    display: grid !important;
+    width: 38px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    font-size: 15px !important;
+  }
+  .dock :global(.player-progress) {
+    grid-column: 1/-1;
+    grid-row: 2;
+  }
+  .dock :global(.player-progress) > div {
+    display: none !important;
+  }
+  .dock :global(.player-progress) input {
+    min-height: 25px !important;
+    height: 25px !important;
+  }
+  .dock :global(.resume-listening) {
+    grid-column: 1/-1;
+    grid-row: 3;
+    max-width: none;
+    min-height: 40px;
+    margin: 2px 0 0;
+    font-size: 12px;
+  }
+  .dock :global(.fan-queue-toggle) {
+    right: 6px;
+    top: 10px;
+    min-height: 44px;
+    min-width: 38px;
+    width: 38px;
+    font-size: 0;
+    padding: 4px;
+    background: transparent;
+    border: 0;
+  }
+  .dock :global(.fan-queue-toggle) > span {
+    font-size: 20px;
+  }
+  .dock :global(.dismiss-listening) {
+    right: 6px;
+    top: auto;
+    bottom: 1px;
+    min-height: 28px;
+    width: 38px;
+    font-size: 15px;
+  }
+  .dock :global(.is-expanded .track-chart-list) {
+    right: 8px;
+    width: calc(100vw - 16px);
+    max-height: 45dvh;
+    padding: 12px;
+  }
+  .dock :global(.track-chart-list) button {
+    min-height: 40px;
+  }
+}
+
+.dock :global(.track-player-art) {
+  background: #25202b !important;
+  box-shadow: none !important;
+  font-size: 24px !important;
+}
+.dock :global(.track-player-art)::before,
+.dock :global(.track-player-art)::after {
+  display: none !important;
+}
+.dock :global(.track-player-copy) h3 {
+  font-weight: 500 !important;
+}

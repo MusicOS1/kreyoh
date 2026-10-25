@@ -68,7 +68,7 @@ export async function manageRelease(_state:{message:string},form:FormData){
   query=admin.from('music_releases').update({status:operation==='publish'?'published':operation==='reject'?'rejected':'withdrawn',review_note:note,reviewed_by:user.id,reviewed_at:new Date().toISOString()}).eq('id',id).eq('status',operation==='remove'?'published':'pending');
  }
  const{data,error}=await query.select('id').maybeSingle();if(error||!data)throw new Error('Release changed or unavailable. Refresh and try again.');
- revalidatePath('/billboard');revalidatePath(`/billboard/${id}`);revalidatePath('/billboard/submit');revalidatePath('/admin/releases');return{message:'Release updated.'};
+ revalidatePath('/billboard');revalidatePath(`/billboard/${id}`);revalidatePath('/billboard/submit');revalidatePath('/admin/releases');return{message:'Release updated.',ok:true,status:operation==='publish'?'published':operation==='reject'?'rejected':'withdrawn'};
  }catch(error){return{message:error instanceof Error?error.message:'Could not update release.'};}
 }
 

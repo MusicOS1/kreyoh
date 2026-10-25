@@ -1,15 +1,9 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, type FormEvent } from "react";
+import {backgroundInteraction} from "../lib/backgroundInteraction";
 import { createClient } from "../lib/client";
-import {
-  deleteAdminMusicRecord,
-  prepareAdminArtworkUpload,
-  replaceAdminMusicCredits,
-  saveAdminArtwork,
-  updateAdminMusicMetadata,
-} from "../app/admin/(control)/actions";
+
 
 type Member = { id: string; name: string; projectId: string };
 type Credit = { id?: string; userId: string; role: string };
@@ -47,8 +41,10 @@ const roles = [
 
 const freshCredit = (): Credit => ({ id: crypto.randomUUID(), userId: "", role: "artist" });
 
-function CatalogEditor({ record, members }: { record: MusicRecord; members: Member[] }) {
-  const router = useRouter();
+function CatalogEditor({ record: initialRecord, members, onDeleted }: { record: MusicRecord; members: Member[]; onDeleted:()=>void }) {
+  const [record,setRecord]=useState(initialRecord);
+  const [removed,setRemoved]=useState(false),[thumbnail,setThumbnail]=useState('');
+  useEffect(()=>()=>{if(thumbnail)URL.revokeObjectURL(thumbnail);},[thumbnail]);
   const [credits, setCredits] = useState<Credit[]>(record.credits.length ? record.credits : [freshCredit()]);
   const [busy, setBusy] = useState("");
   const [notice, setNotice] = useState("");
@@ -65,14 +61,14 @@ function CatalogEditor({ record, members }: { record: MusicRecord; members: Memb
       const prep = new FormData();
       prep.set("entity_type", record.type); prep.set("entity_id", record.id);
       prep.set("file_name", file.name); prep.set("file_type", file.type); prep.set("file_size", String(file.size));
-      const signed = await prepareAdminArtworkUpload(prep);
+      const signed = await backgroundInteraction<any>("adminArtworkPrepare",prep);
       const { error: uploadError } = await createClient().storage
         .from("music-images")
         .uploadToSignedUrl(signed.storageKey, signed.token, file, { contentType: file.type });
       if (uploadError) throw new Error(uploadError.message);
       const save = new FormData(); save.set("entity_type", record.type); save.set("entity_id", record.id); save.set("storage_key", signed.storageKey);
-      const result = await saveAdminArtwork(save);
-      setNotice(result.message); router.refresh();
+      const result = await backgroundInteraction<any>("adminArtworkSave",save);
+      setNotice(result.message); setThumbnail(URL.createObjectURL(file));
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Thumbnail upload failed."); }
     finally { setBusy(""); }
   }
@@ -82,14 +78,14 @@ function CatalogEditor({ record, members }: { record: MusicRecord; members: Memb
     try {
       const data = new FormData(); data.set("entity_type", record.type); data.set("entity_id", record.id);
       credits.filter((credit) => credit.userId).forEach((credit) => { data.append("credit_user_id", credit.userId); data.append("credit_role", credit.role); });
-      const result = await replaceAdminMusicCredits(data); setNotice(result.message); router.refresh();
+      const result = await backgroundInteraction<any>("adminCredits",data); setNotice(result.message);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Credits could not be saved."); }
     finally { setBusy(""); }
   }
 
   async function saveMetadata(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy("metadata"); setError(""); setNotice("");
-    try { const data=new FormData(event.currentTarget); data.set("entity_type",record.type);data.set("entity_id",record.id);const result=await updateAdminMusicMetadata(data);setNotice(result.message);router.refresh(); }
+    try { const data=new FormData(event.currentTarget); data.set("entity_type",record.type);data.set("entity_id",record.id);const result=await backgroundInteraction<any>("adminMetadata",data);setNotice(result.message);setRecord(current=>({...current,title:String(data.get("title")||current.title),code:String(data.get("code")||current.code),status:String(data.get("status")||current.status)})); }
     catch(cause){setError(cause instanceof Error?cause.message:"Metadata could not be saved.");}
     finally{setBusy("");}
   }
@@ -99,13 +95,14 @@ function CatalogEditor({ record, members }: { record: MusicRecord; members: Memb
     setBusy("delete"); setError(""); setNotice("");
     try {
       const data = new FormData(); data.set("entity_type", record.type); data.set("entity_id", record.id); data.set("confirmation", "DELETE");
-      await deleteAdminMusicRecord(data); router.refresh();
+      await backgroundInteraction<any>("adminDelete",data); setRemoved(true);onDeleted();
     } catch (cause) { setError(cause instanceof Error ? cause.message : "The record could not be deleted."); setBusy(""); }
   }
 
+  if(removed)return <p role="status">{record.title} deleted.</p>;
   return <details className="control-catalog-card">
     <summary>
-      <span className="control-catalog-thumb">{record.artworkUrl ? <img src={record.artworkUrl} alt="" /> : record.type === "beat" ? "B" : "T"}</span>
+      <span className="control-catalog-thumb">{(thumbnail||record.artworkUrl) ? <img src={thumbnail||record.artworkUrl||''} alt="" /> : record.type === "beat" ? "B" : "T"}</span>
       <div><small>{record.code} · {record.projectName}</small><strong>{record.title}</strong></div>
       <span className="control-status">{record.status.replaceAll("_", " ")}</span>
       <b>Manage +</b>
@@ -137,16 +134,17 @@ function CatalogEditor({ record, members }: { record: MusicRecord; members: Memb
 }
 
 export default function AdminMusicCatalogManager({ records, members, beatTotal, trackTotal, beatPage, trackPage, pageSize, query = "" }: { records: MusicRecord[]; members: Member[]; beatTotal: number; trackTotal: number; beatPage: number; trackPage: number; pageSize: number; query?: string }) {
-  const beats = records.filter((record) => record.type === "beat");
-  const tracks = records.filter((record) => record.type === "track");
+  const [deletedIds,setDeletedIds]=useState<string[]>([]);
+  const beats = records.filter((record) => !deletedIds.includes(record.id)&&record.type === "beat");
+  const tracks = records.filter((record) => !deletedIds.includes(record.id)&&record.type === "track");
   const beatPages = Math.max(1, Math.ceil(beatTotal / pageSize));
   const trackPages = Math.max(1, Math.ceil(trackTotal / pageSize));
   const pageHref = (nextBeat: number, nextTrack: number) => { const params = new URLSearchParams({ beatPage: String(nextBeat), trackPage: String(nextTrack) }); if (query) params.set("q", query); return `/admin/operations?${params.toString()}`; };
   return <section className="control-catalog-manager">
     <header><div><span className="control-eyebrow">ADMIN ONLY</span><h2>Music catalogue controls</h2><p>Update covers and official credits, or permanently remove a record. Catalogues are paginated in sets of 15.</p></div></header>
     <div className="control-catalog-columns">
-      <div><h3>Beats <span>{beatTotal} total</span></h3>{beats.map((record) => <CatalogEditor key={record.id} record={record} members={members} />)}<nav className="control-catalog-pagination" aria-label="Beat pages"><a aria-disabled={beatPage <= 1} href={pageHref(Math.max(1, beatPage - 1), trackPage)}>Previous</a><span>Page {beatPage} of {beatPages}</span><a aria-disabled={beatPage >= beatPages} href={pageHref(Math.min(beatPages, beatPage + 1), trackPage)}>Next</a></nav></div>
-      <div><h3>Tracks <span>{trackTotal} total</span></h3>{tracks.map((record) => <CatalogEditor key={record.id} record={record} members={members} />)}<nav className="control-catalog-pagination" aria-label="Track pages"><a aria-disabled={trackPage <= 1} href={pageHref(beatPage, Math.max(1, trackPage - 1))}>Previous</a><span>Page {trackPage} of {trackPages}</span><a aria-disabled={trackPage >= trackPages} href={pageHref(beatPage, Math.min(trackPages, trackPage + 1))}>Next</a></nav></div>
+      <div><h3>Beats <span>{Math.max(0,beatTotal-records.filter(record=>record.type==='beat'&&deletedIds.includes(record.id)).length)} total</span></h3>{beats.map((record) => <CatalogEditor key={record.id} record={record} members={members} onDeleted={()=>setDeletedIds(ids=>[...ids,record.id])} />)}<nav className="control-catalog-pagination" aria-label="Beat pages"><a aria-disabled={beatPage <= 1} href={pageHref(Math.max(1, beatPage - 1), trackPage)}>Previous</a><span>Page {beatPage} of {beatPages}</span><a aria-disabled={beatPage >= beatPages} href={pageHref(Math.min(beatPages, beatPage + 1), trackPage)}>Next</a></nav></div>
+      <div><h3>Tracks <span>{Math.max(0,trackTotal-records.filter(record=>record.type==='track'&&deletedIds.includes(record.id)).length)} total</span></h3>{tracks.map((record) => <CatalogEditor key={record.id} record={record} members={members} onDeleted={()=>setDeletedIds(ids=>[...ids,record.id])} />)}<nav className="control-catalog-pagination" aria-label="Track pages"><a aria-disabled={trackPage <= 1} href={pageHref(beatPage, Math.max(1, trackPage - 1))}>Previous</a><span>Page {trackPage} of {trackPages}</span><a aria-disabled={trackPage >= trackPages} href={pageHref(beatPage, Math.min(trackPages, trackPage + 1))}>Next</a></nav></div>
     </div>
   </section>;
 }

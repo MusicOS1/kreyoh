@@ -34,5 +34,5 @@ export default async function FanPage({searchParams}:{searchParams:Promise<{tab?
  const name=profile?.nickname||profile?.stage_name||profile?.full_name||'Listener';
  const fanOnly=isFanProfile(profile)&&!activeProjects?.length;
  const listening=<ListenerExperience initialTab={initialTab} editorial={editorial} heroSettings={heroSettings} artistsDirectory={artistsDirectory} loadWarning={dataUnavailable?"Some music information could not be loaded right now. Please refresh in a moment.":undefined} releases={releases} userId={user.id} name={name} initialLibrary={library.data||[]} votedIds={(votes.data||[]).map(x=>x.release_id)} unread={messages.count||0} showFanNav={fanOnly}/>;
- return fanOnly?<FanShell showBottomNav={false} name={name} activeTab={initialTab} avatarUrl={profile?.avatar_url}>{listening}</FanShell>:<AppShell>{listening}</AppShell>;
+ return <FanShell showBottomNav={false} name={name} activeTab={initialTab} avatarUrl={profile?.avatar_url}>{listening}</FanShell>;
 }

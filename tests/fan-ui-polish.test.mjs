@@ -17,7 +17,7 @@ test("hero images are real FACKTS assets or published artwork, never generated f
  for(const name of ["fackts-creative-community.jpg","fackts-creator-red-wide.jpg","fackts-creator-sky.jpg","fackts-monnokid-workspace.jpg"]){
   assert.doesNotThrow(()=>file("public/branding/"+name));
  }
- assert.match(file("components/ListenerExperience.tsx"),/fan-photo-hero-art/);
+ assert.match(file("components/ListenerExperience.tsx"),/src=\{featured\}/);
  assert.match(file("app/billboard/page.tsx"),/fm-billboard-hero-art/);
  assert.match(file("app/billboard/\[releaseId\]/page.tsx"),/fm-billboard-hero-art/);
  assert.match(file("app/fan/profile/page.tsx"),/fackts-creative-community\.jpg/);
@@ -26,10 +26,11 @@ test("private messaging retains identity, read states and permissions",()=>{
  const conversation=file("app/messages/[userId]/page.tsx");
  const composer=file("components/MemberConversation.tsx");
  const timeline=file("components/ChatTimeline.tsx");
- assert.match(conversation,/getWorkspace\(\)/);
- assert.match(conversation,/member_blocks/);
+ assert.match(file("lib/conversationSnapshot.ts"),/getWorkspace\(\)/);
+ assert.match(file("lib/conversationSnapshot.ts"),/member_blocks/);
  assert.match(conversation,/ChatTimeline/);
- assert.match(composer,/sendMessage,markConversationRead,blockMember/);
+ assert.match(composer,/backgroundInteraction/);
+ assert.doesNotMatch(composer,/router.refresh/);
  assert.match(timeline,/read_at/);
  assert.match(file("components/FanMobileTabs.tsx"),/\/messages/);
 });
