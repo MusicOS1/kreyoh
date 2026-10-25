@@ -15,6 +15,7 @@ import "./fan-polish.css";
 import "./music-admin-heros.css";
 import "./music-ecosystem.css";
 import "./public-home-refinement.css";
+import "./legal.css";
 import SessionExperience from "../components/SessionExperience";
 import ListeningProvider from "../components/ListeningProvider";
 import PwaRegister from "../components/PwaRegister";
