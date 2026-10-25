@@ -31,6 +31,16 @@ try{
  await page.screenshot({path:screenshots+'/PublicHomepageHeader.png',fullPage:false});
  console.log('PASS Public homepage navigation and brand stay accessible across phone, tablet and desktop widths');
  const explore=page.getByRole('button',{name:'Explore music menu',exact:true});
+ for(const [width,height] of [[1366,768],[1920,1080],[1440,900]]){
+  await page.setViewportSize({width,height});await explore.click();
+  const panel=page.getByRole('navigation',{name:'Explore music',exact:true});await panel.waitFor();
+  await panel.evaluate(node=>Promise.all(node.getAnimations().map(animation=>animation.finished)));
+  const bounds=await panel.boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=width+1);
+  assert.ok(await panel.evaluate(node=>node.scrollWidth<=node.clientWidth+1),'Music menu content must not overflow horizontally');
+  await page.screenshot({path:screenshots+`/MusicMenu${width}.png`,fullPage:false});
+  await page.keyboard.press('Escape');
+ }
+
  await explore.focus();await page.keyboard.press('Enter');
  const mega=page.getByRole('navigation',{name:'Explore music',exact:true});await mega.waitFor();
  assert.equal(await mega.getByRole('link').count(),7);
