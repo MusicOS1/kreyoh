@@ -8,7 +8,7 @@ test("global full-access administrator is independent of project membership",()=
  assert.match(fn,/control_room_admins/);
  assert.match(fn,/grant\?\.active === true/);
  assert.match(fn,/grant\.permissions\.includes\("all"\)/);
- assert.match(fn,/roles\.includes\("Super Admin"\)/);
+ assert.doesNotMatch(fn,/project_members|Super Admin/);
 });
 test("only full-access administrators grant project-independent Control Room access",()=>{
  const actions=file("app/admin/(control)/projectManagementActions.ts");
@@ -29,7 +29,7 @@ test("admin grants are above project membership tools in the UI",()=>{
 test("full global admins can revoke another full global admin without project involvement",()=>{
  const actions=file("app/admin/(control)/projectManagementActions.ts");
  assert.match(actions,/if \(userId === actor.id\)/);
- assert.match(actions,/isProjectSuperAdmin\(userId\)/);
+ assert.doesNotMatch(actions,/isProjectSuperAdmin\(userId\)/);
  assert.match(actions,/count < 2/);
  assert.doesNotMatch(actions,/if \(await isSuperAdmin\(userId\)\)/);
  assert.match(actions,/event_name:active \? "control_room_access_updated" : "control_room_access_revoked"/);

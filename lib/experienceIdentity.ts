@@ -1,4 +1,5 @@
 import { cache } from 'react';
+import {professionalIdentityTypes} from './professionalIdentity';
 import { getWorkspace } from './workspace';
 import { isControlRoomUser } from './controlRoom';
 import { workspaceOptions, type HeaderIdentity } from './workspaceExperience';
@@ -12,7 +13,7 @@ export const getExperienceIdentity = cache(async () => {
     ]),
   ];
   const options = workspaceOptions(
-    workspace.profile?.creator_types,
+    await professionalIdentityTypes(workspace.admin,workspace.user.id,workspace.profile?.creator_types),
     assigned,
     adminAccess,
   );

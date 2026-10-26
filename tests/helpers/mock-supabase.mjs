@@ -5,11 +5,16 @@ export const userId='11111111-1111-4111-8111-111111111111';
 export const releaseId='22222222-2222-4222-8222-222222222222';
 export const secondId='33333333-3333-4333-8333-333333333333';
 const user={id:userId,aud:'authenticated',role:'authenticated',email:'listener@example.test',email_confirmed_at:new Date().toISOString(),created_at:new Date().toISOString(),app_metadata:{provider:'email',providers:['email']},user_metadata:{full_name:'Test Listener',creator_types:['Fan']}};
-function token(){const b=v=>Buffer.from(JSON.stringify(v)).toString('base64url');const head=b({alg:'HS256',typ:'JWT'}),payload=b({sub:userId,aud:'authenticated',role:'authenticated',email:user.email,iat:Math.floor(Date.now()/1000),exp:Math.floor(Date.now()/1000)+3600,session_id:'44444444-4444-4444-8444-444444444444'});return `${head}.${payload}.${createHmac('sha256','local-test-only').update(head+'.'+payload).digest('base64url')}`;}
-export function mockSupabase(){
+function token(identity=user){const b=v=>Buffer.from(JSON.stringify(v)).toString('base64url');const head=b({alg:'HS256',typ:'JWT'}),payload=b({sub:identity.id,aud:'authenticated',role:'authenticated',email:identity.email,iat:Math.floor(Date.now()/1000),exp:Math.floor(Date.now()/1000)+3600,session_id:'44444444-4444-4444-8444-444444444444'});return `${head}.${payload}.${createHmac('sha256','local-test-only').update(head+'.'+payload).digest('base64url')}`;}
+export function mockSupabase(options={}){
  const state={externalArtist:false,comments:[],messages:[],blocks:[],conversation:false,publicArtist:false,library:[],revoked:false,outage:false,refreshes:0,creator:false,hasProject:false,admin:false,types:null,roles:null,documents:[],files:[],requests:[]};
  const server=http.createServer(async(req,res)=>{
   const url=new URL(req.url,'http://localhost');let body='';for await(const chunk of req)body+=chunk;
+  let identity=user;
+  if(options.users){
+   try{const claims=JSON.parse(Buffer.from((req.headers.authorization||'').split('.')[1]||'','base64url').toString());identity=options.users.find(u=>u.id===claims.sub)||user;}catch{}
+   if(url.pathname.endsWith('/token')&&url.searchParams.get('grant_type')==='password'){const login=JSON.parse(body);identity=options.users.find(u=>u.email===login.email)||user;}
+  }
   res.setHeader('Access-Control-Allow-Origin','*');res.setHeader('Access-Control-Allow-Headers','*');res.setHeader('Access-Control-Allow-Methods','GET,POST,PATCH,DELETE,HEAD,OPTIONS');
   const send=(status,data)=>{res.writeHead(status,{'Content-Type':'application/json'});res.end(data===undefined?'':JSON.stringify(data));};
   if(req.method==='OPTIONS')return send(200,{});
@@ -18,10 +23,10 @@ export function mockSupabase(){
    if(state.outage)return send(503,{message:'Temporary test outage'});
    if(url.pathname.endsWith('/signup'))return send(200,{...user,email_confirmed_at:null,identities:[]});
    if(url.pathname.endsWith('/logout')){state.revoked=true;return send(204);}
-   if(url.pathname.endsWith('/user'))return state.revoked?send(401,{code:'session_not_found',message:'Session revoked'}):send(200,user);
+   if(url.pathname.endsWith('/user'))return state.revoked?send(401,{code:'session_not_found',message:'Session revoked'}):send(200,identity);
    if(url.pathname.endsWith('/token')||url.pathname.endsWith('/verify')){
     if(url.searchParams.get('grant_type')==='refresh_token'){state.refreshes++;if(state.revoked)return send(400,{code:'refresh_token_not_found',message:'Invalid refresh token'});}else state.revoked=false;
-    return send(200,{access_token:token(),refresh_token:'local-refresh-token',token_type:'bearer',expires_in:3600,user});
+    return send(200,{access_token:token(identity),refresh_token:'local-refresh-token',token_type:'bearer',expires_in:3600,user:identity});
    }
    return send(200,{});
   }
@@ -29,6 +34,7 @@ export function mockSupabase(){
   if(url.pathname.startsWith('/storage/v1/object/sign/')&&req.method==='GET'){res.writeHead(200,{'Content-Type':'text/plain','Content-Disposition':'attachment; filename="FixtureBrief.txt"'});return res.end('Synthetic project brief.');}
   if(url.pathname.startsWith('/storage/v1/object/project-documents/')&&req.method==='POST'){state.files.push({path:url.pathname,size:Buffer.byteLength(body)});return send(200,{Key:url.pathname,Id:'88888888-8888-4888-8888-888888888888'});}
   const table=url.pathname.split('/').pop();
+  if(options.handleRest&&await options.handleRest({req,res,url,body,send,state,identity,table}))return;
   if(url.pathname==='/rest/v1/rpc/send_member_message'&&req.method==='POST'){
    const input=JSON.parse(body);state.messages.push({id:crypto.randomUUID(),sender_id:input.p_sender,recipient_id:input.p_recipient,body:input.p_body,created_at:new Date().toISOString(),read_at:null});return send(200,null);
   }

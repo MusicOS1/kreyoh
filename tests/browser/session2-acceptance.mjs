@@ -1,0 +1,97 @@
+// Actual Next.js pages and Server Actions against isolated HTTP fixtures.
+// This verifies UI -> server authorization -> REST -> UI, not live Supabase Auth/RLS.
+import assert from 'node:assert/strict';
+import {spawn} from 'node:child_process';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {chromium} from 'playwright';
+import {mockSupabase,userId} from '../helpers/mock-supabase.mjs';
+const id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
+const reviewer=id(2),outsider=id(3),target=id(4),projectId=id(5),inviteId=id(6),assetId=id(7);
+const users=[[userId,'applicant'],[reviewer,'reviewer'],[outsider,'outsider'],[target,'target']].map(([id,name])=>({id,aud:'authenticated',role:'authenticated',email:name+'@example.test',email_confirmed_at:new Date().toISOString(),created_at:new Date().toISOString(),app_metadata:{provider:'email',providers:['email']},user_metadata:{full_name:'Fixture '+name,creator_types:['Fan']}}));
+const records={professional_applications:[],professional_application_events:[],notifications:[],platform_events:[],control_room_admins:[{user_id:reviewer,active:true,permissions:['all']}],project_members:[],member_roles:[],project_invitations:[],studio_sessions:[],session_contributions:[],session_participants:[],project_tasks:[],activity_log:[],tracks:[{id:id(8),project_id:projectId,working_title:'Acceptance recording'}],project_assets:[{id:assetId,project_id:projectId,entity_type:'track',entity_id:id(8),bucket_id:'private',storage_path:projectId+'/private.wav',file_name:'Private fixture.wav'}]};
+const project={id:projectId,name:'Private acceptance project',code:'LOCAL',status:'active',visibility:'private'};
+function matches(row,url){return [...url.searchParams].every(([key,value])=>{
+ if(['select','order','limit','offset','on_conflict','or'].includes(key))return true;
+ if(value.startsWith('eq.'))return String(row[key])===value.slice(3);
+ if(value.startsWith('neq.'))return String(row[key])!==value.slice(4);
+ if(value.startsWith('in.('))return value.slice(4,-1).split(',').includes(String(row[key]));
+ if(value.startsWith('cs.'))return JSON.parse(value.slice(3)).every(x=>row[key]?.includes(x));
+ return true;
+});}
+let writes=[];
+const {server}=mockSupabase({users,handleRest:async({req,res,url,body,send,table})=>{
+ if(!url.pathname.startsWith('/rest/v1/'))return false;
+ let rows;
+ if(table==='profiles')rows=users.map(u=>({...u,full_name:u.user_metadata.full_name,creator_types:['Fan'],account_status:'active',profile_visibility:'project'}));
+ else if(table==='projects')rows=[project];
+ else if(Object.hasOwn(records,table))rows=records[table];
+ else return false;
+ if(req.method==='POST'||req.method==='PATCH'){
+  const payload=JSON.parse(body);writes.push({table,method:req.method,payload});
+  if(req.method==='PATCH'){
+   const changed=rows.filter(r=>matches(r,url));
+   for(const row of changed){const previous=row.status;Object.assign(row,payload);if(table==='professional_applications'&&previous!==row.status)records.professional_application_events.unshift({id:crypto.randomUUID(),application_id:row.id,actor_id:row.reviewed_by||row.user_id,from_status:previous,to_status:row.status,note:row.review_note,created_at:new Date().toISOString()});}
+   rows=changed;
+  }else{
+   rows=(Array.isArray(payload)?payload:[payload]).map(value=>{
+    if(req.headers.prefer?.includes('resolution=merge-duplicates')&&table==='control_room_admins'){
+     const old=records[table].find(r=>r.user_id===value.user_id);if(old){Object.assign(old,value);return old;}
+    }
+    const row={id:crypto.randomUUID(),created_at:new Date().toISOString(),updated_at:new Date().toISOString(),...(table==='project_tasks'?{status:'to_do'}:{}),...value};records[table].push(row);
+    if(table==='professional_applications'&&row.status!=='draft')records.professional_application_events.unshift({id:crypto.randomUUID(),application_id:row.id,actor_id:row.user_id,from_status:null,to_status:row.status,note:null,created_at:new Date().toISOString()});
+    return row;
+   });
+  }
+ }else rows=rows.filter(r=>matches(r,url));
+ if(table==='project_members')rows=rows.map(r=>({...r,projects:project,member_roles:records.member_roles.filter(m=>m.project_member_id===r.id).map(m=>({roles:{name:m.role_id===id(9)?'Producer':m.role_id===id(10)?'Engineer':'Artist'}}))}));
+ if(table==='studio_sessions')rows=rows.map(r=>({...r,tracks:records.tracks.find(t=>t.id===r.track_id)||null,session_contributions:records.session_contributions.filter(c=>c.session_id===r.id),project_tasks:records.project_tasks.filter(t=>t.session_id===r.id)}));
+ if(table==='member_roles')rows=rows.map(r=>({...r,roles:{name:r.role_id===id(9)?'Producer':r.role_id===id(10)?'Engineer':'Artist'}}));
+ if(req.headers.prefer?.includes('count=exact')||req.method==='HEAD')resCount();
+ function resCount(){res.setHeader('Content-Range',rows.length?`0-${rows.length-1}/${rows.length}`:'*/0');}
+ if(req.method==='HEAD'){send(200);return true;}
+ if(req.headers.accept?.includes('application/vnd.pgrst.object+json'))send(200,rows[0]||null);else send(200,rows);
+ return true;
+}});
+await new Promise(r=>server.listen(54329,'127.0.0.1',r));
+const origin='http://localhost:3100',dir='/tmp/session2-acceptance';await mkdir(dir,{recursive:true});
+const child=spawn(process.execPath,['node_modules/next/dist/bin/next',process.env.AUDIT_PRODUCTION?'start':'dev',...process.env.AUDIT_PRODUCTION?[]:['--webpack'],'--port','3100','--hostname','127.0.0.1'],{env:{...process.env,NEXT_PUBLIC_SUPABASE_URL:'http://127.0.0.1:54329',NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'local-test-publishable-key',SUPABASE_SERVICE_ROLE_KEY:'local-test-service-key',NEXT_PUBLIC_SITE_URL:origin,NEXT_TELEMETRY_DISABLED:'1',LOCAL_DEMO_DATA:'true'},stdio:['ignore','pipe','pipe']});
+let logs='',browser;child.stdout.on('data',d=>logs+=d);child.stderr.on('data',d=>logs+=d);
+const checks=[],errors=[];const pass=name=>{checks.push(name);console.log('PASS '+name);};
+async function login(name,width=1440){
+ const context=await browser.newContext({viewport:{width,height:1000},reducedMotion:'reduce'});const page=await context.newPage();page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(60000);page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(origin+'/login?next=/professional-onboarding');await page.getByLabel('Email Address',{exact:true}).fill(name+'@example.test');await page.getByLabel('Password',{exact:true}).fill('Isolated fixture password!');await page.getByRole('button',{name:'Sign In →',exact:true}).click();await page.waitForURL('**/professional-onboarding');await page.getByRole('heading',{name:'Build your professional identity',exact:true}).waitFor();return page;
+}
+async function screenshot(page,name){await page.screenshot({path:dir+'/'+name+'.png',caret:'initial'});}
+async function noOverflow(page){assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Horizontal overflow at '+page.url());}
+try{
+ for(let i=0;i<120;i++){try{if((await fetch(origin+'/offline.html')).ok)break;}catch{}await new Promise(r=>setTimeout(r,500));}
+ browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE||undefined,headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+ const applicant=await login('applicant',390),admin=await login('reviewer');
+ await applicant.getByLabel('Professional or stage name').fill('Fixture Producer');await applicant.getByLabel('About your work').fill('I produce and mix original recordings for independent artists.');await applicant.getByLabel('Skills / genres').fill('Production, Mixing');
+ await applicant.getByRole('button',{name:'Submit for review',exact:true}).click();await applicant.getByRole('status').filter({hasText:'Application submitted'}).waitFor();assert.equal(records.professional_applications[0].user_id,userId);assert.equal(records.professional_applications[0].status,'submitted');await noOverflow(applicant);await screenshot(applicant,'ApplicantMobileSubmitted');pass('Listener submits professional identity through real Server Action, mobile form fits');
+ await admin.goto(origin+'/admin/professional-applications');const card=admin.locator('.control-review-card').filter({hasText:'Fixture Producer'});await card.waitFor();await card.getByLabel('Decision note').fill('Please add a link to a recent production portfolio.');await card.getByRole('button',{name:'Request changes',exact:true}).click();await card.getByText('No review actions available at this stage.',{exact:true}).waitFor();assert.equal(records.professional_applications[0].status,'changes_requested');assert.equal(records.notifications.at(-1).user_id,userId);pass('Different authorised administrator requests information and emits applicant notification');
+ await applicant.reload();await applicant.getByText('Please add a link to a recent production portfolio.',{exact:true}).first().waitFor();await applicant.getByLabel('Portfolio link').fill('https://example.test/portfolio');await applicant.getByRole('button',{name:'Submit for review',exact:true}).click();await applicant.getByRole('status').filter({hasText:'Application submitted'}).waitFor();assert.equal(records.professional_applications[0].reviewed_by,null);pass('Applicant sees feedback, updates evidence and resubmits without carrying reviewer identity');
+ await admin.reload();await card.getByLabel('Decision note').fill('Reviewed the supplied portfolio and production evidence.');await card.getByRole('button',{name:'Approve identity',exact:true}).click();await card.getByText('No review actions available at this stage.',{exact:true}).waitFor();assert.equal(records.professional_applications[0].status,'approved');await screenshot(admin,'ReviewDesktopApproved');
+ await applicant.reload();await applicant.getByRole('heading',{name:'Approved',exact:true}).waitFor();assert.equal(await applicant.getByRole('button',{name:'Submit for review',exact:true}).count(),0);await screenshot(applicant,'ApplicantMobileApproved');assert.deepEqual(records.professional_application_events.map(e=>e.to_status).reverse(),['submitted','changes_requested','submitted','approved']);assert.equal(records.project_members.length,0);assert.equal(records.control_room_admins.length,1);pass('Approval status/history visible; approved identity grants no project or admin permissions');
+ await applicant.goto(origin+'/workspaces/artist');await applicant.getByRole('heading',{name:'Make your next move.',exact:true}).waitFor();await noOverflow(applicant);pass('Approved Artist identity opens personal workspace without changing stored profile or project grants');
+ await applicant.goto(origin+'/admin/professional-applications');await applicant.waitForURL('**/admin/access-unavailable');pass('Applicant denied Control Room review access');
+ const other=await login('outsider');assert.equal(await other.getByText('Fixture Producer',{exact:true}).count(),0);assert.equal(await other.getByText('Reviewed the supplied portfolio and production evidence.',{exact:true}).count(),0);pass('Other account cannot see applicant application or feedback');
+ let response=await other.request.get(origin+'/api/track-assets/'+assetId+'/download');assert.equal(response.status(),403);pass('Private creative file download denies user without project membership');
+ await admin.goto(origin+'/admin/administrators?admin_user='+target);await admin.getByRole('heading',{name:'Platform administrators',exact:true}).waitFor();await admin.locator('input[name=permissions][value=people]').check();await Promise.all([admin.waitForResponse(r=>r.request().method()==='POST'&&r.url().includes('/admin/administrators')),admin.getByRole('button',{name:'Save administrator permissions',exact:true}).click()]);await admin.getByRole('status').filter({hasText:'Platform administrator permissions saved'}).waitFor();assert.deepEqual(records.control_room_admins.find(g=>g.user_id===target).permissions,['people']);assert.equal(records.project_members.length,0);await admin.waitForFunction(()=>document.querySelector('.control-admin-grant-form input[value=people]')?.checked);pass('Full administrator appoints a scoped platform administrator independent of projects');
+ await admin.locator('input[name=permissions][value=music]').check();await Promise.all([admin.waitForResponse(r=>r.request().method()==='POST'&&r.url().includes('/admin/administrators')),admin.getByRole('button',{name:'Save administrator permissions',exact:true}).click()]);await admin.getByRole('status').filter({hasText:'Platform administrator permissions saved'}).waitFor();assert.deepEqual([...records.control_room_admins.find(g=>g.user_id===target).permissions].sort(),['music','people']);pass('Full administrator changes scoped permissions');
+ const targetCard=admin.locator('.control-admin-grants article').filter({hasText:'Fixture target'});await targetCard.getByRole('button',{name:'Disable Admin',exact:true}).click();await targetCard.getByRole('button',{name:'Confirm disable',exact:true}).click();await targetCard.getByText('Access disabled',{exact:true}).waitFor();assert.equal(records.control_room_admins.find(g=>g.user_id===target).active,false);assert.equal(records.platform_events.filter(e=>e.event_name.startsWith('control_room_access_')).length,3);assert.equal(records.control_room_admins.find(g=>g.user_id===reviewer).active,true);await screenshot(admin,'AdministratorsDesktop');pass('Revocation records audit events and retains own full authority; no accounts deleted');
+ await admin.setViewportSize({width:390,height:844});await noOverflow(admin);await screenshot(admin,'AdministratorsMobile');pass('Platform administrator page usable on mobile');
+ // The invitation is seeded only in this isolated fixture; no live invitation/email is created.
+ records.project_invitations.push({id:inviteId,project_id:projectId,user_id:userId,role_id:id(9),status:'pending',created_at:new Date().toISOString(),projects:project,roles:{name:'Producer'}});
+ await applicant.goto(origin+'/invitations');await applicant.getByRole('button',{name:'Accept invitation',exact:true}).click();await applicant.waitForURL('**/member-dashboard');await applicant.waitForLoadState('networkidle');assert.equal(records.project_invitations[0].status,'accepted');assert.equal(records.project_members[0].user_id,userId);assert.equal(records.member_roles[0].role_id,id(9));pass('Existing project invitation acceptance creates membership and professional assignment');
+ await applicant.goto(origin+'/projects');await applicant.getByRole('heading',{name:'Private acceptance project',exact:true}).waitFor();await noOverflow(applicant);pass('Invited member can see private project; approved identity alone was insufficient');
+ response=await other.request.get(origin+'/api/track-assets/'+assetId+'/download');assert.equal(response.status(),403);pass('Other account remains denied private files after collaborator joins');
+ records.project_members.push({id:id(20),user_id:reviewer,project_id:projectId,status:'active',joined_at:'2026-01-01'});records.member_roles.push({project_member_id:id(20),role_id:id(10)});
+ await admin.setViewportSize({width:1440,height:1000});await admin.goto(origin+'/studio-sessions');await admin.waitForLoadState('networkidle');await admin.getByText('Schedule or record a session',{exact:true}).click();const intake=admin.locator('form').filter({has:admin.getByRole('button',{name:'Create session record',exact:true})});await intake.locator('[name=starts_at]').fill('2026-11-01T10:00');await intake.locator('[name=track_id]').selectOption(id(8));await intake.locator('[name=participants]').selectOption(userId);await intake.locator('[name=notes]').fill('Isolated recording acceptance');await Promise.all([admin.waitForResponse(r=>r.request().method()==='POST'&&r.url().includes('/studio-sessions')),intake.getByRole('button',{name:'Create session record',exact:true}).click()]);await admin.locator('.session-history-card').waitFor();assert.equal(records.studio_sessions.length,1);pass('Engineer schedules existing recording/session workflow with active collaborator');
+ await applicant.goto(origin+'/studio-sessions');await applicant.getByText('Record what I did +',{exact:true}).click();const contribution=applicant.locator('form').filter({has:applicant.getByRole('button',{name:'Record contribution',exact:true})});await contribution.locator('[name=description]').fill('Recorded production feedback and arrangement notes.');await Promise.all([applicant.waitForResponse(r=>r.request().method()==='POST'&&r.url().includes('/studio-sessions')),contribution.getByRole('button',{name:'Record contribution',exact:true}).click()]);assert.equal(records.session_contributions[0].contributor_id,userId);pass('Invited collaborator records session contribution and feedback against scoped recording');
+ await applicant.getByText('Assign follow-up work +',{exact:true}).click();const assignment=applicant.locator('form').filter({has:applicant.getByRole('button',{name:'Assign action',exact:true})});await assignment.locator('[name=assignee_id]').selectOption(reviewer);await assignment.locator('[name=title]').fill('Review arrangement feedback');await Promise.all([applicant.waitForResponse(r=>r.request().method()==='POST'&&r.url().includes('/studio-sessions')),assignment.getByRole('button',{name:'Assign action',exact:true}).click()]);assert.equal(records.project_tasks[0].assignee_id,reviewer);await noOverflow(applicant);await screenshot(applicant,'CollaborationMobile');pass('Existing follow-up assignment reaches active professional collaborator on mobile');
+ await admin.reload();await admin.getByText('Manage session +',{exact:true}).click();const manage=admin.locator('form').filter({has:admin.getByRole('button',{name:'Update session',exact:true})});await manage.locator('[name=status]').selectOption('complete');await manage.locator('[name=outcomes]').fill('Arrangement reviewed with collaborators.');await Promise.all([admin.waitForResponse(r=>r.request().method()==='POST'&&r.url().includes('/studio-sessions')),manage.getByRole('button',{name:'Update session',exact:true}).click()]);assert.equal(records.studio_sessions[0].status,'complete');await admin.locator('.status-pill.complete').waitFor();assert.equal(await manage.locator('[name=status]').inputValue(),'complete');await screenshot(admin,'CollaborationDesktop');pass('Authorised engineer completes recording session and retains outcomes');
+
+ assert.deepEqual(errors,[]);await writeFile(dir+'/Results.json',JSON.stringify({scope:'Local Next.js browser with synthetic HTTP fixtures; not live Auth/RLS acceptance',checks,errors,writes:writes.map(w=>({table:w.table,method:w.method}))},null,2));
+ console.log(`PASS ${checks.length} Session 2 isolated browser scenarios`);
+}catch(error){for(const context of browser?.contexts()||[])for(const [index,page] of context.pages().entries()){try{console.error('PAGE',page.url(),await page.locator('input:invalid,select:invalid,textarea:invalid').evaluateAll(nodes=>nodes.map(n=>({name:n.name,value:n.value,validation:n.validationMessage}))));await page.screenshot({path:dir+'/Failure'+context.pages().length+'-'+index+'-'+Date.now()+'.png',caret:'initial'});}catch{}}console.error(error,logs.slice(-9000));process.exitCode=1;}finally{await browser?.close();child.kill('SIGTERM');server.closeAllConnections();server.close();}

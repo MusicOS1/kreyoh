@@ -1,5 +1,7 @@
 # FACKTS Music V4 — Session 2 implementation (preview only)
 
+Current verification and release gates: [Session 2 finalisation report](Session2Finalisation.md).
+
 ## Architecture
 Audited production on 24 October 2026. Existing source of truth: profiles, project_members/member_roles, project_invitations, project_join_requests, project_tasks, studio_sessions, project_assets, project_documents, track_contributors, professional_credit_claims, track_splits, music_releases and Control Room permissions. Existing tools continue to own those workflows; this branch does not duplicate project operations.
 
@@ -42,4 +44,6 @@ For VS Code: checkout feat/session2-professional-onboarding, run npm ci, then np
 - Applicant and reviewer actions report errors/success inline with React action state; authorisation failures remain server-enforced.
 - Applicant and Control Room screens show events from the actual application audit history.
 - Workspace shell now bounds desktop width and sidebar horizontal overflow and includes an onboarding navigation link.
-- Owner locally verified Next 16.4.1, sharp 0.35.5 and source-map-js 1.2.2 with 0 npm audit vulnerabilities, 79 passed tests, clean TypeScript and a successful build. Those local package and lockfile changes still need to be committed by the owner; they cannot be reconstructed from console output alone.
+- The finalisation update pins Next 16.4.1 and commits patched Sharp 0.35.5 / source-map-js 1.2.2 in the lockfile, with a clean install and zero audit vulnerabilities. See the finalisation report for current test counts and genuine acceptance blockers.
+- Approved professions now enable personal workspace navigation without granting project or platform authority. Platform permissions require explicit active administrator grants. Studio session, track and participant references are validated within the selected project.
+- A transactional administrator safety patch is prepared and tested locally in `database/session2_admin_safety.sql`; it has not been applied to the live database. Real-account acceptance and safety rollout remain required before closure.

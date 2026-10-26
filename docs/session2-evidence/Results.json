@@ -1,0 +1,151 @@
+{
+  "scope": "Local Next.js browser with synthetic HTTP fixtures; not live Auth/RLS acceptance",
+  "checks": [
+    "Listener submits professional identity through real Server Action, mobile form fits",
+    "Different authorised administrator requests information and emits applicant notification",
+    "Applicant sees feedback, updates evidence and resubmits without carrying reviewer identity",
+    "Approval status/history visible; approved identity grants no project or admin permissions",
+    "Approved Artist identity opens personal workspace without changing stored profile or project grants",
+    "Applicant denied Control Room review access",
+    "Other account cannot see applicant application or feedback",
+    "Private creative file download denies user without project membership",
+    "Full administrator appoints a scoped platform administrator independent of projects",
+    "Full administrator changes scoped permissions",
+    "Revocation records audit events and retains own full authority; no accounts deleted",
+    "Platform administrator page usable on mobile",
+    "Existing project invitation acceptance creates membership and professional assignment",
+    "Invited member can see private project; approved identity alone was insufficient",
+    "Other account remains denied private files after collaborator joins",
+    "Engineer schedules existing recording/session workflow with active collaborator",
+    "Invited collaborator records session contribution and feedback against scoped recording",
+    "Existing follow-up assignment reaches active professional collaborator on mobile",
+    "Authorised engineer completes recording session and retains outcomes"
+  ],
+  "errors": [],
+  "writes": [
+    {
+      "table": "profiles",
+      "method": "PATCH"
+    },
+    {
+      "table": "profiles",
+      "method": "PATCH"
+    },
+    {
+      "table": "professional_applications",
+      "method": "POST"
+    },
+    {
+      "table": "professional_applications",
+      "method": "PATCH"
+    },
+    {
+      "table": "notifications",
+      "method": "POST"
+    },
+    {
+      "table": "professional_applications",
+      "method": "PATCH"
+    },
+    {
+      "table": "professional_applications",
+      "method": "PATCH"
+    },
+    {
+      "table": "notifications",
+      "method": "POST"
+    },
+    {
+      "table": "profiles",
+      "method": "PATCH"
+    },
+    {
+      "table": "control_room_admins",
+      "method": "POST"
+    },
+    {
+      "table": "platform_events",
+      "method": "POST"
+    },
+    {
+      "table": "notifications",
+      "method": "POST"
+    },
+    {
+      "table": "control_room_admins",
+      "method": "POST"
+    },
+    {
+      "table": "platform_events",
+      "method": "POST"
+    },
+    {
+      "table": "notifications",
+      "method": "POST"
+    },
+    {
+      "table": "control_room_admins",
+      "method": "POST"
+    },
+    {
+      "table": "platform_events",
+      "method": "POST"
+    },
+    {
+      "table": "notifications",
+      "method": "POST"
+    },
+    {
+      "table": "project_members",
+      "method": "POST"
+    },
+    {
+      "table": "member_roles",
+      "method": "POST"
+    },
+    {
+      "table": "activity_log",
+      "method": "POST"
+    },
+    {
+      "table": "project_invitations",
+      "method": "PATCH"
+    },
+    {
+      "table": "studio_sessions",
+      "method": "POST"
+    },
+    {
+      "table": "session_participants",
+      "method": "POST"
+    },
+    {
+      "table": "notifications",
+      "method": "POST"
+    },
+    {
+      "table": "activity_log",
+      "method": "POST"
+    },
+    {
+      "table": "session_contributions",
+      "method": "POST"
+    },
+    {
+      "table": "activity_log",
+      "method": "POST"
+    },
+    {
+      "table": "project_tasks",
+      "method": "POST"
+    },
+    {
+      "table": "notifications",
+      "method": "POST"
+    },
+    {
+      "table": "studio_sessions",
+      "method": "PATCH"
+    }
+  ]
+}

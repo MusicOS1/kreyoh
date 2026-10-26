@@ -1,0 +1,21 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import ts from 'typescript';
+import {readFileSync} from 'node:fs';
+const code=ts.transpileModule(readFileSync(new URL('../app/professional-record/actions.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+const fd=values=>{const form=new FormData();Object.entries(values).forEach(([key,value])=>form.set(key,value));return form;};
+test('existing professional credit workflow: claim, evidence, independent confirmation and admin verification',async()=>{
+ let actor='creator';const tables={professional_credit_claims:[],professional_credit_evidence:[],professional_credit_confirmations:[],notifications:[]};
+ const admin={from(table){let mode='read',payload;const filters=[];const q={select(){return q},eq(k,v){filters.push(row=>row[k]===v);return q},neq(k,v){filters.push(row=>row[k]!==v);return q},insert(value){mode='insert';payload=value;return q},upsert(value){mode='insert';payload=value;return q},update(value){mode='update';payload=value;return q},maybeSingle(){return Promise.resolve(run(true))},then(resolve){resolve(run(false))}};
+ function run(single){let rows=tables[table].filter(row=>filters.every(filter=>filter(row)));if(mode==='insert'){rows=[{id:table+'-'+tables[table].length,...payload}];tables[table].push(...rows);}if(mode==='update')rows.forEach(row=>Object.assign(row,payload));return {data:single?rows[0]||null:rows,count:rows.length,error:null};}return q;}};
+ const actions={};new Function('require','exports',code)(name=>name==='next/cache'?{revalidatePath(){}}:name.includes('controlRoom')?{isSuperAdmin:async user=>user==='administrator'}:{getWorkspace:async()=>({admin,user:{id:actor},project:null})},actions);
+ await actions.createProfessionalClaim(fd({work_title:'Isolated original recording',contribution_role:'Producer'}));const claim=tables.professional_credit_claims[0];assert.equal(claim.verification_status,'self_claimed');assert.equal(claim.claimant_id,'creator');
+ actor='outsider';await assert.rejects(actions.addClaimEvidence(fd({claim_id:claim.id,evidence_url:'https://example.test/work'})),/Claim not found/);
+ actor='creator';await actions.addClaimEvidence(fd({claim_id:claim.id,evidence_url:'https://example.test/work'}));assert.equal(claim.verification_status,'evidence_attached');
+ await assert.rejects(actions.requestClaimConfirmation(fd({claim_id:claim.id,confirmer_id:'creator'})),/another FACKTS creator/);
+ await actions.requestClaimConfirmation(fd({claim_id:claim.id,confirmer_id:'collaborator'}));const confirmation=tables.professional_credit_confirmations[0];
+ actor='outsider';await assert.rejects(actions.respondToCreditClaim(fd({confirmation_id:confirmation.id,response:'confirmed'})),/not found/);
+ actor='collaborator';await actions.respondToCreditClaim(fd({confirmation_id:confirmation.id,response:'confirmed'}));assert.equal(claim.verification_status,'contributor_confirmed');
+ actor='creator';await assert.rejects(actions.verifyProfessionalClaim(fd({claim_id:claim.id})),/Only Super Admin/);
+ actor='administrator';await actions.verifyProfessionalClaim(fd({claim_id:claim.id}));assert.equal(claim.verification_status,'fackts_verified');assert.equal(claim.verified_by,'administrator');assert.ok(tables.notifications.length>=2);
+});

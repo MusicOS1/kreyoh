@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import {
   requireControlRoomPermission,
   requireSuperAdmin,
-  isProjectSuperAdmin,
   type ControlRoomPermission,
 } from "../../../lib/controlRoom";
 import { createAdminClient } from "../../../lib/supabase/admin";
@@ -38,11 +37,6 @@ async function changeScopedAdminAccess(
   const active = operation === "revoke" ? false : read(fd,"active") !== "false";
   if (!userId) throw new Error("Choose an account.");
   if (userId === actor.id) throw new Error("You cannot change your own full administrator access.");
-  // Protect distinct project-based Super Admin membership, not every
-  // full-access global grant. Another full global admin can revoke one.
-  if (await isProjectSuperAdmin(userId)) {
-    throw new Error("This account also has a project Super Admin role. Review that role separately.");
-  }
   const permissions = [...new Set(fd.getAll("permissions").map(String))].filter(
     (p): p is ControlRoomPermission => ADMIN_PERMISSIONS.has(p as ControlRoomPermission),
   );

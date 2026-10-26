@@ -17,6 +17,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm audit
       - run: npm test
       - run: npx tsc --noEmit
 
@@ -29,6 +30,10 @@ jobs:
 
       - name: Install Chromium for rendered homepage regression
         run: npx playwright install --with-deps chromium
+      - name: Verify Session 2 onboarding and collaboration
+        run: node tests/browser/session2-acceptance.mjs
+      - name: Verify persistent sessions, playback and professional workspaces
+        run: node tests/browser/session-repair.mjs
       - name: Verify rendered homepage and route isolation
         run: node tests/browser/homepage-audit.mjs
       - name: Verify shared public header
@@ -41,3 +46,5 @@ jobs:
           path: |
             /tmp/homepage-recovery/verified
             /tmp/shared-public-header
+            /tmp/session2-acceptance
+            /tmp/kreyoh-phase2-screenshots
