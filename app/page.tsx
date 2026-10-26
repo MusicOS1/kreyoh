@@ -1,10 +1,16 @@
+import localFont from "next/font/local";
+import approved from "./ApprovedHomepage.module.css";
 import type { Metadata } from "next";
 import Link from "next/link";
 import PublicNavigation from "../components/PublicNavigation";
-import hero from "./HomepageHero.module.css";
 import PublicFooter from "../components/PublicFooter";
+import HeroCoverWall from "../components/HeroCoverWall";
+import { publicHeroCovers } from "../lib/heroCovers";
 import { ArrowUpRight, CheckCircleIcon, DiscIcon, MicIcon, MusicIcon, UsersIcon } from "../components/Icons";
 import { createAdminClient } from "../lib/supabase/admin";
+
+const bodyFont = localFont({src: "../public/fonts/ManropeVariable.ttf", variable: "--font-fm-body", weight: "200 800", display: "swap"});
+const displayFont = localFont({src: "../public/fonts/SoraVariable.ttf", variable: "--font-fm-display", weight: "100 800", display: "swap", preload: false});
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -104,55 +110,35 @@ const systems = [
 const flow = ["IDEA", "BEAT", "BUILD", "STUDIO", "REVIEW", "RELEASE READY"];
 
 export default async function PublicHomePage() {
-  const creators = await getPublicCreators();
+  const [creators, covers] = await Promise.all([getPublicCreators(), publicHeroCovers()]);
   const featured = creators.slice(0, 6);
   const ticker = creators.length ? [...creators, ...creators] : [];
   const interviews = creators.filter((creator) => creator.interviewUrl).slice(0, 3);
 
   return (
-    <main className={hero.site}>
+    <main className={`public-site fm-v3-site ${approved.homepage} ${bodyFont.variable} ${displayFont.variable}`}>
       <PublicNavigation homepage />
 
-      <section className={hero.hero} id="top">
-        <div className={hero.grid} aria-hidden="true" />
-        <div className={hero.glowA} aria-hidden="true" />
-        <div className={hero.glowB} aria-hidden="true" />
+      <section className="fm-v3-hero fm-cover-hero" id="top">
+        <HeroCoverWall covers={covers} source="curated" />
 
-        <div className={hero.copy}>
-          <div className={hero.kicker}><span /> FACKTS MUSIC · NAIROBI / AFRICA</div>
-          <h1><span>Discover music.</span><span><em>Find your people.</em></span><span>Be part of it.</span></h1>
+        <div className="fm-v3-hero-copy">
+          <div className="fm-v3-kicker"><span /> FACKTS MUSIC · NAIROBI / AFRICA</div>
+          <h1>Discover music.<br /><em>Find your people.</em><br />Be part of it.</h1>
           <p>
             Hear independent releases, meet the artists behind them, and follow the sounds you love. Your next favourite starts here.
           </p>
-          <div className={hero.actions}>
-            <Link href="/listen" className={`${hero.button} ${hero.primary}`}>Explore the music <ArrowUpRight size={16} /></Link>
-            <Link href="/creators" className={`${hero.button} ${hero.secondary}`}>Meet the creators <ArrowUpRight size={16} /></Link>
+          <div className="fm-v3-hero-actions">
+            <Link href="/listen" className="fm-v3-btn fm-v3-btn-primary">Explore the music <ArrowUpRight size={16} /></Link>
+            <Link href="/creators" className="fm-v3-btn fm-v3-btn-ghost">Meet the creators <ArrowUpRight size={16} /></Link>
           </div>
-          <div className={hero.foot}>
+          <div className="fm-v3-hero-foot">
             <span>Built in Nairobi</span>
             <span>Creators first</span>
             <span>Projects in motion</span>
           </div>
         </div>
 
-        <div className={hero.world} aria-label="FACKTS Music visual world">
-          <div className={`${hero.frame} ${hero.main}`}>
-            <img src="/branding/fackts-creative-community.jpg" alt="FACKTS Music creative community" />
-            <span className={hero.tag}>THE CREATIVE ROOM</span>
-          </div>
-          <div className={`${hero.frame} ${hero.top}`}>
-            <img src="/branding/fackts-creator-red-wide.jpg" alt="FACKTS Music creator" />
-          </div>
-          <div className={`${hero.frame} ${hero.bottom}`}>
-            <img src="/branding/fackts-creator-sky.jpg" alt="FACKTS Music creator" />
-          </div>
-          <div className={hero.orbit}>
-            <video autoPlay loop muted playsInline preload="metadata" poster="/branding/fackts-music-logo.png">
-              <source src="/branding/fackts-music-premium-orbit.mp4" type="video/mp4" />
-            </video>
-          </div>
-          <div className={hero.live}><span /> LIVE PLATFORM</div>
-        </div>
       </section>
 
       <section className="fm-v3-ticker-section" aria-label="FACKTS Music creator network">

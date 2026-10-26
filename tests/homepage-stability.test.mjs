@@ -6,7 +6,7 @@ const read=path=>readFileSync(new URL("../"+path,import.meta.url),"utf8");
 test("homepage uses scoped components without changing the shared default header",()=>{
  const homepage=read("app/page.tsx"),root=read("app/layout.tsx"),nav=read("components/PublicNavigation.tsx");
  assert.match(homepage,/<PublicNavigation homepage/);
- assert.match(homepage,/HomepageHero.module.css/);
+ assert.match(homepage,/ApprovedHomepage.module.css/);
  assert.doesNotMatch(root,/HomepageHero|HomepageNavigation|homepage-stability/);
  assert.match(nav,/homepage=false/);
  assert.match(nav,/<PublicNavigationClient identity=/);

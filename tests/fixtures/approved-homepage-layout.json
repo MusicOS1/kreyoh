@@ -1,0 +1,23 @@
+{
+  "source": "4ca4fa8f30817a7cd5c4017e0d0785ec8b2b361b",
+  "viewports": {
+    "390": {
+      "font": "37.05px",
+      "titleWidth": 350,
+      "titleHeight": 113.34375,
+      "offsetX": 20,
+      "offsetY": 162.921875,
+      "heroHeight": 660,
+      "brandWidth": 172.75
+    },
+    "1440": {
+      "font": "79.2px",
+      "titleWidth": 640,
+      "titleHeight": 242.34375,
+      "offsetX": 400,
+      "offsetY": 149.734375,
+      "heroHeight": 730,
+      "brandWidth": 172.75
+    }
+  }
+}

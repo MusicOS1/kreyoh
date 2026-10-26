@@ -22,7 +22,7 @@ try{
    assert.ok(about.x>=brand.x+brand.width-1,`Public brand overlaps About at ${width}px`);
   }else{
    await page.getByRole('button',{name:'Toggle navigation',exact:true}).click();
-   const menu=page.getByRole('navigation',{name:'More navigation',exact:true});
+   const menu=page.getByRole('navigation',{name:'Mobile navigation',exact:true});
    for(const name of ['About','How It Works','Creators','Explore Music','Partners','Contact','Sign In','Join FACKTS'])assert.ok(await menu.getByRole('link',{name,exact:false}).isVisible());
    await page.getByRole('button',{name:'Toggle navigation',exact:true}).click();
   }

@@ -1,5 +1,7 @@
 # Homepage recovery and visual regression verification
 
+Superseded: this earlier correction restored the wrong hero. The approved moving-artwork design is restored in [ApprovedHomepageRestoration.md](ApprovedHomepageRestoration.md).
+
 Branch: `feat/session2-professional-onboarding`. Existing draft PR: #19. Before baseline: `ed2d439e7d72b977ffff7f111fa63aed1c5ba0ab`.
 
 ## Findings from the actual branch and browser

@@ -12,12 +12,12 @@ test("original FACKTS public homepage navigation is restored",()=>{
   assert.doesNotMatch(nav,/primaryLinks/);
   assert.match(nav,/href=\{identity\?"\/fan":"\/signup"\}/);
 });
-test("premium hero redesign styles do not overwrite original homepage",()=>{
+test("approved moving-artwork homepage stays isolated from other routes",()=>{
   const layout=read("app/layout.tsx");
   assert.doesNotMatch(layout,/public-home-refinement\.css/);
   assert.match(layout,/import "\.\/legal\.css";/);
   const home=read("app/page.tsx");
-  assert.match(home,/HomepageHero.module.css/);
+  assert.match(home,/ApprovedHomepage.module.css/);
   assert.match(home,/id="how-it-works"/);
   assert.match(home,/<PublicFooter/);
 });

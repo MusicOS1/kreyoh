@@ -31,7 +31,7 @@ try{
  assert.equal(await page.locator('.fm-v3-project-001').count(),1);assert.equal(await page.locator('.fm-v3-flow li').count(),6);
  assert.equal(await page.locator('.fm-public-footer').count(),1);assert.equal(await page.locator('[data-fm-header]').count(),0);
  await page.getByRole('button',{name:'Toggle navigation',exact:true}).click();
- await page.getByRole('navigation',{name:'More navigation',exact:true}).getByRole('link',{name:'Explore Music',exact:true}).click();
+ await page.getByRole('navigation',{name:'Mobile navigation',exact:true}).getByRole('link',{name:'Explore Music',exact:true}).click();
  await page.waitForURL('**/listen',{waitUntil:'domcontentloaded'});await page.getByRole('heading',{name:'Find your frequency.',exact:true}).waitFor();
  pass('Public homepage marketing content and mobile Explore Music link lead to premium /listen');
  await page.goto(origin+'/signup?next=/fan');await page.getByLabel('Full Name',{exact:true}).fill('Test Listener');await page.getByLabel('Email Address',{exact:true}).fill('listener@example.test');
@@ -42,13 +42,13 @@ try{
  await page.goto(origin+'/auth/callback?token_hash=local-confirmation&type=signup&next=%2Ffan%3Ftab%3DArtists');
  await page.waitForURL('**/fan?tab=Artists');await page.getByRole('heading',{name:'Artists',exact:true}).waitFor();pass('Email token confirmation callback preserves deep link (mock verification)');
  await page.reload();await page.getByRole('heading',{name:'Artists',exact:true}).waitFor();pass('Authenticated refresh');
- await page.goto(origin+'/');await page.getByRole('button',{name:'Toggle navigation',exact:true}).click();await page.getByRole('navigation',{name:'More navigation'}).getByRole('link',{name:'My Workspace',exact:true}).waitFor();await page.keyboard.press('Escape');assert.equal(await page.getByRole('heading',{name:'Discover music. Find your people. Be part of it.'}).count(),1);assert.equal(await page.locator('[data-fm-header]').count(),0);pass('Signed-in homepage keeps original public content and one public header');
+ await page.goto(origin+'/');await page.getByRole('button',{name:'Toggle navigation',exact:true}).click();await page.getByRole('navigation',{name:'Mobile navigation'}).getByRole('link',{name:'My Workspace',exact:true}).waitFor();await page.keyboard.press('Escape');assert.equal(await page.getByRole('heading',{name:'Discover music. Find your people. Be part of it.'}).count(),1);assert.equal(await page.locator('[data-fm-header]').count(),0);pass('Signed-in homepage keeps original public content and one public header');
  const beforeRefresh=state.refreshes;
  const expiring=(await browser.cookies()).find(c=>c.name.endsWith('-auth-token')&&c.value.startsWith('base64-'));
  assert.ok(expiring);
  const session=JSON.parse(Buffer.from(expiring.value.slice(7),'base64url').toString());session.expires_at=Math.floor(Date.now()/1000)-60;
  await browser.addCookies([{...expiring,value:'base64-'+Buffer.from(JSON.stringify(session)).toString('base64url')}]);
- await page.reload();await page.getByRole('button',{name:'Toggle navigation',exact:true}).click();await page.getByRole('navigation',{name:'More navigation'}).getByRole('link',{name:'My Workspace',exact:true}).waitFor();await page.keyboard.press('Escape');assert.ok(state.refreshes>beforeRefresh);pass('Expired access session refresh rotates cookies (mock refresh endpoint)');
+ await page.reload();await page.getByRole('button',{name:'Toggle navigation',exact:true}).click();await page.getByRole('navigation',{name:'Mobile navigation'}).getByRole('link',{name:'My Workspace',exact:true}).waitFor();await page.keyboard.press('Escape');assert.ok(state.refreshes>beforeRefresh);pass('Expired access session refresh rotates cookies (mock refresh endpoint)');
  await mkdir(screenshotDir,{recursive:true});
  const cookies=await browser.cookies();assert.ok(cookies.some(c=>/-auth-token(?:\.\d+)?$/.test(c.name)&&c.expires>Date.now()/1000+86400));pass('Auth cookies persist beyond browser session');
  await browser.close();browser=await chromium.launchPersistentContext(profile,{...options,...devices['Pixel 7'],viewport:{width:390,height:844}});await media(browser);page=await browser.newPage();page.setDefaultTimeout(12000);page.setDefaultNavigationTimeout(45000);
@@ -76,7 +76,7 @@ try{
  await page.setViewportSize({width,height:900});await overflow(page,`Homepage ${width}`);
  if(width===390||width===1440)await page.screenshot({path:path.join(screenshotDir,`PublicHomepage${width}.png`),fullPage:true,scale:'css'});
  }
- const branding=await page.locator('#top img,.fm-v3-project-image img').evaluateAll(images=>images.map(image=>({src:image.getAttribute('src'),loaded:image.complete&&image.naturalWidth>0})));
+ const branding=await page.locator('#top img[loading=eager],.fm-v3-project-image img').evaluateAll(images=>images.map(image=>({src:image.getAttribute('src'),loaded:image.complete&&image.naturalWidth>0})));
  assert.ok(branding.every(image=>image.loaded),JSON.stringify(branding));pass('Original homepage imagery loads at phone and desktop widths');
  await page.goto(origin+'/fan');for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});await overflow(page,`Fan ${width}`);}pass('Homepage and listener have no document overflow at 320/390/768/1440px');
  await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/tmp/kreyoh-fan-mobile.png',fullPage:false,scale:'css'});
