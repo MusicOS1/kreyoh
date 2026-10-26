@@ -6,11 +6,11 @@ const read=(path)=>readFileSync(new URL("../"+path,import.meta.url),"utf8");
 test("original FACKTS public homepage navigation is restored",()=>{
   const nav=read("components/PublicNavigationClient.tsx");
   for(const label of ["About","How It Works","Creators","Explore Music","Partners","Contact"]){
-    assert.ok(nav.includes('["'+label+'",'),"Missing original navigation: "+label);
+    assert.match(nav,new RegExp('\\[\\s*[\"\']'+label+'[\"\']\\s*,'),label);
   }
   assert.doesNotMatch(nav,/fm-public-more/);
   assert.doesNotMatch(nav,/primaryLinks/);
-  assert.match(nav,/href=\{identity\?"\/fan":"\/signup"\}/);
+  assert.match(nav,/identity\s*\?\s*['"]\/fan['"]\s*:\s*['"]\/signup['"]/);
 });
 test("approved moving-artwork homepage stays isolated from other routes",()=>{
   const layout=read("app/layout.tsx");

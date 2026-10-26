@@ -1,7 +1,7 @@
-import HomepageNavigationClient from "./HomepageNavigationClient";
 import PublicNavigationClient from "./PublicNavigationClient";
 import {returningUser} from "../lib/returningUser";
-export default async function PublicNavigation({homepage=false}:{homepage?:boolean}) {
-  const identity=await returningUser();
-  return homepage ? <HomepageNavigationClient identity={identity}/> : <PublicNavigationClient identity={identity}/>;
+
+// Retain the homepage prop for existing callers; every public page shares one header.
+export default async function PublicNavigation(_props:{homepage?:boolean}={}) {
+  return <PublicNavigationClient identity={await returningUser()}/>;
 }

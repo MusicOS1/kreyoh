@@ -31,9 +31,13 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Verify rendered homepage and route isolation
         run: node tests/browser/homepage-audit.mjs
+      - name: Verify shared public header
+        run: node tests/browser/public-header.mjs
       - name: Upload real browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: homepage-browser-evidence
-          path: /tmp/homepage-recovery/verified
+          path: |
+            /tmp/homepage-recovery/verified
+            /tmp/shared-public-header
