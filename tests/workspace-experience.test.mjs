@@ -32,7 +32,7 @@ function fixture({types=['Fan'],roles=['A&R'],fail=false}={}){
  const queries=[];
  const admin={from(table){const filters=[];const query={select(){return query},in(key,value){filters.push([key,value]);return query},eq(key,value){filters.push([key,[value]]);return query},is(){return query},or(){return query},neq(){return query},gte(){return query},order(){return query},limit(){return query},then(resolve,reject){queries.push({table,filters});const data=(records[table]||[]).filter(row=>filters.every(([key,values])=>values.includes(row[key])));return Promise.resolve({data,error:fail?{message:'fixture outage'}:null,count:data.length}).then(resolve,reject)}};return query;}};
  const memberships=[{project_id:'artist-project',roles:['Artist']},{project_id:'review-project',roles}];
- const workspace={admin,user:{id:'user'},profile:{creator_types:types},memberships,activeProjects:[{id:'artist-project',name:'Artist project'},{id:'review-project',name:'Review project'}]};
+ const workspace={admin,supabase:admin,user:{id:'user'},profile:{creator_types:types},memberships,activeProjects:[{id:'artist-project',name:'Artist project'},{id:'review-project',name:'Review project'}]};
  const identity={id:'user',name:'Fixture user',workspaces:model.workspaceOptions(types,['Artist',...roles]),creator:true};
  const page=load('lib/workspaceDashboard.ts',{'./workspace':{getWorkspace:async()=>workspace},'./experienceIdentity':{getExperienceIdentity:async()=>identity},'./workspaceExperience':model,'./navigation':{projectLink:(project,path)=>`/project-entry?project_id=${project}&next=${encodeURIComponent(path)}`},'next/navigation':{notFound(){throw Error('NOT_FOUND')}}});
  return {page,queries};

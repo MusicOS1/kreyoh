@@ -103,6 +103,7 @@ const JOURNEY = [
 export default async function WorkspacePage() {
   const {
     user,
+    supabase,
     project,
     roles,
     membership,
@@ -224,7 +225,7 @@ export default async function WorkspacePage() {
      * If this table is not yet created,
      * the dashboard safely shows zero.
      */
-    admin
+    supabase
       .from("studio_sessions")
       .select("*", {
         count: "exact",
@@ -399,6 +400,7 @@ export default async function WorkspacePage() {
       .select("id,entity_id,bucket_id,storage_path,file_name,mime_type,asset_kind,created_at")
       .eq("project_id", project.id)
       .eq("entity_type", "track")
+      .or(`visibility.in.(project,public),uploaded_by.eq.${user.id}`)
       .order("created_at", { ascending: false })
       .limit(24),
 

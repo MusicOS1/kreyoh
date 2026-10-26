@@ -9,7 +9,7 @@ async function run({member=true, asset={entity_id:'track',bucket_id:'r2',storage
   const filters=[]; const signatures=[];
   const query={select(){return this},eq(...args){filters.push(args);return this},async maybeSingle(){return {data:asset,error:null}}};
   const exports={};
-  new Function('require','exports',code)((name)=>name.includes('workspace') ? {getWorkspace:async()=>({project:{id:'project'},membership:member?{}:null,admin:{from:()=>query}})} : {createR2PresignedUrl:async(...args)=>{signatures.push(args);if(fail)throw Error();return 'https://storage.example/signed'}},exports);
+  new Function('require','exports',code)((name)=>name.includes('workspace') ? {getWorkspace:async()=>({user:{id:'u'},project:{id:'project'},membership:member?{}:null,admin:{from:()=>query}})} : {createR2PresignedUrl:async(...args)=>{signatures.push(args);if(fail)throw Error();return 'https://storage.example/signed'}},exports);
   const response=await exports.GET(new Request('https://music.example/download'),{params:Promise.resolve({assetId})});
   return {response,filters,signatures};
 }
@@ -20,7 +20,7 @@ test('ZIP download is scoped to project and signed as an attachment on demand',a
   assert.deepEqual(signatures[0],['GET','project/tracks/track/stems.zip',900,undefined,'mdagi mdagi files.zip']);
 });
 test('non-members, missing files and cross-project storage paths cannot obtain URLs',async()=>{
-  for(const opts of [{member:false},{asset:null},{asset:{bucket_id:'r2',entity_id:'track',storage_path:'other/tracks/track/stems.zip'}}]){
+  for(const opts of [{member:false},{asset:null},{asset:{visibility:'private',uploaded_by:'other',storage_path:'project/tracks/track/a.wav'}},{asset:{bucket_id:'r2',entity_id:'track',storage_path:'other/tracks/track/stems.zip'}}]){
     const {response,signatures}=await run(opts);assert.ok([403,404].includes(response.status));assert.equal(signatures.length,0);
   }
 });

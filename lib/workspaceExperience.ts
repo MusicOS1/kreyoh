@@ -303,8 +303,11 @@ export const WORKSPACES: WorkspaceConfig[] = [
   },
 ];
 export const managementRoles = ['Super Admin', 'Admin', 'Project Lead'];
-export const workspaceConfig = (kind: string) =>
-  WORKSPACES.find((item) => item.kind === kind);
+export const workspaceConfig = (kind: string) => {
+  const config=WORKSPACES.find((item) => item.kind === kind);
+  if (!config || ['listener','admin'].includes(kind)) return config;
+  return {...config,links:[...config.links,{label:'Production room',href:'/production'}]};
+};
 export function workspaceOptions(
   types: unknown,
   assigned: string[],

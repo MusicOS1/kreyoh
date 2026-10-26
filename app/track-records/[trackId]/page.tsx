@@ -35,7 +35,7 @@ const ISSUE_CATEGORIES=[
 
 export default async function TrackPassportPage({params}:{params:Promise<{trackId:string}>}){
   const{trackId}=await params;
-  const{admin,project,membership,roles}=await getWorkspace();
+  const{admin,user,project,membership,roles}=await getWorkspace();
   if(!project||!membership)return<AppShell><div className="content empty-state"><h2>Project access required</h2></div></AppShell>;
 
   const[
@@ -45,7 +45,7 @@ export default async function TrackPassportPage({params}:{params:Promise<{trackI
     admin.from("tracks").select("*,beats(title,beat_code,producer_name)").eq("id",trackId).eq("project_id",project.id).maybeSingle(),
     admin.from("track_contributors").select("id,user_id,contribution_role,approved,profiles(full_name,stage_name,nickname)").eq("track_id",trackId),
     admin.from("track_splits").select("id,contributor_id,contribution_role,percentage,status,profiles!track_splits_contributor_id_fkey(full_name,stage_name,nickname)").eq("track_id",trackId),
-    admin.from("project_assets").select("id,file_name,mime_type,asset_kind,version_note,created_at,profiles!project_assets_uploaded_by_fkey(full_name,stage_name,nickname)").eq("project_id",project.id).eq("entity_type","track").eq("entity_id",trackId).order("created_at",{ascending:false}),
+    admin.from("project_assets").select("id,file_name,mime_type,asset_kind,version_note,created_at,profiles!project_assets_uploaded_by_fkey(full_name,stage_name,nickname)").eq("project_id",project.id).eq("entity_type","track").eq("entity_id",trackId).or(`visibility.in.(project,public),uploaded_by.eq.${user.id}`).order("created_at",{ascending:false}),
     admin.from("project_expenses").select("id,amount,currency,category,vendor,payment_status,expense_date,notes").eq("project_id",project.id).eq("track_id",trackId).order("expense_date",{ascending:false}),
     admin.from("studio_sessions").select("id,starts_at,status,location,notes,outcomes").eq("project_id",project.id).eq("track_id",trackId).order("starts_at",{ascending:false}),
     admin.from("track_operational_issues").select("*").eq("project_id",project.id).eq("track_id",trackId).order("occurred_at",{ascending:false}),
@@ -60,6 +60,7 @@ export default async function TrackPassportPage({params}:{params:Promise<{trackI
   if (splitsR.error) console.error("Split loading failed", splitsR.error.code);
   const track=trackR.data;if(!track)notFound();
 
+  const readinessResult=await admin.rpc("production_readiness",{p_track:track.id});
   const contributors=contributorsR.data||[],splits=splitsR.data||[],assets=assetsR.data||[],expenses=expensesR.data||[],
     sessions=sessionsR.data||[],issues=issuesR.data||[],rights=rightsR.data||[],releases=releasesR.data||[],
     events=eventsR.data||[],opportunities=opportunitiesR.data||[],revenue=revenueR.data||[],members=membersR.data||[];
@@ -101,7 +102,8 @@ export default async function TrackPassportPage({params}:{params:Promise<{trackI
     @media(max-width:900px){.passport-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.passport-grid{grid-template-columns:1fr}.passport-span{grid-column:auto}}
   `}</style><div className="content operations-page">
     {splitsR.error && <p role="alert">Split data could not be loaded. Please refresh before relying on the rights status below.</p>}
-    <nav aria-label="Song navigation" className="split-editor-footer"><Link href="/tracks">← Music</Link><Link href={`/tracks#track-${trackId}`}>Audio & versions</Link><Link href={`/splits?track=${trackId}`}>Review credits & splits</Link></nav>
+    <section className="panel"><h2>Production release readiness: {readinessResult.data?.state||"Unavailable"}</h2><p>Current master, credits, splits, supplied agreement evidence and project-lead sign-off are checked in the production workspace. This does not establish legal clearance.</p><Link href={`/production#track-${trackId}`}>Review outstanding requirements →</Link></section>
+    <nav aria-label="Song navigation" className="split-editor-footer"><Link href="/tracks">← Music</Link><Link href={`/production#track-${trackId}`}>Production &amp; release readiness</Link><Link href={`/tracks#track-${trackId}`}>Audio & versions</Link><Link href={`/splits?track=${trackId}`}>Review credits & splits</Link></nav>
     <div className="heading"><div><span className="eyebrow">{track.track_code||"TRACK"} / SONG RECORD</span><h1>{track.working_title||"Untitled track"}</h1><p>One operational record from beat and credits through files, rights, spend, release, outcomes and lessons.</p></div><div className="date"><span>{String(track.development_status||track.status||"in development").replaceAll("_"," ")}</span></div></div>
 
     <section className="passport-kpis">
@@ -143,7 +145,7 @@ export default async function TrackPassportPage({params}:{params:Promise<{trackI
         <span className="eyebrow">RIGHTS READINESS</span><h2>Is this track clean?</h2>
         <p>{rightsClean?"All required rights checks are clear/not applicable and splits are 100% confirmed.":"Do not treat this track as rights-clean until the checklist and split confirmations are complete."}</p>
         <div className="passport-list">{RIGHTS.map(([key,label])=>{const row:any=rightsMap.get(key);return<div className="passport-row" key={key}><span><strong>{label}</strong><small>{row?.evidence_note||"No evidence note recorded."}</small></span><b className={row?.status==="clear"||row?.status==="not_applicable"?"rights-clear":row?.status==="blocked"?"rights-blocked":"rights-warn"}>{String(row?.status||"pending").replaceAll("_"," ")}</b></div>})}</div>
-        {canManage&&<details className="session-inline-tool"><summary>Update rights check +</summary><form action={saveRightsCheck} className="operations-form"><input type="hidden" name="track_id" value={track.id}/><select name="check_key" required defaultValue=""><option value="" disabled>Rights check</option>{RIGHTS.filter(([key])=>key!=="splits_confirmed").map(([key,label])=><option key={key} value={key}>{label}</option>)}</select><select name="status" defaultValue="pending"><option value="pending">Pending</option><option value="clear">Clear</option><option value="not_applicable">Not applicable</option><option value="blocked">Blocked</option></select><input name="evidence_url" type="url" placeholder="Evidence link"/><textarea name="evidence_note" placeholder="What proves this?"/><button>Save rights check</button></form></details>}
+        {canManage&&<details className="session-inline-tool"><summary>Update rights check +</summary><form action={saveRightsCheck} className="operations-form"><input type="hidden" name="track_id" value={track.id}/><select name="check_key" required defaultValue=""><option value="" disabled>Rights check</option>{RIGHTS.filter(([key])=>key!=="splits_confirmed").map(([key,label])=><option key={key} value={key}>{label}</option>)}<option value="visual_assets">Visual assets / treatment (when required)</option></select><select name="status" defaultValue="pending"><option value="pending">Pending</option><option value="clear">Clear</option><option value="not_applicable">Not applicable</option><option value="blocked">Blocked</option></select><input name="evidence_url" type="url" placeholder="Evidence link"/><textarea name="evidence_note" placeholder="What proves this?"/><button>Save rights check</button></form></details>}
       </article>
 
       <article className="panel">

@@ -18,6 +18,7 @@ export default async function AdminProjectOverview({params}:{params:Promise<{pro
     admin.from("roles").select("name").not("name","in","(Admin,Super Admin,Control Room Admin,Project Lead)").order("name"),
   ]);
   if(!project)notFound();
+  const production=await Promise.all((project.tracks||[]).map(async(t:any)=>{const {data,error}=await admin.rpc("production_readiness",{p_track:t.id});return {id:t.id,state:error?'Setup pending / unavailable':data?.state||'Unavailable'};}));
   const safeRoles = roles ?? [];
   const safeEvents = events ?? [];
   const members=(project.project_members||[]).filter((m:any)=>m.status==="active");
@@ -38,6 +39,7 @@ export default async function AdminProjectOverview({params}:{params:Promise<{pro
       <article><span>Stage</span><strong style={{fontSize:"17px"}}>{project.status||"active"}</strong><small>{project.next_action||"Define next action"}</small></article>
     </section>
 
+    <section className="control-panel"><h2>Production oversight</h2><p>Operational readiness only. Platform access does not grant creative approval or ownership.</p>{production.map(t=><p key={t.id}>{t.id} · {t.state}</p>)}</section>
     <section className="control-grid">
       <article className="control-panel"><header><div><span className="control-eyebrow">PROJECT IDENTITY & APPEARANCE</span><h2>Edit the project</h2></div></header>
         <form action={updateManagedProjectIdentity} className="control-profile-add" encType="multipart/form-data">

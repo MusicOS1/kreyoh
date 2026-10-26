@@ -40,9 +40,11 @@ function readR2Config(): R2Config {
   return { accountId, accessKeyId, secretAccessKey, bucket };
 }
 
-function createR2Client(config: R2Config) {
+function createR2Client(config: R2Config, multipart = false) {
   return new S3Client({
     region: "auto",
+    // The presigner has no browser part body; never sign an empty CRC32 for it.
+    ...(multipart ? { requestChecksumCalculation: "WHEN_REQUIRED" as const } : {}),
     endpoint: `https://${config.accountId}.r2.cloudflarestorage.com`,
     credentials: {
       accessKeyId: config.accessKeyId,
@@ -130,4 +132,40 @@ export async function finalizeReleaseObject(source: string, destination: string)
     Bucket: config.bucket, Key: destination,
     CopySource: `${config.bucket}/${source.split('/').map(encodeURIComponent).join('/')}`,
   }));
+}
+
+// Multipart payloads travel from the browser straight to R2, never through Next.
+export async function startR2Multipart(key: string, contentType: string) {
+  const { CreateMultipartUploadCommand } = await import('@aws-sdk/client-s3');
+  const config = readR2Config();
+  const result = await createR2Client(config, true).send(new CreateMultipartUploadCommand({Bucket: config.bucket,Key:key,ContentType:contentType}));
+  if (!result.UploadId) throw new Error('Storage did not create the transfer.');
+  return result.UploadId;
+}
+export async function signR2Part(key: string, uploadId: string, part: number) {
+  const { UploadPartCommand } = await import('@aws-sdk/client-s3');
+  const config = readR2Config();
+  return getSignedUrl(createR2Client(config, true), new UploadPartCommand({Bucket:config.bucket,Key:key,UploadId:uploadId,PartNumber:part}),{expiresIn:900});
+}
+export async function listR2Parts(key: string, uploadId: string) {
+  const { ListPartsCommand } = await import('@aws-sdk/client-s3');
+  const config=readR2Config();
+  const result=await createR2Client(config, true).send(new ListPartsCommand({Bucket:config.bucket,Key:key,UploadId:uploadId}));
+  // 20 GiB / 16 MiB can exceed the first 1000-part page.
+  const parts=result.Parts || [];
+  let marker=result.NextPartNumberMarker;
+  while (marker) {
+    const page=await createR2Client(config, true).send(new ListPartsCommand({Bucket:config.bucket,Key:key,UploadId:uploadId,PartNumberMarker:marker}));
+    parts.push(...page.Parts||[]);marker=page.NextPartNumberMarker;
+  }
+  return parts;
+}
+export async function finishR2Multipart(key:string,uploadId:string,parts:{PartNumber:number;ETag:string}[]) {
+  const { CompleteMultipartUploadCommand }=await import('@aws-sdk/client-s3');
+  const config=readR2Config();
+  await createR2Client(config, true).send(new CompleteMultipartUploadCommand({Bucket:config.bucket,Key:key,UploadId:uploadId,MultipartUpload:{Parts:parts}}));
+}
+export async function abortR2Multipart(key:string,uploadId:string) {
+  const {AbortMultipartUploadCommand}=await import('@aws-sdk/client-s3');const config=readR2Config();
+  await createR2Client(config, true).send(new AbortMultipartUploadCommand({Bucket:config.bucket,Key:key,UploadId:uploadId}));
 }

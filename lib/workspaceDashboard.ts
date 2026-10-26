@@ -38,22 +38,19 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
   )
     notFound();
   const projectIds = permittedProjectIds(kind, workspace.memberships);
-  const { admin, user } = workspace;
+  const { admin, supabase, user } = workspace;
   const empty = () =>
     Promise.resolve({
       data: [] as any[],
       error: null,
       count: 0 as number | null,
     });
-  const scoped = (table: string, columns: string, order = 'created_at') =>
-    projectIds.length
-      ? admin
-          .from(table)
-          .select(columns, { count: 'exact' })
-          .in('project_id', projectIds)
-          .order(order, { ascending: false })
-          .limit(6)
-      : empty();
+  const scoped = (table: string, columns: string, order = 'created_at') => {
+    if (!projectIds.length) return empty();
+    const query=admin.from(table).select(columns,{count:'exact'}).in('project_id',projectIds);
+    if (table==='project_assets') query.or(`visibility.in.(project,public),uploaded_by.eq.${user.id}`);
+    return query.order(order,{ascending:false}).limit(6);
+  };
   const [
     tracks,
     tasks,
@@ -83,7 +80,7 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
           .limit(6)
       : empty(),
     projectIds.length
-      ? admin
+      ? supabase
           .from('studio_sessions')
           .select(
             'id,project_id,starts_at,status,location,tracks(working_title)',
@@ -104,7 +101,7 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
               { count: 'exact' },
             )
             .in('project_id', projectIds)
-            .or('mime_type.like.image/%,mime_type.like.video/%')
+            .or(`and(mime_type.like.image/%,or(visibility.in.(project,public),uploaded_by.eq.${user.id})),and(mime_type.like.video/%,or(visibility.in.(project,public),uploaded_by.eq.${user.id}))`)
             .order('created_at', { ascending: false })
             .limit(6)
         : scoped(

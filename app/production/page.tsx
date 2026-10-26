@@ -1,0 +1,67 @@
+import Link from 'next/link';
+import AppShell from '../../components/AppShell';
+import ProductionHistory from '../../components/ProductionHistory';
+import ProductionActionForm from '../../components/ProductionActionForm';
+import TrackUploadForm from '../../components/TrackUploadForm';
+import TrackPlaylist from '../../components/TrackPlaylist';
+import {getWorkspace,hasAnyRole} from '../../lib/workspace';
+import {PRODUCTION_FILE_ROLES} from '../../lib/productionPolicy';
+import {creatorDisplayName} from '../../lib/profileIdentity';
+import styles from './Production.module.css';
+const first=(v:any)=>Array.isArray(v)?v[0]:v;
+const stages=['Preparation','Recording','Production','Mixing','Mastering','Credits & Splits','Release readiness','Complete'];
+const trackStages=['in_development','revision','in_studio','mixing','mastering','release_ready','complete'];
+const labels:Record<string,string>={final_master:'Approved latest master',metadata:'Track title and code',artwork:'Cover artwork',credits:'Verified contributor credits',splits:'Current split proposal approved',agreements:'Rights / agreement evidence recorded',visual_requirements:'Required visual assets',tasks:'Production tasks complete',issues:'Operational issues resolved',lead_signoff:'Project-lead sign-off'};
+export default async function ProductionPage(){
+ const {admin,user,project,membership,roles}=await getWorkspace();
+ if(!project||!membership)return <AppShell><div className="content empty-state"><h1>Project access required</h1><p>Accept an invitation or select an authorised project.</p><Link href="/projects">My projects</Link></div></AppShell>;
+ const results=await Promise.all([
+  admin.from('tracks').select('*').eq('project_id',project.id).order('created_at'),
+  admin.from('project_members').select('user_id,profiles(full_name,stage_name,nickname),member_roles(roles(name))').eq('project_id',project.id).eq('status','active'),
+  admin.from('project_assets').select('id,entity_id,uploaded_by,file_name,mime_type,asset_kind,version_note,review_status,review_revision,review_assignee,created_at,byte_size,bucket_id,storage_etag').eq('project_id',project.id).eq('entity_type','track').or(`visibility.in.(project,public),uploaded_by.eq.${user.id}`).order('created_at',{ascending:false}),
+  admin.from('project_tasks').select('id,track_id,title,status,due_date,assignee_id').eq('project_id',project.id).neq('status','done').order('due_date'),
+  admin.from('studio_sessions').select('id,starts_at,status,track_id,created_by,engineer_id,producer_id,ar_id,session_participants(user_id)').eq('project_id',project.id).order('starts_at',{ascending:false}),
+  admin.from('platform_events').select('id,event_name,entity_id,metadata,created_at').eq('project_id',project.id).like('event_name','production_%').order('created_at',{ascending:false}).limit(60),
+  admin.from('activity_log').select('id,action,created_at').eq('project_id',project.id).order('created_at',{ascending:false}).limit(15),
+ ]);
+ const failure=results.find(r=>r.error)?.error;
+ if(failure)return <AppShell><div className="content"><h1>Production workspace</h1><p role="alert">{['PGRST204','PGRST205','42703','42P01'].includes(failure.code)?'Session 3 database setup is pending in this environment. Existing project tools remain available.':'Production records could not be loaded. Please try again.'}</p><Link href="/tracks">Open existing tracks</Link></div></AppShell>;
+ const [tracks,members,assets,tasks,allSessions,events,activity]=results.map(r=>r.data||[]);
+ const lead=hasAnyRole(roles,['Super Admin','Admin','Project Lead']);const coordinator=lead||hasAnyRole(roles,['A&R','Manager','Project Coordinator']);
+ const sessions=allSessions.filter((s:any)=>coordinator||[s.created_by,s.engineer_id,s.producer_id,s.ar_id,...(s.session_participants||[]).map((p:any)=>p.user_id)].includes(user.id));
+ const name=(id:string)=>creatorDisplayName(first(members.find((m:any)=>m.user_id===id)?.profiles));
+ const reviewers=members.filter((m:any)=>(m.member_roles||[]).some((r:any)=>['Super Admin','Admin','Project Lead','A&R','Artist','Producer'].includes(first(r.roles)?.name)));
+ const readies=await Promise.all(tracks.map(async(t:any)=>{const {data,error}=await admin.rpc('production_readiness',{p_track:t.id});return {id:t.id,data,error};}));
+ const audio=assets.filter((a:any)=>a.mime_type?.startsWith('audio/')).map((a:any)=>({id:a.id,title:a.file_name,subtitle:`${a.asset_kind.replaceAll('_',' ')} · ${name(a.uploaded_by)}`,src:`/api/production/assets/${a.id}`,listened:false,eligible:false}));
+ const links=[['Beats & assignments','/beats'],['People & invitations','/people'],['Studio sessions','/studio-sessions'],['Tasks & deadlines','/tasks'],['Credits & rights','/track-records'],['Split proposals','/splits'],['Documents','/documents'],['My professional history','/professional-record']] as const;
+ return <AppShell><div className={`content operations-page ${styles.root}`}>
+  <div className="heading"><div><span className="eyebrow">CREATIVE PRODUCTION</span><h1>{project.name}</h1><p>{project.description}</p><p>Stage: <strong>{project.current_stage||'Preparation'}</strong> · Target: {project.target_release_date||'Not set'}</p><p>{project.next_action||'Agree the next production action with your project lead.'}</p></div><Link href="/projects">Switch project</Link></div>
+  <nav className={styles.links} aria-label="Production modules">{links.map(([label,href])=><Link key={href} href={href}>{label} →</Link>)}</nav>
+  <section className={styles.grid}>
+   <article className={`panel ${styles.panel}`}><h2>People & responsibilities</h2>{members.map((m:any)=><p key={m.user_id}><strong>{name(m.user_id)}</strong> · {(m.member_roles||[]).map((r:any)=>first(r.roles)?.name).filter(Boolean).join(', ')||'Project member'}{m.user_id===project.owner_id?' · Project owner':''}</p>)}<Link href="/people">Manage project assignments →</Link></article>
+   <article className={`panel ${styles.panel}`}><h2>Outstanding work</h2>{!tasks.length&&<p>No open production tasks.</p>}{tasks.map((t:any)=><p key={t.id}><Link href={`/tasks#task-${t.id}`}>{t.title}</Link><br/><span className={styles.meta}>{name(t.assignee_id)} · {t.status.replaceAll('_',' ')} · {t.due_date||'No deadline'}{t.due_date&&t.due_date<new Date().toISOString().slice(0,10)?' · Overdue':''}</span></p>)}</article>
+   <article className={`panel ${styles.panel}`}><h2>Your recording sessions</h2>{!sessions.length&&<p>No sessions assigned to you.</p>}{sessions.slice(0,8).map((s:any)=><p key={s.id}><Link href={`/studio-sessions#session-${s.id}`}>{new Date(s.starts_at).toLocaleString('en-KE')} · {s.status.replaceAll('_',' ')}</Link></p>)}</article>
+   {coordinator&&<article className={`panel ${styles.panel}`}><h2>Plan the next stage</h2><ProductionActionForm action="project_stage" target={project.id} label="Save production plan"><label>Production stage<select name="stage" defaultValue={stages.includes(project.current_stage)?project.current_stage:'Preparation'}>{stages.map(s=><option key={s}>{s}</option>)}</select></label><label>Next action<input name="next_action" maxLength={500} defaultValue={project.next_action||''}/></label><label>Production deadline<input type="date" name="deadline" defaultValue={project.target_release_date||''}/></label></ProductionActionForm></article>}
+  </section>
+  {audio.length>0&&<section className="panel"><h2>Listen to production versions</h2><TrackPlaylist tracks={audio} enableRanking={false} persistenceKey={`fm-production:${user.id}:${project.id}`}/></section>}
+  <section className={styles.root}><h2>Tracks & release readiness</h2>{!tracks.length&&<p>No tracks yet. <Link href="/beats">Select an existing beat</Link> or <Link href="/tracks">register a track</Link>.</p>}
+  {tracks.map((track:any)=>{const readiness=readies.find(r=>r.id===track.id);const ready=readiness?.data;const versions=assets.filter((a:any)=>a.entity_id===track.id);return <article key={track.id} id={`track-${track.id}`} className={`panel ${styles.track}`}>
+   <header><span className="eyebrow">{track.track_code} · {track.development_status?.replaceAll('_',' ')}</span><h2>{track.working_title}</h2><p className={styles.status}>{ready?.state||'Readiness unavailable'}</p></header>
+   <nav className={styles.links} aria-label={`${track.working_title} tools`}><Link href={`/track-records/${track.id}`}>Credits, agreements & metadata</Link><Link href={`/splits?track=${track.id}`}>Review splits</Link><Link href={`/tracks#track-${track.id}`}>Track details</Link></nav>
+   <p className={styles.meta}>Readiness records operational approvals and supplied evidence. It does not establish legal clearance, ownership, licensing or distribution.</p>
+   {readiness?.error?<p role="alert">Release checks could not be loaded. No ready status can be relied on.</p>:<ul className={styles.checks}>{Object.entries(ready?.checks||{}).map(([key,done])=><li key={key}><Link href={key==='splits'?`/splits?track=${track.id}`:key==='tasks'?'/tasks':key==='final_master'?`#track-${track.id}-versions`:`/track-records/${track.id}`}>{labels[key]||key}</Link><span>{done?'Complete':'Needs attention'}</span></li>)}</ul>}
+   <div className={styles.grid}>{coordinator&&<ProductionActionForm action="track_stage" target={track.id} label="Update track stage"><label>Track stage<select name="stage" defaultValue={track.development_status}>{trackStages.map(s=><option key={s} value={s}>{s.replaceAll('_',' ')}</option>)}</select></label></ProductionActionForm>}{lead&&ready?.requirements_complete&&<ProductionActionForm action="signoff" target={track.id} label="Approve release preparation"><label>Project-lead decision note<input name="note" required maxLength={1000}/></label></ProductionActionForm>}</div>
+   <section id={`track-${track.id}-versions`} className={styles.root}><h3>Files & version reviews</h3>{!versions.length&&<p>No production files yet.</p>}{versions.map((asset:any)=><article key={asset.id} id={`asset-${asset.id}`} className={styles.version}>
+    <div><span className="eyebrow">{asset.asset_kind.replaceAll('_',' ')} · {asset.review_status.replaceAll('_',' ')}</span><h3>{asset.file_name}</h3><p className={styles.meta}>{name(asset.uploaded_by)} · {new Date(asset.created_at).toLocaleString('en-KE')}{asset.byte_size?` · ${(asset.byte_size/1024**2).toFixed(1)} MiB`:''}</p>{asset.version_note&&<p>{asset.version_note}</p>}<a href={`/api/track-assets/${asset.id}/download`}>Download authorised file ↓</a></div>
+    {['in_progress','changes_requested'].includes(asset.review_status)&&(asset.byte_size&&asset.storage_etag||asset.bucket_id==='r2'&&new Date(asset.created_at).getTime()<Date.now()-2*60*60*1000)&&(asset.uploaded_by===user.id||coordinator)&&<ProductionActionForm action="submit" target={asset.id} revision={asset.review_revision} label="Submit version for review"><label>Independent reviewer<select name="reviewer" required defaultValue=""><option value="" disabled>Choose a project reviewer</option>{reviewers.filter((m:any)=>m.user_id!==asset.uploaded_by).map((m:any)=><option key={m.user_id} value={m.user_id}>{name(m.user_id)}</option>)}</select></label><label>Review deadline<input name="due_date" type="date"/></label><label>Review request<textarea name="note" maxLength={2000}/></label></ProductionActionForm>}
+    {!asset.storage_etag&&!(asset.bucket_id==='r2'&&new Date(asset.created_at).getTime()<Date.now()-2*60*60*1000)&&<p className={styles.meta}>This earlier upload stays available. Add a production version to request review, or wait for its R2 upload link to expire.</p>}
+    {asset.review_status==='submitted'&&<p>Awaiting {name(asset.review_assignee)}.</p>}
+    {asset.review_status==='submitted'&&asset.review_assignee===user.id&&<div className={styles.grid}>{[['changes_requested','Request version changes'],['approve','Approve this version']].map(([action,label])=><ProductionActionForm key={action} action={action} target={asset.id} revision={asset.review_revision} label={label}><label>Decision note<textarea name="note" required minLength={2} maxLength={2000}/></label></ProductionActionForm>)}</div>}
+    <ProductionHistory key={`${asset.id}:${asset.review_revision}`} assetId={asset.id} initial={events.filter((e:any)=>e.entity_id===asset.id)}/>
+
+   </article>)}</section>
+   {hasAnyRole(roles,PRODUCTION_FILE_ROLES)&&<details><summary>Add audio, stems, documents or visual deliverables</summary><TrackUploadForm trackId={track.id}/></details>}
+  </article>;})}</section>
+  <section className="panel"><h2>Recent project activity</h2><ol className={styles.history}>{activity.map((e:any)=><li key={e.id}>{e.action} · {new Date(e.created_at).toLocaleString('en-KE')}</li>)}</ol><Link href="/activity">Full project history →</Link></section>
+ </div></AppShell>;
+}

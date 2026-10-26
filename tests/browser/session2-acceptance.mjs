@@ -44,7 +44,7 @@ const {server}=mockSupabase({users,handleRest:async({req,res,url,body,send,table
   }
  }else rows=rows.filter(r=>matches(r,url));
  if(table==='project_members')rows=rows.map(r=>({...r,projects:project,member_roles:records.member_roles.filter(m=>m.project_member_id===r.id).map(m=>({roles:{name:m.role_id===id(9)?'Producer':m.role_id===id(10)?'Engineer':'Artist'}}))}));
- if(table==='studio_sessions')rows=rows.map(r=>({...r,tracks:records.tracks.find(t=>t.id===r.track_id)||null,session_contributions:records.session_contributions.filter(c=>c.session_id===r.id),project_tasks:records.project_tasks.filter(t=>t.session_id===r.id)}));
+ if(table==='studio_sessions')rows=rows.map(r=>({...r,session_participants:records.session_participants.filter(p=>p.session_id===r.id),tracks:records.tracks.find(t=>t.id===r.track_id)||null,session_contributions:records.session_contributions.filter(c=>c.session_id===r.id),project_tasks:records.project_tasks.filter(t=>t.session_id===r.id)}));
  if(table==='member_roles')rows=rows.map(r=>({...r,roles:{name:r.role_id===id(9)?'Producer':r.role_id===id(10)?'Engineer':'Artist'}}));
  if(req.headers.prefer?.includes('count=exact')||req.method==='HEAD')resCount();
  function resCount(){res.setHeader('Content-Range',rows.length?`0-${rows.length-1}/${rows.length}`:'*/0');}

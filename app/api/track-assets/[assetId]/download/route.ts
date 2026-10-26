@@ -3,7 +3,7 @@ import { createR2PresignedUrl } from "../../../../../lib/r2";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ assetId: string }> }) {
   const { assetId } = await params;
-  const { admin, project, membership } = await getWorkspace();
+  const { admin, user, project, membership } = await getWorkspace();
   const headers = { "Cache-Control": "private, no-store" };
   if (!project || !membership) return new Response("Project access required.", { status: 403, headers });
   if (!/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(assetId)) {
@@ -11,10 +11,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ ass
   }
 
   const { data: asset, error } = await admin.from("project_assets")
-    .select("entity_id,bucket_id,storage_path,file_name")
+    .select("entity_id,bucket_id,storage_path,file_name,visibility,uploaded_by")
     .eq("id", assetId).eq("project_id", project.id).eq("entity_type", "track").maybeSingle();
   if (error) return new Response("Unable to load this file. Please try again.", { status: 503, headers });
-  if (!asset?.storage_path) return new Response("File not found.", { status: 404, headers });
+  if (!asset?.storage_path || asset.visibility === "private" && asset.uploaded_by !== user.id) return new Response("File not found.", { status: 404, headers });
 
   try {
     let url: string;
