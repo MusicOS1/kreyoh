@@ -1,0 +1,13 @@
+{
+  "scope": "Actual local browser, synthetic identity and media; same form focus transition before/after CSS correction",
+  "before": {
+    "player_visible_input_focus": false,
+    "player_visible_submit_focus": true,
+    "audio_elements": 1
+  },
+  "after": {
+    "player_visible_input_focus": false,
+    "player_visible_submit_focus": false,
+    "audio_elements": 1
+  }
+}

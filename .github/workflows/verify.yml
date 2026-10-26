@@ -34,6 +34,8 @@ jobs:
         run: node tests/browser/session2-acceptance.mjs
       - name: Verify persistent sessions, playback and professional workspaces
         run: node tests/browser/session-repair.mjs
+      - name: Verify compact cards and background interaction failures
+        run: node tests/browser/interaction-cards.mjs
       - name: Verify rendered homepage and route isolation
         run: node tests/browser/homepage-audit.mjs
       - name: Verify shared public header
@@ -48,3 +50,4 @@ jobs:
             /tmp/shared-public-header
             /tmp/session2-acceptance
             /tmp/kreyoh-phase2-screenshots
+            /tmp/kreyoh-interaction-cards

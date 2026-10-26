@@ -383,9 +383,9 @@ html[data-fackts-fan-theme="ivory"] .fan-shell .refined-player .track-chart-sele
 body.has-music-player{padding-bottom:145px}
 @media(max-width:760px){body.has-music-player{padding-bottom:200px}}
 @media(max-width:760px){
- /* Keep focused form fields above the on-screen keyboard; audio stays mounted. */
- body:has(input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):focus,textarea:focus,[contenteditable="true"]:focus) .global-listening-player{visibility:hidden;pointer-events:none}
- body:has(input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):focus,textarea:focus,[contenteditable="true"]:focus) .fan-mobile-nav,
- body:has(input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):focus,textarea:focus,[contenteditable="true"]:focus) .mobile-bottom-nav{visibility:hidden;pointer-events:none}
+ /* Keep form submit focus clear too: the dock must not reappear between pointer down and click. Audio stays mounted. */
+ body:has([data-fm-workspace] form:focus-within,main form:focus-within,.control-room form:focus-within,input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):focus,textarea:focus,[contenteditable="true"]:focus) .global-listening-player{visibility:hidden;pointer-events:none}
+ body:has([data-fm-workspace] form:focus-within,main form:focus-within,.control-room form:focus-within,input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):focus,textarea:focus,[contenteditable="true"]:focus) .fan-mobile-nav,
+ body:has([data-fm-workspace] form:focus-within,main form:focus-within,.control-room form:focus-within,input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):focus,textarea:focus,[contenteditable="true"]:focus) .mobile-bottom-nav{visibility:hidden;pointer-events:none}
 }
 .fan-workspace-link{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px;border:1px solid var(--fan-border);border-radius:10px;font-size:13px;white-space:nowrap}

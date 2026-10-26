@@ -47,3 +47,5 @@ For VS Code: checkout feat/session2-professional-onboarding, run npm ci, then np
 - The finalisation update pins Next 16.4.1 and commits patched Sharp 0.35.5 / source-map-js 1.2.2 in the lockfile, with a clean install and zero audit vulnerabilities. See the finalisation report for current test counts and genuine acceptance blockers.
 - Approved professions now enable personal workspace navigation without granting project or platform authority. Platform permissions require explicit active administrator grants. Studio session, track and participant references are validated within the selected project.
 - A transactional administrator safety patch is prepared and tested locally in `database/session2_admin_safety.sql`; it has not been applied to the live database. Real-account acceptance and safety rollout remain required before closure.
+
+- Final mobile regression correction: the existing dock/navigation focus rule now remains active through workspace form submission, so the first click is not covered when input focus changes. Audio stays mounted; document upload and playback regression checks cover the transition.
