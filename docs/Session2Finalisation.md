@@ -44,6 +44,8 @@ Security references checked on 26 October: [Next.js maintainer update](https://n
 | Production public-header audit | PASS | 140 anonymous/signed-in route/viewport combinations |
 | Production Session 2 browser suite | PASS | 19 scenarios against optimized production build, including the saved selector state |
 
+CI exposed a synchronization gap when retrying a simulated failed Like after mobile search input. The regression now waits for the visible failure and cleared busy state, blurs search, and centres the control before retrying; the rollback/persistence assertions remain. Mobile administrator evidence additionally waits for real non-overlapping header geometry and exercises the account menu before capture. No product code or styles changed for this CI correction.
+
 The browser suite uses real DOM/form interactions and the actual application server, with an isolated HTTP Supabase fixture. It verifies UI → Server Action authentication/authorization → REST requests → rendered feedback. It does **not** exercise real GoTrue credentials, deployed Supabase RLS, private cloud storage or delivery of external email. PostgreSQL tests separately execute actual committed SQL in PGlite; this is not a deployed multi-connection concurrency test.
 
 ## Professional onboarding acceptance evidence
@@ -90,7 +92,7 @@ Closure requires these gates plus owner review. Local green checks do not substi
 
 ## Evidence and local reproduction
 
-Browser evidence is in [session2-evidence](session2-evidence/). All records shown are synthetic. Representative screenshots: [approved applicant on mobile](session2-evidence/ApplicantMobileApproved.webp), [reviewer on desktop](session2-evidence/ReviewDesktopApproved.webp), [administrators on desktop](session2-evidence/AdministratorsDesktop.webp) and [mobile](session2-evidence/AdministratorsMobile.webp), [collaboration on desktop](session2-evidence/CollaborationDesktop.webp) and [mobile](session2-evidence/CollaborationMobile.webp). Results.json lists the 19 UI scenarios and REST write destinations, without credentials. CI also uploads the full browser artifact directories.
+Browser evidence is in [session2-evidence](session2-evidence/). All records shown are synthetic. Approval, review and desktop collaboration captures use local production rendering; the refreshed administrator mobile capture uses development rendering and visibly labels the synthetic data. Representative screenshots: [approved applicant on mobile](session2-evidence/ApplicantMobileApproved.webp), [reviewer on desktop](session2-evidence/ReviewDesktopApproved.webp), [administrators on desktop](session2-evidence/AdministratorsDesktop.webp) and [mobile](session2-evidence/AdministratorsMobile.webp), [collaboration on desktop](session2-evidence/CollaborationDesktop.webp) and [mobile](session2-evidence/CollaborationMobile.webp). Results.json lists the 19 UI scenarios and REST write destinations, without credentials. CI also uploads the full browser artifact directories.
 
 Existing preview: https://kreyoh-git-feat-session2-p-291188-fackts-africa-groups-projects.vercel.app
 

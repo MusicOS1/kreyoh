@@ -117,7 +117,12 @@ try{
  assert.equal(await page.getByRole('button',{name:'Save Test song 2',exact:true}).isEnabled(),true);
  await page.getByLabel('Search music',{exact:true}).fill('Test');await page.getByLabel('Search music',{exact:true}).fill('');
  await delayedLike.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,value:{ok:false,error:'Fixture save failure.'}})});
- await page.getByRole('button',{name:'Save Test song 1',exact:true}).waitFor();await page.unroute('**/api/interactions/library');
+ await page.getByRole('button',{name:'Save Test song 1',exact:true}).waitFor();await page.getByRole('alert').filter({hasText:'Fixture save failure.'}).waitFor();await page.unroute('**/api/interactions/library');
+ // Blur mobile search before retrying so floating playback controls have settled.
+ await page.getByRole('heading',{name:'Find your frequency.',exact:true}).click();
+ const retrySave=page.getByRole('button',{name:'Save Test song 1',exact:true});
+ await page.waitForFunction(()=>{const button=document.querySelector('button[aria-label="Save Test song 1"]');return button&&!button.disabled&&button.getAttribute('aria-busy')==='false';});
+ await retrySave.evaluate(node=>node.scrollIntoView({block:'center',behavior:'instant'}));
  const likeSaved=page.waitForResponse(response=>response.url().endsWith('/api/interactions/library')&&response.request().postDataJSON()?.kind==='saved');
  await page.getByRole('button',{name:'Save Test song 1',exact:true}).click();await likeSaved;
  await page.reload();await page.getByRole('button',{name:'Unsave Test song 1',exact:true}).waitFor();
