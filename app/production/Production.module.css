@@ -1,1 +1,247 @@
-.root{display:grid;gap:24px;min-width:0}.links{display:flex;flex-wrap:wrap;gap:10px 20px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.panel{min-width:0;display:grid;gap:16px;align-content:start}.track{min-width:0;display:grid;gap:18px;scroll-margin-top:100px}.version{padding:16px;border:1px solid var(--border,rgba(255,255,255,.1));border-radius:12px;display:grid;gap:12px;min-width:0;scroll-margin-top:100px}.version h3,.track h2{overflow-wrap:anywhere}.meta{font-size:13px;line-height:1.7;opacity:.75}.checks{list-style:none;padding:0;margin:0;display:grid;gap:8px}.checks li{display:flex;justify-content:space-between;gap:12px}.checks a{overflow-wrap:anywhere}.history{display:grid;gap:10px;margin:0;padding-left:20px}.history li{overflow-wrap:anywhere}.root input,.root textarea,.root select{max-width:100%;min-width:0}.root textarea{min-height:90px}.root progress{width:100%}.root details>summary{cursor:pointer;padding:10px 0}.status{font-weight:700}.root p{overflow-wrap:anywhere}.actions{display:grid;gap:12px}@media(max-width:850px){.grid{grid-template-columns:1fr}.root{gap:18px}.version{padding:12px}}
+.root {
+  display:grid;
+  gap:16px;
+  min-width:0}
+.root h2 {
+  font-size:18px;
+  margin:0}
+.root h3 {
+  font-size:15px;
+  margin:0}
+.root p {
+  overflow-wrap:anywhere}
+.root :global(.heading) {
+  margin-bottom:0}
+.links {
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px 20px;
+  font-size:13px}
+.grid {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px}
+.overview {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  align-items:start}
+.overviewItem {
+  min-width:0;
+  border:1px solid var(--line-subtle);
+  border-radius:10px;
+  background:var(--bg-surface)}
+.root .overviewItem>summary {
+  padding:13px 16px;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer}
+.overviewItem>summary>span {
+  margin-left:6px;
+  color:var(--ink-secondary);
+  font-size:12px}
+.overviewBody {
+  padding:0 16px 16px;
+  max-height:360px;
+  overflow:auto}
+.overviewBody p {
+  font-size:13px;
+  line-height:1.6;
+  margin:10px 0}
+.overviewBody form {
+  margin-top:8px}
+.trackList {
+  display:grid;
+  gap:12px}
+.toolbar {
+  display:flex;
+  align-items:end;
+  flex-wrap:wrap;
+  gap:12px}
+.toolbar label {
+  display:grid;
+  gap:5px;
+  font-size:12px;
+  min-width:0}
+.toolbar label:first-child {
+  flex:1;
+  min-width:160px}
+.toolbar label:nth-child(2) {
+  width:180px}
+.toolbar input,.toolbar select {
+  width:100%;
+  min-height:42px;
+  margin:0}
+.toolbar>span {
+  padding-bottom:10px}
+.trackRows {
+  border:1px solid var(--line-subtle);
+  border-radius:10px;
+  background:var(--bg-surface);
+  overflow:hidden}
+.trackRows>div+div:not([hidden]) {
+  border-top:1px solid var(--line-subtle)}
+.track {
+  min-width:0;
+  scroll-margin-top:100px}
+.root .trackSummary {
+  list-style:none;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding:14px 16px;
+  min-height:72px;
+  cursor:pointer}
+.trackSummary::-webkit-details-marker {
+  display:none}
+.trackSummary:after {
+  content:'+';
+  font-size:20px;
+  color:var(--ink-secondary);
+  flex:none}
+.track[open]>.trackSummary:after {
+  content:'−'}
+.track[open]>.trackSummary {
+  background:rgba(255,255,255,.025)}
+.trackIdentity {
+  display:grid;
+  gap:4px;
+  flex:1;
+  min-width:0}
+.trackIdentity strong {
+  font-size:15px;
+  overflow-wrap:anywhere}
+.trackProgress {
+  font-size:12px;
+  color:var(--ink-secondary)}
+.trackBody {
+  display:grid;
+  gap:14px;
+  padding:4px 16px 18px}
+.trackBody>.meta {
+  margin:0}
+.version {
+  padding:14px;
+  border:1px solid var(--line-subtle);
+  border-radius:10px;
+  display:grid;
+  gap:10px;
+  min-width:0;
+  scroll-margin-top:100px}
+.version h3 {
+  overflow-wrap:anywhere}
+.meta {
+  font-size:12px;
+  line-height:1.5;
+  color:var(--ink-secondary)}
+.checks {
+  list-style:none;
+  padding:10px 0;
+  margin:0;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px 24px}
+.checks li {
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  font-size:12px}
+.checks a {
+  overflow-wrap:anywhere}
+.checks li>span {
+  flex:none;
+  color:var(--ink-secondary)}
+.history {
+  display:grid;
+  gap:10px;
+  margin:0 0 12px;
+  padding-left:20px;
+  font-size:13px}
+.history li {
+  overflow-wrap:anywhere}
+.root input,.root textarea,.root select {
+  max-width:100%;
+  min-width:0}
+.root textarea {
+  min-height:80px}
+.root progress {
+  width:100%}
+.root details>summary {
+  cursor:pointer;
+  padding:10px 0}
+.root summary:focus-visible,.root button:focus-visible {
+  outline:2px solid var(--fackts-gold,#e6bc73);
+  outline-offset:-3px}
+.status {
+  font-weight:600;
+  font-size:12px;
+  line-height:1.4;
+  border-radius:6px;
+  background:rgba(230,188,115,.1);
+  color:var(--fackts-gold,#e6bc73);
+  padding:6px 9px;
+  max-width:160px}
+.status[data-ready=true] {
+  color:#9bdec0;
+  background:rgba(80,180,130,.12)}
+.actions {
+  display:grid;
+  gap:12px}
+.pagination {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:14px;
+  font-size:13px}
+.pagination button {
+  min-height:42px;
+  padding:8px 14px}
+.root [hidden] {
+  display:none!important}
+@media(max-width:850px) {
+  .grid,.checks {
+  grid-template-columns:1fr}
+.version {
+  padding:12px}
+.trackProgress {
+  display:none}
+}
+@media(max-width:520px) {
+  .overview {
+  grid-template-columns:1fr}
+.root .trackSummary {
+  gap:10px;
+  padding:12px;
+  min-height:76px}
+.trackBody {
+  padding:4px 12px 14px}
+.trackIdentity strong {
+  font-size:14px}
+.status {
+  font-size:11px;
+  max-width:100px}
+.toolbar label:nth-child(2) {
+  width:140px}
+.toolbar>span {
+  width:100%;
+  padding-bottom:0}
+.root .overviewItem>summary {
+  padding:12px}
+.overviewBody {
+  padding:0 12px 12px}
+}
+
+
+.versionBody {
+  display:grid;
+  gap:10px;
+  padding-top:8px}
+.version>summary {
+  overflow-wrap:anywhere;
+  min-height:42px}
+.versionBody h3 {
+  display:none}
+
+.overviewContent {padding:0 16px 16px;display:grid;gap:12px;min-width:0}
+.trackIdentity .meta {overflow-wrap:anywhere}
+.checkDetails {min-width:0}
