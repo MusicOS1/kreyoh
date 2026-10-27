@@ -1,5 +1,13 @@
 # Session 3 — creative production
 
+## Owner-approved database rollout — 27 October 2026
+
+The owner explicitly approved applying the Session 3 migration to the existing Fackts Music database after Supabase rejected creation of an isolated branch (branching requires Pro). The committed migration was applied successfully to project `ijczdvlbeikfozgkezgb`, recorded by Supabase as `20261027194823_creative_production_workflow`. No website PR was merged and no production website deployment was initiated.
+
+Post-rollout read-only verification confirms 7 projects, 46 tracks, 53 assets, 4 studio sessions and 0 participants, matching the pre-rollout counts. All 53 existing assets start in progress; all 46 tracks evaluate as Blocked because existing files have not received the new version-specific approvals. This is readiness status, not a database setup failure. No approvals or attendance were fabricated. The new upload ledger is empty, has RLS enabled and denies browser reads/writes; production mutations are server-only. Security advisors show the existing warnings unchanged and one expected additional informational RLS-with-no-browser-policy notice for the server-only upload ledger.
+
+The database setup blocker is removed for local/preview applications configured to this project. Real-account UI acceptance and external R2 transfer acceptance remain unverified. Supabase branch creation made no test environment and no plan upgrade was purchased.
+
 Work is based on Session 2 commit e666ce5, with PR #19 and its PR #18 dependency preserved. Session 2's deferred real-account acceptance and administrator safety rollout are separate gates.
 
 ## Initial audit and reuse
@@ -34,7 +42,7 @@ Control Room project overview shows read-only readiness per track using its exis
 
 ## Database candidate
 
-`supabase/migrations/20261026200516_creative_production_workflow.sql` was generated with the Supabase CLI. It is **not applied to any shared/live database**.
+`supabase/migrations/20261026200516_creative_production_workflow.sql` was generated with the Supabase CLI. It was originally an unapplied candidate; it has now been applied to the existing database with explicit owner approval, as recorded above.
 
 It adds one upload-transfer ledger, per-asset review/version metadata, per-track sign-off and explicit session-attendance columns. Existing assets receive an unapproved default. No existing creative records or permissions are rewritten. The ledger has RLS and no browser-role privileges; only authenticated server code accesses it. Workflow helpers are SECURITY INVOKER and executable only by service_role. They recheck actor membership, actual project role and target scope, serialize workflow operations per project and commit audit, notification, task and mutation atomically. Retry keys are checked against actor, project, action, target and payload.
 
@@ -42,7 +50,7 @@ One deliberately private SECURITY DEFINER boolean helper is necessary to avoid r
 
 Session RLS now limits reads to relevant assigned users/coordinators. Asset RLS respects uploader-private visibility. Both are exercised with actual authenticated PostgreSQL roles in isolated tests. The track trigger prevents direct older write paths from claiming release readiness without current production approval.
 
-The candidate requires isolated Supabase migration/advisor review and real-user acceptance before an owner-approved shared rollout. An environment without it displays a setup-pending notice and links to existing tools; the app does not silently manufacture readiness.
+The migration has received the owner-approved shared rollout and post-rollout advisor/readiness checks described above. Real-user acceptance remains open. Other environments without this schema display a setup-pending notice and links to existing tools; the app does not silently manufacture readiness.
 
 ## Upload architecture and deployment requirements
 
@@ -81,7 +89,7 @@ The new browser suite drives actual Next pages and JSON routes into an isolated 
 
 The continuous lifecycle test loads the existing beat-claim SQL, invokes the original beat conversion, session and credit actions through the local REST adapter, then runs the existing split-plan function. It establishes an isolated project/membership fixture, claims one source beat (duplicate rejected), creates the linked song/producer and artist credits, schedules/completes recording and a contribution, registers stems, reviews/revises a mix, independently approves a master, verifies credits, proposes/sends/confirms both split shares, records explicitly synthetic supporting evidence and obtains current project-lead sign-off. Approved uploads are available in the contributor's private history. It does not establish real legal clearance or real creative activity.
 
-All records/accounts/files in these tests are isolated synthetic fixtures. **No genuine Project 001 record, real administrator permission, live creator record, shared schema or production storage object was modified.** Supabase inspection was SELECT-only (existing schema/policies/role names). No PR was merged.
+During initial implementation, all test records/accounts/files were isolated synthetic fixtures, and no shared schema was changed. **No genuine Project 001 creative record, real administrator permission, live creator record or production storage object was modified.** Supabase inspection during the initial implementation was SELECT-only. The subsequent owner-approved schema rollout is recorded above. No PR was merged.
 
 GitHub CI runs these checks on the feature branch/stacked draft PR; its published-commit status is linked in the PR. Local passing results alone are not presented as a remote CI result.
 
@@ -98,10 +106,10 @@ These are real Chromium screenshots of the local production build with explicitl
 
 ## Remaining acceptance gates
 
-1. **Isolated Supabase rollout:** the candidate is tested in disposable PostgreSQL, but no authorised isolated Supabase preview database was provided. Apply and review it there, run Supabase advisors and verify real authenticated/outsider accounts. Do not apply it to the shared/live project as part of preview inspection.
+1. **Supabase real-account acceptance:** the schema is now applied to the existing database with explicit owner approval and passes read-only readiness/permission checks. A separate branch could not be created on the current plan. Real authenticated/outsider account browser acceptance remains open.
 2. **External R2:** an authorised isolated bucket/credentials/CORS environment is unavailable. Verify real multipart transfers, cancellation/lifecycle cleanup, checksums/byte integrity, range playback, quota and large-file/mobile-network recovery there. The 20 GiB limit is implemented and boundary-tested; only 272 MiB was actually transferred through the local protocol fixture.
 3. **Genuine Project 001:** owner-approved real participants/files and permissions are still required for the 13-step commercial/creative acceptance case. No fictional attendance, contracts, royalties, ownership, credits or clearances were created in live data.
-4. **Preview acceptance:** the repository's Vercel preview uses its configured backend. Until a dedicated preview backend receives the candidate migration, the new Production route displays setup pending and existing tools stay accessible. A READY deployment does not mean schema rollout or real-service acceptance passed. Protected remote preview visuals require the owner's Vercel session; local screenshots do not substitute for that acceptance.
+4. **Preview acceptance:** the Production route can now use the migrated Fackts Music backend without setup pending. A READY deployment and successful SQL checks do not establish real-account UI or external storage acceptance. Protected remote preview visuals require the owner's Vercel session; local screenshots do not substitute for that acceptance.
 5. **Session 2:** its deferred real-account acceptance and administrator safety patch rollout/concurrency checks remain separate and open. PR #19 and its PR #18 dependency remain unmerged.
 
 ## VS Code commands
@@ -116,7 +124,7 @@ npm ci
 npm run dev
 ```
 
-Open http://localhost:3000/ and http://localhost:3000/production. Keep the approved homepage accessible. Use an authorised project account and **isolated** backend configuration in your existing local environment file; the production workflow requires the candidate schema there. Stop an old dev process with Ctrl+C before restarting. No extra dev-server script is needed.
+Open http://localhost:3000/ and http://localhost:3000/production. Keep the approved homepage accessible. Use your authorised project account and existing Fackts Music backend configuration in your local environment file; that database now has the Session 3 schema. Stop an old dev process with Ctrl+C before restarting. No extra dev-server script is needed.
 
 For isolated browser acceptance (uses synthetic local Auth/REST/PostgreSQL/S3 fixtures and does not seed your database):
 
