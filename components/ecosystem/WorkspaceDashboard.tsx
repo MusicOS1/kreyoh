@@ -1,3 +1,4 @@
+import RecordBrowser from "../RecordBrowser";
 import Link from 'next/link';
 import { loadWorkspaceDashboard } from '../../lib/workspaceDashboard';
 import {
@@ -12,7 +13,7 @@ export default async function WorkspaceDashboard({
 }: {
   kind: WorkspaceKind;
 }) {
-  const { config, identity, projectIds, sections, metrics, projects, profile } =
+  const { config, identity, projectIds, sections, metrics, projects, profile,trackRows,tracksUnavailable } =
     await loadWorkspaceDashboard(kind);
   return (
     <EcosystemShell active={kind}>
@@ -83,8 +84,9 @@ export default async function WorkspaceDashboard({
             <Link href="/projects">Explore projects ↗</Link>
           </section>
         )}
+        <section className={styles.panel}><header><div><h2>My professional recordings</h2><p>Search the recordings in your permitted projects.</p></div></header>{tracksUnavailable?<p role="alert">Recordings could not be loaded. Try again.</p>:<RecordBrowser label="tracks" items={trackRows.map(row=>({id:`professional-track-${row.id}`,title:row.title,code:row.detail,status:row.status}))}>{trackRows.map(row=><Link key={row.id} id={`professional-track-${row.id}`} href={row.href} className={styles.record}><span className={styles.recordCopy}><strong>{row.title}</strong><small>{row.detail}</small></span><span className={styles.status}>{row.status}</span></Link>)}</RecordBrowser>}</section>
         <section className={styles.grid}>
-          {sections.map((section) => (
+          {sections.filter(section=>!['Project recordings','Repertoire in development'].includes(section.title)).map((section) => (
             <article className={styles.panel} key={section.title}>
               <header>
                 <div>
@@ -161,7 +163,7 @@ export default async function WorkspaceDashboard({
               <Link
                 href={projectLink(
                   project.id,
-                  workspaceHref('/member-dashboard', kind),
+                  workspaceHref('/workspace', kind),
                 )}
                 key={project.id}
               >

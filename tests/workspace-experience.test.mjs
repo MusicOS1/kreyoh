@@ -30,17 +30,17 @@ test('invalid or stale workspace preference falls back to a permitted personal w
 function fixture({types=['Fan'],roles=['A&R'],fail=false}={}){
  const records={tracks:[{id:'a',project_id:'artist-project',working_title:'Private artist song'},{id:'b',project_id:'review-project',working_title:'Authorised repertoire'},{id:'c',project_id:'revoked-project',working_title:'Revoked material'}]};
  const queries=[];
- const admin={from(table){const filters=[];const query={select(){return query},in(key,value){filters.push([key,value]);return query},eq(key,value){filters.push([key,[value]]);return query},is(){return query},or(){return query},neq(){return query},gte(){return query},order(){return query},limit(){return query},then(resolve,reject){queries.push({table,filters});const data=(records[table]||[]).filter(row=>filters.every(([key,values])=>values.includes(row[key])));return Promise.resolve({data,error:fail?{message:'fixture outage'}:null,count:data.length}).then(resolve,reject)}};return query;}};
+ const admin={from(table){const filters=[];const query={select(){return query},in(key,value){filters.push([key,value]);return query},eq(key,value){filters.push([key,[value]]);return query},is(){return query},or(){return query},neq(){return query},gte(){return query},order(){return query},range(){return query},limit(){return query},then(resolve,reject){queries.push({table,filters});const data=(records[table]||[]).filter(row=>filters.every(([key,values])=>values.includes(row[key])));return Promise.resolve({data,error:fail?{message:'fixture outage'}:null,count:data.length}).then(resolve,reject)}};return query;}};
  const memberships=[{project_id:'artist-project',roles:['Artist']},{project_id:'review-project',roles}];
  const workspace={admin,supabase:admin,user:{id:'user'},profile:{creator_types:types},memberships,activeProjects:[{id:'artist-project',name:'Artist project'},{id:'review-project',name:'Review project'}]};
  const identity={id:'user',name:'Fixture user',workspaces:model.workspaceOptions(types,['Artist',...roles]),creator:true};
- const page=load('lib/workspaceDashboard.ts',{'./workspace':{getWorkspace:async()=>workspace},'./experienceIdentity':{getExperienceIdentity:async()=>identity},'./workspaceExperience':model,'./navigation':{projectLink:(project,path)=>`/project-entry?project_id=${project}&next=${encodeURIComponent(path)}`},'next/navigation':{notFound(){throw Error('NOT_FOUND')}}});
+ const page=load('lib/workspaceDashboard.ts',{'./workspace':{getWorkspace:async()=>workspace},'./recordReads':load('lib/recordReads.ts'),'./sessionAccess':load('lib/sessionAccess.ts',{'./recordReads':load('lib/recordReads.ts'),'./workspace':{hasAnyRole:(roles,allowed)=>roles.some(r=>allowed.includes(r))}}),'./experienceIdentity':{getExperienceIdentity:async()=>identity},'./workspaceExperience':model,'./navigation':{projectLink:(project,path)=>`/project-entry?project_id=${project}&next=${encodeURIComponent(path)}`},'next/navigation':{notFound(){throw Error('NOT_FOUND')}}});
  return {page,queries};
 }
 test('A&R dashboard reads only permitted repertoire and never revoked/non-member projects',async()=>{
  const {page,queries}=fixture();const dashboard=await page.loadWorkspaceDashboard('ar');
  assert.deepEqual(dashboard.projectIds,['review-project']);
- assert.deepEqual(dashboard.sections[1].rows.map(row=>row.title),['Authorised repertoire']);
+ assert.deepEqual(dashboard.trackRows.map(row=>row.title),['Authorised repertoire']);
  for(const query of queries.filter(query=>!['music_releases','fan_music_library','music_release_comments'].includes(query.table)))assert.ok(query.filters.some(([key,ids])=>key==='project_id'&&ids.every(id=>id==='review-project')),query.table);
 });
 test('self-declared privileged roles cannot open privileged dashboards',async()=>{

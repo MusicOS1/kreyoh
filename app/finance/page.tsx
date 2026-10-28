@@ -1,3 +1,7 @@
+import SimpleFinanceForm from "../../components/SimpleFinanceForm";
+import RecordBrowser from "../../components/RecordBrowser";
+import {readAllRows} from "../../lib/recordReads";
+import styles from "../../components/SimpleFinance.module.css";
 import Link from "next/link";
 import AppShell from "../../components/AppShell";
 import {getWorkspace} from "../../lib/workspace";
@@ -47,6 +51,7 @@ export default async function FinancePage({
   searchParams
 }:{
   searchParams:Promise<{
+    view?:string;
     month?:string;
     from?:string;
     to?:string;
@@ -85,15 +90,16 @@ export default async function FinancePage({
     budgetR,expensesR,revenueR,tracksR,oppsR,accountsR,transactionsR,membersR
   ]=await Promise.all([
     admin.from("project_budgets").select("*").eq("project_id",project.id).maybeSingle(),
-    admin.from("project_expenses").select("*,tracks(working_title)").eq("project_id",project.id).order("expense_date",{ascending:false}).limit(500),
-    admin.from("revenue_records").select("*,tracks(working_title)").eq("project_id",project.id).order("created_at",{ascending:false}).limit(500),
+    readAllRows(()=>admin.from("project_expenses").select("*,tracks(working_title)").eq("project_id",project.id).order("expense_date",{ascending:false}).order("id")),
+    readAllRows(()=>admin.from("revenue_records").select("*,tracks(working_title)").eq("project_id",project.id).order("created_at",{ascending:false}).order("id")),
     admin.from("tracks").select("id,working_title").eq("project_id",project.id).order("working_title"),
     admin.from("commercial_opportunities").select("id,organisation,opportunity_type,status,estimated_value,negotiated_value,contracted_value,currency,next_action").eq("project_id",project.id).order("created_at",{ascending:false}),
     admin.from("project_membership_accounts").select("*").eq("project_id",project.id).eq("status","active").order("member_code",{ascending:true}),
-    admin.from("project_membership_transactions").select("*").eq("project_id",project.id).order("transaction_date",{ascending:false}).order("created_at",{ascending:false}).limit(2000),
+    readAllRows(()=>admin.from("project_membership_transactions").select("*").eq("project_id",project.id).order("transaction_date",{ascending:false}).order("created_at",{ascending:false}).order("id")),
     admin.from("project_members").select("user_id,profiles(full_name,stage_name,nickname,email)").eq("project_id",project.id).eq("status","active").order("joined_at",{ascending:true}),
   ]);
 
+  if([budgetR,expensesR,revenueR,tracksR,oppsR,accountsR,transactionsR,membersR].some(r=>r.error))return <AppShell><div className="content"><h1>Project finance</h1><p role="alert">Financial records could not be loaded. No balance can be relied on. Please retry.</p></div></AppShell>;
   const budget=budgetR.data;
   const expenses=expensesR.data||[];
   const revenue=revenueR.data||[];
@@ -127,7 +133,7 @@ export default async function FinancePage({
     .filter((x:any)=>x.currency===currency&&x.payment_status!=="cancelled")
     .reduce((s:number,x:any)=>s+Number(x.amount||0),0);
 
-  const commercialReceived=commercialRevenue
+  const commercialReceived=revenue
     .filter((x:any)=>x.payment_status==="paid"&&x.currency===currency)
     .reduce((s:number,x:any)=>s+Number(x.amount||0),0);
 
@@ -196,6 +202,13 @@ export default async function FinancePage({
   const totalCashIn=lifetimeMembershipCollected+commercialReceived;
   const cashAvailable=totalCashIn-paidSpend;
 
+  if(params.view!=='details'){
+    const history=[...transactions.map((t:any)=>({id:`member-${t.id}`,title:t.transaction_code||'Member payment',date:t.transaction_date,status:t.status,amount:Number(t.amount),currency:t.currency,kind:'Income',detail:'Membership payment',href:`/finance/transactions/${t.id}`})),...revenue.map((r:any)=>({id:`income-${r.id}`,title:r.revenue_source||'Income record',date:r.received_date||r.expected_date||r.created_at,status:r.payment_status,amount:Number(r.amount),currency:r.currency,kind:'Income',detail:r.notes||'',href:''})),...expenses.map((e:any)=>({id:`expense-${e.id}`,title:String(e.notes||'').split('\n')[0]||e.category||'Uncategorised expense',date:e.expense_date,status:e.payment_status,amount:Number(e.amount),currency:e.currency,kind:'Expense',detail:e.notes||'',href:''}))].sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    return <AppShell><div className={`content ${styles.root}`}><header><span className="eyebrow">{project.code} / PROJECT FINANCE</span><h1>Financial tracker</h1><p>{project.name} · Actual receipts and payments in KES. Expected income is excluded from available cash.</p></header><section className={styles.totals}>{[['Money received',totalCashIn],['Money spent',paidSpend],['Available balance',cashAvailable],['Outstanding commitments',committedSpend]].map(([label,value])=><article key={String(label)}><span>{label}</span><strong>KES {Number(value).toLocaleString('en-KE')}</strong></article>)}</section>
+    {isProjectAdmin&&<details><summary>Record income or expense</summary><p>Record money actually received or paid. Use the membership tools below for KES 2,000 member payments.</p><SimpleFinanceForm tracks={tracks.map((t:any)=>({id:t.id,name:t.working_title}))} members={members.map((m:any)=>({id:m.user_id,name:creatorDisplayName(first(m.profiles))}))}/></details>}
+    <section><h2>Transaction history</h2><p>All currencies and statuses remain visible. Reversed, cancelled and unpaid entries do not contribute to available cash.</p><RecordBrowser label="transactions" items={history.map(r=>({id:r.id,title:r.title,code:r.detail,status:r.status,date:r.date}))}>{history.map(r=><details key={r.id} id={r.id} className={styles.row}><summary><span><strong>{r.href?<Link href={r.href}>{r.title}</Link>:r.title}</strong><small>{r.kind} · {String(r.date||'').slice(0,10)} · {r.status}</small></span><strong>{r.currency} {r.amount.toLocaleString('en-KE')}</strong></summary><div>{r.detail||'No additional notes recorded.'}</div></details>)}</RecordBrowser></section>
+    <details><summary>Membership, budgets, reports & reconciliation</summary><p>KES 2,000 membership accounts, payment references, reversals, budgets and revenue reports are retained.</p><Link href="/finance?view=details">Open detailed finance tools →</Link></details></div></AppShell>;
+  }
   if(!isProjectAdmin){
     const from=params.from||"";
     const to=params.to||"";

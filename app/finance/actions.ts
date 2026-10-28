@@ -1,5 +1,6 @@
 "use server";
 
+import {creatorDisplayName} from "../../lib/profileIdentity";
 import {revalidatePath} from "next/cache";
 import {getWorkspace,hasAnyRole} from "../../lib/workspace";
 import {notifyUser} from "../../lib/projectNotifications";
@@ -246,4 +247,21 @@ export async function reverseMembershipPayment(fd:FormData){
   revalidatePath("/finance");
   revalidatePath(`/finance/members/${transaction.account_id}`);
   revalidatePath(`/finance/transactions/${transaction.id}`);
+}
+
+export async function recordSimpleTransaction(_state:{message?:string},fd:FormData):Promise<{message:string}>{
+ try{
+  const {admin,user,project,roles}=await getWorkspace();
+  if(!project)throw new Error('Project access required.');requireFinanceAdmin(roles);
+  const kind=read(fd,'kind'),amount=Number(read(fd,'amount')),description=read(fd,'description'),category=read(fd,'category'),date=read(fd,'date'),track=read(fd,'track_id'),member=read(fd,'member_user_id');
+  if(!['income','expense'].includes(kind)||!Number.isFinite(amount)||amount<=0||!description||!category||!/^\d{4}-\d{2}-\d{2}$/.test(date)||Number.isNaN(new Date(date).getTime())||new Date(date).toISOString().slice(0,10)!==date)throw new Error('Enter a valid type, positive amount, date, description and category.');
+  if(track){const {data,error}=await admin.from('tracks').select('id').eq('id',track).eq('project_id',project.id).maybeSingle();if(error||!data)throw new Error('Choose a track from this project.');}
+  let memberName='';
+  if(member){const {data,error}=await admin.from('project_members').select('user_id,profiles(full_name,stage_name,nickname)').eq('user_id',member).eq('project_id',project.id).eq('status','active').maybeSingle();if(error||!data)throw new Error('Choose an active project member.');memberName=creatorDisplayName(Array.isArray(data.profiles)?data.profiles[0]:data.profiles);}
+  // Reuse existing ledgers and their write validation. Optional attribution is a note, not an ownership claim.
+  const entry=new FormData();entry.set('amount',String(amount));entry.set('currency','KES');entry.set('track_id',track);entry.set('payment_status','paid');entry.set('notes',`${description}\nCategory: ${category}${member?`\nRelated member: ${memberName}`:''}`);
+  if(kind==='income'){entry.set('revenue_source',description);entry.set('received_date',date);await addRevenueRecord(entry);}else{entry.set('category',category);entry.set('expense_date',date);await addProjectExpense(entry);}
+  const audit=await admin.from('platform_events').insert({user_id:user.id,project_id:project.id,event_name:'finance_transaction_recorded',category:'finance',entity_type:kind==='income'?'revenue_record':'project_expense',metadata:{kind,amount,currency:'KES',date,description,category,track_id:track||null,member_user_id:member||null}});
+  revalidatePath('/finance');return {message:audit.error?'Transaction saved. Audit logging is temporarily unavailable; do not submit again.':'Transaction saved.'};
+ }catch(error){return {message:error instanceof Error?error.message:'Transaction could not be saved.'};}
 }

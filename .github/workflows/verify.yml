@@ -30,6 +30,8 @@ jobs:
 
       - name: Install Chromium for rendered homepage regression
         run: npx playwright install --with-deps chromium
+      - name: Verify Session 3 usability corrections
+        run: node tests/browser/session3-usability.mjs
       - name: Verify Session 3 production, approvals and multipart recovery
         run: node tests/browser/session3-production.mjs
       - name: Verify Session 2 onboarding and collaboration
@@ -50,6 +52,8 @@ jobs:
           path: |
             /tmp/homepage-recovery/verified
             /tmp/shared-public-header
+            /tmp/session3-usability/*.png
+            /tmp/session3-usability/Results.json
             /tmp/session3-production/*.png
             /tmp/session3-production/Results.json
             /tmp/session2-acceptance

@@ -60,6 +60,7 @@ export async function recordContribution(fd: FormData) {
 export async function assignSessionAction(fd: FormData) {
   const { admin, user, project, membership, roles } = await getWorkspace();
   if (!project || !membership) throw new Error("Project access required.");
+  if(!hasAnyRole(roles,manageRoles))throw new Error("Your role cannot assign session work.");
   const title = read(fd, "title"); const assigneeId = read(fd, "assignee_id");
   if (!title || !assigneeId) throw new Error("Choose a person and describe the action.");
   if(!read(fd,"session_id"))throw new Error("Choose a session.");

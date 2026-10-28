@@ -2,7 +2,7 @@
 import { getWorkspace } from "../../lib/workspace";
 import { guideAnswer } from "../../lib/musicHelp";
 import { generateNavigationAnswer } from "../../lib/musicHelpAI";
-export type HelpState = {answer?:string; mode?:string; links?:Array<{title:string;href:string}>; question?:string};
+export type HelpState = {error?:string; answer?:string; mode?:string; links?:Array<{title:string;href:string}>; question?:string};
 export async function askMusicHelper(_state:HelpState, fd:FormData):Promise<HelpState> {
   const {admin,user,roles,membership}=await getWorkspace();
   const question=String(fd.get("question")||"").trim();

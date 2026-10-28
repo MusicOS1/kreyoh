@@ -1,3 +1,6 @@
+import Link from "next/link";
+import RecordBrowser from "../../components/RecordBrowser";
+import {projectLink} from "../../lib/navigation";
 import AppShell from "../../components/AppShell";
 import { creatorDisplayName } from "../../lib/profileIdentity";
 import { getWorkspace } from "../../lib/workspace";
@@ -78,7 +81,7 @@ export default async function ProfessionalRecordPage(){
       <article className="panel">
         <span className="eyebrow">INTERNAL FACKTS CREDITS</span><h2>Credits created inside projects</h2>
         {!internal.length&&<p>No internal track credits yet.</p>}
-        <div className="home-list">{internal.map((credit:any)=>{const track=first(credit.tracks),proj=first(track?.projects);return<div key={credit.id}><time>{track?.track_code||"TRACK"}</time><span><strong>{track?.working_title||"Untitled track"}</strong><small>{String(credit.contribution_role).replaceAll("_"," ")} · {proj?.name||proj?.code||"FACKTS project"} · {credit.approved?"✓ FACKTS Verified":"Recorded — awaiting project verification"}</small></span></div>})}</div>
+        <RecordBrowser label="credited tracks" items={internal.map((c:any)=>({id:`credit-${c.id}`,title:first(c.tracks)?.working_title||"Untitled track",code:first(c.tracks)?.track_code,status:c.approved?"Verified":"Awaiting verification"}))}>{internal.map((credit:any)=>{const track=first(credit.tracks),proj=first(track?.projects);return<Link id={`credit-${credit.id}`} key={credit.id} href={track?projectLink(track.project_id,`/track-records/${track.id}`):"/tracks"}><time>{track?.track_code||"TRACK"}</time><span><strong>{track?.working_title||"Untitled track"}</strong><small>{String(credit.contribution_role).replaceAll("_"," ")} · {proj?.name||proj?.code||"FACKTS project"} · {credit.approved?"✓ FACKTS Verified":"Recorded — awaiting project verification"}</small></span></Link>})}</RecordBrowser>
       </article>
 
       <article className="panel">
