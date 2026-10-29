@@ -39,7 +39,9 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
     ['listener', 'admin'].includes(kind)
   )
     notFound();
-  const projectIds = permittedProjectIds(kind, workspace.memberships);
+  const permittedIds = permittedProjectIds(kind, workspace.memberships);
+  const selectedId = (workspace.project as any)?.id;
+  const projectIds = selectedId && permittedIds.includes(selectedId) ? [selectedId] : [];
   const { admin, supabase, user } = workspace;
   const empty = () =>
     Promise.resolve({
@@ -342,7 +344,7 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
               kind === 'ar'
                 ? 'Repertoire in development'
                 : 'Project recordings',
-              'Music in your permitted projects',
+              'Music in the selected project',
               '/tracks',
               [],
               tracks,
@@ -415,7 +417,7 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
   const metrics = [
     {
       label: 'Permitted projects',
-      value: projectIds.length,
+      value: permittedIds.length,
       href: '/projects',
     },
     {

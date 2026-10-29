@@ -6,7 +6,10 @@ export function productionRest(db){
  let rejectRegistration=false,sessionOutage=false;
  function matches(row,url){return [...url.searchParams].every(([key,value])=>{
   if(['select','order','limit','offset','on_conflict'].includes(key))return true;
-  if(key==='or')return row.visibility==='project'||row.visibility==='public'||value.includes('uploaded_by.eq.'+row.uploaded_by);
+  if(key==='or'){
+   if(value.includes('.ilike.'))return value.slice(1,-1).split(',').some(part=>{const [column,,pattern]=part.split('.');return String(row[column]||'').toLowerCase().includes(pattern.replaceAll('%','').toLowerCase());});
+   return row.visibility==='project'||row.visibility==='public'||value.includes('uploaded_by.eq.'+row.uploaded_by);
+  }
   if(value.startsWith('eq.'))return String(row[key])===value.slice(3);
   if(value.startsWith('neq.'))return String(row[key])!==value.slice(4);
   if(value.startsWith('in.('))return value.slice(4,-1).split(',').includes(String(row[key]));
@@ -43,15 +46,15 @@ export function productionRest(db){
   if(table==='tracks')rows=rows.map(r=>({...r,track_contributors:contributors.filter(c=>c.track_id===r.id).map(c=>({...c,profiles:profile(c.user_id)})),track_rights_checks:rights.filter(c=>c.track_id===r.id)}));
   if(table==='track_contributors')rows=rows.map(r=>({...r,tracks:trackRows.find(t=>t.id===r.track_id)}));
   const members=(await db.query('select * from project_members')).rows,roles=(await db.query('select * from roles')).rows,grants=(await db.query('select * from member_roles')).rows;
-  const awaitedProject=(await db.query('select * from projects where id=$1',[pid])).rows[0];
+  const projects=(await db.query('select * from projects')).rows;
   const assignments=id=>grants.filter(g=>g.project_member_id===id).map(g=>({...g,roles:roles.find(r=>r.id===g.role_id)}));
-  if(table==='project_members')rows=rows.map(r=>({...r,projects:(awaitedProject||{id:pid,name:'Isolated production acceptance',code:'LOCAL',status:'active'}),profiles:profile(r.user_id),member_roles:assignments(r.id)}));
+  if(table==='project_members')rows=rows.map(r=>({...r,projects:projects.find(p=>p.id===r.project_id),profiles:profile(r.user_id),member_roles:assignments(r.id)}));
   if(table==='member_roles')rows=rows.map(g=>({...g,roles:roles.find(r=>r.id===g.role_id)}));
   if(table==='studio_sessions'){const sessionWork=(await db.query('select * from project_tasks')).rows;const hasContributions=(await db.query("select to_regclass('session_contributions') name")).rows[0].name;const sessionContributions=hasContributions?(await db.query('select * from session_contributions')).rows:[];const participants=(await db.query('select * from session_participants')).rows;rows=rows.map(r=>({...r,tracks:trackRows.find(t=>t.id===r.track_id),session_participants:participants.filter(p=>p.session_id===r.id).map(p=>({...p,profiles:profile(p.user_id)})),project_tasks:sessionWork.filter(t=>t.session_id===r.id).map(t=>({...t,profiles:profile(t.assignee_id)})),session_contributions:sessionContributions.filter(c=>c.session_id===r.id).map(c=>({...c,profiles:profile(c.contributor_id),tracks:trackRows.find(t=>t.id===c.track_id)}))}));}
   if(table==='profiles')rows=rows.map(r=>({...r,email:users.find(u=>u.id===r.id)?.email,profile_visibility:'project'}));
-  const order=url.searchParams.get('order');if(order){const [key,direction]=order.split('.');rows.sort((a,b)=>String(a[key]||'').localeCompare(String(b[key]||''))*(direction==='desc'?-1:1));}
-  const limit=Number(url.searchParams.get('limit'));if(limit)rows=rows.slice(0,limit);
-  if(req.method==='HEAD'){res.setHeader('Content-Range','*/'+rows.length);send(200);return true;}
+  const order=url.searchParams.get('order');if(order){const [key,direction]=order.split('.');rows.sort((a,b)=>(a[key] instanceof Date && b[key] instanceof Date ? a[key].getTime()-b[key].getTime() : String(a[key]||'').localeCompare(String(b[key]||'')))*(direction==='desc'?-1:1));}
+  const count=rows.length;const offset=Number(url.searchParams.get('offset'))||0;const limit=Number(url.searchParams.get('limit'));rows=rows.slice(offset,limit?offset+limit:undefined);res.setHeader('Content-Range',`${offset}-${offset+rows.length-1}/${count}`);
+  if(req.method==='HEAD'){res.setHeader('Content-Range','*/'+count);send(200);return true;}
   send(200,req.headers.accept?.includes('application/vnd.pgrst.object+json')?rows[0]||null:rows);return true;
  }});
  return {...mock,users,setSessionOutage(value){sessionOutage=value;},failNextRegistration(){rejectRegistration=true;}};

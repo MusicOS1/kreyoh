@@ -14,7 +14,7 @@ export default function RecordBrowser({items,children,label='records',timeFilter
  const matchedIndexes=new Set(matches.map(row=>row.index));
  const ordered=[...matches.map(row=>row.index),...items.map((_,i)=>i).filter(i=>!matchedIndexes.has(i))];
  const reset=()=>{setQuery('');setStatus('all');setTime('all');setPage(0);};
- return <div className={styles.root} ref={root}>
+ return <div className={styles.root} ref={root} data-native-catalogue>
   <div className={styles.tools}><label>Search {label}<input type="search" placeholder="Title or code" value={query} onChange={e=>{setQuery(e.target.value);setPage(0);}}/></label>
   {!!statuses.length&&<label>Status<select aria-label={`Filter ${label} by status`} value={status} onChange={e=>{setStatus(e.target.value);setPage(0);}}><option value="all">All statuses</option>{statuses.map(s=><option key={s} value={s}>{s.replaceAll('_',' ')}</option>)}</select></label>}
   {timeFilter&&<label>When<select aria-label="Session dates" value={time} onChange={e=>{setTime(e.target.value);setPage(0);}}><option value="all">All dates</option><option value="past">Past</option><option value="upcoming">Upcoming</option></select></label>}

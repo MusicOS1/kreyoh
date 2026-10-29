@@ -205,7 +205,7 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
 
   return (
     <AppShell>
-      <div className="content fackts-tracks-page">
+      <div data-native-catalogue className="content fackts-tracks-page">
         <div className="heading">
           <div>
             <span className="eyebrow">PROJECT 001 / DEVELOPMENT</span>
@@ -251,7 +251,8 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
           </details>
         )}
 
-        <div className="operations-list track-operations-list">
+        <form method="get" action="/tracks" className="operations-form" role="search"><label>Search tracks<input type="search" name="q" defaultValue={search} placeholder="Title or code"/></label><button>Search tracks</button>{search && <Link href="/tracks">Clear search</Link>}</form>
+    <div className="operations-list track-operations-list">
           {!tracks.length && (
             <div className="empty-state">
               <h2>No tracks in development</h2>

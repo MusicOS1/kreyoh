@@ -91,12 +91,13 @@ export default async function BeatsPage({ searchParams }: { searchParams: Promis
     }
   }));
 
-  return <AppShell><div className="content fackts-beats-page">
+  return <AppShell><div data-native-catalogue className="content fackts-beats-page">
     <div className="heading enter"><div><span className="eyebrow">{project.code} / SOUND</span><h1>Beat Library</h1><p>Listen, claim a development slot and turn the strongest ideas into tracks.</p></div><div className="date"><span>{beatCount || 0} BEATS</span></div></div>
     {params.message && <div className="form-success-alert">{params.message}</div>}{params.error && <div className="form-error-alert">{params.error}</div>}
 
 {canUpload && <details className="beat-intake-disclosure"><summary className="beat-intake-summary"><span>PRODUCER INTAKE</span><strong>Upload a beat</strong><small>Direct audio or an external source.</small><b>Open +</b></summary><BeatUploadForm defaultCapacity={project.default_beat_capacity || 3} /></details>}
 
+    <form method="get" action="/beats" className="operations-form" role="search"><label>Search beats<input type="search" name="q" defaultValue={search} placeholder="Title or code"/></label><button>Search beats</button>{search && <Link href="/beats">Clear search</Link>}</form>
     <section className="beats-grid-cards">
       {!beats.length && <article className="panel empty-state"><MusicIcon size={28} /><h2>No beats available yet</h2><p>{canUpload ? "Upload the first Project 001 beat when the sound is ready." : "Producers and the project team will publish beats here."}</p></article>}
       {beats.map((beat: any) => {
