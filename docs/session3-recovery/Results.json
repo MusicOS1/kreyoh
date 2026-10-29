@@ -1,0 +1,16 @@
+{
+  "checks": [
+    "Loading My Projects and speculative project-entry requests cannot silently select the second project",
+    "Project 001 remains explicit across all seven requested pages without cross-project music",
+    "39 tracks paginate in ten-row pages and server search finds a record beyond page one",
+    "71 beats use native server pagination and search finds a record beyond page one",
+    "All four historical session details remain accessible",
+    "Project Lead sees the simple Finance tracker and all 15 membership entries plus revenue",
+    "Explicit switch shows only the one-track catalogue and removes finance editing for Artist-only membership",
+    "Forged cookie and project-entry request cannot grant access to a non-member project",
+    "Artist identity without an assigned financial role cannot read Finance",
+    "Overview and professional recordings align without overflow at desktop, tablet and mobile widths",
+    "All protected fixture records remain unchanged"
+  ],
+  "scope": "Local production browser with isolated identities and PostgreSQL. Live database verified read-only separately; real Supabase account login remains unverified."
+}

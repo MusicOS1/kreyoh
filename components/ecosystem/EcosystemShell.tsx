@@ -7,6 +7,8 @@ import {
   type WorkspaceKind,
 } from '../../lib/workspaceExperience';
 import EcosystemFrame from './EcosystemFrame';
+import {canEditProjectFinance} from '../../lib/financeAccess';
+import ProjectContext from './ProjectContext';
 export default async function EcosystemShell({
   children,
   active,
@@ -46,7 +48,9 @@ export default async function EcosystemShell({
         }[]
       }
       projectId={(workspace.project as any)?.id}
+      canManageFinance={canEditProjectFinance(workspace.roles)}
     >
+      {(/^\/(projects|tracks|track-records|beats|studio-sessions|finance|production|member-dashboard|workspace)(\/|$)/.test(path.split('?')[0]) || path.startsWith('/workspaces/')) && <ProjectContext projects={workspace.activeProjects as any[]} projectId={(workspace.project as any)?.id} next={path} />}
       {children}
     </EcosystemFrame>
   );

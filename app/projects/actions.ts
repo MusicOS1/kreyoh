@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getWorkspace } from "../../lib/workspace";
+import {safeNext} from "../../lib/navigation";
 
 const read = (fd: FormData, key: string) => String(fd.get(key) || "").trim();
 
@@ -15,7 +16,8 @@ export async function selectProject(formData: FormData) {
   if (!membership) throw new Error("You do not have access to that project.");
   (await cookies()).set("fackts_project_id", projectId, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 60 * 60 * 24 * 365 });
   revalidatePath("/", "layout");
-  redirect("/member-dashboard");
+  const next=safeNext(read(formData,"next"),"/member-dashboard");
+  redirect(next.startsWith("/project-entry") ? "/member-dashboard" : next);
 }
 
 export async function requestToJoin(formData: FormData) {

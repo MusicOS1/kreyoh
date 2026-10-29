@@ -1,5 +1,6 @@
 "use server";
 
+import { productionFileError } from "../../lib/productionPolicy";
 import { revalidatePath } from "next/cache";
 import { getWorkspace, hasAnyRole } from "../../lib/workspace";
 import {
@@ -113,7 +114,7 @@ export async function prepareReusableTrackIntake(
     );
   }
 
-  if (!statuses.includes(developmentStatus)) {
+  if (!statuses.includes(developmentStatus) || ["release_ready","complete"].includes(developmentStatus)) {
     throw new Error(
       "Choose a valid track stage.",
     );
@@ -141,7 +142,10 @@ export async function prepareReusableTrackIntake(
     );
   }
 
-  if (fileSize > 250 * 1024 * 1024) {
+  const productionFlow=read(formData,"production_flow")==="true";
+  const productionIssue=productionFileError(fileName,mimeType,fileSize,assetKind);
+  if(productionFlow && productionIssue) throw new Error(productionIssue);
+  if (!productionFlow && fileSize > 250 * 1024 * 1024) {
     throw new Error(
       "Track files must be smaller than 250 MB.",
     );
@@ -263,7 +267,7 @@ export async function prepareReusableTrackIntake(
     );
   }
 
-  await assertR2BucketAccess();
+  if(!productionFlow) await assertR2BucketAccess();
 
   const trackId = crypto.randomUUID();
   const safeName = fileName.replace(
@@ -275,7 +279,7 @@ export async function prepareReusableTrackIntake(
     `${project.id}/tracks/${trackId}/` +
     `${crypto.randomUUID()}-${safeName}`;
 
-  const uploadUrl =
+  const uploadUrl = productionFlow ? "" :
     await createR2PresignedUrl(
       "PUT",
       storageKey,
@@ -405,6 +409,10 @@ export async function saveReusableTrackAsset(formData: FormData) {
     throw new Error("That track is not available in this project.");
   }
 
+  if (!storageKey.startsWith(`${project.id}/tracks/${trackId}/`) || storageKey.includes("..")) throw new Error("The file does not belong to this project track.");
+  const {data:existing,error:lookupError}=await admin.from("project_assets").select("id").eq("project_id",project.id).eq("storage_path",storageKey).limit(1).maybeSingle();
+  if(lookupError)throw new Error("Could not verify file registration. Retry before uploading again.");
+  if(existing)return {ok:true};
   await assertR2ObjectAccess(storageKey);
 
   const { data: asset, error } = await admin

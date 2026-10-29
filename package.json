@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test:browser": "node tests/browser/session-repair.mjs",
     "demo:data": "node tests/helpers/demo-data.mjs",
-    "test:session2": "node tests/browser/session2-acceptance.mjs"
+    "test:session2": "node tests/browser/session2-acceptance.mjs",
+    "test:session3": "node tests/browser/session3-production.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1116.0",

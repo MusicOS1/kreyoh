@@ -196,7 +196,7 @@ function searchIcon() {
 
 function installTrackCatalogueControls() {
   const list = document.querySelector(".fackts-tracks-page .track-operations-list");
-  if (!(list instanceof HTMLElement)) return () => {};
+  if (!(list instanceof HTMLElement) || list.closest("[data-native-catalogue]") || list.querySelector("[data-native-catalogue]")) return () => {};
 
   const cards = Array.from(
     list.querySelectorAll(".track-development-card"),
@@ -332,7 +332,7 @@ function installBeatsSearchAndFallbackPagination() {
   const pageRoot = document.querySelector(".fackts-beats-page");
   const grid = document.querySelector(".fackts-beats-page .beats-grid-cards");
 
-  if (!(pageRoot instanceof HTMLElement) || !(grid instanceof HTMLElement)) {
+  if (!(pageRoot instanceof HTMLElement) || !(grid instanceof HTMLElement) || pageRoot.querySelector("form[method=\"get\"]")) {
     return () => {};
   }
 

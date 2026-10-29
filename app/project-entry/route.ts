@@ -3,6 +3,10 @@ import { getWorkspace } from "../../lib/workspace";
 import { safeNext } from "../../lib/navigation";
 
 export async function GET(request: Request) {
+  // A GET reached through framework/speculative prefetch must never change context.
+  if (request.headers.has("next-router-prefetch") || request.headers.has("next-router-segment-prefetch") || /prefetch/i.test(request.headers.get("purpose") || request.headers.get("sec-purpose") || "")) {
+    return new NextResponse(null, { status: 204, headers: { "Cache-Control": "private, no-store" } });
+  }
   const url = new URL(request.url);
   const { activeProjects } = await getWorkspace();
   const projectId = url.searchParams.get("project_id");

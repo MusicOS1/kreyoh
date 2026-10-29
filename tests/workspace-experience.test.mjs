@@ -27,20 +27,20 @@ test('invalid or stale workspace preference falls back to a permitted personal w
  assert.equal(model.preferredWorkspace(options,'producer').kind,'producer');
  assert.equal(model.preferredWorkspace(model.workspaceOptions(['Fan'],[]),'ar').kind,'listener');
 });
-function fixture({types=['Fan'],roles=['A&R'],fail=false}={}){
+function fixture({types=['Fan'],roles=['A&R'],fail=false,selected='review-project'}={}){
  const records={tracks:[{id:'a',project_id:'artist-project',working_title:'Private artist song'},{id:'b',project_id:'review-project',working_title:'Authorised repertoire'},{id:'c',project_id:'revoked-project',working_title:'Revoked material'}]};
  const queries=[];
- const admin={from(table){const filters=[];const query={select(){return query},in(key,value){filters.push([key,value]);return query},eq(key,value){filters.push([key,[value]]);return query},is(){return query},or(){return query},neq(){return query},gte(){return query},order(){return query},limit(){return query},then(resolve,reject){queries.push({table,filters});const data=(records[table]||[]).filter(row=>filters.every(([key,values])=>values.includes(row[key])));return Promise.resolve({data,error:fail?{message:'fixture outage'}:null,count:data.length}).then(resolve,reject)}};return query;}};
+ const admin={from(table){const filters=[];const query={select(){return query},in(key,value){filters.push([key,value]);return query},eq(key,value){filters.push([key,[value]]);return query},is(){return query},or(){return query},neq(){return query},gte(){return query},order(){return query},range(){return query},limit(){return query},then(resolve,reject){queries.push({table,filters});const data=(records[table]||[]).filter(row=>filters.every(([key,values])=>values.includes(row[key])));return Promise.resolve({data,error:fail?{message:'fixture outage'}:null,count:data.length}).then(resolve,reject)}};return query;}};
  const memberships=[{project_id:'artist-project',roles:['Artist']},{project_id:'review-project',roles}];
- const workspace={admin,user:{id:'user'},profile:{creator_types:types},memberships,activeProjects:[{id:'artist-project',name:'Artist project'},{id:'review-project',name:'Review project'}]};
+ const workspace={project:{id:selected},admin,supabase:admin,user:{id:'user'},profile:{creator_types:types},memberships,activeProjects:[{id:'artist-project',name:'Artist project'},{id:'review-project',name:'Review project'}]};
  const identity={id:'user',name:'Fixture user',workspaces:model.workspaceOptions(types,['Artist',...roles]),creator:true};
- const page=load('lib/workspaceDashboard.ts',{'./workspace':{getWorkspace:async()=>workspace},'./experienceIdentity':{getExperienceIdentity:async()=>identity},'./workspaceExperience':model,'./navigation':{projectLink:(project,path)=>`/project-entry?project_id=${project}&next=${encodeURIComponent(path)}`},'next/navigation':{notFound(){throw Error('NOT_FOUND')}}});
+ const page=load('lib/workspaceDashboard.ts',{'./workspace':{getWorkspace:async()=>workspace},'./recordReads':load('lib/recordReads.ts'),'./sessionAccess':load('lib/sessionAccess.ts',{'./recordReads':load('lib/recordReads.ts'),'./workspace':{hasAnyRole:(roles,allowed)=>roles.some(r=>allowed.includes(r))}}),'./experienceIdentity':{getExperienceIdentity:async()=>identity},'./workspaceExperience':model,'./navigation':{projectLink:(project,path)=>`/project-entry?project_id=${project}&next=${encodeURIComponent(path)}`},'next/navigation':{notFound(){throw Error('NOT_FOUND')}}});
  return {page,queries};
 }
 test('A&R dashboard reads only permitted repertoire and never revoked/non-member projects',async()=>{
  const {page,queries}=fixture();const dashboard=await page.loadWorkspaceDashboard('ar');
  assert.deepEqual(dashboard.projectIds,['review-project']);
- assert.deepEqual(dashboard.sections[1].rows.map(row=>row.title),['Authorised repertoire']);
+ assert.deepEqual(dashboard.trackRows.map(row=>row.title),['Authorised repertoire']);
  for(const query of queries.filter(query=>!['music_releases','fan_music_library','music_release_comments'].includes(query.table)))assert.ok(query.filters.some(([key,ids])=>key==='project_id'&&ids.every(id=>id==='review-project')),query.table);
 });
 test('self-declared privileged roles cannot open privileged dashboards',async()=>{
@@ -52,7 +52,7 @@ test('unavailable data is distinguished from empty real records',async()=>{
 test('all workspace and publication links use the same existing tools',()=>{
  for(const config of model.WORKSPACES)for(const link of config.links){assert.ok(link.href.startsWith('/'));assert.ok(!link.href.startsWith('//'));}
  const dashboard=read('lib/workspaceDashboard.ts');assert.match(dashboard,/Publication here is not external DSP distribution/);assert.doesNotMatch(dashboard,/\.insert\(|\.update\(|\.delete\(|create table/i);
- const action=read('app/workspaces/actions.ts');assert.match(action,/permittedProjectIds\(\s*selected.kind,\s*workspace.memberships\s*\)/);
+ const action=read('app/workspaces/actions.ts');assert.doesNotMatch(action,/cookieStore.set\(['"]fackts_project_id/);
 });
 
 test('tool links preserve display context without changing authorization',()=>{
@@ -66,3 +66,6 @@ test('workspace switch rejects an unavailable role before saving preferences',as
  const invalid=new FormData();invalid.set('workspace','admin');await assert.rejects(switchWorkspace(invalid),/not available/);assert.equal(writes.length,0);
  const valid=new FormData();valid.set('workspace','artist');await assert.rejects(switchWorkspace(valid),/REDIRECT \/workspaces\/artist/);assert.equal(writes[0][0],'fm_workspace');assert.equal(writes[0][1],'test-user:artist');assert.equal(writes[0][2].httpOnly,true);
 });
+
+test('dashboard follows selected project rather than combining memberships',async()=>{const {page}=fixture({selected:'artist-project'});const dashboard=await page.loadWorkspaceDashboard('artist');assert.deepEqual(dashboard.trackRows.map(row=>row.title),['Private artist song']);});
+test('a selected project without the required workspace role never leaks its records',async()=>{const {page}=fixture({selected:'artist-project'});const dashboard=await page.loadWorkspaceDashboard('ar');assert.deepEqual(dashboard.trackRows,[]);});

@@ -1,130 +1,32 @@
-import Link from "next/link";
-import AppShell from "../../components/AppShell";
-import {getWorkspace} from "../../lib/workspace";
-import {canViewProjectFinanceReport} from "../../lib/financeAccess";
-
-const first=(value:any)=>Array.isArray(value)?value[0]:value;
-
+import Link from 'next/link';
+import AppShell from '../../components/AppShell';
+import RecordBrowser from '../../components/RecordBrowser';
+import {getWorkspace} from '../../lib/workspace';
+import {loadProjectSessions} from '../../lib/sessionAccess';
+import {readAllRows} from '../../lib/recordReads';
+import {notificationLink} from '../../lib/navigation';
+const first=(v:any)=>Array.isArray(v)?v[0]:v;
 export default async function MemberDashboardPage(){
-  const{admin,user,project,membership,roles}=await getWorkspace();
-
-  if(!project||!membership){
-    return<AppShell><div className="content empty-state"><h2>Join a project to activate your dashboard</h2><Link href="/projects">Open Projects →</Link></div></AppShell>;
-  }
-
-  const[
-    tasksR,sessionsR,notificationsR,tracksR,oppsR,updatesR,issuesR,splitsR
-  ]=await Promise.all([
-    admin.from("project_tasks").select("id,title,status,due_date",{count:"exact"}).eq("project_id",project.id).eq("assignee_id",user.id).neq("status","done").order("due_date",{ascending:true,nullsFirst:false}).limit(8),
-    admin.from("studio_sessions").select("id,starts_at,status,location,tracks(working_title)",{count:"exact"}).eq("project_id",project.id).gte("starts_at",new Date().toISOString()).neq("status","cancelled").order("starts_at",{ascending:true}).limit(6),
-    admin.from("notifications").select("id,title,body,type,created_at",{count:"exact"}).eq("user_id",user.id).is("read_at",null).order("created_at",{ascending:false}).limit(6),
-    admin.from("tracks").select("id,working_title,track_code,development_status,status").eq("project_id",project.id).order("created_at",{ascending:false}).limit(8),
-    admin.from("commercial_opportunities").select("id,organisation,opportunity_type,revenue_pathway,status,next_action").eq("project_id",project.id).order("created_at",{ascending:false}).limit(6),
-    admin.from("project_updates").select("id,title,summary,created_at").eq("project_id",project.id).order("created_at",{ascending:false}).limit(5),
-    admin.from("track_operational_issues").select("id,title,severity,status,track_id",{count:"exact"}).eq("project_id",project.id).in("status",["open","in_progress"]).order("occurred_at",{ascending:false}).limit(6),
-    admin.from("track_splits").select("id,track_id,percentage,tracks(working_title)",{count:"exact"}).eq("project_id",project.id).eq("contributor_id",user.id).eq("status","awaiting_confirmation"),
-  ]);
-
-  const tasks=tasksR.data||[];
-  const sessions=sessionsR.data||[];
-  const notifications=notificationsR.data||[];
-  const tracks=tracksR.data||[];
-  const opportunities=oppsR.data||[];
-  const updates=updatesR.data||[];
-  const issues=issuesR.data||[];
-
-  const canViewFinance=canViewProjectFinanceReport(roles);
-
-  const portal=roles.includes("A&R")
-    ?"/portal/ar"
-    :roles.includes("Manager")
-    ?"/portal/manager"
-    :roles.includes("Studio Owner")
-    ?"/portal/studio"
-    :null;
-
-  return<AppShell>
-    <style>{`
-      .member-dash{max-width:1320px;margin:0 auto}
-      .member-hero{position:relative;overflow:hidden;padding:32px;border:1px solid rgba(255,255,255,.08);border-radius:24px;background:radial-gradient(circle at 90% 12%,rgba(249,115,22,.14),transparent 33%),linear-gradient(145deg,#11141c,#07080b)}
-      .member-hero h1{max-width:850px;margin:8px 0 12px;font-size:clamp(26px,3vw,40px);line-height:.95;letter-spacing:-.055em}
-      .member-hero p{max-width:760px;color:rgba(255,255,255,.6);font-size:14px;line-height:1.6}
-      .member-role-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:16px}.member-role-row span{padding:7px 10px;border:1px solid rgba(255,255,255,.09);border-radius:999px;font-size:9px;text-transform:uppercase}
-      .member-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0 24px}
-      .member-actions a{display:flex;min-height:64px;flex-direction:column;justify-content:space-between;padding:14px;border:1px solid rgba(255,255,255,.07);border-radius:14px;background:rgba(255,255,255,.025)}
-      .member-actions a:hover{border-color:rgba(249,115,22,.3);background:rgba(249,115,22,.05)}
-      .member-actions small{color:rgba(255,255,255,.4);font-size:8px;text-transform:uppercase}.member-actions strong{font-size:12px}
-      .member-focus{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:24px}
-      .member-focus article{padding:16px;border:1px solid rgba(255,255,255,.07);border-radius:14px;background:rgba(255,255,255,.025)}
-      .member-focus span{display:block;color:rgba(255,255,255,.42);font-size:8px;text-transform:uppercase}.member-focus strong{display:block;margin-top:6px;font-size:22px}
-      @media(max-width:1100px){.member-actions{grid-template-columns:repeat(3,minmax(0,1fr))}.member-focus{grid-template-columns:repeat(2,minmax(0,1fr))}}
-      @media(max-width:650px){.member-actions,.member-focus{grid-template-columns:1fr}.member-hero{padding:24px 20px}}
-    `}</style>
-
-    <div className="content member-dash">
-      <section className="member-hero">
-        <span className="eyebrow">{project.code} / MEMBER VIEW</span>
-        <h1>{project.name}</h1>
-        <p>Your music, upcoming sessions and next actions.</p>
-        <div className="member-role-row">{roles.map((role)=><span key={role}>{role}</span>)}</div>
-      </section>
-
-      <section className="member-actions">
-        <Link href="/tracks"><strong>Open music →</strong></Link>
-        <Link href="/splits"><strong>Credits & splits →</strong></Link>
-        <Link href="/studio-sessions"><strong>Sessions →</strong></Link>
-        <Link href="/tasks"><strong>My tasks →</strong></Link>
-      </section>
-      {!!splitsR.data?.length && <section className="panel"><h2>Review your shares</h2>{splitsR.data.map((split:any)=><p key={split.id}><Link href={`/splits?track=${split.track_id}`}>{first(split.tracks)?.working_title || "Song"} — Review your {split.percentage}% →</Link></p>)}</section>}
-      <section className="member-focus">
-        <article><span>My open actions</span><strong>{tasksR.count ?? tasks.length}</strong></article>
-        <article><span>Upcoming sessions</span><strong>{sessionsR.count ?? sessions.length}</strong></article>
-        <article><span>Unread inbox</span><strong>{notificationsR.count ?? notifications.length}</strong></article>
-        <article><span>Open project issues</span><strong>{issuesR.count ?? issues.length}</strong></article>
-      </section>
-
-      <section className="platform-home-split">
-        <article className="platform-home-section">
-          <div className="platform-section-heading"><div><span className="eyebrow">MY ACTIONS</span><h2>What I need to do</h2></div><Link href="/tasks">All tasks →</Link></div>
-          <div className="home-list">
-            {!tasks.length&&<p>No open tasks assigned to you.</p>}
-            {tasks.map((task:any)=><Link href="/tasks" key={task.id}><time>{task.due_date||"Open"}</time><span><strong>{task.title}</strong><small>{String(task.status).replaceAll("_"," ")}</small></span></Link>)}
-          </div>
-        </article>
-
-        <article className="platform-home-section">
-          <div className="platform-section-heading"><div><span className="eyebrow">NEXT SESSIONS</span><h2>Where the work happens</h2></div><Link href="/studio-sessions">Studio →</Link></div>
-          <div className="home-list">
-            {!sessions.length&&<p>No upcoming sessions.</p>}
-            {sessions.map((session:any)=><Link href="/studio-sessions" key={session.id}><time>{new Date(session.starts_at).toLocaleDateString("en-KE")}</time><span><strong>{first(session.tracks)?.working_title||"Project session"}</strong><small>{session.location||String(session.status).replaceAll("_"," ")}</small></span></Link>)}
-          </div>
-        </article>
-      </section>
-
-      <section className="platform-home-split">
-        <article className="platform-home-section">
-          <div className="platform-section-heading"><div><span className="eyebrow">RECENT MUSIC</span><h2>Tracks in the project</h2></div><Link href="/track-records">Track Records →</Link></div>
-          <div className="home-list">
-            {tracks.map((track:any)=><Link href={`/track-records/${track.id}`} key={track.id}><time>{track.track_code||"TRACK"}</time><span><strong>{track.working_title||"Untitled track"}</strong><small>{String(track.development_status||track.status||"in development").replaceAll("_"," ")}</small></span></Link>)}
-          </div>
-        </article>
-
-        <article className="platform-home-section">
-          <div className="platform-section-heading"><div><span className="eyebrow">OPPORTUNITIES</span><h2>What may come back</h2></div><Link href="/opportunities">Open pipeline →</Link></div>
-          <div className="home-list">
-            {!opportunities.length&&<p>No opportunities recorded yet.</p>}
-            {opportunities.map((item:any)=><Link href="/opportunities" key={item.id}><time>{String(item.status).replaceAll("_"," ")}</time><span><strong>{item.organisation||item.opportunity_type}</strong><small>{item.revenue_pathway}{item.next_action?` · ${item.next_action}`:""}</small></span></Link>)}
-          </div>
-        </article>
-      </section>
-
-      <section className="platform-home-section">
-        <div className="platform-section-heading"><div><span className="eyebrow">PROJECT UPDATES</span><h2>What changed</h2></div><Link href="/inbox">Open Inbox →</Link></div>
-        <div className="home-list">
-          {!updates.length&&<p>No project updates published yet.</p>}
-          {updates.map((update:any)=><div key={update.id}><time>{new Date(update.created_at).toLocaleDateString("en-KE")}</time><span><strong>{update.title}</strong><small>{update.summary}</small></span></div>)}
-        </div>
-      </section>
-    </div>
-  </AppShell>;
+ const {admin,user,project,membership,roles}=await getWorkspace();
+ if(!project||!membership)return <AppShell><div className="content"><h1>My Workspace</h1><Link href="/projects">Join or select a project →</Link></div></AppShell>;
+ const [tasksR,sessionsR,noticesR,creditsR,splitsR,reviewsR]=await Promise.all([
+  readAllRows(()=>admin.from('project_tasks').select('id,title,status,due_date,track_id').eq('project_id',project.id).eq('assignee_id',user.id).neq('status','done').order('due_date')),
+  loadProjectSessions(admin,project.id,user.id,roles),
+  admin.from('notifications').select('id,title,body,type,entity_type,entity_id,project_id,created_at').eq('user_id',user.id).is('read_at',null).order('created_at',{ascending:false}).limit(10),
+  readAllRows(()=>admin.from('track_contributors').select('id,tracks(id,project_id,working_title,track_code,development_status)').eq('user_id',user.id).order('id')),
+  admin.from('track_splits').select('id,track_id,percentage,tracks(working_title)').eq('project_id',project.id).eq('contributor_id',user.id).eq('status','awaiting_confirmation'),
+  admin.from('project_assets').select('id,file_name,entity_id').eq('project_id',project.id).eq('review_assignee',user.id).eq('review_status','submitted').or(`visibility.in.(project,public),uploaded_by.eq.${user.id}`),
+ ]);
+ const tasks=tasksR.data||[],sessions=sessionsR.data||[],notices=noticesR.data||[];
+ const tracks=[...new Map((creditsR.data||[]).map((c:any)=>first(c.tracks)).filter((t:any)=>t?.project_id===project.id).map((t:any)=>[t.id,t])).values()] as any[];
+ const error=(r:any)=>r.error?<p role="alert">These records could not be loaded. Please retry.</p>:null;
+ return <AppShell><div className="content operations-page"><div className="heading"><div><span className="eyebrow">{project.name} / MY WORK</span><h1>My Workspace</h1><p>What I need to do: my assignments, sessions and approvals.</p></div><Link href="/workspace">Open Project Room →</Link></div>
+ <nav aria-label="Personal work tools"><Link href="/my-actions">My tasks</Link> · <Link href="/studio-sessions">Studio Sessions</Link> · <Link href="/production">Production reviews</Link> · <Link href="/inbox">Notifications</Link></nav>
+ <section className="panel"><h2>My next action</h2>{tasksR.error?error(tasksR):tasks.length?<Link href={`/tasks#task-${tasks[0].id}`}>{tasks[0].title} →</Link>:<p>No open tasks assigned to you. Check your approvals and sessions below.</p>}</section>
+ <section className="panel"><h2>My tasks</h2>{error(tasksR)||<RecordBrowser label="tasks" items={tasks.map((t:any)=>({id:`my-task-${t.id}`,title:t.title,status:t.status,date:t.due_date}))}>{tasks.map((t:any)=><Link key={t.id} href={`/tasks#task-${t.id}`}><strong>{t.title}</strong><p>{t.status} · {t.due_date||'No deadline'}</p></Link>)}</RecordBrowser>}</section>
+ <section className="panel"><h2>My sessions</h2>{error(sessionsR)||<RecordBrowser label="sessions" timeFilter items={sessions.map((s:any)=>({id:`my-session-${s.id}`,title:first(s.tracks)?.working_title||'Project session',date:s.starts_at,status:s.status}))}>{sessions.map((s:any)=><Link key={s.id} href={`/studio-sessions#session-${s.id}`}><strong>{first(s.tracks)?.working_title||'Project session'}</strong><p>{new Date(s.starts_at).toLocaleString('en-KE')} · {s.status}</p></Link>)}</RecordBrowser>}</section>
+ <section className="panel"><h2>My approvals</h2>{error(splitsR)||error(reviewsR)}{(splitsR.data||[]).map((s:any)=><p key={s.id}><Link href={`/splits?track=${s.track_id}`}>{first(s.tracks)?.working_title||'Track'} · Review {s.percentage}% split →</Link></p>)}{(reviewsR.data||[]).map((a:any)=><p key={a.id}><Link href={`/production#asset-${a.id}`}>Review {a.file_name} →</Link></p>)}{!splitsR.error&&!reviewsR.error&&!splitsR.data?.length&&!reviewsR.data?.length&&<p>No approvals awaiting you.</p>}</section>
+ <section className="panel"><h2>My credited tracks</h2>{error(creditsR)||<RecordBrowser label="tracks" items={tracks.map(t=>({id:`my-track-${t.id}`,title:t.working_title,code:t.track_code,status:t.development_status}))}>{tracks.map(t=><Link key={t.id} href={`/track-records/${t.id}`}><strong>{t.working_title}</strong><p>{t.track_code} · {t.development_status}</p></Link>)}</RecordBrowser>}</section>
+ <section className="panel"><h2>My notifications</h2>{error(noticesR)}{notices.map((n:any)=><p key={n.id}><Link href={notificationLink(n)}>{n.title} →</Link></p>)}{!noticesR.error&&!notices.length&&<p>No unread notifications.</p>}<Link href="/inbox">Open all notifications →</Link></section>
+ </div></AppShell>;
 }

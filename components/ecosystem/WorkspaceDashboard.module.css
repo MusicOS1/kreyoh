@@ -1,4 +1,7 @@
 .dashboard {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
   max-width: 1400px;
   padding: 28px clamp(20px, 3vw, 48px) 80px;
   margin: auto;
@@ -559,3 +562,12 @@
     font-size: 12px;
   }
 }
+
+/* Keep the catalogue aligned with the surrounding workspace panels. */
+.recordings{margin-bottom:20px}
+.catalogue{padding:16px 22px;min-width:0}
+.catalogue [data-native-catalogue]{--ink-secondary:#a79aae;--line-subtle:#ffffff10}
+.catalogue [data-native-catalogue]>div>div>a{border:0;border-bottom:1px solid #ffffff08;border-radius:0;padding:12px 0;gap:13px}
+.catalogue [data-native-catalogue] strong{font-size:12px}
+.catalogue [data-native-catalogue] small{font-size:10px}
+@media(max-width:760px){.catalogue{padding:14px 19px}.catalogue [data-native-catalogue] strong{font-size:13px}.catalogue [data-native-catalogue] small{font-size:11px}}

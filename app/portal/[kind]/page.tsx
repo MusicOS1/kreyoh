@@ -1,3 +1,4 @@
+import {loadProjectSessions} from "../../../lib/sessionAccess";
 import Link from "next/link";
 import {notFound} from "next/navigation";
 import AppShell from "../../../components/AppShell";
@@ -55,7 +56,7 @@ export default async function SupportPortalPage({params}:{params:Promise<{kind:s
       .eq("status","active"),
     admin.from("tracks").select("id,working_title,development_status,status").eq("project_id",project.id),
     admin.from("track_operational_issues").select("id,track_id,category,severity,status,title").eq("project_id",project.id).neq("status","resolved"),
-    admin.from("studio_sessions").select("id,starts_at,status,location,tracks(working_title)").eq("project_id",project.id).gte("starts_at",new Date().toISOString()).neq("status","cancelled").order("starts_at",{ascending:true}).limit(8),
+    loadProjectSessions(admin,project.id,user.id,roles),
     admin.from("commercial_opportunities").select("id,organisation,opportunity_type,revenue_pathway,status,estimated_value,currency,next_action").eq("project_id",project.id).order("created_at",{ascending:false}).limit(12),
     admin.from("track_splits").select("track_id,percentage,status").eq("project_id",project.id),
     admin.from("track_rights_checks").select("track_id,status").eq("project_id",project.id),
@@ -150,7 +151,7 @@ export default async function SupportPortalPage({params}:{params:Promise<{kind:s
       <section className="platform-home-split">
         <article className="platform-home-section">
           <span className="eyebrow">UPCOMING STUDIO</span><h2>Sessions</h2>
-          <div className="home-list">{!sessions.length&&<p>No upcoming sessions.</p>}{sessions.map((s:any)=><Link href="/studio-sessions" key={s.id}><time>{new Date(s.starts_at).toLocaleDateString("en-KE")}</time><span><strong>{first(s.tracks)?.working_title||"Project session"}</strong><small>{s.location||String(s.status).replaceAll("_"," ")}</small></span></Link>)}</div>
+          <div className="home-list">{sessionsR.error&&<p role="alert">Session records could not be loaded.</p>}{!sessionsR.error&&!sessions.length&&<p>No accessible sessions.</p>}{sessions.map((s:any)=><Link href={`/studio-sessions#session-${s.id}`} key={s.id}><time>{new Date(s.starts_at).toLocaleDateString("en-KE")}</time><span><strong>{first(s.tracks)?.working_title||"Project session"}</strong><small>{s.location||String(s.status).replaceAll("_"," ")}</small></span></Link>)}</div>
         </article>
 
         <article className="platform-home-section">

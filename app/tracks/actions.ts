@@ -81,7 +81,7 @@ export async function prepareTrackIntake(formData: FormData) {
   const fileSize = Number(read(formData, "file_size"));
 
   if (!workingTitle) throw new Error("Give the track a working title.");
-  if (!trackStatuses.includes(developmentStatus)) throw new Error("Choose a valid track stage.");
+  if (!trackStatuses.includes(developmentStatus) || ["release_ready", "complete"].includes(developmentStatus)) throw new Error("New tracks start in production. Release-ready status requires version approvals and project-lead sign-off.");
   if (!trackAssetKinds.includes(assetKind) || assetKind === "stems") {
     throw new Error("Choose a valid audio version type.");
   }
@@ -308,21 +308,16 @@ export async function saveTrackAsset(formData: FormData) {
 }
 
 export async function updateTrack(formData: FormData) {
-  const { supabase, project, roles } = await getWorkspace();
-  if (!project || !hasAnyRole(roles, trackFileRoles)) {
-    throw new Error("Your role cannot update track development.");
-  }
-  const status = read(formData, "status");
-  if (!trackStatuses.includes(status)) {
-    throw new Error("Invalid track status.");
-  }
-  const { error } = await supabase
-    .from("tracks")
-    .update({ development_status: status, status, updated_at: new Date().toISOString() })
-    .eq("id", read(formData, "track_id"))
-    .eq("project_id", project.id);
-  if (error) throw new Error(error.message);
+  const { admin, user, project, membership } = await getWorkspace();
+  if (!project || !membership) throw new Error("Project access required.");
+  const { error } = await admin.rpc("production_mutate", {
+    p_project: project.id, p_actor: user.id, p_action: "track_stage",
+    p_target: read(formData, "track_id"), p_revision: 0,
+    p_data: { stage: read(formData, "status") }, p_request: crypto.randomUUID(),
+  });
+  if (error) throw new Error(error.code === "PGRST202" ? "Production stage setup is pending in this environment." : error.message);
   revalidatePath("/tracks");
+  revalidatePath("/production");
 }
 
 export async function commentOnTrack(formData: FormData) {

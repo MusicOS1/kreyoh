@@ -1,0 +1,6 @@
+.form.form{display:flex;flex-direction:column;gap:12px;align-items:stretch;min-width:0;align-self:start}
+.form.form label{display:grid;gap:8px;min-width:0;font-size:13px}
+.form.form input,.form.form textarea,.form.form select{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
+.form.form textarea{min-height:90px;resize:vertical}
+.form.form button{align-self:flex-start;min-height:44px;padding:12px 18px}
+.form.form p{margin:0;font-size:13px;line-height:1.6}

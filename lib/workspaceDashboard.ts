@@ -1,3 +1,5 @@
+import {loadProjectSessions} from "./sessionAccess";
+import {readAllRows} from "./recordReads";
 import { getWorkspace } from './workspace';
 import { getExperienceIdentity } from './experienceIdentity';
 import {
@@ -37,23 +39,22 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
     ['listener', 'admin'].includes(kind)
   )
     notFound();
-  const projectIds = permittedProjectIds(kind, workspace.memberships);
-  const { admin, user } = workspace;
+  const permittedIds = permittedProjectIds(kind, workspace.memberships);
+  const selectedId = (workspace.project as any)?.id;
+  const projectIds = selectedId && permittedIds.includes(selectedId) ? [selectedId] : [];
+  const { admin, supabase, user } = workspace;
   const empty = () =>
     Promise.resolve({
       data: [] as any[],
       error: null,
       count: 0 as number | null,
     });
-  const scoped = (table: string, columns: string, order = 'created_at') =>
-    projectIds.length
-      ? admin
-          .from(table)
-          .select(columns, { count: 'exact' })
-          .in('project_id', projectIds)
-          .order(order, { ascending: false })
-          .limit(6)
-      : empty();
+  const scoped = (table: string, columns: string, order = 'created_at') => {
+    if (!projectIds.length) return empty();
+    const query=admin.from(table).select(columns,{count:'exact'}).in('project_id',projectIds);
+    if (table==='project_assets') query.or(`visibility.in.(project,public),uploaded_by.eq.${user.id}`);
+    return query.order(order,{ascending:false}).limit(6);
+  };
   const [
     tracks,
     tasks,
@@ -68,10 +69,7 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
     opportunities,
     followers,
   ] = await Promise.all([
-    scoped(
-      'tracks',
-      'id,project_id,working_title,development_status,status,updated_at',
-    ),
+    projectIds.length?readAllRows(()=>admin.from('tracks').select('id,project_id,working_title,track_code,development_status,status,updated_at').in('project_id',projectIds).order('created_at',{ascending:false}).order('id')):empty(),
     projectIds.length
       ? admin
           .from('project_tasks')
@@ -82,19 +80,7 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
           .order('due_date', { ascending: true, nullsFirst: false })
           .limit(6)
       : empty(),
-    projectIds.length
-      ? admin
-          .from('studio_sessions')
-          .select(
-            'id,project_id,starts_at,status,location,tracks(working_title)',
-            { count: 'exact' },
-          )
-          .in('project_id', projectIds)
-          .gte('starts_at', new Date().toISOString())
-          .neq('status', 'cancelled')
-          .order('starts_at', { ascending: true })
-          .limit(5)
-      : empty(),
+    Promise.all(projectIds.map(id=>loadProjectSessions(admin,id,user.id,workspace.memberships.find((m:any)=>m.project_id===id)?.roles||[]))).then(results=>({data:results.flatMap(r=>r.data||[]),error:results.find(r=>r.error)?.error,count:results.some(r=>r.error)?null:results.reduce((n,r)=>n+(r.count||0),0)})),
     projectIds.length
       ? kind === 'visual'
         ? admin
@@ -104,7 +90,7 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
               { count: 'exact' },
             )
             .in('project_id', projectIds)
-            .or('mime_type.like.image/%,mime_type.like.video/%')
+            .or(`and(mime_type.like.image/%,or(visibility.in.(project,public),uploaded_by.eq.${user.id})),and(mime_type.like.video/%,or(visibility.in.(project,public),uploaded_by.eq.${user.id}))`)
             .order('created_at', { ascending: false })
             .limit(6)
         : scoped(
@@ -212,7 +198,7 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
   const trackRows: DashboardRow[] = (tracks.data || []).map((row: any) => ({
     id: row.id,
     title: row.working_title,
-    detail: projectName(row.project_id),
+    detail: `${row.track_code||''} · ${projectName(row.project_id)}`,
     status: readable(row.development_status || row.status),
     href: link(row.project_id, `/track-records/${row.id}`),
   }));
@@ -230,7 +216,7 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
     detail: row.location || projectName(row.project_id),
     status: readable(row.status),
     date: row.starts_at,
-    href: link(row.project_id, '/studio-sessions'),
+    href: link(row.project_id, `/studio-sessions#session-${row.id}`),
   }));
   const assetRows: DashboardRow[] = (assets.data || [])
     .filter(
@@ -358,9 +344,9 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
               kind === 'ar'
                 ? 'Repertoire in development'
                 : 'Project recordings',
-              'Music in your permitted projects',
+              'Music in the selected project',
               '/tracks',
-              trackRows,
+              [],
               tracks,
             ),
     kind === 'visual'
@@ -380,8 +366,8 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
             notes,
           )
         : section(
-            'Upcoming sessions',
-            'Scheduled in your permitted project rooms',
+            'My sessions',
+            'All sessions you are authorised to open, including past records',
             '/studio-sessions',
             sessionRows,
             sessions,
@@ -431,7 +417,7 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
   const metrics = [
     {
       label: 'Permitted projects',
-      value: projectIds.length,
+      value: permittedIds.length,
       href: '/projects',
     },
     {
@@ -445,7 +431,7 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
       href: '/splits?view=mine',
     },
     {
-      label: kind === 'artist' ? 'My releases' : 'Upcoming sessions',
+      label: kind === 'artist' ? 'My releases' : 'My sessions',
       value:
         kind === 'artist'
           ? releases.error
@@ -463,6 +449,7 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
     projectIds,
     sections,
     metrics,
+    trackRows,tracksUnavailable:Boolean(tracks.error),
     projects: (workspace.activeProjects as any[]).filter((project) =>
       projectIds.includes(project?.id),
     ),

@@ -1,0 +1,201 @@
+{
+  "scope": "Real local Next/Chromium and PostgreSQL. S3 multipart protocol fixture only; no external R2, real Auth/RLS or Project 001 acceptance.",
+  "checks": [
+    "Outsider cannot open the production room or retrieve private project audio",
+    "Private production audio plays through the authorised signed endpoint and local range-capable storage fixture",
+    "Engineer submits a specific mix; PostgreSQL atomically assigns one review task and targeted notification",
+    "Assigned artist requests revisions on mobile; feedback remains attached to that file",
+    "Revised mix begins unapproved, receives its own request and independent approval",
+    "Current approved master plus verified credits, approved split fixture and evidence enable explicit project-lead release sign-off",
+    "Changed evidence visibly invalidates the old project-lead release sign-off",
+    "Authorised project lead explicitly sets production stage and next action",
+    "272 MiB browser upload slices 17 parts, retries failed part, recovers registration failure without retransferring or creating duplicate assets",
+    "Production command centre, uploads and review controls fit 390px mobile viewport",
+    "Forged artist project-lead approval rejected by actual server and database",
+    "Approved deliverables enter uploader private professional history without public publication",
+    "Session coordinator records actual fixture attendance explicitly; it is never inferred"
+  ],
+  "errors": [],
+  "storageRequests": [
+    {
+      "method": "GET",
+      "part": null
+    },
+    {
+      "method": "GET",
+      "part": null
+    },
+    {
+      "method": "GET",
+      "part": null
+    },
+    {
+      "method": "GET",
+      "part": null
+    },
+    {
+      "method": "GET",
+      "part": null
+    },
+    {
+      "method": "GET",
+      "part": null
+    },
+    {
+      "method": "GET",
+      "part": null
+    },
+    {
+      "method": "GET",
+      "part": null
+    },
+    {
+      "method": "GET",
+      "part": null
+    },
+    {
+      "method": "GET",
+      "part": null
+    },
+    {
+      "method": "GET",
+      "part": null
+    },
+    {
+      "method": "GET",
+      "part": null
+    },
+    {
+      "method": "GET",
+      "part": null
+    },
+    {
+      "method": "GET",
+      "part": null
+    },
+    {
+      "method": "GET",
+      "part": null
+    },
+    {
+      "method": "GET",
+      "part": null
+    },
+    {
+      "method": "GET",
+      "part": null
+    },
+    {
+      "method": "GET",
+      "part": null
+    },
+    {
+      "method": "POST",
+      "part": null
+    },
+    {
+      "method": "GET",
+      "part": null
+    },
+    {
+      "method": "PUT",
+      "part": "1"
+    },
+    {
+      "method": "PUT",
+      "part": "2"
+    },
+    {
+      "method": "PUT",
+      "part": "2"
+    },
+    {
+      "method": "PUT",
+      "part": "3"
+    },
+    {
+      "method": "PUT",
+      "part": "4"
+    },
+    {
+      "method": "PUT",
+      "part": "5"
+    },
+    {
+      "method": "PUT",
+      "part": "6"
+    },
+    {
+      "method": "PUT",
+      "part": "7"
+    },
+    {
+      "method": "PUT",
+      "part": "8"
+    },
+    {
+      "method": "PUT",
+      "part": "9"
+    },
+    {
+      "method": "PUT",
+      "part": "10"
+    },
+    {
+      "method": "PUT",
+      "part": "11"
+    },
+    {
+      "method": "PUT",
+      "part": "12"
+    },
+    {
+      "method": "PUT",
+      "part": "13"
+    },
+    {
+      "method": "PUT",
+      "part": "14"
+    },
+    {
+      "method": "PUT",
+      "part": "15"
+    },
+    {
+      "method": "PUT",
+      "part": "16"
+    },
+    {
+      "method": "PUT",
+      "part": "17"
+    },
+    {
+      "method": "HEAD",
+      "part": null
+    },
+    {
+      "method": "GET",
+      "part": null
+    },
+    {
+      "method": "POST",
+      "part": null
+    },
+    {
+      "method": "HEAD",
+      "part": null
+    },
+    {
+      "method": "GET",
+      "part": null
+    },
+    {
+      "method": "HEAD",
+      "part": null
+    },
+    {
+      "method": "HEAD",
+      "part": null
+    }
+  ]
+}

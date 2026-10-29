@@ -1,9 +1,9 @@
 name: Verify FACKTS Music
 on:
   push:
-    branches: [feat/session2-professional-onboarding]
+    branches: [feat/session2-professional-onboarding, feat/session3-creative-production]
   pull_request:
-    branches: [main, feat/phase2-unified-workspaces]
+    branches: [main, feat/phase2-unified-workspaces, feat/session2-professional-onboarding]
 jobs:
   checks:
     name: Tests and TypeScript
@@ -24,12 +24,20 @@ jobs:
       - name: Compile Next.js
         run: npm run build
         env:
-          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: build-placeholder
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54329
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: local-test-publishable-key
           SUPABASE_SERVICE_ROLE_KEY: build-placeholder
 
       - name: Install Chromium for rendered homepage regression
         run: npx playwright install --with-deps chromium
+      - name: Verify selected project, catalogues, Finance and alignment
+        run: node tests/browser/session3-recovery.mjs
+        env:
+          AUDIT_PRODUCTION: "1"
+      - name: Verify Session 3 usability corrections
+        run: node tests/browser/session3-usability.mjs
+      - name: Verify Session 3 production, approvals and multipart recovery
+        run: node tests/browser/session3-production.mjs
       - name: Verify Session 2 onboarding and collaboration
         run: node tests/browser/session2-acceptance.mjs
       - name: Verify persistent sessions, playback and professional workspaces
@@ -48,6 +56,11 @@ jobs:
           path: |
             /tmp/homepage-recovery/verified
             /tmp/shared-public-header
+            /tmp/session3-recovery
+            /tmp/session3-usability/*.png
+            /tmp/session3-usability/Results.json
+            /tmp/session3-production/*.png
+            /tmp/session3-production/Results.json
             /tmp/session2-acceptance
             /tmp/kreyoh-phase2-screenshots
             /tmp/kreyoh-interaction-cards

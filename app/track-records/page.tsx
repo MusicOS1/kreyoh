@@ -5,13 +5,13 @@ import { getWorkspace } from "../../lib/workspace";
 const first=(v:any)=>Array.isArray(v)?v[0]:v;
 
 export default async function TrackRecordsPage(){
-  const{admin,project,membership}=await getWorkspace();
+  const{admin,user,project,membership}=await getWorkspace();
   if(!project||!membership)return<AppShell><div className="content empty-state"><h2>Project access required</h2></div></AppShell>;
 
   const[tracksR,splitsR,assetsR,issuesR,releasesR,rightsR]=await Promise.all([
     admin.from("tracks").select("id,working_title,track_code,status,development_status,beat_id,beats(title,producer_name)").eq("project_id",project.id).order("created_at",{ascending:false}),
     admin.from("track_splits").select("track_id,percentage,status").eq("project_id",project.id),
-    admin.from("project_assets").select("entity_id,asset_kind").eq("project_id",project.id).eq("entity_type","track"),
+    admin.from("project_assets").select("entity_id,asset_kind").or(`visibility.in.(project,public),uploaded_by.eq.${user.id}`).eq("project_id",project.id).eq("entity_type","track"),
     admin.from("track_operational_issues").select("track_id,status,severity").eq("project_id",project.id),
     admin.from("track_release_records").select("track_id,release_status").eq("project_id",project.id),
     admin.from("track_rights_checks").select("track_id,status").eq("project_id",project.id),

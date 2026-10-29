@@ -16,12 +16,14 @@ export default function EcosystemFrame({
   active = 'listener',
   projects = [],
   projectId,
+  canManageFinance = false,
   children,
 }: {
   identity: HeaderIdentity | null;
   active?: WorkspaceKind;
   projects?: { id: string; name?: string; code?: string }[];
   projectId?: string | null;
+  canManageFinance?: boolean;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false),
@@ -78,6 +80,7 @@ export default function EcosystemFrame({
         searchParams.get('tab') === 'For You')
     );
   };
+  const navigationLinks = canManageFinance && !config.links.some(link => link.href === '/finance') ? [...config.links, {label: 'Finance', href: '/finance'}] : config.links;
   const nav = (
     <>
       <div className={styles.context}>
@@ -86,7 +89,7 @@ export default function EcosystemFrame({
         <small>{config.description}</small>
       </div>
       <nav aria-label="Workspace navigation" className={styles.links}>
-        {config.links.map((link, index) => (
+        {navigationLinks.map((link, index) => (
           <Link
             key={link.label}
             href={workspaceHref(link.href, active)}
@@ -106,6 +109,7 @@ export default function EcosystemFrame({
           <select
             name="project_id"
             id="fm-project-select"
+            key={projectId}
             defaultValue={projectId || projects[0].id}
           >
             {projects.map((project) => (

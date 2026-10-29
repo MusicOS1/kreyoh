@@ -1,0 +1,13 @@
+{
+  "checks": [
+    "All four historical sessions retrieved with original notes; coordinator access, dates, status filters and exact record links work; unassigned engineer sees none",
+    "Failed session query is an explicit error, not an empty history",
+    "Professional dashboard searches and paginates 106 permitted tracks in ten-row pages, with sorting and project-preserving links",
+    "A version uploaded by an engineer displays the separately recorded artist and retains uploader attribution",
+    "Cash totals exclude unpaid, reversed, cancelled and foreign-currency entries; real form actions record income/expense; membership history remains byte-for-byte unchanged",
+    "My Workspace exposes personal assignments and credited tracks; artist cannot edit finance",
+    "Project Room count reconciles to the same four accessible session records and links to sessions and personal work",
+    "Help supports a large question field, built-in answers, compact topics and readable desktop/mobile views"
+  ],
+  "scope": "Actual local Chromium/Next/PostgreSQL; synthetic identities only. No live account acceptance."
+}

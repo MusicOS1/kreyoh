@@ -13,6 +13,7 @@ export function mockSupabase(options={}){
   let identity=user;
   if(options.users){
    try{const claims=JSON.parse(Buffer.from((req.headers.authorization||'').split('.')[1]||'','base64url').toString());identity=options.users.find(u=>u.id===claims.sub)||user;}catch{}
+   if(url.pathname.endsWith('/token')&&url.searchParams.get('grant_type')==='refresh_token'){const refresh=JSON.parse(body);identity=options.users.find(u=>refresh.refresh_token===`local-refresh-token:${u.id}`)||identity;}
    if(url.pathname.endsWith('/token')&&url.searchParams.get('grant_type')==='password'){const login=JSON.parse(body);identity=options.users.find(u=>u.email===login.email)||user;}
   }
   res.setHeader('Access-Control-Allow-Origin','*');res.setHeader('Access-Control-Allow-Headers','*');res.setHeader('Access-Control-Allow-Methods','GET,POST,PATCH,DELETE,HEAD,OPTIONS');
@@ -26,7 +27,7 @@ export function mockSupabase(options={}){
    if(url.pathname.endsWith('/user'))return state.revoked?send(401,{code:'session_not_found',message:'Session revoked'}):send(200,identity);
    if(url.pathname.endsWith('/token')||url.pathname.endsWith('/verify')){
     if(url.searchParams.get('grant_type')==='refresh_token'){state.refreshes++;if(state.revoked)return send(400,{code:'refresh_token_not_found',message:'Invalid refresh token'});}else state.revoked=false;
-    return send(200,{access_token:token(identity),refresh_token:'local-refresh-token',token_type:'bearer',expires_in:3600,user:identity});
+    return send(200,{access_token:token(identity),refresh_token:options.users?`local-refresh-token:${identity.id}`:'local-refresh-token',token_type:'bearer',expires_in:3600,user:identity});
    }
    return send(200,{});
   }

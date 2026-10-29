@@ -101,7 +101,8 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
           .eq("project_id", project.id)
           .eq("entity_type", "track")
           .in("entity_id", trackIds)
-          .order("created_at", { ascending: false }),
+          .or(`visibility.in.(project,public),uploaded_by.eq.${user.id}`)
+      .order("created_at", { ascending: false }),
         votingRound
           ? admin.from("track_version_rankings").select("track_id,asset_id,user_id,rank,points").eq("round_id", votingRound.id).in("track_id", trackIds)
           : Promise.resolve({ data: [], error: null }),
@@ -204,7 +205,7 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
 
   return (
     <AppShell>
-      <div className="content fackts-tracks-page">
+      <div data-native-catalogue className="content fackts-tracks-page">
         <div className="heading">
           <div>
             <span className="eyebrow">PROJECT 001 / DEVELOPMENT</span>
@@ -246,11 +247,12 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
               <small>Choose its source beat, audio and complete project credits.</small>
               <b>Open +</b>
             </summary>
-            <TrackIntakeForm beats={availableBeats} members={projectMembers} />
+            <TrackIntakeForm beats={availableBeats} members={projectMembers} scope={`${user.id}:${project.id}`} />
           </details>
         )}
 
-        <div className="operations-list track-operations-list">
+        <form method="get" action="/tracks" className="operations-form" role="search"><label>Search tracks<input type="search" name="q" defaultValue={search} placeholder="Title or code"/></label><button>Search tracks</button>{search && <Link href="/tracks">Clear search</Link>}</form>
+    <div className="operations-list track-operations-list">
           {!tracks.length && (
             <div className="empty-state">
               <h2>No tracks in development</h2>

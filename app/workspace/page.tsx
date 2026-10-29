@@ -1,4 +1,5 @@
-﻿import React from "react";
+import {loadProjectSessions} from "../../lib/sessionAccess";
+import React from "react";
 import Link from "next/link";
 
 import AppShell from "../../components/AppShell";
@@ -103,6 +104,7 @@ const JOURNEY = [
 export default async function WorkspacePage() {
   const {
     user,
+    supabase,
     project,
     roles,
     membership,
@@ -224,16 +226,7 @@ export default async function WorkspacePage() {
      * If this table is not yet created,
      * the dashboard safely shows zero.
      */
-    admin
-      .from("studio_sessions")
-      .select("*", {
-        count: "exact",
-        head: true,
-      })
-      .eq(
-        "project_id",
-        project.id
-      ),
+    loadProjectSessions(admin,project.id,user.id,roles),
 
     /*
      * MY ASSIGNMENTS
@@ -399,6 +392,7 @@ export default async function WorkspacePage() {
       .select("id,entity_id,bucket_id,storage_path,file_name,mime_type,asset_kind,created_at")
       .eq("project_id", project.id)
       .eq("entity_type", "track")
+      .or(`visibility.in.(project,public),uploaded_by.eq.${user.id}`)
       .order("created_at", { ascending: false })
       .limit(24),
 
@@ -466,7 +460,7 @@ export default async function WorkspacePage() {
 
   const sessionsCount =
     sessionsResult.error
-      ? 0
+      ? null
       : sessionsResult.count ?? 0;
 
   const myAssignments =
@@ -670,7 +664,7 @@ export default async function WorkspacePage() {
           <div className="creative-intro-copy">
             <div className="workspace-hero-meta">
               <span className="creative-kicker">
-                PROJECT 001
+                PROJECT ROOM / {project.code}
               </span>
 
               {managementRole && (
@@ -681,8 +675,7 @@ export default async function WorkspacePage() {
             </div>
 
             <h1>
-              Where the music is
-              taking shape.
+              {project.name}
             </h1>
 
             <p>
@@ -851,6 +844,7 @@ export default async function WorkspacePage() {
             FEATURED SESSIONS
            ===================================================== */}
 
+        <nav aria-label="Project tools"><Link href="/member-dashboard">My Workspace →</Link> · <Link href="/production">Project production & release readiness →</Link> · <Link href="/studio-sessions">Studio Sessions →</Link></nav>
         <section className="creative-section creative-sessions-section enter d2">
           <div className="creative-section-heading">
             <div>
@@ -859,7 +853,7 @@ export default async function WorkspacePage() {
               </span>
 
               <h2>
-                Featured Sessions
+                Studio Sessions
               </h2>
             </div>
 
@@ -868,7 +862,7 @@ export default async function WorkspacePage() {
             </span>
           </div>
 
-          <div className="session-empty-card workspace-soft-card">
+          <div className="session-empty-card workspace-soft-card">{sessionsResult.error&&<p role="alert">Session records could not be loaded. Please retry.</p>}
             <div className="session-empty-art">
               <span>
                 001
@@ -891,7 +885,7 @@ export default async function WorkspacePage() {
               </span>
 
               <h3>
-                {sessionsCount > 0
+                {sessionsResult.error ? "Sessions unavailable" : (sessionsCount ?? 0) > 0
                   ? `${sessionsCount} session${
                       sessionsCount === 1
                         ? ""
@@ -901,18 +895,18 @@ export default async function WorkspacePage() {
               </h3>
 
               <p>
-                {sessionsCount > 0
+                {(sessionsCount ?? 0) > 0
                   ? "Open Studio Sessions to follow the latest Project 001 work."
                   : "Sessions will appear here once scheduled."}
               </p>
 
-              <span className="preview-state">
+              <Link href="/studio-sessions" className="preview-state">
                 <ClockIcon size={13} />
 
-                {sessionsCount > 0
+                {(sessionsCount ?? 0) > 0
                   ? "Studio activity underway"
                   : "Ready for the first session"}
-              </span>
+              </Link>
             </div>
           </div>
         </section>
@@ -1124,7 +1118,7 @@ export default async function WorkspacePage() {
               </span>
 
               <h2>
-                Featured Tracks
+                Project tracks
               </h2>
             </div>
 
@@ -1418,7 +1412,7 @@ export default async function WorkspacePage() {
                 </span>
 
                 <h2>
-                  Latest from Project 001
+                  Shared project history
                 </h2>
               </div>
 

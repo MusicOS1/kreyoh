@@ -1,4 +1,5 @@
-import Link from 'next/link';
+import RecordBrowser from "../RecordBrowser";
+import Link from '../ProjectNavigationLink';
 import { loadWorkspaceDashboard } from '../../lib/workspaceDashboard';
 import {
   workspaceHref,
@@ -12,7 +13,7 @@ export default async function WorkspaceDashboard({
 }: {
   kind: WorkspaceKind;
 }) {
-  const { config, identity, projectIds, sections, metrics, projects, profile } =
+  const { config, identity, projectIds, sections, metrics, projects, profile,trackRows,tracksUnavailable } =
     await loadWorkspaceDashboard(kind);
   return (
     <EcosystemShell active={kind}>
@@ -83,8 +84,9 @@ export default async function WorkspaceDashboard({
             <Link href="/projects">Explore projects ↗</Link>
           </section>
         )}
+        <section className={`${styles.panel} ${styles.recordings}`}><header><div><h2>My professional recordings</h2><p>Search the recordings in your selected project.</p></div></header>{tracksUnavailable?<p role="alert">Recordings could not be loaded. Try again.</p>:<div className={styles.catalogue}><RecordBrowser label="tracks" items={trackRows.map(row=>({id:`professional-track-${row.id}`,title:row.title,code:row.detail,status:row.status}))}>{trackRows.map(row=><Link prefetch={false} key={row.id} id={`professional-track-${row.id}`} href={row.href} className={styles.record}><span className={styles.recordCopy}><strong>{row.title}</strong><small>{row.detail}</small></span><span className={styles.status}>{row.status}</span></Link>)}</RecordBrowser></div>}</section>
         <section className={styles.grid}>
-          {sections.map((section) => (
+          {sections.filter(section=>!['Project recordings','Repertoire in development'].includes(section.title)).map((section) => (
             <article className={styles.panel} key={section.title}>
               <header>
                 <div>
@@ -105,6 +107,7 @@ export default async function WorkspaceDashboard({
                 ) : section.rows.length ? (
                   section.rows.map((row, index) => (
                     <Link
+                      prefetch={false}
                       href={row.href}
                       key={row.id}
                       className={styles.record}
@@ -159,9 +162,10 @@ export default async function WorkspaceDashboard({
           <div className={styles.projects}>
             {projects.map((project) => (
               <Link
+                prefetch={false}
                 href={projectLink(
                   project.id,
-                  workspaceHref('/member-dashboard', kind),
+                  workspaceHref('/workspace', kind),
                 )}
                 key={project.id}
               >

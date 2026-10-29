@@ -71,6 +71,8 @@ export const WORKSPACES: WorkspaceConfig[] = [
     links: tools([
       ['Overview', '/workspaces/artist'],
       ['My music', '/tracks'],
+      ['Beats', '/beats'],
+      ['Studio Sessions', '/studio-sessions'],
       ['Projects', '/projects'],
       ['Collaborations', '/people'],
       ['Credits & splits', '/splits'],
@@ -94,7 +96,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       ['Overview', '/workspaces/producer'],
       ['Beats & productions', '/beats'],
       ['Active recordings', '/tracks'],
-      ['Sessions', '/studio-sessions'],
+      ['Studio Sessions', '/studio-sessions'],
       ['Stems & versions', '/tracks'],
       ['Production credits', '/professional-record'],
       ['Splits & agreements', '/splits'],
@@ -120,7 +122,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     assigned: ['Engineer'],
     links: tools([
       ['Overview', '/workspaces/engineer'],
-      ['Sessions', '/studio-sessions'],
+      ['Studio Sessions', '/studio-sessions'],
       ['Active tracks', '/tracks'],
       ['Mix versions & stems', '/tracks'],
       ['Track records', '/track-records'],
@@ -174,6 +176,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     assigned: ['Videographer', 'Photographer', 'Designer', 'Visual Creative'],
     links: tools([
       ['Overview', '/workspaces/visual'],
+      ['Studio Sessions', '/studio-sessions'],
       ['Assigned projects', '/projects'],
       ['Creative briefs', '/documents?view=documents'],
       ['Production schedule', '/tasks'],
@@ -197,6 +200,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     restricted: true,
     links: tools([
       ['Overview', '/workspaces/manager'],
+      ['Studio Sessions', '/studio-sessions'],
       ['Represented artists', '/support-team'],
       ['Active projects', '/projects'],
       ['Release planning', '/track-records'],
@@ -225,7 +229,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       ['Projects', '/projects'],
       ['Tasks & milestones', '/tasks'],
       ['Team', '/people'],
-      ['Sessions', '/studio-sessions'],
+      ['Studio Sessions', '/studio-sessions'],
       ['Documents', '/documents'],
       ['Project financial records', '/finance'],
       ['Reports', '/reports'],
@@ -281,7 +285,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     restricted: true,
     links: tools([
       ['Overview', '/workspaces/studio'],
-      ['Sessions', '/studio-sessions'],
+      ['Studio Sessions', '/studio-sessions'],
       ['Production files', '/tracks'],
       ['Studio insights', '/portal/studio'],
       ['Documents', '/documents'],
@@ -303,8 +307,11 @@ export const WORKSPACES: WorkspaceConfig[] = [
   },
 ];
 export const managementRoles = ['Super Admin', 'Admin', 'Project Lead'];
-export const workspaceConfig = (kind: string) =>
-  WORKSPACES.find((item) => item.kind === kind);
+export const workspaceConfig = (kind: string) => {
+  const config=WORKSPACES.find((item) => item.kind === kind);
+  if (!config || ['listener','admin'].includes(kind)) return config;
+  return {...config,links:[...config.links,{label:'Production room',href:'/production'}]};
+};
 export function workspaceOptions(
   types: unknown,
   assigned: string[],

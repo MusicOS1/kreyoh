@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { discardReusableTrackIntake, getReusableBeatOptions, prepareReusableTrackIntake, saveReusableTrackAsset } from "../app/tracks/reuseActions";
+import { getReusableBeatOptions, prepareReusableTrackIntake } from "../app/tracks/reuseActions";
+
+import {productionFileError} from "../lib/productionPolicy";
+import {productionUploadRequest,transferProductionFile} from "../lib/productionTransfer";
 
 type BeatOption = { id:string; title:string|null; beat_code:string|null; producer_name:string|null; };
 type MemberOption = { id:string; name:string; };
@@ -20,8 +23,11 @@ function newCredit():CreditRow {
   return { key: crypto.randomUUID(), userId:"", role:"artist" };
 }
 
-export default function TrackIntakeForm({beats,members}:{beats:BeatOption[];members:MemberOption[]}) {
+export default function TrackIntakeForm({beats,members,scope}:{beats:BeatOption[];members:MemberOption[];scope:string}) {
   const router=useRouter();
+  const prepared=useRef<{signature:string;trackId:string;uploadId?:string}|null>(null);
+  const [progress,setProgress]=useState(0);
+  const [pendingTrack,setPendingTrack]=useState("");
   const [credits,setCredits]=useState<CreditRow[]>([newCredit()]);
   const [allBeats,setAllBeats]=useState<BeatOption[]>(beats);
   const [busy,setBusy]=useState(false);
@@ -53,6 +59,7 @@ export default function TrackIntakeForm({beats,members}:{beats:BeatOption[];memb
 
   async function submit(event:FormEvent<HTMLFormElement>){
     event.preventDefault();
+    if(busy)return;
     const formData=new FormData(event.currentTarget);
     setBusy(true);setError("");setMessage("");
     let createdTrackId="";
@@ -64,7 +71,9 @@ export default function TrackIntakeForm({beats,members}:{beats:BeatOption[];memb
       const chosenCredits=credits.filter(c=>c.userId);
       if(!chosenCredits.length)throw new Error("Add at least one person to the track credits.");
 
+      const issue=productionFileError(file.name,file.type,file.size,String(formData.get("asset_kind")));if(issue)throw new Error(issue);
       const prep=new FormData();
+      prep.set("production_flow","true");
       prep.set("working_title",String(formData.get("working_title")||""));
       prep.set("track_code",String(formData.get("track_code")||""));
       prep.set("beat_id",String(formData.get("beat_id")||""));
@@ -75,33 +84,24 @@ export default function TrackIntakeForm({beats,members}:{beats:BeatOption[];memb
       prep.set("file_size",String(file.size));
       chosenCredits.forEach(c=>{prep.append("credit_user_id",c.userId);prep.append("credit_role",c.role);});
 
-      const signed=await prepareReusableTrackIntake(prep);
-      createdTrackId=signed.trackId;
-
-      const response=await fetch(signed.uploadUrl,{
-        method:"PUT",
-        headers:{"Content-Type":file.type||"application/octet-stream"},
-        body:file,
-      });
-      if(!response.ok)throw new Error(`Cloudflare rejected the track transfer (${response.status}).`);
-
-      const asset=new FormData();
-      asset.set("track_id",signed.trackId);
-      asset.set("storage_key",signed.storageKey);
-      asset.set("file_name",file.name);
-      asset.set("mime_type",file.type||"application/octet-stream");
-      asset.set("asset_kind",String(formData.get("asset_kind")||"demo"));
-      asset.set("version_note",String(formData.get("version_note")||""));
-      await saveReusableTrackAsset(asset);
+      const signature=JSON.stringify([...prep.entries(),["modified",file.lastModified]]);
+      const intakeKey='fackts-production-intake-v1:'+scope;
+      if(!prepared.current){try{prepared.current=JSON.parse(localStorage.getItem(intakeKey)||'null');}catch{}}
+      if(prepared.current)setPendingTrack(prepared.current.trackId);
+      if(prepared.current&&prepared.current.signature!==signature)throw new Error("Finish the pending track in Production before registering different work.");
+      if(!prepared.current){const signed=await prepareReusableTrackIntake(prep);prepared.current={signature,trackId:signed.trackId};setPendingTrack(signed.trackId);localStorage.setItem(intakeKey,JSON.stringify(prepared.current));}
+      createdTrackId=prepared.current.trackId;
+      const key='fackts-production-transfer-v1:'+createdTrackId;
+      if(!prepared.current.uploadId){const result=await productionUploadRequest({action:'start',trackId:createdTrackId,name:file.name,type:file.type,size:file.size,kind:formData.get('asset_kind'),note:formData.get('version_note')});prepared.current.uploadId=result.id!;localStorage.setItem(intakeKey,JSON.stringify(prepared.current));localStorage.setItem(key,JSON.stringify({id:result.id,signature:JSON.stringify([file.name,file.size,file.lastModified,String(formData.get('asset_kind')),String(formData.get('version_note')||'')])}));}
+      await transferProductionFile(file,prepared.current.uploadId!,setProgress,new AbortController().signal);
+      localStorage.removeItem(key);localStorage.removeItem(intakeKey);prepared.current=null;setPendingTrack("");
 
       setCredits([newCredit()]);
       setMessage("Track added. The source beat stays in the pool and can be used for another song.");
       setBusy(false);
       router.refresh();
     }catch(cause){
-      if(createdTrackId){
-        try{await discardReusableTrackIntake(createdTrackId);}catch{}
-      }
+      // Keep the valid registered track and resumable transfer; a retry reuses its ID.
       setBusy(false);
       setError(cause instanceof Error?cause.message:"The track could not be uploaded.");
     }
@@ -122,8 +122,7 @@ export default function TrackIntakeForm({beats,members}:{beats:BeatOption[];memb
         <select name="development_status" defaultValue="in_development">
           <option value="in_development">In Development</option><option value="revision">Revision</option>
           <option value="in_studio">In Studio</option><option value="mixing">Mixing</option>
-          <option value="mastering">Mastering</option><option value="release_ready">Release Ready</option>
-          <option value="complete">Complete</option>
+          <option value="mastering">Mastering</option>
         </select>
       </label>
       <label>File type
@@ -155,6 +154,8 @@ export default function TrackIntakeForm({beats,members}:{beats:BeatOption[];memb
       </div>
     </section>
 
+    {busy&&<progress value={progress} max={100} aria-label="Initial track upload progress"/>}
+    {pendingTrack&&<p><a href={`/production#track-${pendingTrack}`}>Registered track: continue or resume in Production →</a></p>}
     {error&&<div className="form-error-alert" role="alert">{error}</div>}
     {message&&<div className="form-success-alert" role="status">{message}</div>}
     <button className="track-intake-submit" disabled={busy}>{busy?"Uploading track…":"Add track to project"}</button>

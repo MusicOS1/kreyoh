@@ -1,3 +1,6 @@
+import Link from "next/link";
+import RecordBrowser from "../../components/RecordBrowser";
+import {projectLink} from "../../lib/navigation";
 import AppShell from "../../components/AppShell";
 import { creatorDisplayName } from "../../lib/profileIdentity";
 import { getWorkspace } from "../../lib/workspace";
@@ -25,7 +28,7 @@ const statusLabel=(status:string)=>{
 };
 
 export default async function ProfessionalRecordPage(){
-  const{admin,user,project}=await getWorkspace();
+  const{admin,user,project,activeProjects}=await getWorkspace();
   const superAdmin=await isSuperAdmin(user.id);
 
   const[internalR,sessionR,claimsR,requestsR,membersR]=await Promise.all([
@@ -37,6 +40,7 @@ export default async function ProfessionalRecordPage(){
   ]);
 
   const internal=internalR.data||[],sessions=sessionR.data||[],claims=claimsR.data||[],requests=requestsR.data||[],members=(membersR as any).data||[];
+  const {data:approvedFiles,error:filesError}=activeProjects.length?await admin.from("project_assets").select("id,entity_id,project_id,file_name,asset_kind,created_at").eq("uploaded_by",user.id).eq("review_status","approved").in("project_id",activeProjects.map((p:any)=>p.id)).order("created_at",{ascending:false}).limit(30):{data:[],error:null};
   const verifiedInternal=internal.filter((x:any)=>x.approved).length;
   const verifiedExternal=claims.filter((x:any)=>x.verification_status==="fackts_verified").length;
   const contributorConfirmed=claims.filter((x:any)=>x.verification_status==="contributor_confirmed").length;
@@ -72,11 +76,12 @@ export default async function ProfessionalRecordPage(){
       </div>
     </section>
 
+    <section className="panel"><span className="eyebrow">APPROVED PRODUCTION WORK</span><h2>My approved deliverables</h2><p>Private professional history. Approval of a deliverable does not publish the file or establish ownership.</p>{filesError?<p>Production history setup is pending or temporarily unavailable.</p>:!approvedFiles?.length?<p>No approved production deliverables yet.</p>:approvedFiles.map((a:any)=><p key={a.id}>{a.file_name} · {a.asset_kind.replaceAll('_',' ')} · {new Date(a.created_at).toLocaleDateString('en-KE')}</p>)}</section>
     <section className="platform-home-split">
       <article className="panel">
         <span className="eyebrow">INTERNAL FACKTS CREDITS</span><h2>Credits created inside projects</h2>
         {!internal.length&&<p>No internal track credits yet.</p>}
-        <div className="home-list">{internal.map((credit:any)=>{const track=first(credit.tracks),proj=first(track?.projects);return<div key={credit.id}><time>{track?.track_code||"TRACK"}</time><span><strong>{track?.working_title||"Untitled track"}</strong><small>{String(credit.contribution_role).replaceAll("_"," ")} · {proj?.name||proj?.code||"FACKTS project"} · {credit.approved?"✓ FACKTS Verified":"Recorded — awaiting project verification"}</small></span></div>})}</div>
+        <RecordBrowser label="credited tracks" items={internal.map((c:any)=>({id:`credit-${c.id}`,title:first(c.tracks)?.working_title||"Untitled track",code:first(c.tracks)?.track_code,status:c.approved?"Verified":"Awaiting verification"}))}>{internal.map((credit:any)=>{const track=first(credit.tracks),proj=first(track?.projects);return<Link id={`credit-${credit.id}`} key={credit.id} href={track?projectLink(track.project_id,`/track-records/${track.id}`):"/tracks"}><time>{track?.track_code||"TRACK"}</time><span><strong>{track?.working_title||"Untitled track"}</strong><small>{String(credit.contribution_role).replaceAll("_"," ")} · {proj?.name||proj?.code||"FACKTS project"} · {credit.approved?"✓ FACKTS Verified":"Recorded — awaiting project verification"}</small></span></Link>})}</RecordBrowser>
       </article>
 
       <article className="panel">
