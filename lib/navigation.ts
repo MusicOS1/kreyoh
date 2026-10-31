@@ -11,7 +11,9 @@ export function projectLink(projectId: string, next: string) {
 }
 export function notificationLink(item: {type?: string; entity_type?: string; entity_id?: string; project_id?: string; action_url?: string}) {
   let next = safeNext(item.action_url, "");
-  if (item.entity_type === "production_asset") next = `/production${item.entity_id ? `#asset-${encodeURIComponent(item.entity_id)}` : ""}`;
+  if (item.entity_type === "public_release") next = `/billboard/${encodeURIComponent(item.entity_id || "")}`;
+  else if (item.entity_type === "release") next = `/releases/${encodeURIComponent(item.entity_id || "")}`;
+  else if (item.entity_type === "production_asset") next = `/production${item.entity_id ? `#asset-${encodeURIComponent(item.entity_id)}` : ""}`;
   else if (["session", "studio_session"].includes(item.entity_type || "")) next = `/studio-sessions${item.entity_id?`#session-${encodeURIComponent(item.entity_id)}`:""}`;
   else if (item.type?.startsWith("split_")) next = `/splits${item.entity_id ? `?track=${encodeURIComponent(item.entity_id)}` : ""}`;
   else if (!next) {

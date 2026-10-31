@@ -4,7 +4,7 @@ import {getWorkspace} from '../../../../lib/workspace';
 import {uuidPattern} from '../../../../lib/community';
 import {conversationSnapshot} from '../../../../lib/conversationSnapshot';
 import {sendMessage,markConversationRead,blockMember} from '../../../messages/actions';
-import { updateFanLibrary } from '../../../fan/actions';
+import { updateFanLibrary,addReleaseToPlaylist } from '../../../fan/actions';
 import { voteForRelease, manageRelease } from '../../../billboard/actions';
 import { listReleaseComments, postReleaseComment, deleteReleaseComment } from '../../../release-comments/actions';
 import { recordTrackVersionListen, setTrackVersionRanking } from '../../../tracks/actions';
@@ -88,6 +88,7 @@ export async function POST(request: Request, context: { params: Promise<{ action
           query=input.id?query.eq('id',input.id):query.is('read_at',null);
           const {error}=await query;if(error)throw error;value={ok:true};break;
         }
+        case 'playlistAdd': value=await addReleaseToPlaylist(input.id,input.releaseId);break;
         case 'library': value = await updateFanLibrary(input.kind, input.id, input.enabled, input.label, input.trackIds); break;
         case 'releaseVote':
           if (typeof input.enabled !== 'boolean' || typeof input.id !== 'string') throw new Error('Invalid vote');

@@ -11,6 +11,12 @@ export function mockProductionR2(){
    const id=crypto.randomUUID();transfers.set(id,{key,type:req.headers['content-type'],parts:new Map()});return xml(`<InitiateMultipartUploadResult><Bucket>fixture</Bucket><Key>${key}</Key><UploadId>${id}</UploadId></InitiateMultipartUploadResult>`);
   }
   const transfer=transfers.get(upload);
+  if(req.method==='PUT'&&req.headers['x-amz-copy-source']){
+   const source=objects.get('/'+decodeURIComponent(String(req.headers['x-amz-copy-source'])).replace(/^\//,''));
+   if(!source)return xml('<Error><Code>NoSuchKey</Code></Error>',404);
+   if(transfer){const range=/bytes=(\d+)-(\d+)/.exec(req.headers['x-amz-copy-source-range']||'');if(!range)return xml('<Error><Code>InvalidRange</Code></Error>',400);const number=Number(url.searchParams.get('partNumber')),size=Number(range[2])-Number(range[1])+1,etag='"copy-'+number+'"';transfer.parts.set(number,{size,etag});return xml(`<CopyPartResult><ETag>${etag}</ETag></CopyPartResult>`);}
+   objects.set(key,{...source});return xml(`<CopyObjectResult><ETag>${source.etag}</ETag></CopyObjectResult>`);
+  }
   if(req.method==='PUT'&&transfer){
    const number=Number(url.searchParams.get('partNumber'));const hash=createHash('md5');let size=0;for await(const chunk of req){size+=chunk.length;hash.update(chunk);}
    if(size>0&&url.searchParams.get('x-amz-checksum-crc32')==='AAAAAA==')return xml('<Error><Code>BadDigest</Code></Error>',400);

@@ -8,11 +8,12 @@ export async function bulkApprovePending(_prior:{message:string;ok:boolean},fd:F
   if(fd.get("confirmation")!=="approve")throw Error("Please confirm approval of the selected releases.");
   const admin=createAdminClient();
   const{data:pending,error}=await admin.from("music_releases")
-    .select("id").eq("status","pending").not("rights_confirmed_at","is",null)
+    .select("*").eq("status","pending").not("rights_confirmed_at","is",null)
     .order("submitted_at",{ascending:true}).limit(100);
   if(error)throw Error("Could not load pending releases.");
   if(!pending?.length)return{message:"No verified releases are pending approval.",ok:true,approvedCount:0};
-  const ids=pending.map(release=>release.id);
+  const ids=pending.filter(release=>!release.source_track_id).map(release=>release.id);
+  if(!ids.length)return{message:"Linked releases require individual version review.",ok:true,approvedCount:0};
   const{data:approved,error:updateError}=await admin.from("music_releases").update({
     status:"published",reviewed_by:reviewer.id,reviewed_at:new Date().toISOString(),review_note:"Bulk approval by Music Control Room"
   }).in("id",ids).eq("status","pending").not("rights_confirmed_at","is",null).select("id");
