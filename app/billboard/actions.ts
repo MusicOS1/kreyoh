@@ -4,6 +4,7 @@ import {communityAccount,uuidPattern} from "../../lib/community";
 import {createAdminClient} from "../../lib/supabase/admin";
 import {assertR2ObjectAccess,createR2PresignedUrl,finalizeReleaseObject} from "../../lib/r2";
 import {requireControlRoomPermission,hasControlRoomPermission} from "../../lib/controlRoom";
+import {releaseCommand} from "../../lib/releaseWorkflow";
 import { uploadResult } from "../../lib/uploadResult";
 const read=(f:FormData,k:string)=>String(f.get(k)||"").trim();
 export async function prepareRelease(form:FormData){
@@ -59,6 +60,14 @@ export async function manageRelease(_state:{message:string},form:FormData){
  try{
  const id=read(form,'id'),operation=read(form,'operation');if(!uuidPattern.test(id))throw new Error('Release not found.');
  const admin=createAdminClient();let query;
+ const {data:linked,error:linkedError}=await admin.from('music_releases').select('*').eq('id',id).maybeSingle();
+ if(linkedError)throw Error('Release could not be loaded.');
+ if(linked?.source_track_id){
+  if(operation!=='withdraw'&&operation!=='remove')throw Error('Open the linked release workflow to review the current revision.');
+  const result=await releaseCommand({id,action:'withdraw',revision:linked.revision,data:{note:read(form,'note')},requestId:crypto.randomUUID()});
+  for(const path of ['/billboard','/fan','/listen','/releases','/admin/releases'])revalidatePath(path);
+  return {message:'Release withdrawn.',ok:true,status:'withdrawn',...result};
+ }
  if(operation==='withdraw'){
   const{user}=await communityAccount();query=admin.from('music_releases').update({status:'withdrawn'}).eq('id',id).eq('artist_id',user.id).neq('status','withdrawn');
  }else{

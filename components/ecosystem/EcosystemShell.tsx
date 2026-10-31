@@ -50,7 +50,7 @@ export default async function EcosystemShell({
       projectId={(workspace.project as any)?.id}
       canManageFinance={canEditProjectFinance(workspace.roles)}
     >
-      {(/^\/(projects|tracks|track-records|beats|studio-sessions|finance|production|member-dashboard|workspace)(\/|$)/.test(path.split('?')[0]) || path.startsWith('/workspaces/')) && <ProjectContext projects={workspace.activeProjects as any[]} projectId={(workspace.project as any)?.id} next={path} />}
+      {(/^\/(projects|releases|tracks|track-records|beats|studio-sessions|finance|production|member-dashboard|workspace)(\/|$)/.test(path.split('?')[0]) || path.startsWith('/workspaces/')) && <ProjectContext projects={workspace.activeProjects as any[]} projectId={(workspace.project as any)?.id} next={path} />}
       {children}
     </EcosystemFrame>
   );

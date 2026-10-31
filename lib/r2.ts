@@ -169,3 +169,17 @@ export async function abortR2Multipart(key:string,uploadId:string) {
   const {AbortMultipartUploadCommand}=await import('@aws-sdk/client-s3');const config=readR2Config();
   await createR2Client(config, true).send(new AbortMultipartUploadCommand({Bucket:config.bucket,Key:key,UploadId:uploadId}));
 }
+
+// Snapshot a large production master without sending its bytes through Next.js.
+export async function freezeProductionReleaseObject(source:string,destination:string,size:number,contentType:string){
+ if(size<=5*1024**3)return finalizeReleaseObject(source,destination);
+ const {CreateMultipartUploadCommand,UploadPartCopyCommand,CompleteMultipartUploadCommand,AbortMultipartUploadCommand}=await import('@aws-sdk/client-s3');
+ const config=readR2Config(),client=createR2Client(config,true);
+ const {UploadId}=await client.send(new CreateMultipartUploadCommand({Bucket:config.bucket,Key:destination,ContentType:contentType}));
+ if(!UploadId)throw Error('Release snapshot could not be started.');
+ try{const parts=[];const slice=512*1024**2;for(let start=0,number=1;start<size;start+=slice,number++){
+  const result=await client.send(new UploadPartCopyCommand({Bucket:config.bucket,Key:destination,UploadId,PartNumber:number,CopySource:`${config.bucket}/${source.split('/').map(encodeURIComponent).join('/')}`,CopySourceRange:`bytes=${start}-${Math.min(size-1,start+slice-1)}`}));
+  if(!result.CopyPartResult?.ETag)throw Error('Release snapshot part failed.');parts.push({PartNumber:number,ETag:result.CopyPartResult.ETag});
+ }await client.send(new CompleteMultipartUploadCommand({Bucket:config.bucket,Key:destination,UploadId,MultipartUpload:{Parts:parts}}));}
+ catch(error){await client.send(new AbortMultipartUploadCommand({Bucket:config.bucket,Key:destination,UploadId})).catch(()=>{});throw error;}
+}

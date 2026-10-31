@@ -1,4 +1,5 @@
 import "server-only";
+import {readAllRows} from "./recordReads";
 import {getWorkspace} from "./workspace";
 import {createAdminClient} from "./supabase/admin";
 import {createClient} from "./supabase/server";
@@ -11,7 +12,7 @@ export async function communityAccount(){
 }
 export async function viewer(){const client=await createClient();const{data:{user}}=await client.auth.getUser();return user;}
 export async function chart(){
- const{data,error}=await createAdminClient().from("music_weekly_chart").select("*").order("votes",{ascending:false}).order("release_at",{ascending:false}).order("id");
+ const{data,error}=await readAllRows(()=>createAdminClient().from("music_weekly_chart").select("*").order("votes",{ascending:false}).order("release_at",{ascending:false}).order("id"));
  if(error)throw new Error("The Billboard could not be loaded. Please try again.");
  return data||[];
 }

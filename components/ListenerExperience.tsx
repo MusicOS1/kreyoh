@@ -1,7 +1,7 @@
 "use client";
 import type {DiscoveryItem} from '../lib/discoveryContent';
 import type {MusicArtist} from '../lib/musicArtistsTypes';
-import {creditedToArtist} from '../lib/releaseArtistMatch';
+import {creditedToArtist,releaseHasArtist} from '../lib/releaseArtistMatch';
 import type {FanHeroConfig,FanHeroArea} from '../lib/fanHeroConfig';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import Link from 'next/link';
@@ -14,7 +14,7 @@ import ReleaseComments from './ReleaseComments';
 import {VoteButton,ShareRelease,ReleaseVoteCount} from './ReleaseControls';
 import {moveQueueTrack} from '../lib/playerQueue';
 import {backgroundInteraction} from '../lib/backgroundInteraction';
-type Release={id:string;title:string;artist_id:string;artist_name:string;collection:string;has_cover:boolean;release_at:string;votes:number;genre?:string};
+type Release={explicit_artist_link?:boolean;featured_artist_ids?:string[];id:string;title:string;artist_id:string;artist_name:string;collection:string;has_cover:boolean;release_at:string;votes:number;genre?:string};
 type Item={kind:string;item_id:string;label:string;track_ids:string[];updated_at:string};
 export default function ListenerExperience({releases,userId,name,initialTab='For You',initialLibrary=[],votedIds=[],unread=0,editorial=[],loadWarning,heroSettings,artistsDirectory=[],showFanNav=true}:{releases:Release[];userId?:string;name?:string;initialTab?:string;initialLibrary?:Item[];votedIds?:string[];unread?:number;editorial?:DiscoveryItem[];loadWarning?:string;heroSettings?:Record<FanHeroArea,FanHeroConfig>;artistsDirectory?:MusicArtist[];showFanNav?:boolean}){
  const[tab,setTab]=useState(initialTab),[artistFocusId,setArtistFocusId]=useState<string|null>(null),[query,setQuery]=useState(''),[library,setLibrary]=useState(initialLibrary),[notice,setNotice]=useState(''),[pendingItems,setPendingItems]=useState<Set<string>>(()=>new Set()),[playlistName,setPlaylistName]=useState(''),[playlistId,setPlaylistId]=useState('');
@@ -40,7 +40,7 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
  const artistHighlights=artistsDirectory.slice(0,8);
  const publicArtistById=useMemo(()=>new Map(artistsDirectory.map(artist=>[artist.id,artist])),[artistsDirectory]);
  const publicArtistIds=new Set(publicArtistById.keys());
- const isVerifiedArtistRelease=(release:Release)=>{const artist=publicArtistById.get(release.artist_id);return Boolean(artist&&creditedToArtist(release.artist_name,artist.name));};
+ const isVerifiedArtistRelease=(release:Release)=>{const artist=publicArtistById.get(release.artist_id);return Boolean(artist&&releaseHasArtist(release,artist.id,artist.name));};
  function openArtist(id:string){if(!publicArtistIds.has(id))return;setArtistFocusId(id);setTab('Artists');setQuery('');}
  const lists=library.filter(x=>x.kind==='playlist');
  const collections=useMemo(()=>Array.from(new Map(releases.filter(r=>r.collection).map(r=>[`${r.artist_id}:${r.collection}`,{id:`${r.artist_id}:${r.collection}`,name:r.collection,artist:r.artist_name,songs:releases.filter(x=>x.artist_id===r.artist_id&&x.collection===r.collection)}])).values()),[releases]);

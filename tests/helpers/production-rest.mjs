@@ -1,8 +1,8 @@
 import {mockSupabase} from './mock-supabase.mjs';
 import {pid,lead,engineer,artist,outsider} from './production-database.mjs';
-export function productionRest(db){
+export function productionRest(db,options={}){
  const users=[[lead,'lead'],[engineer,'engineer'],[artist,'artist'],[outsider,'outsider']].map(([id,name])=>({id,aud:'authenticated',role:'authenticated',email:name+'@example.test',created_at:new Date().toISOString(),email_confirmed_at:new Date().toISOString(),app_metadata:{provider:'email',providers:['email']},user_metadata:{full_name:'Test '+name,creator_types:['Fan']}}));
- const tables=new Set(['profiles','projects','project_members','member_roles','roles','tracks','project_assets','project_tasks','platform_events','activity_log','notifications','track_contributors','track_split_plans','track_splits','track_rights_checks','track_operational_issues','studio_sessions','session_participants','production_uploads','beats','beat_claims','session_contributions','project_budgets','project_expenses','revenue_records','commercial_opportunities','project_membership_accounts','project_membership_transactions','project_updates','project_documents','beat_assignments','beat_interests']);
+ const tables=new Set(['profiles','projects','project_members','member_roles','roles','tracks','project_assets','project_tasks','platform_events','activity_log','notifications','track_contributors','track_split_plans','track_splits','track_rights_checks','track_operational_issues','studio_sessions','session_participants','production_uploads','beats','beat_claims','session_contributions','project_budgets','project_expenses','revenue_records','commercial_opportunities','project_membership_accounts','project_membership_transactions','project_updates','project_documents','beat_assignments','beat_interests',...(options.releases?['music_releases','music_weekly_chart','release_review_events','fan_music_library','music_votes','music_release_comments']:[])]);
  let rejectRegistration=false,sessionOutage=false;
  function matches(row,url){return [...url.searchParams].every(([key,value])=>{
   if(['select','order','limit','offset','on_conflict'].includes(key))return true;
@@ -18,6 +18,16 @@ export function productionRest(db){
  });}
  const mock=mockSupabase({users,handleRest:async({req,res,url,body,send,table})=>{
   if(!url.pathname.startsWith('/rest/v1/'))return false;
+  if(options.releases && table==='control_room_admins'){let rows=(await db.query('select * from control_room_admins')).rows.filter(r=>matches(r,url));send(200,req.headers.accept?.includes('application/vnd.pgrst.object+json')?rows[0]||null:rows);return true;}
+  if(options.releases && url.pathname.includes('/rpc/')){const b=JSON.parse(body);try{let result;
+   if(table==='release_mutate')result=await db.query('select release_mutate($1,$2,$3,$4,$5,$6) result',[b.p_actor,b.p_action,b.p_release,b.p_revision,b.p_data,b.p_request]);
+   else if(table==='release_requirements'||table==='release_public_eligible')result=await db.query(`select ${table}($1) result`,[b.p_release]);
+   else if(table==='release_engagement')result=await db.query('select release_engagement($1,$2) result',[b.p_actor,b.p_release]);
+   else if(table==='set_music_vote')result=await db.query('select set_music_vote($1,$2,$3) result',[b.p_user,b.p_release,b.p_vote]);
+   else if(table==='add_release_to_playlist')result=await db.query('select add_release_to_playlist($1,$2,$3) result',[b.p_user,b.p_playlist,b.p_release]);
+   if(result){send(200,result.rows[0].result);return true;}
+  }catch(error){send(400,{message:error.message,code:error.code||'P0001'});return true;}}
+
   if(url.pathname.includes('/rpc/production_')){
    const b=JSON.parse(body);try{
     if(table==='production_mutate'&&b.p_action==='register_upload'&&rejectRegistration){rejectRegistration=false;send(500,{message:'Isolated registration outage',code:'XX000'});return true;}
@@ -51,7 +61,7 @@ export function productionRest(db){
   if(table==='project_members')rows=rows.map(r=>({...r,projects:projects.find(p=>p.id===r.project_id),profiles:profile(r.user_id),member_roles:assignments(r.id)}));
   if(table==='member_roles')rows=rows.map(g=>({...g,roles:roles.find(r=>r.id===g.role_id)}));
   if(table==='studio_sessions'){const sessionWork=(await db.query('select * from project_tasks')).rows;const hasContributions=(await db.query("select to_regclass('session_contributions') name")).rows[0].name;const sessionContributions=hasContributions?(await db.query('select * from session_contributions')).rows:[];const participants=(await db.query('select * from session_participants')).rows;rows=rows.map(r=>({...r,tracks:trackRows.find(t=>t.id===r.track_id),session_participants:participants.filter(p=>p.session_id===r.id).map(p=>({...p,profiles:profile(p.user_id)})),project_tasks:sessionWork.filter(t=>t.session_id===r.id).map(t=>({...t,profiles:profile(t.assignee_id)})),session_contributions:sessionContributions.filter(c=>c.session_id===r.id).map(c=>({...c,profiles:profile(c.contributor_id),tracks:trackRows.find(t=>t.id===c.track_id)}))}));}
-  if(table==='profiles')rows=rows.map(r=>({...r,email:users.find(u=>u.id===r.id)?.email,profile_visibility:'project'}));
+  if(table==='profiles')rows=rows.map(r=>({...r,email:users.find(u=>u.id===r.id)?.email,profile_visibility:options.releases?r.profile_visibility:'project'}));
   const order=url.searchParams.get('order');if(order){const [key,direction]=order.split('.');rows.sort((a,b)=>(a[key] instanceof Date && b[key] instanceof Date ? a[key].getTime()-b[key].getTime() : String(a[key]||'').localeCompare(String(b[key]||'')))*(direction==='desc'?-1:1));}
   const count=rows.length;const offset=Number(url.searchParams.get('offset'))||0;const limit=Number(url.searchParams.get('limit'));rows=rows.slice(offset,limit?offset+limit:undefined);res.setHeader('Content-Range',`${offset}-${offset+rows.length-1}/${count}`);
   if(req.method==='HEAD'){res.setHeader('Content-Range','*/'+count);send(200);return true;}

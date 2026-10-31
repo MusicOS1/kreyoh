@@ -34,7 +34,8 @@ test("only explicitly public artist profiles can be used for rich discovery",()=
  assert.match(model,/eq\("profile_visibility","public"\)/);
  assert.match(model,/eq\("account_status","active"\)/);
  assert.match(model,/contains\("creator_types",\["Artist"\]\)/);
- assert.match(read("app/creators/[userId]/page.tsx"),/music_weekly_chart/);
+ assert.match(read("app/creators/[userId]/page.tsx"),/chart\(\)/);
+ assert.match(read("lib/community.ts"),/music_weekly_chart/);
 });
 test("fan authentication preserves return locations without taking artists out of workspace",()=>{
  const fan=read("app/fan/page.tsx");

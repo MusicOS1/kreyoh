@@ -1,0 +1,38 @@
+[
+  {
+    "suite": "session4-release",
+    "exit_code": 0
+  },
+  {
+    "suite": "session3-recovery",
+    "exit_code": 0
+  },
+  {
+    "suite": "session3-usability",
+    "exit_code": 0
+  },
+  {
+    "suite": "session3-production",
+    "exit_code": 0
+  },
+  {
+    "suite": "session2-acceptance",
+    "exit_code": 0
+  },
+  {
+    "suite": "session-repair",
+    "exit_code": 0
+  },
+  {
+    "suite": "interaction-cards",
+    "exit_code": 0
+  },
+  {
+    "suite": "homepage-audit",
+    "exit_code": 0
+  },
+  {
+    "suite": "public-header",
+    "exit_code": 0
+  }
+]

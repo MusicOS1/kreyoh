@@ -19,3 +19,8 @@ export async function updateFanLibrary(kind:string,id:string,enabled:boolean,lab
   if(error)throw error;return {ok:true};
  }catch(e){return {ok:false,error:e instanceof Error&&e.message.includes('available')?e.message:'Could not save. Confirm your email and try again.'};}
 }
+
+export async function addReleaseToPlaylist(id:string,releaseId:string){
+ try{if(!uuidPattern.test(id)||!uuidPattern.test(releaseId))throw Error('Invalid playlist.');const{user,admin}=await communityAccount();const{error}=await admin.rpc('add_release_to_playlist',{p_user:user.id,p_playlist:id,p_release:releaseId});if(error)throw Error(error.message);return{ok:true};}
+ catch(error){return{ok:false,error:error instanceof Error?error.message:'Could not update playlist.'};}
+}

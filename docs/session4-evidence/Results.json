@@ -1,0 +1,13 @@
+{
+  "checks": [
+    "Project Lead prepares the existing approved track; recording artist is the credited artist, not the uploader",
+    "Submission freezes approved master/artwork via server copy without a second upload; metadata and source history are preserved",
+    "Fan cannot play an unpublished release or approve it through a forged request",
+    "Authorised music administrator requests changes, receives a revised submission, approves that revision and explicitly publishes it",
+    "Public release reaches the correct artist profile; follow, save and existing playlist addition persist; navigation preserves playing audio",
+    "Billboard vote, sharing and comments work; artist metrics count genuine fixture follows, saves, votes and comments without inventing plays",
+    "Release campaign uses eight existing project tasks and does not invalidate production sign-off"
+  ],
+  "errors": [],
+  "scope": "Local Chromium, real Next handlers, isolated PostgreSQL and local S3 protocol fixture. Not external R2 or real Supabase account acceptance."
+}
