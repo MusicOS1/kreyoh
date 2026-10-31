@@ -93,14 +93,14 @@ returns table (
  ),
  p as (
   select x.release_id,count(*)::bigint plays,count(distinct x.listener_key)::bigint unique_listeners
-  from public.music_play_sessions x,cross join bounds b
+  from public.music_play_sessions x cross join bounds b
   where x.qualified_at>=b.start_at and x.qualified_at<b.end_at
   group by x.release_id
  ),
  l as (
   select x.release_id,count(*)::bigint likes,
          count(*) filter(where x.created_at>=b.start_at and x.created_at<b.end_at)::bigint period_likes
-  from public.music_release_likes x,cross join bounds b group by x.release_id
+  from public.music_release_likes x cross join bounds b group by x.release_id
  ),
  f as (
   select x.item_id artist_id,count(*)::bigint followers from public.fan_music_library x
@@ -108,7 +108,7 @@ returns table (
  ),
  fg as (
   select x.artist_id,coalesce(sum(case when x.action='follow' then 1 else -1 end),0)::bigint follower_growth
-  from public.music_artist_follow_events x,cross join bounds b
+  from public.music_artist_follow_events x cross join bounds b
   where x.created_at>=b.start_at and x.created_at<b.end_at group by x.artist_id
  ),
  v as (
