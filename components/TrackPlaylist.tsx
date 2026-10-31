@@ -21,6 +21,7 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
  const playNextId=useRef<string|null>(null);
  const played=useRef<number[]>([]),history=useRef<number[]>([]);
  const audioRef=useRef<HTMLAudioElement>(null),autoPlayRef=useRef(autoStart),listenRecorded=useRef(new Set(tracks.filter(t=>t.listened).map(t=>t.id)));
+ const playMeter=useRef<{releaseId:string;sessionId:string;lastPosition:number;listened:number;duration:number;phase:'starting'|'ready'|'posting'|'done'|'failed'}|null>(null);
 
  useEffect(()=>{const id=localTracks[current]?.id;setLocalTracks(tracks);const next=tracks.findIndex(t=>t.id===id);setCurrent(next<0?0:next);played.current=[];history.current=[];},[tracks]);
  useEffect(()=>{
@@ -69,6 +70,44 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
  function ended(){advance(true);}
  function togglePlayback(){setCanResume(false);const p=audioRef.current;if(!p)return;p.paused?p.play().catch(()=>setIsPlaying(false)):p.pause();}
 
+
+ // Public listening analytics remain separate from private project voting/listening.
+ function startMeasuredPlay(){
+  const audio=audioRef.current;
+  if(!audio||!selected?.src.startsWith('/api/releases/')||!Number.isFinite(audio.duration)||audio.duration<3)return;
+  const previous=playMeter.current;
+  if(previous?.releaseId===selected.id&&['starting','ready','posting'].includes(previous.phase))return;
+  const meter:{releaseId:string;sessionId:string;lastPosition:number;listened:number;duration:number;phase:'starting'|'ready'|'posting'|'done'|'failed'}={
+   releaseId:selected.id,sessionId:crypto.randomUUID(),lastPosition:audio.currentTime,listened:0,duration:audio.duration,phase:'starting'
+  };
+  playMeter.current=meter;
+  void fetch('/api/listening/plays',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+   action:'start',releaseId:meter.releaseId,sessionId:meter.sessionId,duration:meter.duration,
+   source:pathname==='/billboard'?'billboard':pathname.startsWith('/billboard/')?'release':'public-player'
+  })}).then(async response=>{const data=await response.json();if(!response.ok||!data.ok)throw Error('Not started');if(playMeter.current===meter)meter.phase='ready';})
+  .catch(()=>{if(playMeter.current===meter)meter.phase='failed';});
+ }
+ function measurePublicPlay(){
+  const audio=audioRef.current;
+  if(!audio||!selected?.src.startsWith('/api/releases/')||audio.paused)return;
+  let meter=playMeter.current;
+  if(!meter||meter.releaseId!==selected.id){startMeasuredPlay();meter=playMeter.current;}
+  if(!meter||meter.releaseId!==selected.id)return;
+  const current=audio.currentTime;
+  if(current<meter.lastPosition-2&&meter.phase==='done'){startMeasuredPlay();meter=playMeter.current;if(!meter)return;}
+  const delta=current-meter.lastPosition;
+  meter.lastPosition=current;
+  // Seeking forward or jumping over audio never earns listening seconds.
+  if(audio.seeking||delta<=0||delta>Math.max(2,3*audio.playbackRate))return;
+  meter.listened+=delta;
+  if(meter.phase!=='ready'||meter.listened<Math.min(30,meter.duration*.5))return;
+  meter.phase='posting';
+  void fetch('/api/listening/plays',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+   action:'qualify',releaseId:meter.releaseId,sessionId:meter.sessionId,listenedSeconds:Number(meter.listened.toFixed(2))
+  })}).then(async response=>{const data=await response.json();if(!response.ok||!data.ok)throw Error('Not verified');meter.phase='done';})
+  .catch(()=>{meter.phase='failed';});
+ }
+
  function captureListen(){
   if(!enableRanking||!votingOpen)return;
   const p=audioRef.current;if(!p?.duration||listenRecorded.current.has(selected.id))return;
@@ -100,7 +139,7 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
    <div className="track-player-copy"><span>NOW PLAYING</span><h3>{selected.title}</h3><p>{selected.subtitle}</p></div>
    <audio ref={audioRef} key={selected.src} src={selected.src} preload="metadata" onLoadedMetadata={()=>{setDuration(audioRef.current?.duration||0);const pending=pendingPosition.current;
     const audio=audioRef.current;
-    if(audio){audio.volume=volume;if(pending?.id===selected.id){const time=Math.min(pending.position,Math.max(0,(Number.isFinite(audio.duration)?audio.duration:pending.position)-.1));audio.currentTime=time;setPosition(time);pendingPosition.current=null;}else setPosition(0);}}} onPlay={()=>{setIsPlaying(true);onPlaybackChange?.(selected.id,true);onTrackPlay?.(selected.id);}} onPause={()=>{savePosition(true);setIsPlaying(false);onPlaybackChange?.(selected.id,false);}} onTimeUpdate={()=>{savePosition();setPosition(audioRef.current?.currentTime||0);captureListen();if(audioRef.current)onProgress?.(selected.id,audioRef.current.currentTime,Number.isFinite(audioRef.current.duration)?audioRef.current.duration:0);}} onEnded={ended} onError={()=>{setIsPlaying(false);setNotice("This audio could not be loaded. Refresh the page and try again.");}}/>
+    if(audio){audio.volume=volume;if(pending?.id===selected.id){const time=Math.min(pending.position,Math.max(0,(Number.isFinite(audio.duration)?audio.duration:pending.position)-.1));audio.currentTime=time;setPosition(time);pendingPosition.current=null;}else setPosition(0);}}} onPlay={()=>{setIsPlaying(true);startMeasuredPlay();onPlaybackChange?.(selected.id,true);onTrackPlay?.(selected.id);}} onPause={()=>{savePosition(true);setIsPlaying(false);onPlaybackChange?.(selected.id,false);}} onTimeUpdate={()=>{savePosition();setPosition(audioRef.current?.currentTime||0);captureListen();measurePublicPlay();if(audioRef.current)onProgress?.(selected.id,audioRef.current.currentTime,Number.isFinite(audioRef.current.duration)?audioRef.current.duration:0);}} onSeeking={()=>{if(playMeter.current)playMeter.current.lastPosition=audioRef.current?.currentTime||0;}} onEnded={ended} onError={()=>{setIsPlaying(false);setNotice("This audio could not be loaded. Refresh the page and try again.");}}/>
    {canResume&&<button type="button" className="resume-listening" onClick={togglePlayback}>Resume Listening</button>}
    <div className="player-progress"><input type="range" aria-label="Seek in track" min={0} max={Number.isFinite(duration)?duration:0} step={0.1} value={position} onChange={e=>{if(audioRef.current)audioRef.current.currentTime=Number(e.target.value);setPosition(Number(e.target.value));}}/><div><span>{clock(position)}</span><span>{clock(Number.isFinite(duration)?duration:0)}</span></div></div>
    <div className="track-playlist-transport" aria-label="Playlist controls"><button type="button" aria-label="Shuffle" aria-pressed={shuffle} onClick={()=>{played.current=[];setShuffle(value=>!value);}} title="Shuffle">⤨</button><button type="button" onClick={previousTrack} aria-label="Previous track">◀◀</button><button type="button" className="main" onClick={togglePlayback} aria-label={isPlaying?"Pause":"Play"}>{isPlaying?"Ⅱ":"▶"}</button><button type="button" onClick={nextTrack} aria-label="Next track">▶▶</button><button type="button" aria-label={`Repeat: ${repeat}`} aria-pressed={repeat!=="off"} title={`Repeat: ${repeat}`} onClick={()=>setRepeat(value=>value==="off"?"all":value==="all"?"one":"off")}>{repeat==="one"?"↻ 1":"↻"}</button></div><p className="player-mode-label">{shuffle?"Shuffle on":"In order"} · Repeat {repeat} · {current+1} / {localTracks.length}</p>
