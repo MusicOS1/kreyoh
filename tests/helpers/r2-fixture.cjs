@@ -6,6 +6,6 @@ https.request=function(input,options,callback){
  if(typeof input==='string'||input instanceof URL){const url=new URL(input);config={protocol:url.protocol,hostname:url.hostname,path:url.pathname+url.search,...(typeof options==='object'?options:{})};callback=typeof options==='function'?options:callback;}
  else{config={...input};callback=options;}
  config.hostname=config.hostname||config.host;
- if(['fixture.00000000000000000000000000000000.r2.cloudflarestorage.com','00000000000000000000000000000000.r2.cloudflarestorage.com'].includes(config.hostname))return http.request({...config,path:(config.hostname.startsWith('fixture.')?'/fixture':'')+config.path,protocol:'http:',hostname:'127.0.0.1',host:'127.0.0.1',port:54330,agent:undefined},callback);
+ if(['fixture.00000000000000000000000000000000.r2.cloudflarestorage.com','00000000000000000000000000000000.r2.cloudflarestorage.com'].includes(config.hostname))return http.request({...config,path:(config.hostname.startsWith('fixture.')?'/fixture':'')+config.path,protocol:'http:',hostname:'127.0.0.1',host:'127.0.0.1',port:Number(process.env.FACKTS_R2_TEST_PORT||54330),agent:undefined},callback);
  return original.call(this,input,options,callback);
 };
