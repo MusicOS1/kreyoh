@@ -173,10 +173,10 @@ begin
   'saves',(select count(*) from fan_music_library where kind='saved' and item_id=r.id),
   'eligible_weekly_votes',(select count(*) from music_votes where release_id=r.id and week_start=week and release_public_eligible(r.id)),
   'comments',(select count(*) from music_release_comments where release_id=r.id and deleted_at is null),
-  'qualified_plays_this_week',(select count(*) from music_play_sessions where release_id=r.id and qualified_at>=week::timestamp at time zone 'Africa/Nairobi'),
-  'unique_listeners_this_week',(select count(distinct listener_key) from music_play_sessions where release_id=r.id and qualified_at>=week::timestamp at time zone 'Africa/Nairobi'),
+  'qualified_plays_this_week',(select count(*) from music_play_sessions where release_id=r.id and qualified_at>=(week::timestamp at time zone 'Africa/Nairobi')),
+  'unique_listeners_this_week',(select count(distinct listener_key) from music_play_sessions where release_id=r.id and qualified_at>=(week::timestamp at time zone 'Africa/Nairobi')),
   'likes',(select count(*) from music_release_likes where release_id=r.id),
-  'follower_growth_this_week',(select coalesce(sum(case when action='follow' then 1 else -1 end),0) from music_artist_follow_events where artist_id=r.artist_id and created_at>=week::timestamp at time zone 'Africa/Nairobi'),
+  'follower_growth_this_week',(select coalesce(sum(case when action='follow' then 1 else -1 end),0) from music_artist_follow_events where artist_id=r.artist_id and created_at>=(week::timestamp at time zone 'Africa/Nairobi')),
   'billboard_score',(select chart_score from billboard_metrics(week,week+6) where release_id=r.id)
  );
 end $$;
