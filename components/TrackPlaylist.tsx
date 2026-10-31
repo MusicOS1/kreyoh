@@ -103,7 +103,7 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
   if(meter.phase!=='ready'||meter.listened<Math.min(30,meter.duration*.5))return;
   meter.phase='posting';
   void fetch('/api/listening/plays',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-   action:'qualify',releaseId:meter.releaseId,sessionId:meter.sessionId,listenedSeconds:Math.floor(meter.listened)
+   action:'qualify',releaseId:meter.releaseId,sessionId:meter.sessionId,listenedSeconds:Number(meter.listened.toFixed(2))
   })}).then(async response=>{const data=await response.json();if(!response.ok||!data.ok)throw Error('Not verified');meter.phase='done';})
   .catch(()=>{meter.phase='failed';});
  }
