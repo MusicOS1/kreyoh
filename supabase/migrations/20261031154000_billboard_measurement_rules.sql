@@ -155,3 +155,30 @@ revoke all on public.music_weekly_chart from public,anon,authenticated;
 grant select on public.music_weekly_chart to service_role;
 
 -- Current followers (11 before rollout) remain real; no invented historic follow, like or play events.
+
+-- Extend existing artist-level release analytics without replacing prior saves/votes/comments.
+create or replace function public.release_engagement(p_actor uuid,p_release uuid) returns jsonb
+language plpgsql stable security invoker set search_path=public,pg_temp as $$
+declare r music_releases%rowtype; week date;
+begin
+ select * into strict r from music_releases where id=p_release;
+ if not exists(select 1 from profiles where id=p_actor and account_status='active') or not (
+  exists(select 1 from control_room_admins where user_id=p_actor and active and (permissions @> array['all']::text[] or permissions @> array['music']::text[])) or
+  exists(select 1 from project_members where project_id=r.source_project_id and user_id=p_actor and status='active') and (p_actor in (r.artist_id,r.submitted_by) or production_has_role(r.source_project_id,p_actor,array['Super Admin','Admin','Project Lead','A&R','Manager']))
+ ) then raise exception 'Release analytics access required.';end if;
+ week:=date_trunc('week',now() at time zone 'Africa/Nairobi')::date;
+ return jsonb_build_object(
+  'published_releases',(select count(*) from music_releases x where x.artist_id=r.artist_id and release_public_eligible(x.id)),
+  'followers',(select count(*) from fan_music_library where kind='following' and item_id=r.artist_id),
+  'saves',(select count(*) from fan_music_library where kind='saved' and item_id=r.id),
+  'eligible_weekly_votes',(select count(*) from music_votes where release_id=r.id and week_start=week and release_public_eligible(r.id)),
+  'comments',(select count(*) from music_release_comments where release_id=r.id and deleted_at is null),
+  'qualified_plays_this_week',(select count(*) from music_play_sessions where release_id=r.id and qualified_at>=week::timestamp at time zone 'Africa/Nairobi'),
+  'unique_listeners_this_week',(select count(distinct listener_key) from music_play_sessions where release_id=r.id and qualified_at>=week::timestamp at time zone 'Africa/Nairobi'),
+  'likes',(select count(*) from music_release_likes where release_id=r.id),
+  'follower_growth_this_week',(select coalesce(sum(case when action='follow' then 1 else -1 end),0) from music_artist_follow_events where artist_id=r.artist_id and created_at>=week::timestamp at time zone 'Africa/Nairobi'),
+  'billboard_score',(select chart_score from billboard_metrics(week,week+6) where release_id=r.id)
+ );
+end $$;
+revoke all on function public.release_engagement(uuid,uuid) from public,anon,authenticated;
+grant execute on function public.release_engagement(uuid,uuid) to service_role;
