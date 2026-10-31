@@ -15,6 +15,7 @@ import "./fan-polish.css";
 import "./music-admin-heros.css";
 import "./music-ecosystem.css";
 import "./legal.css";
+import ClientDiagnosticReporter from "../components/ClientDiagnosticReporter";
 import SessionExperience from "../components/SessionExperience";
 import ListeningProvider from "../components/ListeningProvider";
 import PwaRegister from "../components/PwaRegister";
@@ -46,6 +47,7 @@ export default function RootLayout({children}:Readonly<{children:React.ReactNode
   return<html lang="en" data-scroll-behavior="smooth" className="fm-v3-root">
     <body className="fm-v3-body">
       {process.env.NODE_ENV==='development'&&process.env.LOCAL_DEMO_DATA==='true'&&<aside style={{padding:'8px 16px',background:'#302719',color:'#d9bc8a',font:'12px system-ui',textAlign:'center'}} role="status">Local demo · synthetic records · no production data</aside>}
+      <ClientDiagnosticReporter/>
       <SessionExperience><ListeningProvider>{children}</ListeningProvider></SessionExperience>
       <GlobalVideoPlayer/>
       <PwaRegister/>
