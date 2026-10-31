@@ -1,3 +1,4 @@
+import {isRecoveryCallback} from "../../../lib/passwordRecovery";
 import { NextResponse } from "next/server";
 import { createClient } from "../../../lib/supabase/server";
 import { createAdminClient } from "../../../lib/supabase/admin";
@@ -15,7 +16,13 @@ export async function GET(request: Request) {
 
   const supabase = await createClient();
   const { data, error } = code ? await supabase.auth.exchangeCodeForSession(code) : await supabase.auth.verifyOtp({ token_hash: tokenHash!, type: type as "signup" | "invite" | "recovery" | "email" });
-  if (error || !data.user) return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(next)}&error=${encodeURIComponent(error?.message || "Confirmation failed.")}`, url.origin));
+  if (error || !data.user) return NextResponse.redirect(new URL(isRecoveryCallback(url) ? "/forgot-password?error=The%20reset%20link%20is%20invalid%20or%20expired.%20Request%20a%20new%20one." : `/login?next=${encodeURIComponent(next)}&error=${encodeURIComponent(error?.message || "Confirmation failed.")}`, url.origin));
+
+  if(isRecoveryCallback(url)){
+    // The Supabase PKCE/code or token-hash has been verified and a session set.
+    // A password must be chosen before returning to login, not /home.
+    return NextResponse.redirect(new URL("/set-password?recovery=1",url.origin));
+  }
 
   const admin = createAdminClient();
   const metadata = data.user.user_metadata || {};
