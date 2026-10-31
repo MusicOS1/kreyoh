@@ -21,7 +21,7 @@ export default async function BillboardAnalytics({searchParams}:{searchParams:Pr
   chart(),admin.rpc('billboard_metrics',{p_from:range.from,p_to:range.to})
  ]);
  const ready=!measurements.error;
- const byId=new Map((measurements.data||[]).map((row:Metrics)=>[row.release_id,row]));
+ const byId=new Map<string,Metrics>((measurements.data||[]).map((row:Metrics)=>[row.release_id,row] as const));
  const rows=chartRows.map(release=>({release,stats:byId.get(release.id)}))
   .sort((a,b)=>(Number(b.stats?.chart_score)||0)-(Number(a.stats?.chart_score)||0)
    ||(Number(b.stats?.plays)||0)-(Number(a.stats?.plays)||0));
