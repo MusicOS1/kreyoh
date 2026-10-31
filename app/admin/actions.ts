@@ -1,5 +1,6 @@
 "use server";
 
+import {classifyAuthFailure,recordAuthDiagnostic} from "../../lib/diagnostics";
 import {safeNext} from "../../lib/navigation";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -10,16 +11,33 @@ import { createAdminClient } from "../../lib/supabase/admin";
 export async function controlRoomLogin(formData: FormData) {
   const email=String(formData.get("email")||"").trim().toLowerCase();
   const password=String(formData.get("password")||"");
-  if(!email||!password) redirect("/admin/login?error=Enter+your+email+and+password.");
+  const started=Date.now();
+  await recordAuthDiagnostic({event:"login_attempted",surface:"control_room"});
+  if(!email||!password){
+    await recordAuthDiagnostic({event:"login_failed",surface:"control_room",reason:"missing_fields",durationMs:Date.now()-started});
+    redirect("/admin/login?error=Enter+your+email+and+password.");
+  }
   const supabase=await createClient();
-  const {data,error}=await supabase.auth.signInWithPassword({email,password});
-  if(error||!data.user) redirect("/admin/login?error=Access+unavailable.");
-  if(!(await isControlRoomUser(data.user.id)))redirect("/admin/access-unavailable");
+  let signedUserId:string|null=null;
+  let failure:unknown=null;
+  try {
+    const result=await supabase.auth.signInWithPassword({email,password});
+    signedUserId=result.data.user?.id||null;
+    failure=result.error;
+  }catch(cause){failure=cause;}
+  if(!signedUserId){
+    await recordAuthDiagnostic({event:"login_failed",surface:"control_room",reason:classifyAuthFailure(failure),durationMs:Date.now()-started});
+    redirect("/admin/login?error=Access+unavailable.");
+  }
+  if(!(await isControlRoomUser(signedUserId))){
+    await recordAuthDiagnostic({event:"login_access_denied",surface:"control_room",reason:"access_denied",userId:signedUserId,durationMs:Date.now()-started});
+    redirect("/admin/access-unavailable");
+  }
   const admin=createAdminClient();
   const now=new Date().toISOString();
   await Promise.all([
-    admin.from("profiles").update({last_login_at:now,last_active_at:now}).eq("id",data.user.id),
-    admin.from("auth_events").insert({user_id:data.user.id,event_name:"login_completed",metadata:{surface:"control_room"}}),
+    admin.from("profiles").update({last_login_at:now,last_active_at:now}).eq("id",signedUserId),
+    admin.from("auth_events").insert({user_id:signedUserId,event_name:"login_completed",metadata:{surface:"control_room"}}),
   ]);
   revalidatePath("/","layout");
   const next=safeNext(String(formData.get("next")||""),"/admin");

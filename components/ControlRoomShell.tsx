@@ -26,6 +26,7 @@ const navigation = [
   { label: "Voting intelligence", href: "/admin/voting", group: "Intelligence", permission: "intelligence" },
   { label: "Activity", href: "/admin/activity", group: "Intelligence", permission: "intelligence" },
   { label: "Analytics", href: "/admin/analytics", group: "Intelligence", permission: "intelligence" },
+  { label: "Diagnostics & failures", href: "/admin/diagnostics", group: "Platform", permission: "system" },
   { label: "System settings", href: "/admin/system", group: "Platform", permission: "system" },
 ];
 
