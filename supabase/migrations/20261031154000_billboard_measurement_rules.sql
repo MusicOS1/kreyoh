@@ -112,8 +112,8 @@ returns table (
   where x.created_at>=b.start_at and x.created_at<b.end_at group by x.artist_id
  ),
  v as (
-  select x.release_id,count(*)::bigint votes from public.music_votes x
-  where x.week_start>=p_from and x.week_start<=p_to group by x.release_id
+  select x.release_id,count(*)::bigint votes from public.music_votes x cross join bounds b
+  where x.created_at>=b.start_at and x.created_at<b.end_at group by x.release_id
  ),
  stats as (
   select r.id release_id,coalesce(p.plays,0)::bigint plays,coalesce(p.unique_listeners,0)::bigint unique_listeners,
