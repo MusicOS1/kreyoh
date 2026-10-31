@@ -12,6 +12,7 @@ export default function SetPasswordPage(){
   const [confirmPassword,setConfirmPassword]=useState("");
   const [message,setMessage]=useState("");
   const [ready,setReady]=useState(false);
+  const [accountEmail,setAccountEmail]=useState("");
   const [checking,setChecking]=useState(true);
   const [saving,setSaving]=useState(false);
 
@@ -27,7 +28,7 @@ export default function SetPasswordPage(){
         const {data,error}=await supabase.auth.getUser();
         if(!active)return;
         if(error || !data.user) setMessage(error?"Could not verify this link. Try again or request another.":"The reset link has expired or was already used. Request a new one.");
-        else setReady(true);
+        else {setAccountEmail(data.user.email||"");setReady(true);}
       }catch{
         if(active)setMessage("Could not verify your recovery session. Please retry.");
       }finally{if(active)setChecking(false);}
@@ -61,6 +62,7 @@ export default function SetPasswordPage(){
         <div><span className="eyebrow">SECURE ACCOUNT RECOVERY</span>
           <h2>Set your new password</h2>
           <p>Choose a new password for your FACKTS Music account.</p>
+          {accountEmail&&<p>Account: <strong>{accountEmail}</strong></p>}
         </div>
         {checking&&<p role="status">Verifying your secure link…</p>}
         {message&&<div className="form-error-alert" role="alert">{message}</div>}

@@ -32,10 +32,27 @@ export default function PasswordRecoveryCallback(){
           const result=await supabase.auth.verifyOtp({token_hash,type:"recovery"});
           error=result.error;
         } else {
+          // The global auth provider may already have consumed a valid URL
+          // fragment and persisted its session before this component mounts.
+          const existing=await supabase.auth.getUser();
+          if(!existing.error&&existing.data.user){
+            window.location.replace("/set-password?recovery=1");
+            return;
+          }
           if(active)setStatus("This link is incomplete or has expired. Request a new password reset link.");
           return;
         }
-        if(error){if(active)setStatus("This link could not be verified or was already used. Request another.");return;}
+        if(error){
+          // If the shared browser client processed the same one-time token
+          // first, use its verified session instead of showing a false expiry.
+          const existing=await supabase.auth.getUser();
+          if(!existing.error&&existing.data.user){
+            window.location.replace("/set-password?recovery=1");
+            return;
+          }
+          if(active)setStatus("This link could not be verified or was already used. Request another.");
+          return;
+        }
         const {data, error:userError}=await supabase.auth.getUser();
         if(userError||!data.user){
           if(active)setStatus("We could not establish a secure recovery session. Request another link.");
