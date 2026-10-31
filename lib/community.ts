@@ -12,9 +12,17 @@ export async function communityAccount(){
 }
 export async function viewer(){const client=await createClient();const{data:{user}}=await client.auth.getUser();return user;}
 export async function chart(){
- const{data,error}=await readAllRows(()=>createAdminClient().from("music_weekly_chart").select("*").order("votes",{ascending:false}).order("release_at",{ascending:false}).order("id"));
- if(error)throw new Error("The Billboard could not be loaded. Please try again.");
- return data||[];
+ const admin=createAdminClient();
+ const ranked=await readAllRows(()=>admin.from("music_weekly_chart").select("*")
+  .order("chart_score",{ascending:false}).order("plays",{ascending:false}).order("votes",{ascending:false})
+  .order("release_at",{ascending:false}).order("id"));
+ if(!ranked.error)return ranked.data||[];
+ // Existing staged Session 4 previews have no measurement migration yet.
+ // Preserve their voting chart instead of breaking public discovery before rollout.
+ const fallback=await readAllRows(()=>admin.from("music_weekly_chart").select("*")
+  .order("votes",{ascending:false}).order("release_at",{ascending:false}).order("id"));
+ if(fallback.error)throw new Error("The Billboard could not be loaded. Please try again.");
+ return fallback.data||[];
 }
 export function currentChartWeek(){
  const now=new Date(Date.now()+3*3600000);const day=(now.getUTCDay()+6)%7;
