@@ -1,6 +1,7 @@
 "use client";
 import {useMemo,useState} from "react";
 import Link from "next/link";
+import MixtapeArtistStage from "./MixtapeArtistStage";
 import type {MusicArtist} from "../lib/musicArtistsTypes";
 import {creditedToArtist,releaseHasArtist} from "../lib/releaseArtistMatch";
 type Release={explicit_artist_link?:boolean;featured_artist_ids?:string[];id:string;title:string;artist_id:string;artist_name:string;has_cover:boolean;collection:string;genre?:string;release_at:string;votes:number};
@@ -49,20 +50,15 @@ export default function ArtistDiscovery({
   {followNotice&&<p role="status">{followNotice}</p>}
   {selectedArtist?<div className="fm-artist-detail" key={selectedArtist.id}>
    <button type="button" className="fm-artist-back" onClick={()=>setSelected(null)}>← All artists</button>
-   <div className="fm-artist-detail-hero">
-    <div className="fm-artist-detail-photo">
-     {artistPhoto(selectedArtist)?<img src={artistPhoto(selectedArtist)!} alt={selectedArtist.name}/>:<span>{artistName(selectedArtist)}</span>}
-    </div>
-    <div className="fm-artist-detail-info"><span className="eyebrow">FACKTS ARTIST</span><h3>{selectedArtist.name}</h3>
-     <p>{selectedArtist.tagline||selectedArtist.bio||"Discover the sound and story behind this FACKTS artist."}</p>
-     {selectedArtist.location&&<small>{selectedArtist.location}</small>}
-     {selectedArtist.genres.length>0&&<div className="fm-artist-tags">{selectedArtist.genres.map(g=><span key={g}>{g}</span>)}</div>}
-     <div className="fm-artist-detail-actions">
-      {selectedArtist.catalogueOnly?<span>Official profile coming soon</span>:viewerId?<button type="button" disabled={followPending(selectedArtist.id)} aria-busy={followPending(selectedArtist.id)} onClick={()=>onFollow(selectedArtist.id)} aria-pressed={following(selectedArtist.id)}>{following(selectedArtist.id)?"✓ Following":"+ Follow artist"}</button>:<Link href={"/login?next="+encodeURIComponent("/fan?tab=Artists")}>Sign in to follow</Link>}
-      <span>{artistReleases.length} released track{artistReleases.length===1?"":"s"} on FACKTS</span>
-     </div>
-    </div>
-   </div>
+   <MixtapeArtistStage className="mx-discovery-stage" name={selectedArtist.name}
+      portrait={selectedArtist.hero||selectedArtist.avatar} description={selectedArtist.tagline||selectedArtist.bio}
+      genres={selectedArtist.genres} location={selectedArtist.location}
+      actions={<>
+        {artistReleases.length>0&&<button type="button" className="mx-primary-action" onClick={()=>onPlay(artistReleases[0])}>▶ Play music</button>}
+        {selectedArtist.catalogueOnly?<span className="mx-stage-notice">Official profile coming soon</span>:viewerId?<button type="button" className="mx-outline-action" disabled={followPending(selectedArtist.id)} aria-busy={followPending(selectedArtist.id)} aria-pressed={following(selectedArtist.id)} onClick={()=>onFollow(selectedArtist.id)}>{following(selectedArtist.id)?"✓ Following":"+ Follow artist"}</button>:<Link className="mx-outline-action" href={"/login?next="+encodeURIComponent("/fan?tab=Artists")}>Sign in to follow</Link>}
+        {!selectedArtist.catalogueOnly&&<Link className="mx-stage-profile-link" href={"/creators/"+encodeURIComponent(selectedArtist.slug||selectedArtist.id)}>Full profile ↗</Link>}
+      </>}
+   />
    <div className="fm-artist-releases"><h4>Releases on FACKTS</h4>
     {artistReleases.length===0?<p className="fm-artist-empty">New releases from this artist will appear here after they are approved and published.</p>:
      <div className="fm-artist-release-list">{artistReleases.map(release=><article key={release.id}>
