@@ -27,7 +27,7 @@ export async function withPublicEngagement<T extends {id:string;artist_id:string
  const follows=count(followed.error?[]:followed.data,'item_id');
  const comments=count(commentRows.error?[]:commentRows.data,'release_id');
  const likes=count(liked.error?[]:liked.data,'release_id');
- const playsById=new Map((qualified.error?[]:qualified.data||[]).map(row=>[row.release_id,Number(row.plays||0)]));
+ const playsById=new Map<string,number>((qualified.error?[]:qualified.data||[]).map((row:{release_id:string;plays:number|string}):[string,number]=>[row.release_id,Number(row.plays||0)]));
  return releases.map(r=>{
   const markers=new Map<number,number>();
   if(!timed.error)for(const c of timed.data||[]){
