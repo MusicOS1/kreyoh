@@ -5,7 +5,7 @@ import {viewer,chart} from "../../../lib/community";
 import Link from "next/link";
 import PublicNavigation from "../../../components/PublicNavigation";
 import PublicFooter from "../../../components/PublicFooter";
-import MixtapeThemeToggle from "../../../components/MixtapeThemeToggle";
+import "../../streaming-public.css";
 import MixtapeArtistStage from "../../../components/MixtapeArtistStage";
 import { creatorDisplayName } from "../../../lib/profileIdentity";
 import {creditedToArtist,releaseHasArtist} from "../../../lib/releaseArtistMatch";
@@ -29,7 +29,7 @@ export default async function PublicCreatorPage({params}:{params:Promise<{userId
  const credits=(creditData||[]).map((c:any)=>({...c,tracks:{working_title:sourceTitles.get(c.track_id)}}));
  const {data:follow}=sessionUser?await admin.from('fan_music_library').select('item_id').eq('user_id',sessionUser.id).eq('kind','following').eq('item_id',profile.id).maybeSingle():{data:null};
  const content=<main className="public-creator-shell fm-mixtape-profile"><div className="content creator-profile-page public-creator-page">
-  <div className="fm-mixtape-profile-toolbar"><Link href="/creators">← Meet more artists</Link><MixtapeThemeToggle/></div>
+  <div className="fm-mixtape-profile-toolbar"><Link href="/creators">← Meet more artists</Link></div>
   <MixtapeArtistStage className="mx-profile-stage" name={name} portrait={profile.hero_image_url||profile.avatar_url}
      description={profile.epk_tagline||profile.bio||"Independent creator on FACKTS Music."}
      location={profile.location} genres={profile.skills_genres||[]}

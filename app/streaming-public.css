@@ -1,0 +1,79 @@
+/* Artist-first public FACKTS Music presentation. Scope excludes /. */
+.fm-mixtape-profile,.fm-creators-page{
+ --mx-bg:#0b0b0b!important;--mx-surface:#171717!important;--mx-soft:#232323!important;
+ --mx-ink:#ffffff!important;--mx-muted:#a1a1aa!important;--mx-accent:#ff6a00!important;
+ --mx-highlight:#ff6a00!important;--mx-signal:#ff6a00!important;--mx-line:#303034!important;
+ color:#fff!important;background:#0b0b0b!important;color-scheme:dark;
+ font-family:"DM Sans",sans-serif!important;min-height:100dvh;
+}
+.fm-mixtape-profile :is(h1,h2,h3,h4),.fm-creators-page :is(h1,h2,h3,h4){font-family:"Gotham","DM Sans",sans-serif!important;color:#fff!important}
+.fm-mixtape-profile :is(p,small),.fm-creators-page :is(p,small){font-family:"DM Sans",sans-serif;color:#a1a1aa!important}
+.fm-mixtape-profile .public-creator-page{max-width:1340px;margin:auto;padding:24px clamp(15px,4vw,45px) 120px}
+.fm-mixtape-profile-toolbar{display:flex;justify-content:space-between;margin:0 0 14px!important}
+.fm-mixtape-profile-toolbar a{color:#ff6a00!important;text-decoration:none;font-size:13px}
+.fm-mixtape-profile .mx-profile-stage{position:relative!important;display:flex!important;align-items:flex-end!important;
+ min-height:490px!important;max-height:none;border-radius:15px!important;border:1px solid #333!important;
+ isolation:isolate;overflow:hidden!important;background:#171717!important;color:#fff!important}
+.fm-mixtape-profile .mx-profile-stage .mx-stage-photo{position:absolute!important;inset:0 0 0 25%!important;
+ width:auto!important;height:100%!important;min-height:0!important;z-index:-2!important}
+.fm-mixtape-profile .mx-profile-stage .mx-stage-photo img{height:100%;width:100%;object-fit:cover;object-position:center 31%}
+.fm-mixtape-profile .mx-profile-stage:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+ background:linear-gradient(90deg,#0b0b0b 2%,rgba(11,11,11,.94) 33%,rgba(11,11,11,.45) 65%,transparent 100%)}
+.fm-mixtape-profile .mx-profile-stage .mx-stage-text{grid-column:auto!important;grid-row:auto!important;
+ width:min(69%,760px)!important;padding:clamp(28px,4.3vw,60px)!important;align-self:flex-end!important;z-index:1}
+.fm-mixtape-profile .mx-profile-stage .mx-stage-eyebrow{color:#ff6a00!important;font-weight:850;font-size:11px}
+.fm-mixtape-profile .mx-profile-stage h1{font:900 clamp(47px,6.4vw,98px)/.94 "Gotham","DM Sans",sans-serif!important;
+ letter-spacing:-.072em;text-transform:none;overflow-wrap:anywhere;margin:16px 0;color:#fff!important}
+.fm-mixtape-profile .mx-profile-stage h1:after{display:none!important}
+.fm-mixtape-profile .mx-profile-stage .mx-stage-text>p{color:#e3e3e3!important;max-width:500px;font-size:14px;line-height:1.65}
+.fm-mixtape-profile .mx-profile-stage .mx-stage-meta{color:#ccc}
+.fm-mixtape-profile .mx-profile-stage .mx-stage-actions{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin-top:20px}
+.fm-mixtape-profile .mx-profile-stage .mx-stage-actions :is(button,a){border:1px solid #ff6a00!important;background:#ff6a00!important;
+ color:#111!important;border-radius:99px!important;min-height:43px;padding:10px 17px;font-weight:800}
+.fm-mixtape-profile .mx-profile-stage .mx-stage-stamp{display:none}
+.fm-mixtape-profile-nav{display:flex;gap:25px;border-bottom:1px solid #303034;padding:16px 3px;margin:0 0 25px;overflow:auto}
+.fm-mixtape-profile-nav a{color:#e1e1e3!important;text-decoration:none;font-size:13px;font-weight:800}
+.fm-mixtape-profile-nav a:hover{color:#ff6a00!important}
+.fm-mixtape-profile .panel{background:#171717!important;border:1px solid #303034!important;border-radius:13px!important;
+ box-shadow:none!important;color:#fff!important}
+.fm-mixtape-profile .fm-creator-published{display:block!important;padding:25px!important}
+.fm-mixtape-profile .fm-creator-published-list{max-width:none!important}
+.fm-mixtape-profile .fm-creator-published-list article{background:#171717!important;border-color:#303034!important}
+.fm-mixtape-profile .fm-creator-published-list article :is(strong,small,span){color:#fff}
+.fm-mixtape-profile .fm-creator-published-list :is(button,a){color:#ff6a00}
+.fm-mixtape-profile .creator-section-heading .eyebrow{color:#ff6a00!important}
+.fm-mixtape-profile .creator-section-heading h2{font-size:30px;font-weight:900}
+.fm-mixtape-profile .creator-profile-grid{margin-top:24px}
+.fm-mixtape-profile :is(a,button):focus-visible,.fm-creators-page :is(a,button,input):focus-visible{outline:2px solid #ff6a00!important;outline-offset:3px}
+.fm-creators-page .fm-directory-hero{padding:60px clamp(16px,4vw,52px);background:#0b0b0b!important}
+.fm-creators-page .fm-v3-kicker{color:#ff6a00!important}
+.fm-creators-page .fm-directory-hero h1{font-size:clamp(46px,7vw,92px)!important;line-height:.98}
+.fm-creators-page .fm-directory-hero h1 em{font-style:normal;color:#ff6a00}
+.fm-creators-page .fm-directory-hero>p{color:#a1a1aa!important;font-size:14px}
+.fm-creators-page .fm-directory-search{border-color:#444!important;background:#171717!important}
+.fm-creators-page .fm-directory-search input{background:#171717!important;color:#fff!important}
+.fm-creators-page .fm-directory-search button{background:#ff6a00!important;color:#111!important}
+.fm-creators-page .fm-directory-controls{border-color:#303034}
+.fm-creators-page .fm-directory-filters a{border-color:#404046!important;color:#a1a1aa!important;background:#1a1a1a}
+.fm-creators-page .fm-directory-filters a.active{background:#ff6a00!important;color:#111!important;border-color:#ff6a00!important}
+.fm-creators-page .fm-directory-count :is(strong,span){color:#fff}
+.fm-creators-page .fm-directory-card{background:#171717!important;border:1px solid #303034!important;border-radius:14px!important;
+ overflow:hidden;box-shadow:none!important}
+.fm-creators-page .fm-directory-photo img{object-fit:cover}
+.fm-creators-page .fm-directory-copy :is(h2,b){color:#fff!important}
+.fm-creators-page .fm-directory-copy b{color:#ff6a00!important}
+.fm-creators-page .fm-directory-copy :is(span,p,small){color:#a1a1aa!important}
+.fm-creators-page .fm-directory-pagination a{color:#ff6a00}
+@media(max-width:720px){
+ .fm-mixtape-profile .public-creator-page{padding:12px 13px 110px}
+ .fm-mixtape-profile .mx-profile-stage{display:flex!important;align-items:end!important;min-height:520px!important}
+ .fm-mixtape-profile .mx-profile-stage .mx-stage-photo{inset:0 0 35% 0!important;height:65%!important;width:100%!important}
+ .fm-mixtape-profile .mx-profile-stage:before{background:linear-gradient(0deg,#0b0b0b 0%,#0b0b0b 28%,rgba(11,11,11,.62) 49%,transparent 74%)}
+ .fm-mixtape-profile .mx-profile-stage .mx-stage-text{width:100%!important;padding:22px!important}
+ .fm-mixtape-profile .mx-profile-stage h1{font-size:clamp(43px,11vw,65px)!important;margin:12px 0}
+ .fm-mixtape-profile .mx-profile-stage .mx-stage-text>p{font-size:12px}
+ .fm-mixtape-profile .fm-creator-published{padding:15px!important}
+ .fm-creators-page .fm-directory-hero{padding:28px 16px}
+ .fm-creators-page .fm-directory-hero h1{font-size:clamp(43px,12vw,68px)!important}
+}
+@media(prefers-reduced-motion:reduce){.fm-mixtape-profile *, .fm-creators-page *{transition:none!important;animation:none!important}}
