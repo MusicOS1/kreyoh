@@ -30,20 +30,21 @@ export default async function PublicCreatorsPage({
   const queryText = cleanSearch(params.q);
   const role = filters.includes(String(params.role)) ? String(params.role) : "All";
 
-  let query = admin
-    .from("profiles")
-    .select("id,stage_name,nickname,avatar_url,hero_image_url,bio,epk_tagline,location,skills_genres,creator_types,public_slug", { count: "exact" })
-    .eq("profile_visibility", "public")
-    .eq("account_status", "active")
-    .order("stage_name", { ascending: true, nullsFirst: false })
-    .range(from, to);
-
-  if (queryText) {
-    query = query.or(`stage_name.ilike.%${queryText}%,nickname.ilike.%${queryText}%,bio.ilike.%${queryText}%,location.ilike.%${queryText}%`);
-  }
-  if (role !== "All") query = query.contains("creator_types", [role]);
-
-  const { data: creators = [], count = 0 } = await query;
+  // Query public profiles first, then apply a consistent search across names and
+  // profile aliases. Exact database ILIKE alone misses alternate spellings.
+  const {data:allCreators,error}=await admin.from("profiles")
+   .select("id,stage_name,nickname,full_name,avatar_url,hero_image_url,bio,epk_tagline,location,skills_genres,creator_types,public_slug")
+   .eq("profile_visibility","public").eq("account_status","active")
+   .order("stage_name",{ascending:true,nullsFirst:false}).limit(1000);
+  const norm=(v:string)=>v.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]/g,"").replace(/gh/g,"g");
+  const needle=norm(queryText);
+  const filtered=(allCreators||[]).filter((creator:any)=>{
+   const match=!needle||norm([creator.stage_name,creator.nickname,creator.full_name,creator.public_slug,creator.bio,creator.location,...(creator.skills_genres||[])].filter(Boolean).join(" ")).includes(needle);
+   return match&&(role==="All"||(creator.creator_types||[]).includes(role));
+  });
+  const count=filtered.length;
+  const creators=filtered.slice(from,to+1);
+  if(error)console.error("Public creator search is unavailable.");
   const pages = Math.max(1, Math.ceil((count || 0) / PAGE_SIZE));
 
   const queryFor = (targetPage: number) => {

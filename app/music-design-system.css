@@ -45,3 +45,18 @@ html[data-fm-theme="light"] [class*="ListenerExperience_hero"] :is(h1,p,span){co
 .fm-search-results>label{font-size:12px;font-weight:700}.fm-search-results input{width:100%;background:transparent;color:inherit;border:1px solid currentColor;border-radius:7px;padding:11px;margin:9px 0}
 .fm-search-matches{display:grid;gap:5px}.fm-search-matches a{display:grid;gap:3px;padding:8px;border:1px solid #ffffff15;border-radius:7px;color:inherit;text-decoration:none}.fm-search-matches small{font-size:10px;color:#e68f49}.fm-search-matches strong{font-size:13px}.fm-search-matches span{font-size:11px}
 @media(max-width:760px){.fm-search-results{position:fixed;left:10px;right:10px;top:75px;width:auto}}
+
+/* Public song engagement: 3 clear measures, optional actions behind More. */
+.fm-song-play-count {white-space:nowrap;font-size:12px;letter-spacing:0;color:inherit}
+.fm-public-song-metrics{display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:13px}
+.fm-public-song-metrics .release-like-control button{border:0!important;background:transparent!important;color:inherit!important;padding:5px!important}
+.billboard-list .chart-votes{display:flex!important;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:12px!important;font-size:12px}
+.billboard-list .chart-votes>strong,.billboard-list .chart-votes>.fm-song-play-count{font-size:12px!important;font-weight:600!important}
+.billboard-list .chart-votes>span,.billboard-list .chart-votes>a{font-size:12px!important;line-height:1.5;color:inherit;text-decoration:none}
+.billboard-list .chart-votes .release-like-control button{font-size:12px!important;border-radius:999px;min-height:32px;background:transparent}
+.billboard-list .chart-votes details{flex-basis:100%;font-size:11px}
+.billboard-list .chart-votes details>summary{width:max-content;cursor:pointer;color:inherit;opacity:.8;padding:4px}
+.billboard-list .chart-votes details[open]{display:flex;gap:10px;flex-wrap:wrap}
+.billboard-list .chart-votes details[open]>summary{flex-basis:100%}
+html[data-fm-theme="light"] .billboard-list .chart-votes :is(span,a,button,summary){color:#000!important}
+@media(max-width:760px){.billboard-list .chart-votes{gap:8px!important}.fm-public-song-metrics{gap:10px}.fm-song-play-count{font-size:11px}}

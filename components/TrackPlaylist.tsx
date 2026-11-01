@@ -130,7 +130,7 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
   meter.phase='posting';
   void fetch('/api/listening/plays',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
    action:'qualify',releaseId:meter.releaseId,sessionId:meter.sessionId,listenedSeconds:Number(meter.listened.toFixed(2))
-  })}).then(async response=>{const data=await response.json();if(!response.ok||!data.ok)throw Error('Not verified');meter.phase='done';})
+  })}).then(async response=>{const data=await response.json();if(!response.ok||!data.ok)throw Error('Not verified');meter.phase='done';if(data.counted===true)window.dispatchEvent(new CustomEvent('fm-public-qualified-play',{detail:{id:meter.releaseId}}));})
   .catch(()=>{meter.phase='failed';});
  }
 

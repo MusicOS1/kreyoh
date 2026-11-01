@@ -1,16 +1,17 @@
 "use client";
-import {useMemo,useState} from "react";
+import {useEffect,useMemo,useState} from "react";
 import Link from "next/link";
 import type {MusicArtist} from "../lib/musicArtistsTypes";
 import {creditedToArtist,releaseHasArtist} from "../lib/releaseArtistMatch";
 type Release={explicit_artist_link?:boolean;featured_artist_ids?:string[];id:string;title:string;artist_id:string;artist_name:string;has_cover:boolean;collection:string;genre?:string;release_at:string;votes:number;followers?:number|null};
 type ArtistEntry=MusicArtist&{catalogueOnly?:boolean};
 export default function ArtistDiscovery({
- artists,releases,viewerId,following,onFollow,onPlay,initialArtistId,followPending=()=>false,followNotice
+ artists,releases,viewerId,following,onFollow,onPlay,initialArtistId,searchQuery='',followPending=()=>false,followNotice
 }:{artists:MusicArtist[];releases:Release[];viewerId?:string;
- following:(id:string)=>boolean;onFollow:(id:string)=>void;onPlay:(release:Release)=>void;initialArtistId?:string|null;followPending?:(id:string)=>boolean;followNotice?:string}){
+ following:(id:string)=>boolean;onFollow:(id:string)=>void;onPlay:(release:Release)=>void;initialArtistId?:string|null;searchQuery?:string;followPending?:(id:string)=>boolean;followNotice?:string}){
  const [selected,setSelected]=useState<string|null>(initialArtistId||null);
- const [search,setSearch]=useState("");
+ const [search,setSearch]=useState(searchQuery);
+ useEffect(()=>{setSearch(searchQuery);},[searchQuery]);
  const [genre,setGenre]=useState("All");
  // Public releases can credit an act whose full profile has not yet been published.
  // Show only the already-public stage name, genre and cover in this case — never
@@ -34,8 +35,9 @@ export default function ArtistDiscovery({
  },[artists,releases]);
  const selectedArtist=directory.find(artist=>artist.id===selected);
  const genres=useMemo(()=>["All",...new Set(directory.flatMap(artist=>artist.genres).filter(Boolean))].slice(0,12),[directory]);
+ const normalize=(s:string)=>s.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]/g,"").replace(/gh/g,"g");
  const filtered=directory.filter(artist=>(genre==="All"||artist.genres.includes(genre))&&
-  [artist.name,artist.bio,artist.tagline,artist.location,...artist.genres].join(" ").toLowerCase().includes(search.toLowerCase()));
+  normalize([artist.name,artist.bio,artist.tagline,artist.location,...artist.genres].join(" ")).includes(normalize(search)));
  const artistTracks=(artist:ArtistEntry)=>artist.catalogueOnly?releases.filter(release=>"catalogue:"+release.artist_name.trim().toLocaleLowerCase("en")===artist.id):releases.filter(release=>releaseHasArtist(release,artist.id,artist.name));
  const artistReleases=selectedArtist?artistTracks(selectedArtist):[];
  const artistName=(artist:MusicArtist)=>artist.name.trim()[0]?.toUpperCase()||"F";
@@ -43,7 +45,7 @@ export default function ArtistDiscovery({
  return <section className="fm-artist-room" aria-label="FACKTS artist discovery">
   <div className="fm-artist-intro">
    <span className="eyebrow">PEOPLE BEHIND THE MUSIC</span>
-   <h2>Meet the artists. Stay for the sound.</h2>
+   <h2>Find your artists and creators.</h2>
    <p>Explore actual FACKTS artist profiles, follow the voices you love and play their published songs without leaving this listening space.</p>
   </div>
   {followNotice&&<p role="status">{followNotice}</p>}
@@ -92,7 +94,7 @@ export default function ArtistDiscovery({
      {viewerId&&!artist.catalogueOnly&&<button type="button" disabled={followPending(artist.id)} aria-busy={followPending(artist.id)} aria-label={(following(artist.id)?"Unfollow ":"Follow ")+artist.name} aria-pressed={following(artist.id)} onClick={()=>onFollow(artist.id)}>{following(artist.id)?"♥":"♡"}</button>}
     </div>
    </article>)}</div>
-   {!filtered.length&&<div className="fm-artist-empty">No public artist profiles match that search. Try a different sound or name.</div>}
+   {!filtered.length&&<div className="fm-artist-empty">No public artists or creators match. Try another name.</div>}
   </>}
  </section>;
 }
