@@ -305,3 +305,14 @@
 .dock :global(.track-player-copy) h3 {
   font-weight: 500 !important;
 }
+
+/* Expose the audio volume controls inside the persistent dock; no longer hidden. */
+.dock :global(.player-volume){display:flex!important;grid-column:4;grid-row:1/3;align-items:center;justify-content:flex-end;gap:6px;max-width:145px;width:100%;margin:0!important;white-space:nowrap}
+.dock :global(.player-volume button){display:grid;place-items:center;background:transparent;border:0;color:#f8f2f9;font-size:19px;width:30px;min-height:36px;cursor:pointer}
+.dock :global(.player-volume input){accent-color:#d9ad68;min-width:55px;width:72px;cursor:pointer}
+.dock :global(.player-speed),.dock :global(.player-mode-label){display:none!important}
+@media(max-width:760px){
+ .dock :global(.player-volume){grid-column:2/4;grid-row:3;justify-content:end;max-width:none;gap:8px}
+ .dock :global(.player-volume input){width:min(112px,28vw)}
+ .dock :global(.resume-listening){grid-row:4}
+}

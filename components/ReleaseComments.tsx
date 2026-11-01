@@ -78,7 +78,7 @@ export default function ReleaseComments({
 
   return <section className={"fm-comments"+(compact?" fm-comments-compact":"")} aria-label="Song comments">
     <button type="button" className="fm-comments-toggle" aria-expanded={open} onClick={toggle}>
-      <span>◯ {compact?"Comment":"Comments"} {loaded?"("+comments.filter(comment=>!comment.deleted).length+")":initialCount===null?"":"("+initialCount+")"}</span>
+      <span>{compact?`◯ ${loaded?comments.filter(comment=>!comment.deleted).length:initialCount??"—"} comments`:`Comments ${loaded?"("+comments.filter(comment=>!comment.deleted).length+")":initialCount===null?"":"("+initialCount+")"}`}</span>
       <span aria-hidden="true">{open?"−":"+"}</span>
     </button>
     {open&&<div className="fm-comments-panel">

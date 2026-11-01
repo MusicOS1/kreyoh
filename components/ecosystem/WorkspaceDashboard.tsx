@@ -35,7 +35,7 @@ export default async function WorkspaceDashboard({
               >
                 {config.focus} <span>↗</span>
               </Link>
-              <Link href="/messages">Open messages →</Link>
+              <Link href="/messages">Open messages →</Link>{kind==='artist'&&<Link href="/artist/insights">My public music numbers ↗</Link>}
             </div>
           </div>
           <div className={styles.identityCard}>
