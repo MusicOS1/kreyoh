@@ -6,8 +6,8 @@ import type {PublicReleaseComment} from "../app/release-comments/actions";
 import {backgroundInteraction} from "../lib/backgroundInteraction";
 
 export default function ReleaseComments({
-  releaseId,viewerId,initialOpen=false,compact=false
-}:{releaseId:string;viewerId?:string;initialOpen?:boolean;compact?:boolean}){
+  releaseId,viewerId,initialOpen=false,compact=false,initialCount=null,positionSeconds,canTimestamp=false,onSeek
+}:{releaseId:string;viewerId?:string;initialOpen?:boolean;compact?:boolean;initialCount?:number|null;positionSeconds?:number;canTimestamp?:boolean;onSeek?:(seconds:number)=>void}){
   const [open,setOpen]=useState(initialOpen);
   const [comments,setComments]=useState<PublicReleaseComment[]>([]);
   const [loaded,setLoaded]=useState(false);
@@ -18,6 +18,8 @@ export default function ReleaseComments({
   const [error,setError]=useState(""),[loadError,setLoadError]=useState("");
   const [draft,setDraft]=useState("");
   const [replyTo,setReplyTo]=useState<string|null>(null);
+  const [attachTime,setAttachTime]=useState(false);
+  const clock=(seconds:number)=>`${Math.floor(seconds/60)}:${String(Math.floor(seconds%60)).padStart(2,"0")}`;
 
   const refresh=useCallback(async()=>{
     const revision=++loadRevision.current;setLoading(true);
@@ -38,9 +40,9 @@ export default function ReleaseComments({
     event.preventDefault();
     if(!draft.trim()||posting.current)return;
     posting.current=true;setBusy(true);setError('');
-    const body=draft,parentId=replyTo;
-    try{const result=await backgroundInteraction<{ok:boolean;error?:string}>('commentPost',{releaseId,body,parentId});
-      if(result.ok){setDraft(current=>current===body?'':current);setReplyTo(current=>current===parentId?null:current);await refresh();}
+    const body=draft,parentId=replyTo,at=attachTime&&canTimestamp&&typeof positionSeconds==='number'?Math.floor(positionSeconds):null;
+    try{const result=await backgroundInteraction<{ok:boolean;error?:string}>('commentPost',{releaseId,body,parentId,positionSeconds:at});
+      if(result.ok){setDraft(current=>current===body?'':current);setAttachTime(false);setReplyTo(current=>current===parentId?null:current);await refresh();}
       else setError(result.error||"Your comment wasn't posted.");
     }catch{setError('Your comment could not be posted. Your text is kept; retry when connected.');}
     finally{posting.current=false;setBusy(false);}
@@ -63,6 +65,7 @@ export default function ReleaseComments({
       <div className="fm-comment-avatar" aria-hidden="true">{comment.authorName.slice(0,1).toUpperCase()}</div>
       <div className="fm-comment-content">
         <div className="fm-comment-meta"><strong>{comment.authorName}</strong><time dateTime={comment.createdAt}>{new Date(comment.createdAt).toLocaleDateString("en-KE",{month:"short",day:"numeric",year:"numeric"})}</time></div>
+        {typeof comment.positionSeconds==='number'&&<button type="button" className="fm-comment-time" title="Jump to this moment" onClick={()=>onSeek?.(comment.positionSeconds!)} disabled={!onSeek}>▶ {clock(comment.positionSeconds)}</button>}
         <p className={comment.deleted?"fm-comment-deleted":"fm-comment-body"}>{comment.deleted?"Comment deleted":comment.body}</p>
         {!comment.deleted&&<div className="fm-comment-tools">
           {!isReply&&viewerId&&<button type="button" onClick={()=>{setReplyTo(comment.id);setOpen(true);}}>Reply</button>}
@@ -75,7 +78,7 @@ export default function ReleaseComments({
 
   return <section className={"fm-comments"+(compact?" fm-comments-compact":"")} aria-label="Song comments">
     <button type="button" className="fm-comments-toggle" aria-expanded={open} onClick={toggle}>
-      <span>◯ {compact?"Comment":"Comments"} {loaded?"("+comments.filter(comment=>!comment.deleted).length+")":""}</span>
+      <span>◯ {compact?"Comment":"Comments"} {loaded?"("+comments.filter(comment=>!comment.deleted).length+")":initialCount===null?"":"("+initialCount+")"}</span>
       <span aria-hidden="true">{open?"−":"+"}</span>
     </button>
     {open&&<div className="fm-comments-panel">
@@ -84,6 +87,7 @@ export default function ReleaseComments({
         <label htmlFor={"fm-comment-"+releaseId}>{replyTo?"Write a reply":"Join the conversation"}</label>
         <textarea id={"fm-comment-"+releaseId} value={draft} onChange={event=>setDraft(event.target.value)}
           maxLength={600} rows={2} placeholder="What do you think of this track?" required/>
+        {canTimestamp&&typeof positionSeconds==='number'&&positionSeconds>=0&&<label className="fm-time-attach"><input type="checkbox" checked={attachTime} onChange={e=>setAttachTime(e.target.checked)}/> Attach at {clock(positionSeconds)}</label>}
         <div className="fm-comment-compose-bottom"><small>{draft.length}/600</small><button disabled={busy||!draft.trim()} type="submit">{busy?"Posting…":replyTo?"Reply":"Post comment"}</button></div>
       </form>:<p className="fm-comments-join"><Link href={"/login?next="+encodeURIComponent("/billboard/"+releaseId)}>Sign in to comment or reply →</Link></p>}
       {(error||loadError)&&<div role="alert" className="fm-comments-error">{error||loadError} {loadError&&<button type="button" onClick={()=>void refresh()}>Retry loading comments</button>}</div>}

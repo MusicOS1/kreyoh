@@ -42,23 +42,23 @@ function initialLikes(userId:string){
  return likesForUser.get(userId)!;
 }
 // A like is independent of saving a song in a personal library.
-export function LikeButton({id,userId,count=0,artistId}:{id:string;userId?:string;count?:number;artistId?:string}){
- const [selected,setSelected]=useState(false),[likes,setLikes]=useState(count),[pending,setPending]=useState(false),[notice,setNotice]=useState('');
+export function LikeButton({id,userId,count=null,artistId}:{id:string;userId?:string;count?:number|null;artistId?:string}){
+ const [selected,setSelected]=useState(false),[likes,setLikes]=useState<number|null>(count),[pending,setPending]=useState(false),[notice,setNotice]=useState('');
  const lock=useRef(false);
  useEffect(()=>{setLikes(count);},[count]);
  useEffect(()=>{
-  if(!userId)return;
+  if(!userId||count===null)return;
   let active=true;
   void initialLikes(userId).then(ids=>{if(active)setSelected(ids.has(id));}).catch(()=>{if(active)setNotice('Likes are temporarily unavailable.');});
   return()=>{active=false;};
  },[id,userId]);
  useEffect(()=>{
-  const handler=(event:Event)=>{const detail=(event as CustomEvent<{id:string;liked:boolean;delta:number}>).detail;if(detail?.id===id){setSelected(detail.liked);setLikes(value=>Math.max(0,value+detail.delta));}};
+  const handler=(event:Event)=>{const detail=(event as CustomEvent<{id:string;liked:boolean;delta:number}>).detail;if(detail?.id===id){setSelected(detail.liked);setLikes(value=>value===null?null:Math.max(0,value+detail.delta));}};
   window.addEventListener('fm-release-like',handler);
   return()=>window.removeEventListener('fm-release-like',handler);
  },[id]);
  async function toggle(){
-  if(!userId||lock.current||userId===artistId)return;
+  if(!userId||count===null||lock.current||userId===artistId)return;
   lock.current=true;setPending(true);setNotice('');
   const target=!selected;
   try{
@@ -71,6 +71,6 @@ export function LikeButton({id,userId,count=0,artistId}:{id:string;userId?:strin
   finally{lock.current=false;setPending(false);}
  }
  return <span className="release-like-control">{userId?
-  <button type="button" disabled={pending||userId===artistId} aria-pressed={selected} onClick={()=>void toggle()}>{userId===artistId?'Own song':selected?'♥ Liked':'♡ Like'} · {likes}</button>
-  :<a href="/login?next=/billboard">♡ {likes} likes · Sign in</a>}{notice&&<small role="alert">{notice}</small>}</span>;
+  <button type="button" title={count===null?'Likes tracking is being activated':undefined} disabled={count===null||pending||userId===artistId} aria-pressed={selected} onClick={()=>void toggle()}>{count===null?'♡ Likes —':userId===artistId?'Own song':selected?'♥ Liked':'♡ Like'} {count===null?'':likes}</button>
+  :<a href="/login?next=/billboard">♡ {likes===null?'—':likes} likes</a>}{notice&&<small role="alert">{notice}</small>}</span>;
 }

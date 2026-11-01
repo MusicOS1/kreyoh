@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {createAdminClient} from "../../../lib/supabase/admin";
+import {chart} from "../../../lib/community";
 
 const since=(days:number)=>new Date(Date.now()-days*86400000).toISOString();
 const first=(value:any)=>Array.isArray(value)?value[0]:value;
@@ -19,15 +20,17 @@ export default async function ControlRoomOverview(){
     admin.from("profiles").select("id",{count:"exact",head:true}).gte("last_active_at",since(1)),
     admin.from("profiles").select("id",{count:"exact",head:true}).gte("last_active_at",since(7)),
     admin.from("platform_events").select("id,event_name,category,created_at,profiles(full_name,stage_name)").order("created_at",{ascending:false}).limit(8),
-    admin.from("music_weekly_chart").select("plays,likes,votes"),
+    chart().then(data=>({data,error:null})).catch(()=>({data:[],error:true})),
     admin.from("fan_music_library").select("user_id",{count:"exact",head:true}).eq("kind","following"),
   ]);
   const metrics=[["Total Users",users.error?null:users.count],["Online Now",online.error?null:online.count],["Active Today",activeToday.error?null:activeToday.count],["Active This Week",activeWeek.error?null:activeWeek.count],["New Signups",newUsers.error?null:newUsers.count],["Active Projects",projects.error?null:projects.count],["Beats Uploaded",beats.error?null:beats.count],["Beat Claims",claims.error?null:claims.count],["Sessions Scheduled",sessions.error?null:sessions.count],
-    ["Billboard Plays",billboard.error?null:(billboard.data||[]).reduce((sum,r)=>sum+Number(r.plays||0),0)],
-    ["Song Likes",billboard.error?null:(billboard.data||[]).reduce((sum,r)=>sum+Number(r.likes||0),0)],
+    ["Public Music Plays",billboard.error||!(billboard.data||[]).some(r=>typeof r.plays==="number")?null:(billboard.data||[]).reduce((sum,r)=>sum+Number(r.plays||0),0)],
+    ["Song Likes",billboard.error||!(billboard.data||[]).some(r=>typeof r.likes==="number")?null:(billboard.data||[]).reduce((sum,r)=>sum+Number(r.likes||0),0)],
+    ["Song Saves",billboard.error?null:(billboard.data||[]).reduce((sum,r)=>sum+Number(r.saves||0),0)],
+    ["Public Comments",billboard.error?null:(billboard.data||[]).reduce((sum,r)=>sum+Number(r.comments||0),0)],
     ["Artist Follows",follows.error?null:follows.count]];
   return <>
-    <section className="control-hero"><div><span className="control-eyebrow">SYSTEM OVERVIEW</span><h1>The whole room,<br/>under control.</h1><p>Live operational visibility across creators, projects, music development and platform health.</p><p><Link href="/admin/billboard-analytics">Open Billboard Analytics and Reports →</Link></p></div><div className="control-hero-status"><span>LIVE SYSTEM</span><strong>{new Intl.DateTimeFormat("en-KE",{dateStyle:"full"}).format(now)}</strong></div></section>
+    <section className="control-hero" style={{color:"#fff"}}><div><span className="control-eyebrow" style={{color:"#fff"}}>SYSTEM OVERVIEW</span><h1 style={{color:"#fff"}}>The whole room,<br/>under control.</h1><p style={{color:"#fff"}}>Live operational visibility across creators, projects, music development and platform health.</p><p><Link style={{color:"#fff"}} href="/admin/billboard-analytics">Open Public Music Analytics and Reports →</Link></p></div><div className="control-hero-status" style={{color:"#fff"}}><span style={{color:"#fff"}}>LIVE SYSTEM</span><strong style={{color:"#fff"}}>{new Intl.DateTimeFormat("en-KE",{dateStyle:"full"}).format(now)}</strong></div></section>
     <section className="control-metrics">{metrics.map(([label,value])=><article key={String(label)}><span>{label}</span><strong>{value??"—"}</strong><small>{value===null||value===undefined?"Temporarily unavailable":"Real system data"}</small></article>)}</section>
     <section className="control-grid"><article className="control-panel"><header><div><span className="control-eyebrow">LIVE NOW</span><h2>People currently active</h2></div><Link href="/admin/users">Open users</Link></header><div className="control-table">{!online.data?.length&&<p className="control-empty">No active presence in the last five minutes.</p>}{(online.data||[]).map((item:any)=>{const p=first(item.profiles);return <div className="control-row" key={item.user_id}><span className="control-live-dot"/><div><strong>{p?.stage_name||p?.full_name||"Creator"}</strong><small>{(p?.creator_types||[]).join(" · ")||"Creator"} · {item.current_path||"Inside FACKTS Music"}</small></div><span className="control-status">online</span></div>})}</div></article>
     <article className="control-panel"><header><div><span className="control-eyebrow">RECENT MOVEMENT</span><h2>Meaningful activity</h2></div><Link href="/admin/activity">Full feed</Link></header><div className="control-table">{!events.data?.length&&<p className="control-empty">Activity will appear as people use the platform.</p>}{(events.data||[]).map((item:any)=>{const p=first(item.profiles);return <div className="control-row" key={item.id}><span className="control-activity-dot"/><div><strong>{p?.stage_name||p?.full_name||"System"}</strong><small>{nice(item.event_name)} · {item.category}</small></div><time>{new Date(item.created_at).toLocaleDateString("en-KE")}</time></div>})}</div></article></section>

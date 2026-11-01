@@ -1,5 +1,6 @@
 import "server-only";
 import {readAllRows} from "./recordReads";
+import {withPublicEngagement} from "./publicMusicEngagement";
 import {getWorkspace} from "./workspace";
 import {createAdminClient} from "./supabase/admin";
 import {createClient} from "./supabase/server";
@@ -16,13 +17,13 @@ export async function chart(){
  const ranked=await readAllRows(()=>admin.from("music_weekly_chart").select("*")
   .order("chart_score",{ascending:false}).order("plays",{ascending:false}).order("votes",{ascending:false})
   .order("release_at",{ascending:false}).order("id"));
- if(!ranked.error)return ranked.data||[];
+ if(!ranked.error)return withPublicEngagement(ranked.data||[]);
  // Existing staged Session 4 previews have no measurement migration yet.
  // Preserve their voting chart instead of breaking public discovery before rollout.
  const fallback=await readAllRows(()=>admin.from("music_weekly_chart").select("*")
   .order("votes",{ascending:false}).order("release_at",{ascending:false}).order("id"));
  if(fallback.error)throw new Error("The Billboard could not be loaded. Please try again.");
- return fallback.data||[];
+ return withPublicEngagement(fallback.data||[]);
 }
 export function currentChartWeek(){
  const now=new Date(Date.now()+3*3600000);const day=(now.getUTCDay()+6)%7;

@@ -94,7 +94,7 @@ export async function POST(request: Request, context: { params: Promise<{ action
           if (typeof input.enabled !== 'boolean' || typeof input.id !== 'string') throw new Error('Invalid vote');
           value = await voteForRelease(input.id, input.enabled); break;
         case 'commentsList': value = await listReleaseComments(input.releaseId); break;
-        case 'commentPost': value = await postReleaseComment(input.releaseId, input.body, input.parentId ?? null); break;
+        case 'commentPost': value = await postReleaseComment(input.releaseId, input.body, input.parentId ?? null, input.positionSeconds ?? null); break;
         case 'commentDelete': value = await deleteReleaseComment(input.id); break;
         case 'versionListen':
         case 'versionRank':

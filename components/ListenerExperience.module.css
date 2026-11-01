@@ -979,3 +979,23 @@
 
 .songActions > div { display: contents; }
 .songActions p[role="status"], .songActions small[role="alert"] { flex-basis: 100%; order: 11; margin: 0; font-size: 12px; }
+
+/* Original FACKTS compact fan engagement row; counts stay readable without giant buttons. */
+.songActions { gap: 8px; align-items: center; }
+.songActions button, .songActions a {
+  min-height: 34px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  border-color: transparent;
+  background: #ffffff07;
+  color: #d5cedd;
+}
+.songActions button:hover, .songActions a:hover { border-color: #d9ad6855; }
+.songActions :global(.fm-comments-toggle) { width: auto; min-width: 90px; }
+.songActions :global(.release-like-control) { display: inline-flex; }
+.songWave { grid-column: 1 / -1; min-width: 0; padding: 5px 3px 0; }
+.songWave :global(.track-waveform) { min-height: 48px; }
+@media (max-width: 760px) {
+ .songActions button, .songActions a { min-height: 34px; font-size: 11px; }
+}

@@ -4,34 +4,29 @@ import {createAdminClient} from '../../../../lib/supabase/admin';
 import {chart} from '../../../../lib/community';
 export const dynamic='force-dynamic';
 const valid=/^\d{4}-\d{2}-\d{2}$/;
-const csv=(value:unknown)=>{
- let text=String(value??'');
- if(/^[=+@-]/.test(text))text="'"+text;
- return '"'+text.replaceAll('"','""')+'"';
-};
+const csv=(value:unknown)=>{let s=String(value??'');if(/^[=+@-]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"';};
 export async function GET(request:NextRequest){
  const access=await getControlRoomAccess();
- if(!access.user||!access.authorised||!await hasControlRoomPermission(access.user.id,'reports'))return Response.json({error:'Not permitted'},{status:403});
- const url=new URL(request.url),start=url.searchParams.get('from'),end=url.searchParams.get('to');
- if(!start||!end||!valid.test(start)||!valid.test(end)||start>end||Date.parse(end)-Date.parse(start)>366*86400000||end>new Date(Date.now()+3*3600000).toISOString().slice(0,10))
+ if(!access.user||!access.authorised||!(await hasControlRoomPermission(access.user.id,'music')||await hasControlRoomPermission(access.user.id,'reports')))
+  return Response.json({error:'Not permitted'},{status:403});
+ const url=new URL(request.url),from=url.searchParams.get('from'),to=url.searchParams.get('to');
+ if(!from||!to||!valid.test(from)||!valid.test(to)||from>to||Date.parse(to)-Date.parse(from)>366*86400000||to>new Date(Date.now()+3*3600000).toISOString().slice(0,10))
   return Response.json({error:'Choose a valid report period.'},{status:400});
  try{
-  const [releases,metrics]=await Promise.all([
-   chart(),createAdminClient().rpc('billboard_metrics',{p_from:start,p_to:end})
-  ]);
-  if(metrics.error)return Response.json({error:'Measurement migration not installed.'},{status:503});
-  const byId=new Map((metrics.data||[]).map((r:any)=>[r.release_id,r]));
-  const rows=releases.map(release=>({release,metrics:byId.get(release.id)||{}}))
-   .sort((a,b)=>(Number((b.metrics as any).chart_score)||0)-(Number((a.metrics as any).chart_score)||0));
+  const [releases,metrics]=await Promise.all([chart(),createAdminClient().rpc('billboard_metrics',{p_from:from,p_to:to})]);
+  const ready=!metrics.error;
+  const byId=new Map<string,any>((metrics.data||[]).map((r:any)=>[r.release_id,r]));
   const output=[
-   ['Rank','Song','Artist','Period start EAT','Period end EAT','Qualified plays','Unique listeners per song','Active song likes','New active likes','Artist followers','Net follower change','Votes','Chart score'],
-   ...rows.map(({release:r,metrics:m},i)=>[i+1,r.title,r.artist_name,start,end,
-    (m as any).plays||0,(m as any).unique_listeners||0,(m as any).likes||0,(m as any).period_likes||0,
-    (m as any).followers||0,(m as any).follower_growth||0,(m as any).votes||0,(m as any).chart_score||0])
-  ].map(line=>line.map(csv).join(',')).join('\r\n');
-  return new Response('\uFEFF'+output,{headers:{
-   'Content-Type':'text/csv; charset=utf-8','Content-Disposition':`attachment; filename="FACKTS Billboard Analytics ${start} to ${end}.csv"`,
-   'Cache-Control':'private, no-store'
-  }});
- }catch{return Response.json({error:'Could not generate report.'},{status:503});}
+   ['Song','Artist','From (Kenya time)','To (Kenya time)','Qualified plays','Unique listeners per song','Active likes','Saves','Comments','Artist followers','Net new follows','Weekly votes','Billboard score'],
+   ...releases.map((r:any)=>{
+    const m=byId.get(r.id);
+    return [r.title,r.artist_name,from,to,
+     ready?m?.plays??0:r.plays??'Not tracked',ready?m?.unique_listeners??0:r.unique_listeners??'Not tracked',
+     r.likes??'Not tracked',r.saves??'Unavailable',r.comments??'Unavailable',r.followers??'Unavailable',
+     ready?m?.follower_growth??0:'Not tracked',r.votes??0,ready?m?.chart_score??0:'Not tracked'];
+   })
+  ].map(row=>row.map(csv).join(',')).join('\r\n');
+  return new Response('\uFEFF'+output,{headers:{'Content-Type':'text/csv; charset=utf-8',
+   'Content-Disposition':`attachment; filename="FACKTS Public Music Analytics ${from} to ${to}.csv"`,'Cache-Control':'private, no-store'}});
+ }catch{return Response.json({error:'Could not generate the public music report.'},{status:503});}
 }
