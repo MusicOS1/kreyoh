@@ -1,9 +1,9 @@
 name: Verify FACKTS Music
 on:
   push:
-    branches: [feat/session2-professional-onboarding, feat/session3-creative-production, feat/session4-release-audience]
+    branches: [feat/session2-professional-onboarding, feat/session3-creative-production, feat/session4-release-audience, feat/billboard-measurement-rules]
   pull_request:
-    branches: [main, feat/phase2-unified-workspaces, feat/session2-professional-onboarding, feat/session3-creative-production]
+    branches: [main, feat/phase2-unified-workspaces, feat/session2-professional-onboarding, feat/session3-creative-production, feat/session4-release-audience]
 jobs:
   checks:
     name: Tests and TypeScript
