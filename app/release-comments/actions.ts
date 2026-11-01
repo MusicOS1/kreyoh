@@ -24,14 +24,14 @@ export async function listReleaseComments(releaseId:string):Promise<{ok:boolean;
     if(!uuidPattern.test(releaseId))throw new Error("Invalid song.");
     const admin=createAdminClient();
     await publishedRelease(admin,releaseId);
-    let query=await admin.from("music_release_comments")
+    const timedQuery=await admin.from("music_release_comments")
       .select("id,release_id,author_id,parent_id,body,created_at,deleted_at,position_seconds")
       .eq("release_id",releaseId).order("created_at",{ascending:false}).limit(150);
-    if(query.error)query=await admin.from("music_release_comments")
+    const result=timedQuery.error?await admin.from("music_release_comments")
       .select("id,release_id,author_id,parent_id,body,created_at,deleted_at")
-      .eq("release_id",releaseId).order("created_at",{ascending:false}).limit(150);
-    if(query.error)throw new Error("Could not load comments.");
-    const rows=((query.data||[]) as DbComment[]).reverse();
+      .eq("release_id",releaseId).order("created_at",{ascending:false}).limit(150):timedQuery;
+    if(result.error)throw new Error("Could not load comments.");
+    const rows=((result.data||[]) as DbComment[]).reverse();
     const ids=[...new Set(rows.map(row=>row.author_id))];
     const {data:profiles,error:profileError}=ids.length
       ?await admin.from("profiles").select("id,stage_name,full_name,nickname").in("id",ids)
