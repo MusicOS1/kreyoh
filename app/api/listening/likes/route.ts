@@ -29,14 +29,17 @@ export async function POST(request:NextRequest){
   const admin=createAdminClient();
   const {data:profile,error:profileError}=await admin.from('profiles').select('account_status').eq('id',user.id).maybeSingle();
   if(profileError||profile?.account_status!=='active')return response({ok:false,error:'An active account is required.'},403);
-  const {data:release,error:releaseError}=await admin.from('music_weekly_chart').select('id,artist_id,featured_artist_ids').eq('id',body.releaseId).maybeSingle();
+  // Use stable public-release columns: featured_artist_ids is only added in Session 4.
+  const {data:release,error:releaseError}=await admin.from('music_weekly_chart').select('id,artist_id').eq('id',body.releaseId).maybeSingle();
   if(releaseError)return response({ok:false,error:'This song is temporarily unavailable.'},503);
   if(!release)return response({ok:false,error:'Song not available.'},404);
-  if(user.id===release.artist_id||(release.featured_artist_ids||[]).includes(user.id))return response({ok:false,error:'Artists cannot like their own release for ranking.'},403);
+  if(user.id===release.artist_id)return response({ok:false,error:'Artists cannot like their own release for ranking.'},403);
   const {error}=body.liked
    ?await admin.from('music_release_likes').upsert({release_id:body.releaseId,user_id:user.id},{onConflict:'release_id,user_id',ignoreDuplicates:true})
    :await admin.from('music_release_likes').delete().eq('release_id',body.releaseId).eq('user_id',user.id);
   if(error)return response({ok:false,error:'Could not save your like.'},503);
-  return response({ok:true,liked:body.liked});
+  // Authoritative count keeps separate logged-in devices consistent after reload.
+  const {count}=await admin.from('music_release_likes').select('release_id',{count:'exact',head:true}).eq('release_id',body.releaseId);
+  return response({ok:true,liked:body.liked,count});
  }catch{return response({ok:false,error:'Could not save your like.'},503);}
 }
