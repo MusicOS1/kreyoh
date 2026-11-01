@@ -6,11 +6,11 @@ import {createAdminClient} from "../../lib/supabase/admin";
 
 type DbComment={
   id:string;release_id:string;author_id:string;parent_id:string|null;
-  body:string;created_at:string;deleted_at:string|null;
+  body:string;created_at:string;deleted_at:string|null;position_seconds?:number|null;
 };
 export type PublicReleaseComment={
   id:string;parentId:string|null;authorId:string;authorName:string;
-  body:string;createdAt:string;deleted:boolean;
+  body:string;createdAt:string;deleted:boolean;positionSeconds:number|null;
 };
 
 async function publishedRelease(admin:ReturnType<typeof createAdminClient>,releaseId:string){
@@ -24,11 +24,14 @@ export async function listReleaseComments(releaseId:string):Promise<{ok:boolean;
     if(!uuidPattern.test(releaseId))throw new Error("Invalid song.");
     const admin=createAdminClient();
     await publishedRelease(admin,releaseId);
-    const {data,error}=await admin.from("music_release_comments")
-      .select("id,release_id,author_id,parent_id,body,created_at,deleted_at")
+    const timedQuery=await admin.from("music_release_comments")
+      .select("id,release_id,author_id,parent_id,body,created_at,deleted_at,position_seconds")
       .eq("release_id",releaseId).order("created_at",{ascending:false}).limit(150);
-    if(error)throw new Error("Could not load comments.");
-    const rows=((data||[]) as DbComment[]).reverse();
+    const result=timedQuery.error?await admin.from("music_release_comments")
+      .select("id,release_id,author_id,parent_id,body,created_at,deleted_at")
+      .eq("release_id",releaseId).order("created_at",{ascending:false}).limit(150):timedQuery;
+    if(result.error)throw new Error("Could not load comments.");
+    const rows=((result.data||[]) as DbComment[]).reverse();
     const ids=[...new Set(rows.map(row=>row.author_id))];
     const {data:profiles,error:profileError}=ids.length
       ?await admin.from("profiles").select("id,stage_name,full_name,nickname").in("id",ids)
@@ -42,17 +45,18 @@ export async function listReleaseComments(releaseId:string):Promise<{ok:boolean;
       id:row.id,
       parentId:row.parent_id&&visibleIds.has(row.parent_id)?row.parent_id:null,
       authorId:row.author_id,authorName:names.get(row.author_id)||"FACKTS listener",
-      body:row.deleted_at?"":row.body,createdAt:row.created_at,deleted:Boolean(row.deleted_at)
+      body:row.deleted_at?"":row.body,createdAt:row.created_at,deleted:Boolean(row.deleted_at),positionSeconds:row.position_seconds??null
     }))};
   }catch(error){return {ok:false,comments:[],error:error instanceof Error?error.message:"Unable to load comments."};}
 }
 
-export async function postReleaseComment(releaseId:string,body:string,parentId:string|null=null):Promise<{ok:boolean;error?:string}>{
+export async function postReleaseComment(releaseId:string,body:string,parentId:string|null=null,positionSeconds:number|null=null):Promise<{ok:boolean;error?:string}>{
   try{
     if(!uuidPattern.test(releaseId))throw new Error("Choose a valid song.");
     if(typeof body!=="string"||!body.trim()||body.trim().length>600)
       throw new Error("Write a comment of up to 600 characters.");
     if(parentId!==null&&(!uuidPattern.test(parentId)))throw new Error("Invalid reply.");
+    if(positionSeconds!==null&&(!Number.isInteger(positionSeconds)||positionSeconds<0||positionSeconds>14400))throw new Error("Invalid comment timestamp.");
     const {admin,user}=await communityAccount();
     await publishedRelease(admin,releaseId);
     if(parentId){
@@ -67,7 +71,7 @@ export async function postReleaseComment(releaseId:string,body:string,parentId:s
     if(limitError)throw new Error("Comments are temporarily unavailable.");
     if((count||0)>=5)throw new Error("You've posted a few comments already. Try again in a minute.");
     const {error}=await admin.from("music_release_comments").insert({
-      release_id:releaseId,author_id:user.id,parent_id:parentId,body:body.trim()
+      release_id:releaseId,author_id:user.id,parent_id:parentId,body:body.trim(),...(positionSeconds!==null?{position_seconds:positionSeconds}:{})
     });
     if(error)throw new Error("Could not post your comment.");
     revalidatePath("/billboard/"+releaseId);

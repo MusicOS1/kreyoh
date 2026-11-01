@@ -31,3 +31,46 @@ export function ReleaseVoteCount({id,count}:{id:string;count:number}){
  useEffect(()=>{const update=(event:Event)=>{const detail=(event as CustomEvent).detail;if(detail.id===id)setValue(current=>Math.max(0,current+detail.delta));};window.addEventListener('fm-release-vote',update);return()=>window.removeEventListener('fm-release-vote',update);},[id]);
  return <span>{value} votes</span>;
 }
+
+type LikeResult={ok:boolean;likedIds?:string[];liked?:boolean;error?:string};
+const likesForUser=new Map<string,Promise<Set<string>>>();
+function initialLikes(userId:string){
+ if(!likesForUser.has(userId))likesForUser.set(userId,fetch('/api/listening/likes',{cache:'no-store'}).then(async response=>{
+  const data:LikeResult=await response.json();if(!response.ok||!data.ok)throw Error(data.error||'Likes unavailable');
+  return new Set(data.likedIds||[]);
+ }).catch(error=>{likesForUser.delete(userId);throw error;}));
+ return likesForUser.get(userId)!;
+}
+// A like is independent of saving a song in a personal library.
+export function LikeButton({id,userId,count=null,artistId}:{id:string;userId?:string;count?:number|null;artistId?:string}){
+ const [selected,setSelected]=useState(false),[likes,setLikes]=useState<number|null>(count),[pending,setPending]=useState(false),[notice,setNotice]=useState('');
+ const lock=useRef(false);
+ useEffect(()=>{setLikes(count);},[count]);
+ useEffect(()=>{
+  if(!userId||count===null)return;
+  let active=true;
+  void initialLikes(userId).then(ids=>{if(active)setSelected(ids.has(id));}).catch(()=>{if(active)setNotice('Likes are temporarily unavailable.');});
+  return()=>{active=false;};
+ },[id,userId]);
+ useEffect(()=>{
+  const handler=(event:Event)=>{const detail=(event as CustomEvent<{id:string;liked:boolean;delta:number}>).detail;if(detail?.id===id){setSelected(detail.liked);setLikes(value=>value===null?null:Math.max(0,value+detail.delta));}};
+  window.addEventListener('fm-release-like',handler);
+  return()=>window.removeEventListener('fm-release-like',handler);
+ },[id]);
+ async function toggle(){
+  if(!userId||count===null||lock.current||userId===artistId)return;
+  lock.current=true;setPending(true);setNotice('');
+  const target=!selected;
+  try{
+   const response=await fetch('/api/listening/likes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({releaseId:id,liked:target})});
+   const result:LikeResult=await response.json();
+   if(!response.ok||!result.ok)throw Error(result.error||'Could not save your like.');
+   const ids=await initialLikes(userId);if(target)ids.add(id);else ids.delete(id);
+   window.dispatchEvent(new CustomEvent('fm-release-like',{detail:{id,liked:target,delta:target?1:-1}}));
+  }catch(error){setNotice(error instanceof Error?error.message:'Could not save your like.');}
+  finally{lock.current=false;setPending(false);}
+ }
+ return <span className="release-like-control">{userId?
+  <button type="button" title={count===null?'Likes tracking is being activated':undefined} disabled={count===null||pending||userId===artistId} aria-pressed={selected} onClick={()=>void toggle()}>{count===null?'♡ Likes —':userId===artistId?'Own song':selected?'♥ Liked':'♡ Like'} {count===null?'':likes}</button>
+  :<a href="/login?next=/billboard">♡ {likes===null?'—':likes} likes</a>}{notice&&<small role="alert">{notice}</small>}</span>;
+}
