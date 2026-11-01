@@ -1,0 +1,18 @@
+
+.fm-beat-library{width:100%;margin:15px 0;display:grid;gap:10px}
+.fm-beat-list-player{border-radius:14px;padding:22px;background:#13151d;color:#fff;border:1px solid #ffffff23}
+.fm-beat-now{display:flex;gap:16px;align-items:center}.fm-beat-art{width:80px;height:80px;flex-shrink:0;object-fit:cover;border-radius:8px;display:grid;place-items:center;background:#ed7323;font-size:33px}
+.fm-beat-now small{font-size:10px;color:#ffb179}.fm-beat-now h2{font-size:26px;margin:5px 0}.fm-beat-now p{margin:0;font-size:13px}
+.fm-beat-transport{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:15px 0}.fm-beat-transport button{padding:9px 14px;border-radius:7px;background:#ffffff0b;color:inherit;border:1px solid #ffffff28;cursor:pointer}
+.fm-beat-transport button:disabled{opacity:.4}.fm-beat-list-player audio{display:block;width:100%;height:40px;margin:10px 0 18px}
+.fm-beat-queue-head{display:flex;align-items:center;gap:15px;justify-content:space-between;margin:10px 0}.fm-beat-queue-head input{background:transparent;border:1px solid #ffffff40;border-radius:8px;padding:9px;color:inherit;min-width:140px}
+.fm-beat-queue{list-style:none;padding:0;margin:0;max-height:560px;overflow:auto}.fm-beat-queue li{display:flex;align-items:center;gap:8px;border-top:1px solid #ffffff16}
+.fm-beat-queue li.active{background:#ed732316}.fm-beat-queue li>button:first-child{display:grid;grid-template-columns:40px minmax(110px,1fr) minmax(90px,.6fr) 100px;align-items:center;gap:10px;text-align:left;flex:1;min-width:0;padding:13px 8px;background:transparent;border:0;color:inherit;cursor:pointer}
+.fm-beat-queue li strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}.fm-beat-queue li small{font-size:11px;opacity:.75}
+.fm-beat-row-detail{background:transparent;border:1px solid #ffffff20;border-radius:8px;color:inherit;padding:8px;cursor:pointer;font-size:11px}
+.fm-beat-details-list{display:grid;gap:10px}.fm-beat-extended{border-radius:9px;background:#16141b;border:1px solid #ffffff1b;overflow:hidden}
+.fm-beat-extended>summary{display:flex;gap:15px;justify-content:space-between;align-items:center;padding:12px;cursor:pointer;font-size:12px;font-weight:600}
+.fm-beat-extended>summary small{font-size:11px;opacity:.7}.fm-beat-extended>summary b{color:#ed7323;font-size:11px}
+.fm-beat-extended .beat-card-artwork{display:none!important}
+.fm-beat-extended .beat-card-deck{margin:0!important;padding:14px!important;box-shadow:none!important;min-height:auto!important;border:0!important;background:transparent!important}
+@media(max-width:760px){.fm-beat-list-player{padding:13px}.fm-beat-now h2{font-size:19px}.fm-beat-art{width:56px;height:56px}.fm-beat-queue li>button:first-child{grid-template-columns:24px minmax(0,1fr);gap:5px}.fm-beat-queue li small{grid-column:2}.fm-beat-extended>summary{flex-wrap:wrap}}

@@ -101,10 +101,10 @@ async function getPublicCreators(): Promise<PublicCreator[]> {
 }
 
 const systems = [
-  { number: "01", title: "Creators", copy: "Public identities that grow with real work, credits, media and project history.", icon: UsersIcon },
-  { number: "02", title: "Projects", copy: "One place for people, direction, decisions and delivery around a creative venture.", icon: CheckCircleIcon },
-  { number: "03", title: "Sessions", copy: "Studio activity, contributors, outcomes and follow-up without losing the thread.", icon: MicIcon },
-  { number: "04", title: "Credits", copy: "A clearer record of who made what — built from participation instead of memory.", icon: DiscIcon },
+  { number: "01", title: "Creators", copy: "Build your artist identity.", icon: UsersIcon },
+  { number: "02", title: "Projects", copy: "Create together.", icon: CheckCircleIcon },
+  { number: "03", title: "Sessions", copy: "Record the work.", icon: MicIcon },
+  { number: "04", title: "Credits", copy: "Know who made what.", icon: DiscIcon },
 ];
 
 const flow = ["IDEA", "BEAT", "BUILD", "STUDIO", "REVIEW", "RELEASE READY"];
@@ -161,8 +161,8 @@ export default async function PublicHomePage() {
 
       <section className="fm-v3-section fm-v3-systems" id="how-it-works">
         <div className="fm-v3-section-head">
-          <div><span className="fm-v3-eyebrow">THE OPERATING LAYER</span><h2>The room is creative.<br />The structure can be too.</h2></div>
-          <p>FACKTS Music keeps the energy of the studio while making the work easier to see, coordinate and build on.</p>
+          <div><span className="fm-v3-eyebrow">THE OPERATING LAYER</span><h2>Music. People. Progress.</h2></div>
+          <p>Four steps. One creative home.</p>
         </div>
         <div className="fm-v3-system-grid">
           {systems.map(({ number, title, copy, icon: Icon }) => (

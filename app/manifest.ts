@@ -9,7 +9,10 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/?source=pwa",
     scope: "/",
     display: "standalone",
-    orientation: "portrait-primary",
+    display_override: ["standalone","minimal-ui"],
+    categories: ["music","entertainment"],
+    shortcuts: [{name:"Listen",url:"/listen",description:"Public music"},{name:"My music",url:"/fan",description:"Your listening room"},{name:"Workspace",url:"/workspace",description:"Projects and beats"}],
+    orientation: "any",
     background_color: "#06101f",
     theme_color: "#06101f",
     icons: [

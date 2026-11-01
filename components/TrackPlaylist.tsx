@@ -60,6 +60,32 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
   if(index===current){const audio=audioRef.current;if(audio){if(audio.paused)audio.play().catch(()=>setIsPlaying(false));else audio.pause();}}
   else{autoPlayRef.current=true;setCurrent(index);}
  },[playRequest]);
+ // Tell Android, iOS and supported browsers what is playing. No fake notification is shown.
+ useEffect(()=>{
+  if(!('mediaSession' in navigator)||!localTracks[current])return;
+  // The persistent public player owns the global controls when in use.
+  const song=localTracks[current],media=navigator.mediaSession;
+  try{
+   media.metadata=new MediaMetadata({
+    title:song.title,artist:song.subtitle,album:'FACKTS Music',
+    artwork:song.artwork?[{src:new URL(song.artwork,window.location.origin).href,sizes:'512x512'}]:[]
+   });
+   media.playbackState=isPlaying?'playing':'paused';
+   const handlers:[MediaSessionAction,MediaSessionActionHandler][]=[
+    ['play',()=>{void audioRef.current?.play().catch(()=>setIsPlaying(false));}],
+    ['pause',()=>audioRef.current?.pause()],
+    ['previoustrack',()=>previousTrack()],
+    ['nexttrack',()=>nextTrack()],
+    ['seekto',details=>{if(audioRef.current&&typeof details.seekTime==='number')audioRef.current.currentTime=Math.max(0,Math.min(details.seekTime,audioRef.current.duration||details.seekTime));}],
+    ['seekbackward',details=>{if(audioRef.current)audioRef.current.currentTime=Math.max(0,audioRef.current.currentTime-(details.seekOffset||10));}],
+    ['seekforward',details=>{if(audioRef.current)audioRef.current.currentTime=Math.min(audioRef.current.duration||Infinity,audioRef.current.currentTime+(details.seekOffset||10));}]
+   ];
+   handlers.forEach(([action,handler])=>{try{media.setActionHandler(action,handler)}catch{}});
+   const audio=audioRef.current;
+   if(audio&&Number.isFinite(audio.duration)&&audio.duration>0)try{media.setPositionState({duration:audio.duration,position:Math.max(0,Math.min(audio.currentTime,audio.duration)),playbackRate:audio.playbackRate})}catch{}
+  }catch{}
+  return ()=>{try{media.playbackState='none'}catch{}};
+ },[localTracks,current,isPlaying]);
  if(!localTracks.length)return <div className="track-chart-empty">Add an audio version to a track and it will enter the listening room.</div>;
 
  function selectTrack(index:number,autoplay=true,restartCurrent=false){savePosition(true);setCanResume(false);const next=Math.max(0,Math.min(index,localTracks.length-1));setNotice("");if(next===current){const p=audioRef.current;if(!p)return;if(restartCurrent){p.currentTime=0;if(autoplay)p.play().catch(()=>setIsPlaying(false));}else togglePlayback();return;}autoPlayRef.current=autoplay;setCurrent(next);}
@@ -143,7 +169,7 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
    {canResume&&<button type="button" className="resume-listening" onClick={togglePlayback}>Resume Listening</button>}
    <div className="player-progress"><input type="range" aria-label="Seek in track" min={0} max={Number.isFinite(duration)?duration:0} step={0.1} value={position} onChange={e=>{if(audioRef.current)audioRef.current.currentTime=Number(e.target.value);setPosition(Number(e.target.value));}}/><div><span>{clock(position)}</span><span>{clock(Number.isFinite(duration)?duration:0)}</span></div></div>
    <div className="track-playlist-transport" aria-label="Playlist controls"><button type="button" aria-label="Shuffle" aria-pressed={shuffle} onClick={()=>{played.current=[];setShuffle(value=>!value);}} title="Shuffle">⤨</button><button type="button" onClick={previousTrack} aria-label="Previous track">◀◀</button><button type="button" className="main" onClick={togglePlayback} aria-label={isPlaying?"Pause":"Play"}>{isPlaying?"Ⅱ":"▶"}</button><button type="button" onClick={nextTrack} aria-label="Next track">▶▶</button><button type="button" aria-label={`Repeat: ${repeat}`} aria-pressed={repeat!=="off"} title={`Repeat: ${repeat}`} onClick={()=>setRepeat(value=>value==="off"?"all":value==="all"?"one":"off")}>{repeat==="one"?"↻ 1":"↻"}</button></div><p className="player-mode-label">{shuffle?"Shuffle on":"In order"} · Repeat {repeat} · {current+1} / {localTracks.length}</p>
-   <label className="player-volume">Volume<input type="range" aria-label="Volume" min="0" max="1" step="0.01" value={volume} onChange={e=>{const v=Number(e.target.value);setVolume(v);if(audioRef.current)audioRef.current.volume=v;}}/></label>
+   <div className="player-volume" role="group" aria-label="Player volume"><button type="button" aria-label={volume===0?"Unmute":"Mute"} aria-pressed={volume===0} title={volume===0?"Unmute":"Mute"} onClick={()=>{const v=volume===0?.8:0;setVolume(v);if(audioRef.current)audioRef.current.volume=v;}}>{volume===0?"🔇":volume<.5?"🔉":"🔊"}</button><input type="range" aria-label="Player volume" min="0" max="1" step="0.01" value={volume} onChange={e=>{const v=Number(e.target.value);setVolume(v);if(audioRef.current)audioRef.current.volume=v;}}/></div>
    <label className="player-speed">Playback speed <select value={speed} onChange={e=>setSpeed(Number(e.target.value))}>{[0.75,1,1.25,1.5,2].map(value=><option value={value} key={value}>{value}×</option>)}</select></label>
    {enableRanking&&<small className="track-listen-rule">{votingOpen?"Listen to 60% to unlock ranking. Contributors cannot rank their own track.":"Voting is closed. Your ballot is locked; keep listening to the final selection."}</small>}
    {notice&&<div className="track-ballot-notice" role="status">{notice}</div>}

@@ -5,7 +5,7 @@ import { createAdminClient } from "../../lib/supabase/admin";
 import { claimBeat, convertToTrack, leaveIdea, manageClaim, releaseClaim, updateOwnBeatMetadata } from "./actions";
 import { MusicIcon, PlayIcon, PlusIcon, UsersIcon } from "../../components/Icons";
 import BeatUploadForm from "../../components/BeatUploadForm";
-import BeatAudioPlayer from "../../components/BeatAudioPlayer";
+import BeatQueuePlayer from "../../components/BeatQueuePlayer";
 import { createR2PresignedUrl, isR2Configured } from "../../lib/r2";
 import { creatorDisplayName } from "../../lib/profileIdentity";
 import { resolveArtworkUrl } from "../../lib/artwork";
@@ -98,7 +98,7 @@ export default async function BeatsPage({ searchParams }: { searchParams: Promis
 {canUpload && <details className="beat-intake-disclosure"><summary className="beat-intake-summary"><span>PRODUCER INTAKE</span><strong>Upload a beat</strong><small>Direct audio or an external source.</small><b>Open +</b></summary><BeatUploadForm defaultCapacity={project.default_beat_capacity || 3} /></details>}
 
     <form method="get" action="/beats" className="operations-form" role="search"><label>Search beats<input type="search" name="q" defaultValue={search} placeholder="Title or code"/></label><button>Search beats</button>{search && <Link href="/beats">Clear search</Link>}</form>
-    <section className="beats-grid-cards">
+    <section className="fm-beat-library"><BeatQueuePlayer beats={beats.map((b:any)=>({id:b.id,title:b.title||"Untitled beat",producer:b.producer_name||"FACKTS producer",code:b.beat_code||"",src:audioUrls[b.id]||b.external_url||"",artwork:artworkUrls[b.id]||undefined,bpm:b.bpm,musicKey:b.musical_key}))}/><div className="fm-beat-details-list" aria-label="Beat details and claims">
       {!beats.length && <article className="panel empty-state"><MusicIcon size={28} /><h2>No beats available yet</h2><p>{canUpload ? "Upload the first Project 001 beat when the sound is ready." : "Producers and the project team will publish beats here."}</p></article>}
       {beats.map((beat: any) => {
         const claims = (beat.beat_claims || []).filter((claim: any) => activeStatuses.includes(claim.status));
@@ -115,7 +115,7 @@ export default async function BeatsPage({ searchParams }: { searchParams: Promis
             ? creatorDisplayName(uploaders.get(beat.producer_user_id))
             : beat.producer_name || "Uncredited producer";
         const uploaderName = creatorDisplayName(uploaders.get(beat.created_by));
-        return <article className="beat-card-deck fackts-beat-card" id={`beat-${beat.id}`} key={beat.id}>
+        return <details className="fm-beat-extended" id={`beat-${beat.id}`} key={beat.id}><summary><span>{beat.title||"Untitled beat"}</span><small>{beat.beat_code} · {producerName} · {claims.length}/{capacity} claimed</small><b>Details +</b></summary><article className="beat-card-deck fackts-beat-card">
           <div
             className={`beat-card-artwork${artworkUrls[beat.id] ? " has-artwork" : ""}`}
             style={artworkUrls[beat.id] ? {
@@ -126,7 +126,7 @@ export default async function BeatsPage({ searchParams }: { searchParams: Promis
           ><span className="beat-artwork-index">{beat.beat_code}</span><div className="beat-artwork-wave"><i /><i /><i /><i /><i /><i /></div></div>
           <div className="beat-card-top-row"><div className="beat-card-identity"><span className="beat-code-chip">{beat.source_type || "manual"}</span><h3 className="beat-card-title">{beat.title || "Untitled beat"}</h3><span className="beat-card-producer">Produced by <strong>{producerName}</strong></span><small className="music-uploader-label">Uploaded by {uploaderName}</small></div><span className={`status-pill ${String(beat.status).replaceAll(" ", "-")}`}>{full ? "Full" : beat.status}</span></div>
           {!!beat.contributors?.length && <div className="contributor-row">{beat.contributors.map((credit: any) => { const profile = Array.isArray(credit.profiles) ? credit.profiles[0] : credit.profiles; return <span key={credit.id}>{profile?.stage_name || profile?.full_name || "Contributor"} · {String(credit.contribution_role).replaceAll("_", " ")}</span>; })}</div>}
-          {source ? <BeatAudioPlayer beatId={beat.id} src={source} /> : <div className="beat-audio-deck"><PlayIcon size={16} /><span>Audio source not attached</span></div>}
+          {source ? <p className="beat-audio-deck">Listen using the beat player above.</p> : <p className="beat-audio-deck">Audio source not attached.</p>}
           <div className="beat-tags">{beat.bpm && <span>{beat.bpm} BPM</span>}{beat.musical_key && <span>{beat.musical_key}</span>}{(beat.genre_tags || []).map((tag: string) => <span key={tag}>{tag}</span>)}</div>
           {beat.description && <p className="beat-description">{beat.description}</p>}
           {canEditMetadata && <details className="beat-metadata-editor"><summary>Edit beat details +</summary><form action={updateOwnBeatMetadata}><input type="hidden" name="beat_id" value={beat.id}/><input name="title" defaultValue={beat.title||""} placeholder="Beat title"/><input name="producer_name" defaultValue={beat.producer_name||""} placeholder="Producer credit"/><input name="bpm" type="number" min="20" max="400" defaultValue={beat.bpm||""} placeholder="BPM"/><input name="musical_key" defaultValue={beat.musical_key||""} placeholder="Key"/><input name="genre_tags" defaultValue={(beat.genre_tags||[]).join(", ")} placeholder="Genres"/><input name="mood_tags" defaultValue={(beat.mood_tags||[]).join(", ")} placeholder="Moods"/><input name="artist_capacity" type="number" min="1" max="12" defaultValue={beat.artist_capacity||project.default_beat_capacity||3}/><textarea name="description" defaultValue={beat.description||""} placeholder="Description"/><button>Save beat details</button></form></details>}
@@ -135,9 +135,9 @@ export default async function BeatsPage({ searchParams }: { searchParams: Promis
           {isArtist && (mine ? <form action={releaseClaim}><input type="hidden" name="beat_id" value={beat.id} /><button className="interest-button-glow active">Release my claim</button></form> : <form action={claimBeat}><input type="hidden" name="beat_id" value={beat.id} /><button className="interest-button-glow" disabled={full}>{full ? "FULL / SLOTS FILLED" : <><PlusIcon size={14} /> CLAIM A SLOT</>}</button><small className="claim-legal-note">A claim is a participation slot, not ownership of the beat, master or publishing.</small></form>)}
           <details className="idea-box"><summary>Leave an idea</summary><form action={leaveIdea}><input type="hidden" name="beat_id" value={beat.id} /><textarea name="idea" required placeholder="What do you hear on this beat?" /><button>Share idea</button></form>{(beat.comments || []).filter((c: any) => c.kind === "idea").map((c: any) => { const profile = Array.isArray(c.profiles) ? c.profiles[0] : c.profiles; return <p key={c.id}><strong>{profile?.stage_name || profile?.full_name || "Contributor"}</strong> {c.body}</p>})}</details>
           {canManage && <form action={convertToTrack} className="convert-track-form"><input type="hidden" name="beat_id" value={beat.id} /><input name="title" placeholder="Track working title" defaultValue={beat.title || ""} /><button>Start track development</button></form>}
-        </article>;
+        </article></details>;
       })}
-    </section>
+    </div></section>
     {(beatCount || 0) > PAGE_SIZE && <nav className="pagination" aria-label="Beat pages"><Link aria-disabled={page<=1} href={`/beats?q=${encodeURIComponent(search)}&page=${Math.max(1,page-1)}`}>Previous</Link><span>Page {page} of {Math.ceil((beatCount || 0)/PAGE_SIZE)}</span><Link aria-disabled={page>=Math.ceil((beatCount || 0)/PAGE_SIZE)} href={`/beats?q=${encodeURIComponent(search)}&page=${Math.min(Math.ceil((beatCount || 0)/PAGE_SIZE),page+1)}`}>Next</Link></nav>}
   </div></AppShell>;
 }

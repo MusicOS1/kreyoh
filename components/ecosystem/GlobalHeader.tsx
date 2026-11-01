@@ -13,6 +13,8 @@ import type {
   WorkspaceKind,
 } from '../../lib/workspaceExperience';
 import styles from './GlobalHeader.module.css';
+import MusicThemeControl from '../MusicThemeControl';
+import WorkspaceSearch from '../WorkspaceSearch';
 export default function GlobalHeader({
   identity: initialIdentity = null,
   active = 'listener',
@@ -118,7 +120,7 @@ export default function GlobalHeader({
         <Link href="/billboard">Billboard</Link>
         {identity && <Link href="/fan?tab=My%20Library">Library</Link>}
       </nav>
-      <div className={styles.actions}>
+      <div className={styles.actions}>{identity&&active!=='listener'&&<WorkspaceSearch/>}<MusicThemeControl/>
         {identity ? (
           <>
             {active === 'listener' && creatorWorkspace && (
