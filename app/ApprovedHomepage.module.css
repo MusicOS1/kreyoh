@@ -13,7 +13,7 @@
 /* FACKTS Music: editorial type, warm gold, quiet surfaces. Shared across contexts. */
 .homepage {
   --fm-font-body: var(--font-fm-body), sans-serif;
-  --fm-font-display: var(--font-fm-display), var(--font-fm-body), sans-serif;
+  --fm-font-display: "Gotham", "Gotham SSm", "Montserrat", "DM Sans", sans-serif;
   --fm-gold: #d9ad68;
   --fm-ink: #0b0b0e;
   --fm-text: #f5f2ec;

@@ -1,7 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700;750&family=Syne:wght@500;600;700;800&display=swap');
-:root{--fm-font-body:"DM Sans",system-ui,sans-serif;--fm-font-display:"Syne","DM Sans",system-ui,sans-serif;}
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700;750&family=Montserrat:wght@500;600;700;800;900&display=swap');
+:root{--fm-font-body:"DM Sans",system-ui,sans-serif;--fm-font-display:"Gotham","Gotham SSm","Montserrat","DM Sans",system-ui,sans-serif;}
 html body,html body :is(button,input,textarea,select,label,small,span,p,article,div,a,li,td,th,nav,summary){font-family:var(--fm-font-body)!important}
-html body :is(h1,h2,h3,h4,h5,h6){font-family:var(--fm-font-display)!important;letter-spacing:-.035em}
+html body :is(h1,h2,h3,h4,h5,h6,[role="heading"]){font-family:var(--fm-font-display)!important;letter-spacing:-.025em}
 html body :is(pre,code,kbd){font-family:ui-monospace,monospace!important}
 .fm-theme-toggle{background:transparent;border:1px solid currentColor;border-radius:999px;color:inherit;cursor:pointer;font-size:11px;font-weight:700;padding:8px 10px;white-space:nowrap;min-height:34px}
 .fm-theme-toggle:focus-visible{outline:2px solid #f97316;outline-offset:3px}
