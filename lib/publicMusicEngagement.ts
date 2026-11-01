@@ -1,5 +1,6 @@
 import 'server-only';
 import {createAdminClient} from './supabase/admin';
+import {publicPlayStats,kenyaToday} from './publicMusicReporting';
 
 // Engagement applies to EVERY published release shown in public listening,
 // never to private tracks, stems, beats, or recording-room play history.
@@ -11,7 +12,7 @@ export async function withPublicEngagement<T extends {id:string;artist_id:string
   admin.from('fan_music_library').select('item_id').eq('kind','following').in('item_id',artistIds).limit(20000),
   admin.from('music_release_comments').select('release_id,position_seconds').in('release_id',ids).is('deleted_at',null).limit(20000),
   admin.from('music_release_likes').select('release_id').in('release_id',ids).limit(20000),
-  admin.rpc('public_release_play_counts',{p_release_ids:ids})
+  publicPlayStats('2020-01-01',kenyaToday()).then(data=>({data,error:null})).catch(()=>({data:[],error:true}))
  ]);
  // Existing databases may not yet have timed-comment columns. All historic
  // normal comments remain measurable, and no historic likes are manufactured.
@@ -27,7 +28,7 @@ export async function withPublicEngagement<T extends {id:string;artist_id:string
  const follows=count(followed.error?[]:followed.data,'item_id');
  const comments=count(commentRows.error?[]:commentRows.data,'release_id');
  const likes=count(liked.error?[]:liked.data,'release_id');
- const playsById=new Map<string,number>((qualified.error?[]:qualified.data||[]).map((row:{release_id:string;plays:number|string}):[string,number]=>[row.release_id,Number(row.plays||0)]));
+ const playsById=new Map<string,{plays:number;listeners:number}>((qualified.error?[]:qualified.data||[]).map((row:{release_id:string;lifetime_plays:number;lifetime_listeners:number}):[string,{plays:number;listeners:number}]=>[row.release_id,{plays:Number(row.lifetime_plays||0),listeners:Number(row.lifetime_listeners||0)}]));
  return releases.map(r=>{
   const markers=new Map<number,number>();
   if(!timed.error)for(const c of timed.data||[]){
@@ -40,8 +41,8 @@ export async function withPublicEngagement<T extends {id:string;artist_id:string
    followers:followed.error?null:(follows.get(r.artist_id)||0),
    comments:commentRows.error?null:(comments.get(r.id)||0),
    likes:liked.error?null:(likes.get(r.id)||0),
-   plays:qualified.error?(typeof r.plays==='number'?r.plays:null):playsById.get(r.id)||0,
-   unique_listeners:typeof r.unique_listeners==='number'?r.unique_listeners:null,
+   plays:qualified.error?null:playsById.get(r.id)?.plays??0,
+   unique_listeners:qualified.error?null:playsById.get(r.id)?.listeners??0,
    commentMarkers:[...markers].map(([seconds,n])=>({seconds,count:n})),
    timedCommentsEnabled:!timed.error
   };

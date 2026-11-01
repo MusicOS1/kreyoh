@@ -21,7 +21,7 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
  const playNextId=useRef<string|null>(null);
  const played=useRef<number[]>([]),history=useRef<number[]>([]);
  const audioRef=useRef<HTMLAudioElement>(null),autoPlayRef=useRef(autoStart),listenRecorded=useRef(new Set(tracks.filter(t=>t.listened).map(t=>t.id)));
- const playMeter=useRef<{releaseId:string;sessionId:string;lastPosition:number;listened:number;duration:number;phase:'starting'|'ready'|'posting'|'done'|'failed'}|null>(null);
+ const playMeter=useRef<{releaseId:string;sessionId:string;lastPosition:number;listened:number;duration:number;attemptedAt:number;phase:'starting'|'ready'|'posting'|'done'|'failed'}|null>(null);
 
  useEffect(()=>{const id=localTracks[current]?.id;setLocalTracks(tracks);const next=tracks.findIndex(t=>t.id===id);setCurrent(next<0?0:next);played.current=[];history.current=[];},[tracks]);
  useEffect(()=>{
@@ -103,21 +103,24 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
   if(!audio||!selected?.src.startsWith('/api/releases/')||!Number.isFinite(audio.duration)||audio.duration<3)return;
   const previous=playMeter.current;
   if(previous?.releaseId===selected.id&&['starting','ready','posting'].includes(previous.phase))return;
-  const meter:{releaseId:string;sessionId:string;lastPosition:number;listened:number;duration:number;phase:'starting'|'ready'|'posting'|'done'|'failed'}={
-   releaseId:selected.id,sessionId:crypto.randomUUID(),lastPosition:audio.currentTime,listened:0,duration:audio.duration,phase:'starting'
+  const meter:{releaseId:string;sessionId:string;lastPosition:number;listened:number;duration:number;attemptedAt:number;phase:'starting'|'ready'|'posting'|'done'|'failed'}={
+   releaseId:selected.id,sessionId:crypto.randomUUID(),lastPosition:audio.currentTime,listened:0,duration:audio.duration,attemptedAt:Date.now(),phase:'starting'
   };
   playMeter.current=meter;
   void fetch('/api/listening/plays',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
    action:'start',releaseId:meter.releaseId,sessionId:meter.sessionId,duration:meter.duration,
    source:pathname==='/billboard'?'billboard':pathname.startsWith('/billboard/')?'release':'public-player'
   })}).then(async response=>{const data=await response.json();if(!response.ok||!data.ok)throw Error('Not started');if(playMeter.current===meter)meter.phase='ready';})
-  .catch(()=>{if(playMeter.current===meter)meter.phase='failed';});
+  .catch(()=>{if(playMeter.current===meter){meter.phase='failed';console.warn('FACKTS: public play session could not start; will retry.');}});
  }
  function measurePublicPlay(){
   const audio=audioRef.current;
   if(!audio||!selected?.src.startsWith('/api/releases/')||audio.paused)return;
   let meter=playMeter.current;
   if(!meter||meter.releaseId!==selected.id){startMeasuredPlay();meter=playMeter.current;}
+  if(meter?.phase==='failed'&&Date.now()-meter.attemptedAt>10000){
+   playMeter.current=null;startMeasuredPlay();meter=playMeter.current;
+  }
   if(!meter||meter.releaseId!==selected.id)return;
   const current=audio.currentTime;
   if(current<meter.lastPosition-2&&meter.phase==='done'){startMeasuredPlay();meter=playMeter.current;if(!meter)return;}

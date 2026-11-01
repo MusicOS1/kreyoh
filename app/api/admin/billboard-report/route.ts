@@ -1,32 +1,28 @@
 import {NextRequest} from 'next/server';
 import {getControlRoomAccess,hasControlRoomPermission} from '../../../../lib/controlRoom';
-import {createAdminClient} from '../../../../lib/supabase/admin';
 import {chart} from '../../../../lib/community';
+import {publicPlayStats,publicArtistAudience,reportRange,kenyaToday} from '../../../../lib/publicMusicReporting';
 export const dynamic='force-dynamic';
-const valid=/^\d{4}-\d{2}-\d{2}$/;
-const csv=(value:unknown)=>{let s=String(value??'');if(/^[=+@-]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"';};
+const csv=(input:unknown)=>{
+ let s=String(input??'');if(/^[=+@-]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"';
+};
 export async function GET(request:NextRequest){
  const access=await getControlRoomAccess();
- if(!access.user||!access.authorised||!(await hasControlRoomPermission(access.user.id,'music')||await hasControlRoomPermission(access.user.id,'reports')))
-  return Response.json({error:'Not permitted'},{status:403});
- const url=new URL(request.url),from=url.searchParams.get('from'),to=url.searchParams.get('to');
- if(!from||!to||!valid.test(from)||!valid.test(to)||from>to||Date.parse(to)-Date.parse(from)>366*86400000||to>new Date(Date.now()+3*3600000).toISOString().slice(0,10))
-  return Response.json({error:'Choose a valid report period.'},{status:400});
+ if(!access.user||!access.authorised||!(await hasControlRoomPermission(access.user.id,'music')||await hasControlRoomPermission(access.user.id,'reports')))return Response.json({error:'Not permitted'},{status:403});
+ const url=new URL(request.url),from=url.searchParams.get('from')||'',to=url.searchParams.get('to')||'';
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(from)||!/^\d{4}-\d{2}-\d{2}$/.test(to)||from>to||to>kenyaToday()||Date.parse(to)-Date.parse(from)>366*86400000)return Response.json({error:'Choose a valid report period.'},{status:400});
+ const range=reportRange({from,to}),view=url.searchParams.get('view')==='artists'?'artists':'songs';
  try{
-  const [releases,metrics]=await Promise.all([chart(),createAdminClient().rpc('billboard_metrics',{p_from:from,p_to:to})]);
-  const ready=!metrics.error;
-  const byId=new Map<string,any>((metrics.data||[]).map((r:any)=>[r.release_id,r]));
-  const output=[
-   ['Song','Artist','From (Kenya time)','To (Kenya time)','Qualified plays','Unique listeners per song','Active likes','Saves','Comments','Artist followers','Net new follows','Weekly votes','Billboard score'],
-   ...releases.map((r:any)=>{
-    const m=byId.get(r.id);
-    return [r.title,r.artist_name,from,to,
-     ready?m?.plays??0:r.plays??'Not tracked',ready?m?.unique_listeners??0:r.unique_listeners??'Not tracked',
-     r.likes??'Not tracked',r.saves??'Unavailable',r.comments??'Unavailable',r.followers??'Unavailable',
-     ready?m?.follower_growth??0:'Not tracked',r.votes??0,ready?m?.chart_score??0:'Not tracked'];
-   })
-  ].map(row=>row.map(csv).join(',')).join('\r\n');
-  return new Response('\uFEFF'+output,{headers:{'Content-Type':'text/csv; charset=utf-8',
-   'Content-Disposition':`attachment; filename="FACKTS Public Music Analytics ${from} to ${to}.csv"`,'Cache-Control':'private, no-store'}});
- }catch{return Response.json({error:'Could not generate the public music report.'},{status:503});}
+  const [releases,stats,artists]=await Promise.all([chart(),publicPlayStats(range.from,range.to),publicArtistAudience(range.from,range.to)]);
+  const byId=new Map(stats.map(row=>[row.release_id,row]));
+  const byName=new Map<string,{likes:number;comments:number}>();
+  for(const r of releases){const key=r.artist_name.toLowerCase().trim(),v=byName.get(key)||{likes:0,comments:0};v.likes+=r.likes||0;v.comments+=r.comments||0;byName.set(key,v);}
+  const matrix=view==='artists'?
+  [['Credited artist','Published songs','Lifetime qualified plays','Plays in period','Distinct listeners in period','Song likes','Song comments','From','To'],
+   ...artists.map(a=>[a.credited_artist,a.songs,a.lifetime_plays,a.period_plays,a.period_listeners,byName.get(a.credited_artist.toLowerCase().trim())?.likes||0,byName.get(a.credited_artist.toLowerCase().trim())?.comments||0,range.from,range.to])]:
+  [['Song','Credited artist','Lifetime qualified plays','Plays in period','Unique listeners in period','Listening starts in period','Active likes','Comments','Saves','From','To'],
+   ...releases.map(r=>{const m=byId.get(r.id);return [r.title,r.artist_name,m?.lifetime_plays||0,m?.period_plays||0,m?.period_listeners||0,m?.period_starts||0,r.likes??'unavailable',r.comments??'unavailable',r.saves??'unavailable',range.from,range.to]})];
+  const output=matrix.map(row=>row.map(csv).join(',')).join('\r\n');
+  return new Response('\uFEFF'+output,{headers:{'Content-Type':'text/csv; charset=utf-8','Content-Disposition':`attachment; filename="FACKTS Music ${view} ${range.from} to ${range.to}.csv"`,'Cache-Control':'private, no-store'}});
+ }catch{return Response.json({error:'Could not create music report.'},{status:503});}
 }
