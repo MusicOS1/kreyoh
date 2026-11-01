@@ -335,3 +335,97 @@ body:has(.fm-mixtape-profile) .global-listening-player{background:var(--mx-surfa
  .fm-mixtape-profile .mx-profile-stage .mx-stage-photo{min-height:0}
  .fm-mixtape-profile .fm-creator-published{padding:16px!important}
 }
+
+/* Strict FACKTS orange-on-black mode: only fan and public artist routes. */
+html:has(:is(.fm-mixtape-listener,.fm-mixtape-profile,.fm-mixtape-directory)),
+:is(.fm-mixtape-listener,.fm-mixtape-profile,.fm-mixtape-directory),
+html[data-fm-mixtape="dark"] :is(.fm-mixtape-listener,.fm-mixtape-profile,.fm-mixtape-directory){
+ --mx-bg:#0B0B0B!important;--mx-surface:#171717!important;--mx-soft:#202020!important;--mx-ink:#FFF!important;
+ --mx-muted:#A1A1AA!important;--mx-accent:#FF6A00!important;--mx-highlight:#FF6A00!important;
+ --mx-signal:#FF6A00!important;--mx-line:#303034!important;color:#FFF!important;background:#0B0B0B!important;color-scheme:dark}
+html[data-fm-mixtape="dark"]:has(:is(.fm-mixtape-listener,.fm-mixtape-profile,.fm-mixtape-directory)){
+ --mx-bg:#0B0B0B!important;--mx-surface:#171717!important;--mx-soft:#202020!important;--mx-ink:#FFF!important;
+ --mx-muted:#A1A1AA!important;--mx-accent:#FF6A00!important;--mx-highlight:#FF6A00!important;
+ --mx-signal:#FF6A00!important;--mx-line:#303034!important}
+.fm-mixtape-listener{--fan-bg:#0B0B0B!important;--fan-text:#FFF!important;--fan-muted:#A1A1AA!important;
+ --fan-surface:#171717!important;--fan-raised:#202020!important;--fan-border:#303034!important;
+ --fan-accent:#FF6A00!important;grid-template-columns:250px minmax(0,1fr)!important}
+.fm-mixtape-listener .mx-listener-sidebar{background:#101012!important;border-right:1px solid #303034!important;padding:35px 14px!important}
+.fm-mixtape-listener .mx-sidebar-brand small{color:#A1A1AA!important}
+.fm-mixtape-listener .mx-sidebar-brand strong{color:#FFF!important;font:800 22px/1.1 "Gotham","DM Sans",sans-serif;text-transform:uppercase}
+.fm-mixtape-listener .mx-listener-sidebar nav button{color:#FFF!important;border-radius:10px!important;border:0!important;
+ min-height:50px;font:700 14px "DM Sans",sans-serif}
+.fm-mixtape-listener .mx-listener-sidebar nav button>span{color:#A1A1AA!important}
+.fm-mixtape-listener .mx-listener-sidebar nav button[aria-pressed=true]{background:#FF6A00!important;color:#FFF!important}
+.fm-mixtape-listener .mx-listener-sidebar nav button[aria-pressed=true]>span{color:#FFF!important}
+.fm-mixtape-listener .mx-listener-main{background:#0B0B0B!important;padding:22px clamp(20px,3vw,50px) 145px}
+.fm-mixtape-listener .mx-listener-search{background:#171717!important;border:1px solid #303034!important;color:#A1A1AA!important}
+.fm-mixtape-listener .mx-listener-search input{color:#FFF!important}
+.fm-mixtape-listener .mx-listener-search input::placeholder{color:#A1A1AA!important}
+.mx-albums-page-heading{margin:18px 0 32px}
+.mx-albums-page-heading h1{font:900 clamp(33px,4vw,52px)/1 "Gotham","DM Sans",sans-serif;letter-spacing:-.055em;
+ color:#FFF;text-transform:uppercase;margin:0 0 12px}
+.mx-albums-page-heading p{color:#A1A1AA;font:400 14px "DM Sans",sans-serif}
+.fm-mixtape-listener .mx-album-results{margin-top:0!important}
+.fm-mixtape-listener .mx-album-results>header{display:none!important}
+.fm-mixtape-listener .mx-song-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:16px}
+.fm-mixtape-listener .mx-album-card{display:grid!important;grid-template-columns:112px minmax(0,1fr)!important;
+ align-items:start;gap:8px 16px;background:#171717!important;border:1px solid #303034!important;
+ border-radius:14px!important;box-shadow:none!important;min-height:184px;padding:16px!important}
+.fm-mixtape-listener .mx-album-card .mx-cover{grid-column:1;grid-row:1/3;width:112px!important;height:112px!important;
+ border-radius:9px!important;border:0!important;overflow:hidden!important;background:#202020!important}
+.fm-mixtape-listener .mx-album-card .mx-cover img{width:100%;height:100%;object-fit:cover}
+.fm-mixtape-listener .mx-album-card .mx-cover>b{width:42px!important;height:42px!important;min-height:42px!important;
+ min-width:42px!important;right:8px!important;bottom:8px!important;color:#0B0B0B!important;background:#FFF!important}
+.fm-mixtape-listener .mx-album-card .mx-song-copy{grid-column:2;grid-row:1;padding:0;min-width:0}
+.fm-mixtape-listener .mx-album-card .mx-song-copy h3{font:800 17px/1.2 "Gotham","DM Sans",sans-serif!important;
+ text-transform:uppercase;letter-spacing:-.03em;color:#FFF!important;margin:0 0 7px}
+.fm-mixtape-listener .mx-album-card .mx-song-copy :is(p,button,small){color:#A1A1AA!important;font:400 12px "DM Sans",sans-serif!important}
+.fm-mixtape-listener .mx-album-card .mx-song-actions{grid-column:2;grid-row:2;display:flex!important;gap:6px;
+ flex-wrap:wrap;align-items:center;padding:0!important}
+.fm-mixtape-listener .mx-album-card .mx-song-actions :is(button,a){min-height:35px!important;background:transparent!important;
+ color:#FFF!important;border:1px solid #3A3A3E!important;border-radius:9px!important;
+ padding:7px 10px!important;font:600 11px "DM Sans",sans-serif!important}
+.fm-mixtape-listener .mx-album-card .mx-song-actions :is(button,a):hover{border-color:#FF6A00!important;color:#FF6A00!important}
+.fm-mixtape-listener .mx-album-card .mx-song-actions button[aria-pressed=true]{color:#FF6A00!important}
+.fm-mixtape-listener .mx-album-card details{grid-column:1/-1;grid-row:3;color:#A1A1AA}
+.fm-mixtape-listener .mx-album-card details summary{color:#A1A1AA!important;font-size:10px}
+.fm-mixtape-listener .mx-listener-section h2,.fm-mixtape-listener .mx-artist-tiles article>button:not(.mx-artist-tile-photo){color:#FFF!important}
+.fm-mixtape-listener .mx-featured-world,.fm-mixtape-listener .mx-song,.fm-mixtape-listener .mx-artist-stage{background:#171717!important}
+.fm-mixtape-listener .mx-feature-heading h2,.fm-mixtape-listener .mx-feature-track strong{color:#FFF!important}
+.fm-mixtape-listener .mx-feature-track small{color:#A1A1AA!important}
+.fm-mixtape-listener .mx-feature-play,.fm-mixtape-listener .fm-artist-card-actions button{color:#FF6A00!important}
+.fm-mixtape-profile .mx-profile-stage,.fm-mixtape-profile .fm-creator-published{background:#171717!important}
+body:has(:is(.fm-mixtape-listener,.fm-mixtape-profile,.fm-mixtape-directory)) [data-fm-header]{
+ --gold:#FF6A00!important;background:#111113!important;color:#FFF!important;
+ border-bottom:1px solid #303034!important;font-family:"DM Sans",sans-serif!important}
+body:has(:is(.fm-mixtape-listener,.fm-mixtape-profile,.fm-mixtape-directory)) [data-fm-header] :is(a,button,span){color:#FFF}
+body:has(:is(.fm-mixtape-listener,.fm-mixtape-profile,.fm-mixtape-directory)) [data-fm-header] a:hover{color:#FF6A00!important}
+body:has(:is(.fm-mixtape-listener,.fm-mixtape-profile,.fm-mixtape-directory)) [data-fm-header] [class*="join"]{background:#FF6A00!important;color:#FFF!important}
+body:has(:is(.fm-mixtape-listener,.fm-mixtape-profile,.fm-mixtape-directory)) [data-fm-header] [class*="navigation"] a{text-transform:uppercase;font-weight:800}
+body:has(.fm-mixtape-listener) .global-listening-player,body:has(.fm-mixtape-profile) .global-listening-player{
+ background:#121212!important;color:#FFF!important;border-top:1px solid #303034!important;
+ --fan-text:#FFF!important;--fan-muted:#A1A1AA!important;--fan-accent:#FF6A00!important;
+ --fan-surface:#171717!important;--fan-border:#303034!important}
+body:has(.fm-mixtape-listener) .global-listening-player input[type=range]{accent-color:#FF6A00!important}
+body:has(.fm-mixtape-listener) .global-listening-player .track-playlist-transport button.main{background:#FF6A00!important;color:#0B0B0B!important}
+.mx-fan-mobile-nav{display:none}
+@media(max-width:1050px){.fm-mixtape-listener{grid-template-columns:1fr!important}.fm-mixtape-listener .mx-listener-sidebar{display:none}}
+@media(max-width:760px){
+ .fm-mixtape-listener .mx-listener-main{padding:14px 13px 165px}
+ .mx-fan-mobile-nav{position:fixed;left:0;right:0;bottom:0;z-index:118;display:flex!important;
+ height:74px;padding:7px 4px max(7px,env(safe-area-inset-bottom));background:#111113;
+ border-top:1px solid #303034;align-items:center;justify-content:space-around}
+ .mx-fan-mobile-nav button{display:grid;justify-items:center;gap:4px;min-height:48px;padding:4px 6px;
+ background:none;color:#FFF;border:0;font:600 10px "DM Sans",sans-serif}
+ .mx-fan-mobile-nav button[aria-current=page]{color:#FF6A00!important}
+ body:has(.mx-fan-mobile-nav) .global-listening-player{bottom:74px!important}
+ .mx-albums-page-heading{margin:15px 0 18px}.mx-albums-page-heading h1{font-size:31px}
+ .fm-mixtape-listener .mx-song-grid{grid-template-columns:minmax(0,1fr)!important;gap:12px}
+ .fm-mixtape-listener .mx-album-card{grid-template-columns:84px minmax(0,1fr)!important;
+ min-height:148px!important;gap:6px 10px;padding:11px!important}
+ .fm-mixtape-listener .mx-album-card .mx-cover{width:84px!important;height:84px!important}
+ .fm-mixtape-listener .mx-album-card .mx-cover>b{width:33px!important;height:33px!important;min-width:33px!important;min-height:33px!important}
+ .fm-mixtape-listener .mx-album-card .mx-song-copy h3{font-size:14px!important}
+ .fm-mixtape-listener .mx-album-card .mx-song-actions :is(button,a){font-size:10px!important;min-height:31px!important;padding:5px 7px!important}
+}
