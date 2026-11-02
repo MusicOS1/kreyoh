@@ -62,3 +62,13 @@ test("later profile changes cannot silently reuse a protected public name",()=>{
  assert.match(settings,/error\.code==="23505"/);
  assert.match(managed,/error\?\.code==="23505"/);
 });
+
+test("new visitors can check public name availability without sign-in",()=>{
+ const proxy=source("lib/supabase/proxy.ts");
+ const check=source("app/api/signup/name-availability/route.ts");
+ assert.match(proxy,/PUBLIC_ROUTES\s*=\s*\[[\s\S]*?"\/api\/signup\/name-availability"/);
+ assert.match(proxy,/if\s*\(isPublicRoute\(pathname\)\)/);
+ assert.match(check,/export async function GET\(request:Request\)/);
+ assert.match(check,/available:data===true/);
+ assert.doesNotMatch(check,/redirect\(/);
+});

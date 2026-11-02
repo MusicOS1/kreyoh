@@ -22,6 +22,7 @@ const PUBLIC_ROUTES = [
   "/auth/callback",
   "/auth/signout",
   "/api/session/status",
+  "/api/signup/name-availability",
   "/api/listening",
   "/admin/login",
   "/admin/access-unavailable",
