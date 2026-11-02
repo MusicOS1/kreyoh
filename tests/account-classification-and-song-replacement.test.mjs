@@ -1,0 +1,47 @@
+import {test} from "node:test";
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const read=path=>readFileSync(new URL("../"+path,import.meta.url),"utf8");
+test("signup requires a deliberate fan or creative identity and asks Other Creative for details",()=>{
+ const form=read("components/SignupForm.tsx"),action=read("app/signup/actions.ts");
+ assert.match(form,/<option value="" disabled>Select your account type/);
+ assert.doesNotMatch(form,/defaultValue=\{next.startsWith\("\/fan"\)\?"Fan \/ Listener":"Artist"\}/);
+ assert.match(form,/identity==="Other Creative"/);
+ assert.match(form,/name="other_creative_type"/);
+ assert.match(action,/"Fan \/ Listener": \["Fan"\]/);
+ assert.match(action,/other_creative_type/);
+ assert.match(action,/skills_genres:\[otherCreativeType\]/);
+ assert.match(action,/isFanProfile/);
+});
+test("admin categories distinguish fans and unclassified accounts, and do not grant project roles",()=>{
+ const index=read("app/admin/(control)/users/page.tsx");
+ const detail=read("app/admin/(control)/users/[userId]/page.tsx");
+ const actions=read("app/admin/(control)/actions.ts");
+ assert.match(index,/option value="Fan">Fans/);
+ assert.match(index,/option value="Unclassified">Needs classification/);
+ assert.match(detail,/name="account_kind"/);
+ assert.match(detail,/>Fan \/ Listener<\/option>/);
+ assert.match(actions,/category==="fan"\?\["Fan"\]:selected/);
+ assert.match(actions,/requireControlRoomPermission\("people"\)/);
+ assert.match(actions,/account_category_updated/);
+ assert.doesNotMatch(actions.slice(actions.indexOf("export async function updateManagedCreatorProfile"),actions.indexOf("export async function updateEnquiryStatus")),/member_roles\.insert/);
+});
+test("admin replacement is signed, audited, guarded, non-destructive and retains release ID",()=>{
+ const actions=read("app/admin/(control)/releases/replaceActions.ts");
+ const widget=read("components/AdminReleaseAudioReplacement.tsx");
+ const page=read("app/admin/(control)/releases/page.tsx");
+ assert.match(actions,/requireControlRoomPermission\("music"\)/);
+ assert.match(actions,/createR2PresignedUrl\("PUT"/);
+ assert.match(actions,/release_audio_replacement_prepared/);
+ assert.match(actions,/release_audio_replaced/);
+ assert.match(actions,/assertR2ObjectAccess\(uploadKey\)/);
+ assert.match(actions,/finalizeReleaseObject\(uploadKey,finalKey\)/);
+ assert.match(actions,/\.eq\("audio_key",oldKey\)/);
+ assert.match(actions,/\.eq\("status",originalStatus\)/);
+ assert.doesNotMatch(actions,/delete\(/);
+ assert.doesNotMatch(actions,/music_votes.*(update|delete)/);
+ assert.match(widget,/directUpload/);
+ assert.match(widget,/rights/);
+ assert.match(page,/Add new songs \(bulk or singles\)/);
+ assert.match(page,/AdminReleaseAudioReplacement/);
+});

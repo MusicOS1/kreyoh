@@ -37,6 +37,7 @@ export async function signup(formData: FormData) {
   const typeLabel = read(formData, "creator_type");
   const creatorTypes = PUBLIC_TYPES[typeLabel];
   const accepted = formData.get("accepted_terms") === "on";
+  const otherCreativeType=read(formData,"other_creative_type").replace(/\s+/g," ").slice(0,80);
 
   const fail = (message: string): never =>
     redirect(`/signup?next=${encodeURIComponent(next)}&error=${encodeURIComponent(message)}`);
@@ -45,6 +46,7 @@ export async function signup(formData: FormData) {
     fail("Complete every required field.");
   }
 
+  if(typeLabel==="Other Creative"&&(!otherCreativeType||otherCreativeType.length<2))fail("Tell us what kind of creative you are.");
   if (!accepted) {
     fail("Accept the terms and privacy notice to continue.");
   }
@@ -70,6 +72,7 @@ export async function signup(formData: FormData) {
         full_name: fullName,
         creator_types: creatorTypes,
         creative_role: creatorTypes[0],
+        ...(typeLabel==="Other Creative"?{other_creative_type:otherCreativeType}:{}),
       },
     },
   });
@@ -90,6 +93,7 @@ export async function signup(formData: FormData) {
       full_name: fullName,
       email,
       creator_types: creatorTypes,
+      ...(typeLabel==="Other Creative"?{skills_genres:[otherCreativeType]}:{}),
       profile_visibility: "project",
       updated_at: new Date().toISOString(),
     },
@@ -108,6 +112,7 @@ export async function signup(formData: FormData) {
     metadata: {
       creator_types: creatorTypes,
       signup_identity: typeLabel,
+      ...(typeLabel==="Other Creative"?{other_creative_type:otherCreativeType}:{}),
     },
   });
 

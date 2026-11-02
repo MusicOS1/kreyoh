@@ -6,6 +6,7 @@ import Link from "next/link";
 
 export default function SignupForm({ error, next="/home" }: { error?: string; next?: string }) {
   const [visible, setVisible] = useState(false);
+  const [identity, setIdentity] = useState("");
 
   return (
     <form action={signup} className="login-card"><input name="next" type="hidden" value={next}/>
@@ -35,13 +36,15 @@ export default function SignupForm({ error, next="/home" }: { error?: string; ne
       </label>
 
       <label>
-        I mainly work as
+        How are you joining FACKTS Music?
         <select
           name="creator_type"
           required
-          defaultValue={next.startsWith("/fan")?"Fan / Listener":"Artist"}
+          value={identity}
+          onChange={event=>setIdentity(event.target.value)}
           className="dark-select"
         >
+          <option value="" disabled>Select your account type</option>
           <option>Fan / Listener</option>
           <option>Artist</option>
           <option>Producer</option>
@@ -60,8 +63,12 @@ export default function SignupForm({ error, next="/home" }: { error?: string; ne
           <option>Other Creative</option>
         </select>
 
+        {identity==="Other Creative"&&<label className="signup-other-creative">
+          What kind of creative are you?
+          <input name="other_creative_type" maxLength={80} minLength={2} required placeholder="e.g. DJ, photographer, dancer, music curator"/>
+        </label>}
         <small>
-          This describes how you join the community. It does not automatically
+          Fans get the listening experience. Creatives get an identity and professional workspace. This describes how you join the community. It does not automatically
           give access to another person's project. Project roles and permissions
           activate when the project invites or assigns you.
         </small>
