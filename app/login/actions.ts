@@ -44,8 +44,9 @@ export async function login(formData: FormData) {
   }
   const admin = createAdminClient();
   const {data:profile}=await admin.from("profiles").select("creator_types").eq("id",signedUserId).maybeSingle();
-  const {count:projectCount}=await admin.from("project_members").select("id",{count:"exact",head:true}).eq("user_id",signedUserId).eq("status","active");
-  const destination=next==="/home"&&isFanProfile(profile)&&!projectCount?"/fan":next;
+  // A fan's default experience is listening even if they also have a
+  // separate project invitation. This changes navigation, not permissions.
+  const destination=next==="/home"&&isFanProfile(profile)?"/fan":next;
   revalidatePath("/", "layout");
   redirect(destination);
 }
