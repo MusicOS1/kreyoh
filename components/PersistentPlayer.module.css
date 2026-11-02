@@ -127,9 +127,45 @@
   color: #73607d;
 }
 .dock :global(.player-speed),
-.dock :global(.player-volume),
 .dock :global(.player-mode-label) {
   display: none !important;
+}
+.dock :global(.player-volume) {
+  display: flex !important;
+  grid-column: 4;
+  grid-row: 1/3;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 130px;
+  color: var(--fan-text);
+}
+.dock :global(.player-mute-toggle) {
+  border: 0;
+  background: transparent;
+  color: var(--fan-text);
+  cursor: pointer;
+  width: 36px;
+  height: 40px;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+}
+.dock :global(.player-mute-toggle):hover,
+.dock :global(.player-mute-toggle):focus-visible {
+  color: #ff6a00;
+}
+.dock :global(.player-volume) input[type="range"] {
+  width: 92px;
+  min-width: 72px;
+  height: 22px;
+  margin: 0;
+  accent-color: #ff6a00;
+  cursor: pointer;
+}
+.dock :global(.player-volume) :is(button,input):focus-visible {
+  outline: 2px solid #ff6a00;
+  outline-offset: 2px;
 }
 .dock :global(.fan-queue-toggle) {
   position: absolute;
@@ -245,6 +281,18 @@
     grid-column: 1/-1;
     grid-row: 2;
   }
+  .dock :global(.player-volume) {
+    grid-column: 1/-1;
+    grid-row: 3;
+    width: 100%;
+    justify-content: flex-end;
+    gap: 10px;
+    min-height: 32px;
+  }
+  .dock :global(.player-volume) input[type="range"] {
+    width: clamp(100px, 32vw, 180px);
+    min-width: 100px;
+  }
   .dock :global(.player-progress) > div {
     display: none !important;
   }
@@ -254,7 +302,7 @@
   }
   .dock :global(.resume-listening) {
     grid-column: 1/-1;
-    grid-row: 3;
+    grid-row: 4;
     max-width: none;
     min-height: 40px;
     margin: 2px 0 0;

@@ -35,4 +35,4 @@ test('split background response reloads only the authorised proposal and keeps i
  for(const table of ['track_splits','track_split_plans'])for(const [key,value]of [['project_id',projectId],['track_id',trackId]])assert.ok(filters.some(filter=>JSON.stringify(filter)===JSON.stringify([table,key,value])));
 });
 
-test("collection cards retain distinct artist IDs even when display names match",()=>{const source=read("components/ListenerExperience.tsx");assert.match(source,/id:`\$\{r.artist_id\}:\$\{r.collection\}`/);assert.match(source,/key=\{collection.id\}/);});
+test("collection cards retain distinct artist IDs even when display names match",()=>{const source=read("components/ListenerExperience.tsx");assert.match(source,/id:`\$\{r.artist_id\}:\$\{r.collection\}`/);assert.match(source,/key=\{c.id\}/);});

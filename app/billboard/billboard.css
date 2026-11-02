@@ -1,0 +1,162 @@
+/* FACKTS Billboard — original editorial charts styling informed by UK rank hierarchy. */
+.fm-chart-page{--fc-orange:#ff6a00;--fc-line:#2e2e31;--fc-white:#fff;--fc-muted:#aaaab3;
+ width:min(1420px,100%);margin:0 auto;padding:46px clamp(18px,4vw,64px) 110px;
+ background:#0b0b0b;color:#fff;font-family:"DM Sans",sans-serif;min-height:100dvh}
+.fm-chart-page *{box-sizing:border-box}
+.fm-chart-page h1,.fm-chart-page h2,.fm-chart-page strong{font-family:"Gotham","DM Sans",sans-serif}
+.fm-chart-page :is(a,button,input):focus-visible{outline:2px solid #ff6a00;outline-offset:3px}
+.fc-sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.fc-chart-header{padding:26px 0 39px;border-bottom:1px solid #343434}
+.fc-brand-kicker{display:flex;align-items:center;gap:11px;color:#ff8a35;font-size:11px;font-weight:850;letter-spacing:.16em}
+.fc-orange-bar{width:26px;height:4px;border-radius:9px;background:#ff6a00}
+.fc-header-grid{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:35px;align-items:center}
+.fc-chart-header h1{font-size:clamp(48px,6vw,93px);letter-spacing:-.072em;line-height:.95;font-weight:950;margin:20px 0 19px}
+.fc-chart-header h1 span{color:#ff6a00}
+.fc-chart-header p{max-width:650px;color:#ccc;font-size:15px;line-height:1.6}
+.fc-header-number{font:900 21px "Gotham","DM Sans",sans-serif;color:#a6a6ae;display:flex;flex-direction:column;align-items:center;line-height:1}
+.fc-header-number strong{color:#ff6a00;font-size:clamp(92px,10vw,170px);line-height:.9;letter-spacing:-.09em}
+.fc-chart-meta{display:flex;gap:15px;flex-wrap:wrap;margin-top:26px;color:#aaa;font-size:10px;font-weight:800;letter-spacing:.11em}
+.fc-chart-meta span{border-left:2px solid #ff6a00;padding-left:11px}
+.fc-chart-toolbar{display:flex;justify-content:space-between;align-items:center;gap:24px;padding:31px 0 22px}
+.fc-chart-toolbar-copy{display:grid;gap:4px}
+.fc-chart-toolbar-copy strong{color:#fff;font-size:23px;letter-spacing:-.035em}
+.fc-chart-toolbar-copy span{font-size:13px;color:#a1a1aa}
+.fc-chart-search{display:flex;gap:7px;max-width:470px;width:100%}
+.fc-chart-search input{background:#1c1c1d;border:1px solid #4a4a4d;border-radius:9px;min-height:46px;padding:12px 15px;color:#fff;flex:1;min-width:0}
+.fc-chart-search button{border:0;background:#ff6a00;color:#111;border-radius:9px;font-size:12px;font-weight:850;padding:12px 21px;cursor:pointer}
+.fc-back-chart a{color:#ff6a00;font-size:13px;font-weight:750;text-decoration:none}
+.fc-podium{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr) minmax(0,1fr);gap:14px;margin:16px 0 45px}
+.fc-podium-card{min-width:0;display:flex;flex-direction:column;background:#181818;border:1px solid #333;border-radius:17px;padding:19px;overflow:hidden}
+.fc-podium-card.fc-number-one{background:linear-gradient(152deg,#28201a 0%,#171717 55%);border-color:#674226;padding:23px}
+.fc-podium-top{display:flex;justify-content:space-between;align-items:center;gap:12px;color:#ff6a00;margin-bottom:12px}
+.fc-podium-number{font:900 clamp(39px,4vw,72px)/1 "Gotham","DM Sans",sans-serif;letter-spacing:-.065em}
+.fc-number-one .fc-podium-number{font-size:clamp(52px,5.2vw,90px)}
+.fc-rank-kicker{font-size:10px;letter-spacing:.14em;font-weight:850;color:#ffc299;text-align:right}
+.fc-podium-art{width:100%;aspect-ratio:1/1;background:#292929;position:relative;border-radius:10px;overflow:hidden;display:grid;place-items:center}
+.fc-podium-art img{width:100%;height:100%;object-fit:cover}
+.fc-art-placeholder{font-size:72px;color:#ff6a00}
+.fc-art-play{position:absolute;right:14px;bottom:14px;display:grid;place-items:center;width:48px;height:48px;border:0;border-radius:50%;background:#ff6a00;color:#111;box-shadow:0 5px 25px #000a;cursor:pointer}
+.fc-art-play:hover{transform:scale(1.04)}
+.fc-podium-text{margin:18px 0 13px;flex:1}
+.fc-podium-text a{color:#fff;text-decoration:none}
+.fc-podium-text a:hover{color:#ff6a00}
+.fc-podium-text h2{font-size:clamp(19px,2.5vw,33px);line-height:1.1;letter-spacing:-.04em;margin:0 0 8px;overflow-wrap:anywhere}
+.fc-podium-text p{margin:0;color:#c9c9cc;font-size:13px}
+.fc-rank-stats{display:flex;gap:5px;align-items:center;margin-top:13px;color:#ff9b55;font-size:11px;font-weight:800}
+.fc-chart-actions{display:flex;align-items:center;gap:9px;min-width:0}
+.fc-chart-actions>div{min-width:0}
+.fc-chart-actions :is(button,a){display:inline-flex;justify-content:center;align-items:center;min-height:35px;
+ border:1px solid #505054;background:transparent;border-radius:9px;color:#fff;padding:7px 10px;
+ font:750 11px "DM Sans",sans-serif;text-decoration:none;white-space:nowrap;cursor:pointer}
+.fc-chart-actions :is(button,a):hover{border-color:#ff6a00;color:#ff6a00}
+.fc-chart-actions button[aria-pressed=true]{background:#332217;color:#ff9f5a;border-color:#ff6a00}
+.fc-podium-card .fc-chart-actions{flex-wrap:wrap}
+.fc-chart-chartlist{margin-top:20px}
+.fc-list-title{display:flex;align-items:end;justify-content:space-between;gap:15px;margin-bottom:20px}
+.fc-list-title>div>span,.fc-chart-outro span{color:#ff6a00;font-weight:850;font-size:10px;letter-spacing:.13em}
+.fc-list-title h2{color:#fff;font-size:29px;letter-spacing:-.05em;margin:5px 0 0}
+.fc-list-title>span{color:#aaa;font-size:12px}
+.fc-list-legend{display:grid;grid-template-columns:82px minmax(0,1fr) 145px 240px;
+ gap:17px;align-items:center;border-bottom:1px solid #393939;padding:11px 18px;color:#85858d;font-size:10px;font-weight:850;letter-spacing:.14em}
+.fc-list-legend>span:nth-child(3),.fc-list-legend>span:nth-child(4){text-align:center}
+.fc-chart-row{display:grid;grid-template-columns:82px minmax(0,1fr) 145px 240px;gap:17px;
+ align-items:center;border-bottom:1px solid #29292b;padding:14px 18px;min-width:0}
+.fc-chart-row:hover{background:#1b1b1b}
+.fc-chart-rank{font:900 40px/.95 "Gotham","DM Sans",sans-serif;color:#fff;letter-spacing:-.07em;font-variant-numeric:tabular-nums}
+.fc-chart-song{display:flex;align-items:center;gap:15px;min-width:0}
+.fc-chart-cover{width:75px;height:75px;flex:none;display:grid;place-items:center;position:relative;overflow:hidden;
+ border:0;border-radius:9px;background:#292929;color:#ff6a00;cursor:pointer}
+.fc-chart-cover img{display:block;width:100%;height:100%;object-fit:cover}
+.fc-cover-play{position:absolute;inset:0;background:#000a;color:#fff;display:grid;place-items:center;opacity:0}
+.fc-chart-cover:hover .fc-cover-play,.fc-chart-cover:focus-visible .fc-cover-play{opacity:1}
+.fc-chart-song-title{min-width:0;display:grid;gap:4px}
+.fc-chart-song-title a{text-decoration:none;color:#fff}
+.fc-chart-song-title a:hover{color:#ff6a00}
+.fc-chart-song-title strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:17px;letter-spacing:-.025em}
+.fc-chart-song-title span{color:#c5c5c8;font-size:12px}
+.fc-chart-song-title small{color:#777;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fc-row-votes{text-align:center}
+.fc-row-votes strong{display:block;color:#fff;font-size:18px}
+.fc-row-votes small{font-size:11px;color:#aaa}
+.fc-row-actions{display:flex;justify-content:flex-end;align-items:center;gap:9px}
+.fc-song-more{border:1px solid #454545;border-radius:8px;display:grid;place-items:center;min-width:34px;min-height:35px;color:#fff}
+.fc-song-more:hover{color:#ff6a00;border-color:#ff6a00}
+.fc-chart-method{font-size:12px;line-height:1.7;color:#93939b;margin:27px 0;padding:18px 0;border-top:1px solid #303034}
+.fc-chart-outro{display:flex;align-items:center;justify-content:space-between;gap:22px;background:#171717;
+ border:1px solid #303034;border-radius:15px;padding:27px 30px;margin:40px 0 0}
+.fc-chart-outro h2{font-size:clamp(23px,3vw,36px);letter-spacing:-.05em;color:#fff;margin:9px 0}
+.fc-chart-outro a{background:#ff6a00;color:#121212;border-radius:9px;text-decoration:none;font-weight:850;font-size:13px;padding:13px 18px}
+.fc-no-results,.fc-all-featured{padding:30px 20px;color:#aaa}
+.fc-no-results a{color:#ff6a00}
+@media(max-width:1040px){
+ .fc-list-legend,.fc-chart-row{grid-template-columns:65px minmax(0,1fr) 105px;gap:12px}
+ .fc-list-legend>span:last-child{display:none}.fc-row-actions{grid-column:2/-1;justify-content:flex-start;margin-top:-3px}
+ .fc-chart-rank{font-size:34px}
+ .fc-header-number strong{font-size:100px}
+}
+@media(max-width:720px){
+ .fm-chart-page{padding:24px 15px 105px}
+ .fc-chart-header{padding:17px 0 24px}
+ .fc-header-grid{grid-template-columns:1fr;gap:12px}
+ .fc-chart-header h1{font-size:clamp(43px,10vw,68px);margin:16px 0}
+ .fc-chart-header p{font-size:13px}
+ .fc-header-number{display:none}
+ .fc-chart-meta{gap:8px}
+ .fc-chart-toolbar{display:grid;gap:15px}
+ .fc-chart-search{max-width:none}
+ .fc-podium{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0 35px}
+ .fc-number-one{grid-column:1/-1}
+ .fc-podium-card{padding:12px;border-radius:12px}
+ .fc-podium-card.fc-number-one{padding:15px}
+ .fc-podium-number{font-size:36px}.fc-number-one .fc-podium-number{font-size:55px}
+ .fc-podium-text h2{font-size:19px}
+ .fc-number-one .fc-podium-text h2{font-size:29px}
+ .fc-rank-kicker{font-size:9px}
+ .fc-art-play{width:42px;height:42px}
+ .fc-list-title h2{font-size:23px}
+ .fc-list-legend,.fc-chart-row{grid-template-columns:38px minmax(0,1fr) 60px;gap:9px}
+ .fc-list-legend{padding:11px 5px}
+ .fc-chart-row{padding:14px 4px}
+ .fc-list-legend>span:nth-child(3){font-size:9px}
+ .fc-chart-rank{font-size:23px}
+ .fc-chart-cover{width:52px;height:52px}
+ .fc-chart-song{gap:9px}
+ .fc-chart-song-title strong{font-size:13px}
+ .fc-chart-song-title span,.fc-chart-song-title small{font-size:10px}
+ .fc-row-votes strong{font-size:13px}
+ .fc-row-votes small{font-size:9px}
+ .fc-row-actions{grid-column:2/-1;justify-content:flex-start;flex-wrap:wrap}
+ .fc-chart-actions :is(button,a){font-size:10px}
+ .fc-chart-outro{display:grid;padding:23px}
+}
+@media(prefers-reduced-motion:reduce){.fm-chart-page *{transition:none!important;animation:none!important}}
+
+/* Song detail: comments should read as a conversation, not an oversized CTA. */
+.community-page.fm-chart-detail-page{--community-accent:#ff6a00;max-width:1120px;padding-top:43px;padding-bottom:120px;
+ background:#0b0b0b;color:#fff;font-family:"DM Sans",sans-serif}
+.fm-chart-detail-page .billboard-hero{border-color:#313133}
+.fm-chart-detail-page .billboard-hero h1,.fm-chart-detail-page .community-card h2{font-family:"Gotham","DM Sans",sans-serif;letter-spacing:-.05em}
+.fm-chart-detail-page .community-card{border:1px solid #303034;background:#151515;border-radius:15px;padding:22px}
+.fm-chart-detail-page .community-card p{color:#b9b9bf}
+.fm-chart-detail-page .community-card .fc-voting-note{font-size:12px;color:#a1a1aa;margin:7px 0}
+.fm-chart-detail-page .fm-comments{border:0;margin:0;padding:0}
+.fm-chart-detail-page .fm-comments-toggle{background:transparent!important;border:0!important;border-bottom:1px solid #363638!important;
+ border-radius:0!important;display:flex;align-items:center;justify-content:flex-start;gap:11px;
+ color:#fff!important;font:800 18px "Gotham","DM Sans",sans-serif!important;
+ padding:5px 0 17px!important;width:100%;text-align:left;min-height:44px}
+.fm-chart-detail-page .fm-comments-toggle svg{color:#ff6a00;flex:none}
+.fm-chart-detail-page .fm-comments-toggle:hover{color:#ff8c39!important}
+.fm-chart-detail-page .fm-comments-panel{padding:18px 0 0}
+.fm-chart-detail-page .fm-comments-join{font-size:13px}
+.fm-chart-detail-page .fm-comments-join a{color:#ff8c39}
+.fm-chart-detail-page .fm-comments-error{background:#291917;border:1px solid #5c3127;color:#ffcfb5;
+ border-radius:9px;display:flex;flex-wrap:wrap;gap:10px;padding:12px 13px;font-size:12px}
+.fm-chart-detail-page .fm-comments-error button{background:transparent!important;border:0!important;
+ color:#ff8c39!important;min-height:26px!important;padding:0!important;font-size:12px!important}
+.fm-chart-detail-page .fm-comment-compose textarea{border-color:#424246;background:#1c1c1d}
+.fm-chart-detail-page .fm-comment-compose-bottom button{background:#ff6a00!important;color:#111!important}
+@media(max-width:700px){
+ .community-page.fm-chart-detail-page{padding:25px 14px 115px}
+ .fm-chart-detail-page .community-card{padding:15px}
+ .fm-chart-detail-page .fm-comments-toggle{font-size:16px!important}
+}

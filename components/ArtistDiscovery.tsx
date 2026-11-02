@@ -1,6 +1,7 @@
 "use client";
 import {useMemo,useState} from "react";
 import Link from "next/link";
+import MixtapeArtistStage from "./MixtapeArtistStage";
 import type {MusicArtist} from "../lib/musicArtistsTypes";
 import {creditedToArtist,releaseHasArtist} from "../lib/releaseArtistMatch";
 type Release={explicit_artist_link?:boolean;featured_artist_ids?:string[];id:string;title:string;artist_id:string;artist_name:string;has_cover:boolean;collection:string;genre?:string;release_at:string;votes:number};
@@ -33,7 +34,7 @@ export default function ArtistDiscovery({
   return [...artists,...extras.values()];
  },[artists,releases]);
  const selectedArtist=directory.find(artist=>artist.id===selected);
- const genres=useMemo(()=>["All",...new Set(directory.flatMap(artist=>artist.genres).filter(Boolean))].slice(0,12),[directory]);
+ const genres=useMemo(()=>["All",...new Set(directory.flatMap(artist=>artist.genres).filter(Boolean))].slice(0,7),[directory]);
  const filtered=directory.filter(artist=>(genre==="All"||artist.genres.includes(genre))&&
   [artist.name,artist.bio,artist.tagline,artist.location,...artist.genres].join(" ").toLowerCase().includes(search.toLowerCase()));
  const artistTracks=(artist:ArtistEntry)=>artist.catalogueOnly?releases.filter(release=>"catalogue:"+release.artist_name.trim().toLocaleLowerCase("en")===artist.id):releases.filter(release=>releaseHasArtist(release,artist.id,artist.name));
@@ -43,26 +44,21 @@ export default function ArtistDiscovery({
  return <section className="fm-artist-room" aria-label="FACKTS artist discovery">
   <div className="fm-artist-intro">
    <span className="eyebrow">PEOPLE BEHIND THE MUSIC</span>
-   <h2>Meet the artists. Stay for the sound.</h2>
-   <p>Explore actual FACKTS artist profiles, follow the voices you love and play their published songs without leaving this listening space.</p>
+   <h2>Artists worth knowing.</h2>
+   <p>Find new voices. Hear their music. Stay connected.</p>
   </div>
   {followNotice&&<p role="status">{followNotice}</p>}
   {selectedArtist?<div className="fm-artist-detail" key={selectedArtist.id}>
    <button type="button" className="fm-artist-back" onClick={()=>setSelected(null)}>← All artists</button>
-   <div className="fm-artist-detail-hero">
-    <div className="fm-artist-detail-photo">
-     {artistPhoto(selectedArtist)?<img src={artistPhoto(selectedArtist)!} alt={selectedArtist.name}/>:<span>{artistName(selectedArtist)}</span>}
-    </div>
-    <div className="fm-artist-detail-info"><span className="eyebrow">FACKTS ARTIST</span><h3>{selectedArtist.name}</h3>
-     <p>{selectedArtist.tagline||selectedArtist.bio||"Discover the sound and story behind this FACKTS artist."}</p>
-     {selectedArtist.location&&<small>{selectedArtist.location}</small>}
-     {selectedArtist.genres.length>0&&<div className="fm-artist-tags">{selectedArtist.genres.map(g=><span key={g}>{g}</span>)}</div>}
-     <div className="fm-artist-detail-actions">
-      {selectedArtist.catalogueOnly?<span>Official profile coming soon</span>:viewerId?<button type="button" disabled={followPending(selectedArtist.id)} aria-busy={followPending(selectedArtist.id)} onClick={()=>onFollow(selectedArtist.id)} aria-pressed={following(selectedArtist.id)}>{following(selectedArtist.id)?"✓ Following":"+ Follow artist"}</button>:<Link href={"/login?next="+encodeURIComponent("/fan?tab=Artists")}>Sign in to follow</Link>}
-      <span>{artistReleases.length} released track{artistReleases.length===1?"":"s"} on FACKTS</span>
-     </div>
-    </div>
-   </div>
+   <MixtapeArtistStage className="mx-discovery-stage" name={selectedArtist.name}
+      portrait={selectedArtist.hero||selectedArtist.avatar} description={selectedArtist.tagline||selectedArtist.bio}
+      genres={selectedArtist.genres} location={selectedArtist.location}
+      actions={<>
+        {artistReleases.length>0&&<button type="button" className="mx-primary-action" onClick={()=>onPlay(artistReleases[0])}>▶ Play music</button>}
+        {selectedArtist.catalogueOnly?<span className="mx-stage-notice">Official profile coming soon</span>:viewerId?<button type="button" className="mx-outline-action" disabled={followPending(selectedArtist.id)} aria-busy={followPending(selectedArtist.id)} aria-pressed={following(selectedArtist.id)} onClick={()=>onFollow(selectedArtist.id)}>{following(selectedArtist.id)?"✓ Following":"+ Follow artist"}</button>:<Link className="mx-outline-action" href={"/login?next="+encodeURIComponent("/fan?tab=Artists")}>Sign in to follow</Link>}
+        {!selectedArtist.catalogueOnly&&<Link className="mx-stage-profile-link" href={"/creators/"+encodeURIComponent(selectedArtist.slug||selectedArtist.id)}>Full profile ↗</Link>}
+      </>}
+   />
    <div className="fm-artist-releases"><h4>Releases on FACKTS</h4>
     {artistReleases.length===0?<p className="fm-artist-empty">New releases from this artist will appear here after they are approved and published.</p>:
      <div className="fm-artist-release-list">{artistReleases.map(release=><article key={release.id}>
@@ -87,10 +83,7 @@ export default function ArtistDiscovery({
      <span className="fm-artist-card-copy"><strong>{artist.name}</strong><small>{artist.genres.slice(0,2).join(" · ")||artist.location||"FACKTS Music Artist"}</small>
      <span>{artistTracks(artist).length} published tracks</span></span>
     </button>
-    <div className="fm-artist-card-actions">
-     <button type="button" onClick={()=>setSelected(artist.id)}>Explore music →</button>
-     {viewerId&&!artist.catalogueOnly&&<button type="button" disabled={followPending(artist.id)} aria-busy={followPending(artist.id)} aria-label={(following(artist.id)?"Unfollow ":"Follow ")+artist.name} aria-pressed={following(artist.id)} onClick={()=>onFollow(artist.id)}>{following(artist.id)?"♥":"♡"}</button>}
-    </div>
+    <div className="fm-artist-card-actions"><button type="button" onClick={()=>setSelected(artist.id)}>View artist →</button></div>
    </article>)}</div>
    {!filtered.length&&<div className="fm-artist-empty">No public artist profiles match that search. Try a different sound or name.</div>}
   </>}

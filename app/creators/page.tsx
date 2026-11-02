@@ -1,3 +1,4 @@
+import "../streaming-public.css";
 import Link from "next/link";
 import PublicNavigation from "../../components/PublicNavigation";
 import AppShell from "../../components/AppShell";

@@ -110,7 +110,7 @@ export default function GlobalHeader({
         >
           <FacktsMusicLogo size={36} showTagline={false} />
         </Link>
-        <span className={styles.edition}>MUSIC · PEOPLE · POSSIBILITY</span>
+        {pathname!=="/listen"&&pathname!=="/fan"&&<span className={styles.edition}>MUSIC · PEOPLE · POSSIBILITY</span>}
       </div>
       <nav className={styles.navigation} aria-label="Global navigation">
         <Link href={identity ? '/fan' : '/listen'}>Discover</Link>
