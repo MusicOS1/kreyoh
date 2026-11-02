@@ -32,7 +32,7 @@ export default async function AdminUserProfile({ params }: { params: Promise<{ u
     <section className="control-grid">
       <article className="control-panel"><header><div><span className="control-eyebrow">CREATOR PROFILE</span><h2>Edit identity and EPK</h2></div></header><form action={updateManagedCreatorProfile} className="control-profile-add"><input type="hidden" name="user_id" value={user.id}/><input name="full_name" defaultValue={user.full_name||""} placeholder="Full name" required/><input name="stage_name" defaultValue={user.stage_name||""} placeholder="Stage name"/><input name="nickname" defaultValue={user.nickname||""} placeholder="Nickname"/><textarea name="bio" defaultValue={user.bio||""} placeholder="Short bio"/>
       <label>Account category
-        <select name="account_kind" defaultValue={(user.creator_types||[]).length>0&&(user.creator_types||[]).every((type:string)=>type==="Fan"||type==="Listener")?"fan":"creative" required>
+        <select name="account_kind" defaultValue={(user.creator_types||[]).length>0&&(user.creator_types||[]).every((type:string)=>type==="Fan"||type==="Listener")?"fan":"creative"} required>
           <option value="fan">Fan / Listener</option><option value="creative">Creative professional</option>
         </select>
       </label>
