@@ -81,6 +81,10 @@ export default async function CatalogueAttribution({searchParams}:{searchParams:
       </select>
      </label>
     </div>
+    <label className="community-check"><input type="checkbox" name="credit_verified"/> Confirm the selected performing Artist account has been checked against the actual recording credits (independent of master ownership).</label>
+    <label>Artist credit evidence reference
+      <input name="credit_evidence_reference" maxLength={350} placeholder="Session credit, artist approval or signed performer record"/>
+    </label>
     <div className="fm-catalogue-two">
      <label>Recording / master rights
       <select name="ownership_kind" defaultValue="unverified" required>
@@ -119,7 +123,7 @@ export default async function CatalogueAttribution({searchParams}:{searchParams:
     <span>{item.credited_artist_name||"Artist credit not yet linked"}</span>
     <span>{item.upload_origin==="unknown"?"Uploader not confirmed":item.upload_origin==="admin_upload"?"Admin upload":"Artist / creative upload"}</span>
     <span>{item.ownership_kind==="unverified"?"Rights unverified":item.ownership_kind+" · "+(item.rights_holder_name||"Holder not specified")}</span>
-    <small>{item.verification_state==="verified"?"Verified":"Needs review"}</small>
+    <small>{item.verification_state==="verified"?"Rights verified":"Rights need review"}</small>
    </article>):<p>No attribution reviews recorded yet. Existing catalogue data has not been altered.</p>}</div>
   </section>
  </main>;

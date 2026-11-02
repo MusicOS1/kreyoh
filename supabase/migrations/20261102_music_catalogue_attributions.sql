@@ -10,6 +10,8 @@ create table if not exists public.music_catalogue_attributions (
  uploaded_by_profile_id uuid references public.profiles(id) on delete set null,
  credited_artist_profile_id uuid references public.profiles(id) on delete set null,
  credited_artist_name text,
+ credit_verified boolean not null default false,
+ credit_evidence_reference text,
  ownership_kind text not null default 'unverified' check(ownership_kind in ('unverified','artist','company','third_party','shared')),
  rights_holder_name text,
  rights_evidence_reference text,
@@ -20,6 +22,11 @@ create table if not exists public.music_catalogue_attributions (
  created_at timestamptz not null default now(),
  updated_at timestamptz not null default now(),
  constraint music_catalogue_one_source check ((release_id is not null) <> (track_id is not null)),
+ constraint music_catalogue_verified_credit check (
+   not credit_verified or (credited_artist_profile_id is not null
+     and nullif(btrim(coalesce(credited_artist_name,'')),'') is not null
+     and nullif(btrim(coalesce(credit_evidence_reference,'')),'') is not null)
+ ),
  constraint music_catalogue_verified_rights check (
    verification_state <> 'verified' or
    (ownership_kind <> 'unverified' and nullif(btrim(coalesce(rights_holder_name,'')),'') is not null

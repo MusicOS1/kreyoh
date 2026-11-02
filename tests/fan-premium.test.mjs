@@ -33,9 +33,11 @@ test("fan themes persist without changing the creator workspace",()=>{
   assert.match(styles,/prefers-reduced-motion:reduce/);
   assert.match(styles,/\.fan-shell/);
 });
-test("player has a compact queue control; fan tabs and signup use fan-first defaults",()=>{
+test("player retains queue control; signup has explicit Creative and Fan paths",()=>{
   assert.match(source("components/TrackPlaylist.tsx"),/compact=false/);
   assert.match(source("components/TrackPlaylist.tsx"),/fan-queue-toggle/);
   assert.match(source("app/fan/page.tsx"),/initialTab=\{initialTab\}/);
-  assert.match(source("components/SignupForm.tsx"),/Fan \/ Listener/);
+  assert.match(source("components/SignupForm.tsx"),/name="account_path"/);
+  assert.match(source("components/SignupForm.tsx"),/CREATIVE/);
+  assert.match(source("components/SignupForm.tsx"),/>FAN<\/strong>/);
 });

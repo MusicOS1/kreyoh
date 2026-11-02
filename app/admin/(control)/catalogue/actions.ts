@@ -23,10 +23,13 @@ export async function saveCatalogueAttribution(form:FormData){
  const creditedName=read(form,"credited_artist_name").slice(0,130);
  const creditedId=read(form,"credited_artist_profile_id");
  const uploadedBy=read(form,"uploaded_by_profile_id");
+ const creditVerified=form.get("credit_verified")==="on";
+ const creditEvidence=read(form,"credit_evidence_reference").slice(0,350);
  const rightsName=read(form,"rights_holder_name").slice(0,150);
  const evidence=read(form,"rights_evidence_reference").slice(0,350);
  const note=read(form,"attribution_note").slice(0,1000);
  if(creditedId&&!uuid.test(creditedId)||uploadedBy&&!uuid.test(uploadedBy))fail("Choose a valid person.");
+ if(creditVerified&&(!creditedId||!creditedName||!creditEvidence))fail("To verify an artist link, select the actual Artist account and add credit evidence.");
  if(state==="verified"&&(ownership==="unverified"||!rightsName||!evidence))fail("Verified ownership needs a rights holder and evidence reference.");
  if((ownership!=="unverified"||state==="verified")&&!creditedName)fail("Enter the credited artist or group name.");
  if(creditedId){
@@ -47,7 +50,7 @@ export async function saveCatalogueAttribution(form:FormData){
   if(error||!release)fail("Release was not found.");
  }
  const key=kind==="demo"?"track_id":"release_id";
- const {data:existing,error:loadError}=await admin.from("music_catalogue_attributions").select("id,upload_origin,uploaded_by_profile_id,credited_artist_profile_id,credited_artist_name,ownership_kind,rights_holder_name,verification_state").eq(key,id).maybeSingle();
+ const {data:existing,error:loadError}=await admin.from("music_catalogue_attributions").select("id,upload_origin,uploaded_by_profile_id,credited_artist_profile_id,credited_artist_name,credit_verified,credit_evidence_reference,ownership_kind,rights_holder_name,verification_state").eq(key,id).maybeSingle();
  if(loadError)fail("Catalogue attribution table is not available. Apply its database migration first.");
  const entry={
   release_id:kind==="release"?id:null,
@@ -57,6 +60,8 @@ export async function saveCatalogueAttribution(form:FormData){
   uploaded_by_profile_id:uploadedBy||null,
   credited_artist_profile_id:creditedId||null,
   credited_artist_name:creditedName||null,
+  credit_verified:creditVerified,
+  credit_evidence_reference:creditEvidence||null,
   ownership_kind:ownership,
   rights_holder_name:rightsName||null,
   rights_evidence_reference:evidence||null,
@@ -72,7 +77,7 @@ export async function saveCatalogueAttribution(form:FormData){
  await admin.from("platform_events").insert({user_id:actor.id,event_name:"music_attribution_reviewed",
   category:"music",entity_type:kind==="demo"?"track":"release",entity_id:id,
   metadata:{origin,previous:existing||null,current:{credited_artist_profile_id:creditedId||null,credited_artist_name:creditedName,
-    ownership_kind:ownership,rights_holder_name:rightsName,verification_state:state},evidence:evidence||null}});
+    credit_verified:creditVerified,ownership_kind:ownership,rights_holder_name:rightsName,verification_state:state},evidence:evidence||null}});
  revalidatePath(page);revalidatePath("/admin/releases");revalidatePath("/creators");
  redirect(page+"?saved="+encodeURIComponent(kind));
 }
