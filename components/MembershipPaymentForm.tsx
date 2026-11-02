@@ -5,7 +5,7 @@ import {useRouter} from "next/navigation";
 import {recordMembershipPaymentWithFeedback} from "../app/finance/actions";
 
 type Member={id:string;name:string;position:string};
-const initial={ok:false,message:""};
+const initial:{ok:boolean;message:string;code?:string}={ok:false,message:""};
 
 export default function MembershipPaymentForm({members,month,projectName}:{
  members:Member[];month:string;projectName:string;
