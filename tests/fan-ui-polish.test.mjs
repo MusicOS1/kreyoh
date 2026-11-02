@@ -19,7 +19,8 @@ test("hero images are real FACKTS assets or published artwork, never generated f
  }
  assert.match(file("components/ListenerExperience.tsx"),/fallbackImage=\{featured\}/);
  assert.match(file("components/streaming/StreamArtistHero.tsx"),/src=\{photo\}/);
- assert.match(file("app/billboard/page.tsx"),/fm-billboard-hero-art/);
+ assert.match(file("app/billboard/page.tsx"),/BillboardChart/);
+ assert.match(file("components/BillboardChart.tsx"),/api\/releases/);
  assert.match(file("app/billboard/\[releaseId\]/page.tsx"),/fm-billboard-hero-art/);
  assert.match(file("app/fan/profile/page.tsx"),/fackts-creative-community\.jpg/);
 });
@@ -42,4 +43,28 @@ test("Ivory contrast and phone font sizes are explicitly overridden",()=>{
  assert.match(styles,/font-size:14px!important/);
  assert.match(styles,/prefers-reduced-motion:reduce/);
  assert.match(file("app/fan/page.tsx"),/Promise\.allSettled/);
+});
+
+test("FACKTS chart is a single real-data ranking and the public comments use a read-only endpoint",()=>{
+ const chart=file("app/billboard/page.tsx");
+ const component=file("components/BillboardChart.tsx");
+ const comments=file("components/ReleaseComments.tsx");
+ const api=file("app/api/releases/[id]/comments/route.ts");
+ assert.match(chart,/chart\(\)/);
+ assert.match(chart,/BillboardChart/);
+ assert.doesNotMatch(chart,/TrackPlaylist/);
+ assert.match(component,/fc-podium/);
+ assert.match(component,/position/);
+ assert.match(component,/ReleaseVoteCount/);
+ assert.match(comments,/api\/releases/);
+ assert.match(comments,/cache:"no-store"/);
+ assert.match(api,/listReleaseComments/);
+ assert.match(api,/uuidPattern/);
+ assert.doesNotMatch(api,/postReleaseComment/);
+});
+test("public listener has no blocking website footer and Shows remains scrollable",()=>{
+ assert.doesNotMatch(file("components/ecosystem/PublicMusicPage.tsx"),/PublicFooter/);
+ const styles=file("components/streaming/streaming.css");
+ assert.match(styles,/fs-shows-empty/);
+ assert.match(styles,/min-height:calc\(100dvh - 80px\)/);
 });
