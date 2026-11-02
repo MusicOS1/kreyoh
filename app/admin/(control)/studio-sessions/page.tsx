@@ -98,7 +98,7 @@ export default async function AdminStudioSessions({searchParams}:{
        {memberOptions.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
       </select>
      </label>
-     <SessionParticipantsDropdown options={memberOptions}/>
+     <SessionParticipantsDropdown key={chosen.id} options={memberOptions}/>
      <label className="admin-studio-wide">Agenda / session notes<textarea name="notes" maxLength={4000} rows={3} placeholder="What will be recorded or worked on?"/></label>
      <label className="admin-studio-wide">Outcome (for historical sessions)<textarea name="outcomes" maxLength={4000} rows={2} placeholder="Results, files or next steps"/></label>
      <label className="admin-studio-wide">Media folder URL (optional)<input type="url" name="media_source_url" placeholder="https://..."/></label>

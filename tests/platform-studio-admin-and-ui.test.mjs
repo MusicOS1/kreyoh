@@ -48,21 +48,34 @@ test("Control Room platform sessions are independent of project membership and s
  assert.match(page,/admin\/studio-sessions/);
 });
 
-test("participants use searchable checkbox dropdowns on Admin and project sessions",()=>{
+test("participants use compact searchable name selection with removable tags in both sessions portals",()=>{
  const widget=read("components/SessionParticipantsDropdown.tsx");
  const css=read("components/session-participants.css");
  const admin=read("app/admin/(control)/studio-sessions/page.tsx");
  const project=read("app/studio-sessions/page.tsx");
+
  assert.match(widget,/aria-expanded=\{open\}/);
  assert.match(widget,/Search project participants/);
- assert.match(widget,/type="checkbox" value=\{member.id\}/);
+ assert.match(widget,/role="listbox"/);
+ assert.match(widget,/role="option"/);
+ assert.match(widget,/aria-selected=\{selectedSet.has\(member.id\)\}/);
+ assert.match(widget,/onClick=\{\(\)=>toggle\(member.id\)\}/);
+ assert.match(widget,/session-participants-tags/);
+ assert.match(widget,/session-participants-tag-name/);
+ assert.match(widget,/session-participants-remove/);
+ assert.match(widget,/aria-label=\{"Remove "\+byId.get\(id\)\+" from participants"\}/);
+ assert.match(widget,/onClick=\{\(\)=>remove\(id\)\}/);
  assert.match(widget,/type="hidden" name="participants" value=\{id\}/);
- assert.match(widget,/setSelected/);
- assert.match(widget,/onClick=\{\(\)=>setOpen\(false\)\}/);
- assert.doesNotMatch(widget,/type="checkbox" name="participants"/);
- assert.match(css,/max-height:230px/);
- assert.match(admin,/<SessionParticipantsDropdown options=\{memberOptions\}\/>/);
- assert.match(project,/<SessionParticipantsDropdown options=\{memberOptions\}\/>/);
+ assert.doesNotMatch(widget,/type="checkbox"/);
+ assert.doesNotMatch(widget,/Ctrl\/Cmd/);
+ assert.doesNotMatch(widget,/session-participants-done/);
+
+ assert.match(css,/max-height:240px/);
+ assert.match(css,/session-participants-tag/);
+ assert.match(css,/min-height:36px!important/);
+ assert.match(css,/\.control-room \.admin-studio-sessions \.session-participants-field \.session-participants-options \.session-participants-option/);
+ assert.match(admin,/<SessionParticipantsDropdown key=\{chosen.id\} options=\{memberOptions\}\/>/);
+ assert.match(project,/<SessionParticipantsDropdown key=\{project.id\} options=\{memberOptions\}\/>/);
  assert.doesNotMatch(admin,/select name="participants" multiple/);
  assert.doesNotMatch(project,/select name="participants" multiple/);
 });
