@@ -2,12 +2,13 @@
 
 import {useCallback,useEffect,useState,useRef,type FormEvent} from "react";
 import Link from "next/link";
+import {MessageCircleIcon} from "./Icons";
 import type {PublicReleaseComment} from "../app/release-comments/actions";
 import {backgroundInteraction} from "../lib/backgroundInteraction";
 
 export default function ReleaseComments({
-  releaseId,viewerId,initialOpen=false,compact=false
-}:{releaseId:string;viewerId?:string;initialOpen?:boolean;compact?:boolean}){
+  releaseId,viewerId,initialOpen=false,compact=false,rowAction=false
+}:{releaseId:string;viewerId?:string;initialOpen?:boolean;compact?:boolean;rowAction?:boolean}){
   const [open,setOpen]=useState(initialOpen);
   const [comments,setComments]=useState<PublicReleaseComment[]>([]);
   const [loaded,setLoaded]=useState(false);
@@ -73,10 +74,11 @@ export default function ReleaseComments({
     </div>;
   }
 
-  return <section className={"fm-comments"+(compact?" fm-comments-compact":"")} aria-label="Song comments">
-    <button type="button" className="fm-comments-toggle" aria-expanded={open} onClick={toggle}>
+  return <section className={"fm-comments"+(compact?" fm-comments-compact":"")+(rowAction?" fm-comments-row-action":"")} aria-label="Song comments">
+    <button type="button" className="fm-comments-toggle" aria-expanded={open} aria-label="Comments for this song" onClick={toggle}>
+      {rowAction?<><MessageCircleIcon size={16}/><span>Comment{loaded?" ("+comments.filter(comment=>!comment.deleted).length+")":""}</span></>:<>
       <span>◯ {compact?"Comment":"Comments"} {loaded?"("+comments.filter(comment=>!comment.deleted).length+")":""}</span>
-      <span aria-hidden="true">{open?"−":"+"}</span>
+      <span aria-hidden="true">{open?"−":"+"}</span></>}
     </button>
     {open&&<div className="fm-comments-panel">
       {viewerId?<form className="fm-comment-compose" onSubmit={submit}>

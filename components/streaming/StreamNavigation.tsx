@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import {HomeIcon,UsersIcon,DiscIcon,ActivityIcon,MusicIcon,ClockIcon,SearchIcon,LayersIcon,MicIcon} from "../Icons";
 
 type NavProps={
@@ -9,7 +10,6 @@ const explore=[
  {id:"For You",label:"Discover",Icon:HomeIcon},
  {id:"Artists",label:"Artists",Icon:UsersIcon},
  {id:"Albums & EPs",label:"Albums & EPs",Icon:DiscIcon},
- {id:"Billboard",label:"Billboard",Icon:ActivityIcon},
  {id:"Shows",label:"Shows",Icon:MicIcon},
 ] as const;
 const personal=[
@@ -19,7 +19,6 @@ const personal=[
 ] as const;
 export function StreamSidebar({active,onSelect,onSearch,userId,lists,playlistId,onPlaylist}:NavProps){
  return <aside className="fs-sidebar" aria-label="Music navigation">
-  <div className="fs-sidebar-brand"><span className="fs-sidebar-mark">F</span><span>FACKTS <b>MUSIC</b><small>Music · People · Possibility</small></span></div>
   <button className="fs-sidebar-search" type="button" onClick={onSearch}><SearchIcon size={18}/> Search music</button>
   <nav aria-label="Explore FACKTS Music" className="fs-navgroup">
    {explore.map(({id,label,Icon})=><button key={id} type="button" onClick={()=>onSelect(id)} className={active===id?"fs-active":""} aria-current={active===id?"page":undefined}><Icon size={19}/><span>{label}</span></button>)}
@@ -44,6 +43,8 @@ export function StreamMobileNav({active,onSelect,onSearch,userId}:Pick<NavProps,
   {id:"My Library",label:"Library",Icon:MusicIcon,action:()=>onSelect(userId?"My Library":"For You")},
  ];
  return <nav className="fs-mobile-nav" aria-label="Music mobile navigation">
-  {items.map(({id,label,Icon,action})=><button type="button" key={id} aria-current={active===id?"page":undefined} onClick={action}><Icon size={20}/><span>{label}</span></button>)}
+  {items.map(({id,label,Icon,action})=>id==="Billboard"
+   ?<Link key={id} href="/billboard" aria-label="Open FACKTS Billboard"><Icon size={20}/><span>Billboard</span></Link>
+   :<button type="button" key={id} aria-current={active===id?"page":undefined} onClick={action}><Icon size={20}/><span>{label}</span></button>)}
  </nav>;
 }

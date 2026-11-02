@@ -304,3 +304,64 @@ body:has(.fm-streaming-ui) .global-listening-player .track-playlist-transport bu
 @media(prefers-reduced-motion:reduce){
  .fm-streaming-ui *,body:has(.fm-streaming-ui) .global-listening-player *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
+
+/* Fan UI acceptance fixes: clean track controls, single navigation, restrained CTAs. */
+.fm-streaming-ui .fs-sidebar{padding-top:24px}
+.fm-streaming-ui .fs-sidebar-search{margin-top:2px}
+.fm-streaming-ui .fs-content-topbar{justify-content:flex-end}
+.fm-streaming-ui .fs-search{max-width:min(440px,100%);width:100%}
+.fm-streaming-ui .fs-track-actions{display:flex;flex-wrap:nowrap;justify-content:flex-end;gap:4px;min-width:0}
+.fm-streaming-ui .fs-track-actions>button,
+.fm-streaming-ui .fs-track-actions>a,
+.fm-streaming-ui .fs-track-actions>.fm-comments-row-action>.fm-comments-toggle,
+.fm-streaming-ui .fs-track-actions>.fs-track-more>summary {
+  min-height:36px!important;border:0!important;background:transparent!important;color:#dedee2!important;
+  display:inline-flex!important;gap:6px!important;align-items:center!important;
+  padding:7px 8px!important;border-radius:8px!important;
+  font:600 11px/1.2 "DM Sans",sans-serif!important;white-space:nowrap;
+}
+.fm-streaming-ui .fs-track-actions>.fm-comments-row-action{
+  margin:0!important;padding:0!important;border:0!important;min-width:0!important;
+  width:auto!important;max-width:none!important;display:block!important;
+}
+.fm-streaming-ui .fs-track-actions>.fm-comments-row-action>.fm-comments-toggle{
+  justify-content:center!important;width:auto!important;text-align:center!important;
+}
+.fm-streaming-ui .fs-track-actions>.fm-comments-row-action>.fm-comments-toggle span{font:inherit;color:inherit;white-space:nowrap}
+.fm-streaming-ui .fs-track-actions>.fm-comments-row-action>.fm-comments-toggle svg{flex:0 0 16px}
+.fm-streaming-ui .fs-track-actions :is(button,a,summary):hover{color:#ff6a00!important;background:#252525!important}
+.fm-streaming-ui .fs-track:has(.fm-comments-panel){z-index:35}
+.fm-streaming-ui .fs-track-actions .fm-comments-panel{
+  position:absolute;right:10px;top:calc(100% - 4px);width:min(450px,calc(100vw - 35px));
+  max-height:min(65dvh,580px);overflow-y:auto;overscroll-behavior:contain;z-index:40;
+  background:#1b1b1d;border:1px solid #444;box-shadow:0 18px 50px #000c;border-radius:14px;
+  padding:16px;min-width:0;
+}
+.fm-streaming-ui .fs-track-actions .fm-comments-panel button{cursor:pointer}
+.fm-streaming-ui .fs-hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.fm-streaming-ui .fs-hero-actions :is(button,a){font-size:12px;line-height:1.25;min-height:44px;
+ padding:11px 17px;white-space:nowrap;flex:0 0 auto;max-width:100%;box-sizing:border-box}
+.fm-streaming-ui .fs-hero-actions .fs-button-primary{background:#ff6a00!important;color:#101010!important;border:1px solid #ff6a00!important}
+.fm-streaming-ui .fs-hero-actions .fs-button-outline{background:transparent!important;color:#fff!important;border:1px solid #737373!important}
+.fm-streaming-ui .fs-hero-actions .fs-artist-open{background:transparent!important;color:#fff!important;border:0!important;
+ padding-inline:8px;text-decoration:none}
+.fm-streaming-ui .fs-hero-actions .fs-artist-open:hover{color:#ff6a00!important}
+.fm-streaming-ui .fs-track-actions .fs-track-more{margin:0!important;min-width:34px}
+.fm-streaming-ui .fs-mobile-nav a{
+ border:0;background:transparent;color:#d3d3d6;min-width:58px;min-height:49px;
+ display:grid;justify-items:center;align-content:center;gap:3px;font:650 10px "DM Sans",sans-serif;
+ text-decoration:none;
+}
+.fm-streaming-ui .fs-mobile-nav a[aria-current="page"],.fm-streaming-ui .fs-mobile-nav a:hover{color:#ff6a00}
+@media(max-width:580px){
+ .fm-streaming-ui .fs-hero-actions{gap:7px}
+ .fm-streaming-ui .fs-hero-actions :is(button,a){min-height:42px;padding:10px 12px;font-size:11px}
+ .fm-streaming-ui .fs-track-actions{gap:0}
+ .fm-streaming-ui .fs-track-actions>button,
+ .fm-streaming-ui .fs-track-actions>a,
+ .fm-streaming-ui .fs-track-actions>.fm-comments-row-action>.fm-comments-toggle,
+ .fm-streaming-ui .fs-track-actions>.fs-track-more>summary{padding:7px 8px!important;font-size:11px!important}
+ .fm-streaming-ui .fs-track-actions .fs-action-label{display:none}
+ .fm-streaming-ui .fs-track-actions>.fm-comments-row-action>.fm-comments-toggle span{font-size:0!important}
+ .fm-streaming-ui .fs-track-actions>.fm-comments-row-action>.fm-comments-toggle svg{height:19px;width:19px}
+}

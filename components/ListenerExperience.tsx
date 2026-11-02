@@ -37,6 +37,7 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
  const previousTab=useRef(initialTab);
  useEffect(()=>{if(previousTab.current!==initialTab){setTab(initialTab);previousTab.current=initialTab;}},[initialTab]);
  useEffect(()=>{if(progress.id&&progress.isPlaying)void remember(progress.id);},[progress.id,progress.isPlaying]);
+ useEffect(()=>{if(tab==="Billboard")window.location.replace("/billboard");},[tab]);
  const has=(kind:string,id:string)=>library.some(x=>x.kind===kind&&x.item_id===id);
  const artistHighlights=artistsDirectory.slice(0,8);
  // Show a real, published artist before any generic promotional artwork.
@@ -114,7 +115,7 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
  function play(r:Release){playSong(r.id);}
  async function remember(id:string){if(!userId||remembered.current.has(id))return;remembered.current.add(id);try{const result=await backgroundInteraction<{ok:boolean}>('library',{kind:'recent',id,enabled:true});if(result.ok)setLibrary(old=>[{kind:'recent',item_id:id,label:'',track_ids:[],updated_at:new Date().toISOString()},...old.filter(x=>x.kind!=='recent'||x.item_id!==id)]);else remembered.current.delete(id);}catch{remembered.current.delete(id);}}
  const tabs=userId?['For You','Artists','Albums & EPs','Shows','Billboard','My Library','Following','Recently played']:['For You','Artists','Albums & EPs','Shows','Billboard'];
- const selectTab=(value:string)=>{setTab(value);setQuery('');setArtistFocusId(null);};
+ const selectTab=(value:string)=>{if(value==="Billboard"){window.location.assign("/billboard");return;}setTab(value);setQuery('');setArtistFocusId(null);};
  const recent=library.filter(item=>item.kind==='recent').map(item=>releases.find(release=>release.id===item.item_id)).filter((item):item is Release=>Boolean(item)).slice(0,5);
  const spotlightTracks=spotlightArtist?releases.filter(r=>releaseHasArtist(r,spotlightArtist.id,spotlightArtist.name)).slice(0,4):[];
  const firstSpotlightTrack=spotlightTracks[0];
@@ -154,9 +155,6 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
    onPlaylist={id=>{setPlaylistId(id);setTab("My Library");setQuery("");}}/>
   <div className="fs-content">
    <header className="fs-content-topbar">
-    <nav aria-label="Browse music" className="fs-top-categories">
-      {["For You","Artists","Billboard"].map(t=><button type="button" key={t} aria-current={tab===t?"page":undefined} onClick={()=>selectTab(t)}>{t==="For You"?"Discover":t}</button>)}
-    </nav>
     <label className="fs-search"><SearchIcon size={19}/><input ref={searchRef} type="search" value={query}
       onChange={e=>setQuery(e.target.value)} placeholder="Search songs, artists and releases…" aria-label="Search FACKTS Music"/></label>
    </header>

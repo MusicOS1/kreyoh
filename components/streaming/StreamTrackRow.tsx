@@ -33,7 +33,7 @@ export default function StreamTrackRow({release,rank,userId,active,isPlaying,lik
    {userId?
     <button type="button" onClick={onLike} aria-label={(liked?"Remove like from ":"Like ")+release.title} aria-pressed={liked} disabled={likePending}><span aria-hidden="true">{liked?"♥":"♡"}</span><span className="fs-action-label">{liked?"Liked":"Like"}</span></button>:
     <Link href="/login?next=/fan" aria-label={"Sign in to like "+release.title}>♡ <span className="fs-action-label">Like</span></Link>}
-   <ReleaseComments releaseId={release.id} viewerId={userId} compact/>
+   <ReleaseComments releaseId={release.id} viewerId={userId} compact rowAction/>
    <ShareRelease id={release.id} title={release.title}/>
    <details className="fs-track-more"><summary aria-label={"More options for "+release.title}>•••</summary>
     <div className="fs-track-menu">

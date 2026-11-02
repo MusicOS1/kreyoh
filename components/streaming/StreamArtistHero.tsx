@@ -18,7 +18,6 @@ export default function StreamArtistHero({artist,track,onPlay,onOpen,onFollow,fo
   {photo&&<img src={photo} alt={artist.name} className="fs-hero-art" loading="eager"/>}
   <div className="fs-hero-gradient" aria-hidden="true"/>
   <div className="fs-hero-content">
-   <div className="fs-eyebrow"><span className="fs-status-dot"/> ARTIST SPOTLIGHT</div>
    <h1>{artist.name}</h1>
    <p>{artist.tagline||artist.bio||"Get to know the person behind the music."}</p>
    <div className="fs-artist-metadata">
@@ -30,7 +29,7 @@ export default function StreamArtistHero({artist,track,onPlay,onOpen,onFollow,fo
     {userId?
      <button type="button" className="fs-button fs-button-outline" aria-pressed={following} aria-busy={followPending} disabled={followPending} onClick={()=>onFollow(artist.id)}>{following?"✓ Following":"+ Follow"}</button>:
      <Link href={"/login?next="+encodeURIComponent(href)} className="fs-button fs-button-outline">+ Follow</Link>}
-    <button type="button" className="fs-artist-open" onClick={()=>onOpen(artist.id)}>Artist profile <ArrowUpRight size={16}/></button>
+    <button type="button" className="fs-artist-open" onClick={()=>onOpen(artist.id)}>Full profile <ArrowUpRight size={16}/></button>
    </div>
   </div>
  </section>;

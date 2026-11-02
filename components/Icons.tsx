@@ -203,6 +203,21 @@ export function ExternalLinkIcon({ size = 20, strokeWidth = 1.8, className }: Ic
   );
 }
 
+export function MessageCircleIcon({ size = 20, strokeWidth = 1.8, className }: IconProps) {
+  return <svg {...base(size, strokeWidth)} className={className}>
+    <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 9.4 9.4 0 0 1-4-.9L3 21l1.9-5.5a9.4 9.4 0 0 1-.9-4A8.5 8.5 0 1 1 21 11.5Z"/>
+  </svg>;
+}
+export function Volume2Icon({ size = 20, strokeWidth = 1.8, className }: IconProps) {
+  return <svg {...base(size, strokeWidth)} className={className}>
+    <path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15 9a5 5 0 0 1 0 6"/><path d="M18 6a9 9 0 0 1 0 12"/>
+  </svg>;
+}
+export function VolumeXIcon({ size = 20, strokeWidth = 1.8, className }: IconProps) {
+  return <svg {...base(size, strokeWidth)} className={className}>
+    <path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="m16 9 5 6m0-6-5 6"/>
+  </svg>;
+}
 export function ArrowUpRight({ size = 20, strokeWidth = 1.8, className }: IconProps) {
   return (
     <svg {...base(size, strokeWidth)} className={className}>

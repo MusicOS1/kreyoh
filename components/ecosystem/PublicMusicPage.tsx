@@ -5,7 +5,6 @@ import { fanHeroSettings } from '../../lib/fanHero';
 import { returningUser } from '../../lib/returningUser';
 import { createAdminClient } from '../../lib/supabase/admin';
 import EcosystemFrame from './EcosystemFrame';
-import PublicFooter from '../PublicFooter';
 import ListenerExperience from '../ListenerExperience';
 export default async function PublicMusicPage() {
   const [identity, music, editorial, artists, heroes] =
@@ -52,7 +51,6 @@ export default async function PublicMusicPage() {
             : undefined
         }
       />
-      <PublicFooter />
     </EcosystemFrame>
   );
 }

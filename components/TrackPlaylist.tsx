@@ -6,6 +6,7 @@ import {useMusicIdentity} from "./SessionExperience";
 import {usePathname} from "next/navigation";
 import {moveQueueTrack,nextPlaybackIndex} from "../lib/playerQueue";
 import {backgroundInteraction} from "../lib/backgroundInteraction";
+import {Volume2Icon,VolumeXIcon} from "./Icons";
 
 export type PlaylistTrack={id:string;title:string;subtitle:string;src:string;artwork?:string;ranking?:number;listened:boolean;eligible:boolean;finalScore?:number;communityScore?:number;arScore?:number;firstPlaceVotes?:number;};
 
@@ -19,7 +20,7 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
  const [canResume,setCanResume]=useState(false);
  const processedCommand=useRef<number|null>(null);
  const playNextId=useRef<string|null>(null);
- const played=useRef<number[]>([]),history=useRef<number[]>([]);
+ const played=useRef<number[]>([]),history=useRef<number[]>([]),lastAudibleVolume=useRef(1);
  const audioRef=useRef<HTMLAudioElement>(null),autoPlayRef=useRef(autoStart),listenRecorded=useRef(new Set(tracks.filter(t=>t.listened).map(t=>t.id)));
 
  useEffect(()=>{const id=localTracks[current]?.id;setLocalTracks(tracks);const next=tracks.findIndex(t=>t.id===id);setCurrent(next<0?0:next);played.current=[];history.current=[];},[tracks]);
@@ -68,6 +69,8 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
  function nextTrack(){advance(false);}
  function ended(){advance(true);}
  function togglePlayback(){setCanResume(false);const p=audioRef.current;if(!p)return;p.paused?p.play().catch(()=>setIsPlaying(false)):p.pause();}
+ function setPlayerVolume(value:number){const next=Math.max(0,Math.min(1,value));if(next>0)lastAudibleVolume.current=next;setVolume(next);if(audioRef.current)audioRef.current.volume=next;}
+ function toggleMute(){setPlayerVolume(volume===0?lastAudibleVolume.current:0);}
 
  function captureListen(){
   if(!enableRanking||!votingOpen)return;
@@ -104,7 +107,12 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
    {canResume&&<button type="button" className="resume-listening" onClick={togglePlayback}>Resume Listening</button>}
    <div className="player-progress"><input type="range" aria-label="Seek in track" min={0} max={Number.isFinite(duration)?duration:0} step={0.1} value={position} onChange={e=>{if(audioRef.current)audioRef.current.currentTime=Number(e.target.value);setPosition(Number(e.target.value));}}/><div><span>{clock(position)}</span><span>{clock(Number.isFinite(duration)?duration:0)}</span></div></div>
    <div className="track-playlist-transport" aria-label="Playlist controls"><button type="button" aria-label="Shuffle" aria-pressed={shuffle} onClick={()=>{played.current=[];setShuffle(value=>!value);}} title="Shuffle">⤨</button><button type="button" onClick={previousTrack} aria-label="Previous track">◀◀</button><button type="button" className="main" onClick={togglePlayback} aria-label={isPlaying?"Pause":"Play"}>{isPlaying?"Ⅱ":"▶"}</button><button type="button" onClick={nextTrack} aria-label="Next track">▶▶</button><button type="button" aria-label={`Repeat: ${repeat}`} aria-pressed={repeat!=="off"} title={`Repeat: ${repeat}`} onClick={()=>setRepeat(value=>value==="off"?"all":value==="all"?"one":"off")}>{repeat==="one"?"↻ 1":"↻"}</button></div><p className="player-mode-label">{shuffle?"Shuffle on":"In order"} · Repeat {repeat} · {current+1} / {localTracks.length}</p>
-   <label className="player-volume">Volume<input type="range" aria-label="Volume" min="0" max="1" step="0.01" value={volume} onChange={e=>{const v=Number(e.target.value);setVolume(v);if(audioRef.current)audioRef.current.volume=v;}}/></label>
+   <div className="player-volume" role="group" aria-label="Volume controls">
+     <button type="button" className="player-mute-toggle" aria-label={volume===0?"Unmute":"Mute"} aria-pressed={volume===0} onClick={toggleMute}>
+      {volume===0?<VolumeXIcon size={19}/>:<Volume2Icon size={19}/>}
+     </button>
+     <input type="range" aria-label="Volume" min="0" max="1" step="0.01" value={volume} onChange={e=>setPlayerVolume(Number(e.target.value))}/>
+    </div>
    <label className="player-speed">Playback speed <select value={speed} onChange={e=>setSpeed(Number(e.target.value))}>{[0.75,1,1.25,1.5,2].map(value=><option value={value} key={value}>{value}×</option>)}</select></label>
    {enableRanking&&<small className="track-listen-rule">{votingOpen?"Listen to 60% to unlock ranking. Contributors cannot rank their own track.":"Voting is closed. Your ballot is locked; keep listening to the final selection."}</small>}
    {notice&&<div className="track-ballot-notice" role="status">{notice}</div>}
