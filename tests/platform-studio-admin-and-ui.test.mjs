@@ -47,3 +47,22 @@ test("Control Room platform sessions are independent of project membership and s
  assert.match(page,/Project-wide session/);
  assert.match(page,/admin\/studio-sessions/);
 });
+
+test("participants use searchable checkbox dropdowns on Admin and project sessions",()=>{
+ const widget=read("components/SessionParticipantsDropdown.tsx");
+ const css=read("components/session-participants.css");
+ const admin=read("app/admin/(control)/studio-sessions/page.tsx");
+ const project=read("app/studio-sessions/page.tsx");
+ assert.match(widget,/aria-expanded=\{open\}/);
+ assert.match(widget,/Search project participants/);
+ assert.match(widget,/type="checkbox" value=\{member.id\}/);
+ assert.match(widget,/type="hidden" name="participants" value=\{id\}/);
+ assert.match(widget,/setSelected/);
+ assert.match(widget,/onClick=\{\(\)=>setOpen\(false\)\}/);
+ assert.doesNotMatch(widget,/type="checkbox" name="participants"/);
+ assert.match(css,/max-height:230px/);
+ assert.match(admin,/<SessionParticipantsDropdown options=\{memberOptions\}\/>/);
+ assert.match(project,/<SessionParticipantsDropdown options=\{memberOptions\}\/>/);
+ assert.doesNotMatch(admin,/select name="participants" multiple/);
+ assert.doesNotMatch(project,/select name="participants" multiple/);
+});

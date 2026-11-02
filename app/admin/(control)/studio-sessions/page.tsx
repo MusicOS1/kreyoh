@@ -1,4 +1,6 @@
 import Link from "next/link";
+import SessionParticipantsDropdown from "../../../../components/SessionParticipantsDropdown";
+import "../../../../components/session-participants.css";
 import {createAdminClient} from "../../../../lib/supabase/admin";
 import {requireControlRoomPermission} from "../../../../lib/controlRoom";
 import {createPlatformStudioSession} from "./actions";
@@ -25,7 +27,7 @@ export default async function AdminStudioSessions({searchParams}:{
  const chosen=chosenResult.data;
  const [trackResult,peopleResult,sessionsResult]=chosen?await Promise.all([
   admin.from("tracks").select("id,working_title,track_code").eq("project_id",chosen.id).order("working_title").limit(250),
-  admin.from("project_members").select("user_id,profiles(full_name,stage_name)").eq("project_id",chosen.id).eq("status","active").limit(250),
+  admin.from("project_members").select("user_id,profiles(full_name,stage_name)").eq("project_id",chosen.id).eq("status","active").limit(1000),
   admin.from("studio_sessions").select("id,starts_at,status,location,notes,tracks(working_title)")
     .eq("project_id",chosen.id).order("starts_at",{ascending:false}).limit(15)
  ]):[{data:[],error:null},{data:[],error:null},{data:[],error:null}];
@@ -96,11 +98,7 @@ export default async function AdminStudioSessions({searchParams}:{
        {memberOptions.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
       </select>
      </label>
-     <label>Participants <small>Optional · Ctrl/Cmd-click to select multiple members</small>
-      <select name="participants" multiple size={Math.max(3,Math.min(6,memberOptions.length||3))}>
-       {memberOptions.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
-      </select>
-     </label>
+     <SessionParticipantsDropdown options={memberOptions}/>
      <label className="admin-studio-wide">Agenda / session notes<textarea name="notes" maxLength={4000} rows={3} placeholder="What will be recorded or worked on?"/></label>
      <label className="admin-studio-wide">Outcome (for historical sessions)<textarea name="outcomes" maxLength={4000} rows={2} placeholder="Results, files or next steps"/></label>
      <label className="admin-studio-wide">Media folder URL (optional)<input type="url" name="media_source_url" placeholder="https://..."/></label>
