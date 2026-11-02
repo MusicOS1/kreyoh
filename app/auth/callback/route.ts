@@ -5,6 +5,7 @@ import { createAdminClient } from "../../../lib/supabase/admin";
 
 import { safeNext } from "../../../lib/navigation";
 import {isFanProfile} from "../../../lib/fanProfile";
+import {recordAuthDiagnostic,classifyRecoveryFailure} from "../../../lib/diagnostics";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -12,13 +13,20 @@ export async function GET(request: Request) {
   const next = safeNext(url.searchParams.get("next"));
   const tokenHash = url.searchParams.get("token_hash");
   const type = url.searchParams.get("type");
-  if (!code && !(tokenHash && ["signup", "invite", "recovery", "email"].includes(type || ""))) return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(next)}&error=${encodeURIComponent("Confirmation link is incomplete. Please request a new one.")}`, url.origin));
+  if (!code && !(tokenHash && ["signup", "invite", "recovery", "email"].includes(type || ""))) {
+    if(isRecoveryCallback(url))await recordAuthDiagnostic({event:"password_recovery_failed",surface:"recovery_link",reason:"link_incomplete"});
+    return NextResponse.redirect(new URL(isRecoveryCallback(url)?"/forgot-password?error=Recovery%20link%20is%20incomplete.%20Request%20a%20new%20one.":`/login?next=${encodeURIComponent(next)}&error=${encodeURIComponent("Confirmation link is incomplete. Please request a new one.")}`, url.origin));
+  }
 
   const supabase = await createClient();
   const { data, error } = code ? await supabase.auth.exchangeCodeForSession(code) : await supabase.auth.verifyOtp({ token_hash: tokenHash!, type: type as "signup" | "invite" | "recovery" | "email" });
-  if (error || !data.user) return NextResponse.redirect(new URL(isRecoveryCallback(url) ? "/forgot-password?error=The%20reset%20link%20is%20invalid%20or%20expired.%20Request%20a%20new%20one." : `/login?next=${encodeURIComponent(next)}&error=${encodeURIComponent(error?.message || "Confirmation failed.")}`, url.origin));
+  if (error || !data.user) {
+    if(isRecoveryCallback(url))await recordAuthDiagnostic({event:"password_recovery_failed",surface:"recovery_link",reason:classifyRecoveryFailure(error)});
+    return NextResponse.redirect(new URL(isRecoveryCallback(url) ? "/forgot-password?error=The%20reset%20link%20is%20invalid%20or%20expired.%20Request%20a%20new%20one." : `/login?next=${encodeURIComponent(next)}&error=${encodeURIComponent(error?.message || "Confirmation failed.")}`, url.origin));
+  }
 
   if(isRecoveryCallback(url)){
+    await recordAuthDiagnostic({event:"password_recovery_verified",surface:"recovery_link",userId:data.user.id});
     // The Supabase PKCE/code or token-hash has been verified and a session set.
     // A password must be chosen before returning to login, not /home.
     return NextResponse.redirect(new URL("/set-password?recovery=1",url.origin));
