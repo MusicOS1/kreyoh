@@ -1,0 +1,20 @@
+.fm-catalogue-attribution{max-width:1150px;margin:0 auto;padding-bottom:110px}
+.fm-catalogue-attribution h1{font-size:clamp(29px,3.5vw,48px);line-height:1.07;letter-spacing:-.045em}
+.fm-catalogue-attribution>p{max-width:850px;line-height:1.65}
+.fm-catalogue-paths{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:25px 0}
+.fm-catalogue-paths section{padding:23px;background:#171717;border:1px solid #383838;border-radius:13px}
+.fm-catalogue-paths strong{color:#ff6a00;font:850 13px "Gotham","DM Sans",sans-serif}
+.fm-catalogue-paths p{color:#b8b8bf;line-height:1.6;font-size:13px}
+.fm-catalogue-paths a{color:#ff8e39}
+.fm-catalogue-form form{display:grid;gap:18px}
+.fm-catalogue-attribution :is(.fm-catalogue-form label,.fm-catalogue-search label){display:grid;gap:7px;font-weight:700;font-size:13px;color:#eee}
+.fm-catalogue-attribution :is(input,select,textarea){width:100%;border:1px solid #4a4a4f;background:#1c1c1f;color:#fff;border-radius:8px;padding:11px 12px;min-height:44px}
+.fm-catalogue-attribution textarea{min-height:90px;resize:vertical}
+.fm-catalogue-attribution .fm-catalogue-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.fm-catalogue-attribution button{background:#ff6a00;color:#111;padding:12px 18px;border:0;border-radius:8px;font-weight:850;cursor:pointer;justify-self:start}
+.fm-catalogue-attribution button:disabled{opacity:.5;cursor:default}
+.fm-catalogue-search{display:flex;align-items:end;gap:12px;margin:20px 0}
+.fm-catalogue-search label{flex:1}.fm-catalogue-records article{display:grid;grid-template-columns:120px minmax(130px,2fr) 1fr 1fr 90px;gap:12px;padding:14px 0;border-bottom:1px solid #383838;font-size:12px}
+.fm-catalogue-records article strong{color:#ff6a00}.fm-catalogue-records article small{color:#a1a1aa}
+.fm-catalogue-success{color:#82dcb0!important;background:#123022;border:1px solid #356b51;padding:13px;border-radius:8px}
+@media(max-width:760px){.fm-catalogue-paths,.fm-catalogue-attribution .fm-catalogue-two{grid-template-columns:1fr}.fm-catalogue-search{display:grid}.fm-catalogue-records article{grid-template-columns:1fr 1fr;gap:9px}}

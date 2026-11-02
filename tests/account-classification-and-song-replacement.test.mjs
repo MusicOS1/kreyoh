@@ -4,7 +4,12 @@ import {readFileSync} from "node:fs";
 const read=path=>readFileSync(new URL("../"+path,import.meta.url),"utf8");
 test("signup requires a deliberate fan or creative identity and asks Other Creative for details",()=>{
  const form=read("components/SignupForm.tsx"),action=read("app/signup/actions.ts");
- assert.match(form,/<option value="" disabled>Select your account type/);
+ assert.match(form,/name="account_path"/);
+ assert.match(form,/value="creative"/);
+ assert.match(form,/value="fan"/);
+ assert.match(form,/name="creator_type"/);
+ assert.match(form,/Select your primary discipline/);
+ assert.match(action,/account_path/);
  assert.doesNotMatch(form,/defaultValue=\{next.startsWith\("\/fan"\)\?"Fan \/ Listener":"Artist"\}/);
  assert.match(form,/identity==="Other Creative"/);
  assert.match(form,/name="other_creative_type"/);
@@ -44,4 +49,25 @@ test("admin replacement is signed, audited, guarded, non-destructive and retains
  assert.match(widget,/rights/);
  assert.match(page,/Add new songs \(bulk or singles\)/);
  assert.match(page,/AdminReleaseAudioReplacement/);
+});
+
+test("catalogue handles artist and admin uploads as demo or release without assigning master ownership automatically",()=>{
+ const migration=read("supabase/migrations/20261102_music_catalogue_attributions.sql");
+ const action=read("app/admin/(control)/catalogue/actions.ts");
+ const page=read("app/admin/(control)/catalogue/page.tsx");
+ assert.match(migration,/release_id uuid unique/);
+ assert.match(migration,/track_id uuid unique/);
+ assert.match(migration,/upload_origin/);
+ assert.match(migration,/ownership_kind/);
+ assert.match(migration,/verification_state/);
+ assert.match(migration,/enable row level security/);
+ assert.match(action,/requireControlRoomPermission\("music"\)/);
+ assert.match(action,/artist_upload/);
+ assert.match(action,/admin_upload/);
+ assert.match(action,/company/);
+ assert.match(action,/music_attribution_reviewed/);
+ assert.match(page,/Project demos/);
+ assert.match(page,/Catalogue releases/);
+ assert.match(page,/rights_holder_name/);
+ assert.doesNotMatch(action,/\.from\("music_releases"\)\.update/);
 });

@@ -7,6 +7,7 @@ import Link from "next/link";
 export default function SignupForm({ error, next="/home" }: { error?: string; next?: string }) {
   const [visible, setVisible] = useState(false);
   const [identity, setIdentity] = useState("");
+  const [path,setPath]=useState<"creative"|"fan"|null>(null);
 
   return (
     <form action={signup} className="login-card"><input name="next" type="hidden" value={next}/>
@@ -14,7 +15,7 @@ export default function SignupForm({ error, next="/home" }: { error?: string; ne
         <span className="eyebrow">CREATE YOUR ACCOUNT</span>
         <h2>Join FACKTS Music</h2>
         <p>
-          Listen, vote, connect or build your music profile. Project access is assigned
+          Choose the Creative path or the Fan path. Project access is assigned
           separately when you join or are invited into a project.
         </p>
       </div>
@@ -35,45 +36,47 @@ export default function SignupForm({ error, next="/home" }: { error?: string; ne
         />
       </label>
 
-      <div className="signup-identity-field">
-        <label htmlFor="signup-account-type">How are you joining FACKTS Music?</label>
-        <select
-          id="signup-account-type"
-          name="creator_type"
-          required
-          value={identity}
-          onChange={event=>setIdentity(event.target.value)}
-          className="dark-select"
-        >
-          <option value="" disabled>Select your account type</option>
-          <option>Fan / Listener</option>
+      <fieldset className="signup-paths" aria-label="Choose how you join FACKTS Music">
+        <legend>Choose your FACKTS Music path</legend>
+        <p>Two ways in. One music community.</p>
+        <div className="signup-path-grid">
+          <label className={"signup-path-card"+(path==="creative"?" selected":"")}>
+            <input type="radio" name="account_path" value="creative" required checked={path==="creative"} onChange={()=>{setPath("creative");setIdentity("");}}/>
+            <strong>CREATIVE</strong>
+            <span>Artists, producers, engineers, songwriters, managers, filmmakers and other music professionals.</span>
+          </label>
+          <label className={"signup-path-card"+(path==="fan"?" selected":"")}>
+            <input type="radio" name="account_path" value="fan" required checked={path==="fan"} onChange={()=>{setPath("fan");setIdentity("");}}/>
+            <strong>FAN</strong>
+            <span>Listen, discover, follow, like, comment, vote and build your music library.</span>
+          </label>
+        </div>
+      </fieldset>
+      {path==="creative"&&<div className="signup-identity-field">
+        <label htmlFor="signup-account-type">What kind of creative are you?</label>
+        <select id="signup-account-type" name="creator_type" required className="dark-select" value={identity} onChange={e=>setIdentity(e.target.value)}>
+          <option value="" disabled>Select your primary discipline</option>
           <option>Artist</option>
-          <option>Producer</option>
           <option>Artist + Producer</option>
+          <option>Producer</option>
           <option>Songwriter / Composer</option>
           <option>Engineer / Technical</option>
-
           <option>A&R</option>
           <option>Artist Manager</option>
           <option>Studio Owner</option>
-
           <option>Videographer / Photographer</option>
           <option>Designer / Visual Creative</option>
           <option>Content / Media</option>
           <option>Session Musician</option>
           <option>Other Creative</option>
         </select>
-
-        <small>
-          Fans get the listening experience. Creatives get an identity and professional workspace. This describes how you join the community. It does not automatically
-          give access to another person's project. Project roles and permissions
-          activate when the project invites or assigns you.
-        </small>
-      </div>
-      {identity==="Other Creative"&&<label className="signup-other-creative">
-        What kind of creative are you?
-        <input name="other_creative_type" maxLength={80} minLength={2} required placeholder="e.g. DJ, photographer, dancer, music curator"/>
+        <small>Choose your professional identity, not a project position. Project access is granted separately by invitation or assignment.</small>
+      </div>}
+      {path==="creative"&&identity==="Other Creative"&&<label className="signup-other-creative">
+        Specify your discipline
+        <input name="other_creative_type" maxLength={80} minLength={2} required placeholder="e.g. DJ, dancer, photographer, music curator"/>
       </label>}
+      {path==="fan"&&<p className="signup-fan-description">Your account opens in FACKTS Listen. You can become a creative later without losing your listening history.</p>}
 
       <label>
         Email Address

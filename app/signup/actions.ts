@@ -34,7 +34,8 @@ export async function signup(formData: FormData) {
   const email = read(formData, "email").toLowerCase();
   const password = String(formData.get("password") || "");
   const confirm = String(formData.get("confirm_password") || "");
-  const typeLabel = read(formData, "creator_type");
+  const path = read(formData,"account_path");
+  const typeLabel = path==="fan"?"Fan / Listener":read(formData,"creator_type");
   const creatorTypes = PUBLIC_TYPES[typeLabel];
   const accepted = formData.get("accepted_terms") === "on";
   const otherCreativeType=read(formData,"other_creative_type").replace(/\s+/g," ").slice(0,80);
@@ -42,11 +43,11 @@ export async function signup(formData: FormData) {
   const fail = (message: string): never =>
     redirect(`/signup?next=${encodeURIComponent(next)}&error=${encodeURIComponent(message)}`);
 
-  if (!fullName || !email || !password || !creatorTypes) {
+  if (!["fan","creative"].includes(path) || (path==="creative"&&!read(formData,"creator_type")) || (path==="creative"&&typeLabel==="Fan / Listener") || !fullName || !email || !password || !creatorTypes) {
     fail("Complete every required field.");
   }
 
-  if(typeLabel==="Other Creative"&&(!otherCreativeType||otherCreativeType.length<2))fail("Tell us what kind of creative you are.");
+  if(path==="creative"&&typeLabel==="Other Creative"&&(!otherCreativeType||otherCreativeType.length<2))fail("Tell us what kind of creative you are.");
   if (!accepted) {
     fail("Accept the terms and privacy notice to continue.");
   }
@@ -67,10 +68,11 @@ export async function signup(formData: FormData) {
     email,
     password,
     options: {
-      emailRedirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}`,
+      emailRedirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(path==="fan"&&next==="/home"?"/fan":next)}`,
       data: {
         full_name: fullName,
         creator_types: creatorTypes,
+        account_path:path,
         creative_role: creatorTypes[0],
         ...(typeLabel==="Other Creative"?{other_creative_type:otherCreativeType}:{}),
       },
@@ -112,6 +114,7 @@ export async function signup(formData: FormData) {
     metadata: {
       creator_types: creatorTypes,
       signup_identity: typeLabel,
+      signup_path:path,
       ...(typeLabel==="Other Creative"?{other_creative_type:otherCreativeType}:{}),
     },
   });

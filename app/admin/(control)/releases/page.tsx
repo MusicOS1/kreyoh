@@ -16,7 +16,7 @@ export default async function Releases({searchParams}:{searchParams:Promise<{pag
  if(error)throw Error("Could not load release reviews.");
  const totalPages=Math.max(1,Math.ceil((count||0)/15));
  return <main className="community-page">
-  <div className="community-actions"><Link href="/admin/releases/bulk">+ Add new songs (bulk or singles)</Link><Link href="/admin/discovery">Edit fan heroes</Link><Link href="/billboard">Open Billboard →</Link></div>
+  <div className="community-actions"><Link href="/admin/releases/bulk">+ Add new songs (bulk or singles)</Link><Link href="/admin/catalogue">Review artist credit & ownership</Link><Link href="/admin/discovery">Edit fan heroes</Link><Link href="/billboard">Open Billboard →</Link></div>
   <h1>Release review and audio corrections</h1>
   <p>Add songs using the catalogue importer, or open Replace recording below an existing song to correct its audio without resetting fan engagement or changing its URL. Approvals with future dates go public when the date arrives in Kenya.</p>
   <BulkReleaseApproval count={pendingCount||0}/>
@@ -30,6 +30,7 @@ export default async function Releases({searchParams}:{searchParams:Promise<{pag
     <p>Rights confirmed: {release.rights_confirmed_at?new Date(release.rights_confirmed_at).toLocaleString("en-KE"):"No"}</p>
     {release.review_note&&<p>{release.review_note}</p>}
     <>{release.source_track_id?<Link href={"/releases/"+release.id}>Review linked release · {release.workflow_state} →</Link>:<ReleaseManagement id={release.id} status={release.status}/>}</>
+    <p className="community-muted">Uploading and performing are different roles. Verify the artist and master ownership in <Link href="/admin/catalogue">Catalogue attribution</Link>.</p>
     <AdminReleaseAudioReplacement releaseId={release.id} title={release.title} linked={Boolean(release.source_track_id)}/>
    </article>)}
   <nav className="bulk-pagination" aria-label="Release review pages"><Link aria-disabled={page<=1} href={`/admin/releases?page=${Math.max(1,page-1)}`}>← Previous</Link><span>Page {page} / {totalPages} · {count||0} reviewed or awaiting review</span><Link aria-disabled={page>=totalPages} href={`/admin/releases?page=${Math.min(totalPages,page+1)}`}>Next →</Link></nav>

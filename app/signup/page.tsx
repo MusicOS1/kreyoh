@@ -1,4 +1,5 @@
 import Link from "next/link";
+import "./signup-paths.css";
 import { FacktsMusicLogo } from "../../components/Branding";
 import SignupForm from "../../components/SignupForm";
 import LoginAtmosphere from "../../components/LoginAtmosphere";

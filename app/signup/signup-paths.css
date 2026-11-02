@@ -1,0 +1,19 @@
+/* Explicit Creative / Fan entry paths — FACKTS Music auth only. */
+.signup-paths{border:0;padding:0;margin:6px 0 16px;min-width:0}
+.signup-paths legend{color:#fff;font:850 16px "Gotham","DM Sans",sans-serif;margin:0 0 6px}
+.signup-paths>p{color:#a1a1aa;font:400 12px "DM Sans",sans-serif;margin:0 0 13px}
+.signup-path-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.signup-path-card{display:flex!important;flex-direction:column;align-items:flex-start;position:relative;gap:9px;
+ padding:17px!important;background:#171717!important;border:1px solid #444!important;border-radius:13px;
+ cursor:pointer;transition:border-color .15s,background .15s;min-height:142px}
+.signup-path-card.selected{border-color:#ff6a00!important;background:#24180e!important}
+.signup-path-card input[type=radio]{appearance:none;width:18px;height:18px;border:2px solid #999;display:block;
+ border-radius:50%;margin:0;padding:0;flex:none}
+.signup-path-card input[type=radio]:checked{border-color:#ff6a00;background:#ff6a00;box-shadow:inset 0 0 0 4px #24180e}
+.signup-path-card strong{font:900 19px "Gotham","DM Sans",sans-serif;color:#fff;letter-spacing:-.035em}
+.signup-path-card>span{color:#b4b4bb;font:400 12px/1.55 "DM Sans",sans-serif}
+.signup-identity-field{display:grid;gap:8px}
+.signup-identity-field>label,.signup-other-creative{font-weight:700}
+.signup-fan-description{color:#ffb780!important;background:#24180e;border-left:3px solid #ff6a00;padding:12px;font-size:12px;line-height:1.5}
+.signup-path-card:focus-within{outline:2px solid #ff6a00;outline-offset:2px}
+@media(max-width:580px){.signup-path-grid{grid-template-columns:1fr}.signup-path-card{min-height:0;padding:13px!important}}
