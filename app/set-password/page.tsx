@@ -1,6 +1,7 @@
 "use client";
 import {FormEvent,useEffect,useState} from "react";
 import {createBrowserClient} from "@supabase/ssr";
+import {reportRecoveryEvent,classifyRecoveryError} from "../../lib/recoveryTelemetry";
 
 export default function SetPasswordPage(){
   const [supabase]=useState(()=>{
@@ -27,9 +28,13 @@ export default function SetPasswordPage(){
         // Verify the recovery session against Supabase, not only browser storage.
         const {data,error}=await supabase.auth.getUser();
         if(!active)return;
-        if(error || !data.user) setMessage(error?"Could not verify this link. Try again or request another.":"The reset link has expired or was already used. Request a new one.");
+        if(error || !data.user){
+          reportRecoveryEvent("password_change_failed","set_password","session_unavailable");
+          setMessage("This recovery session is not recognised or has expired. Request a fresh password-reset link.");
+        }
         else {setAccountEmail(data.user.email||"");setReady(true);}
       }catch{
+        reportRecoveryEvent("password_change_failed","set_password","network");
         if(active)setMessage("Could not verify your recovery session. Please retry.");
       }finally{if(active)setChecking(false);}
     })();
@@ -45,12 +50,18 @@ export default function SetPasswordPage(){
     setSaving(true);
     try{
       const {error}=await supabase.auth.updateUser({password});
-      if(error){setMessage(error.message);return;}
+      if(error){
+        reportRecoveryEvent("password_change_failed","set_password",classifyRecoveryError(error));
+        setMessage("Could not save your password. Please use a different strong password or request a new reset link.");
+        return;
+      }
+      reportRecoveryEvent("password_change_completed","set_password");
       // Finish recovery by asking the user to authenticate with the new password.
       // Revoke refresh sessions where supported; do not expose this account to admin.
       try{await supabase.auth.signOut({scope:"global"});}catch{}
       window.location.replace("/login?message="+encodeURIComponent("Password updated. Sign in with your new password."));
     }catch{
+      reportRecoveryEvent("password_change_failed","set_password","network");
       setMessage("Password could not be updated. Check your connection and retry.");
     }finally{setSaving(false);}
   }

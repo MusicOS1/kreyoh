@@ -2,6 +2,8 @@
 import {useEffect,useState} from "react";
 import Link from "next/link";
 import {createBrowserClient} from "@supabase/ssr";
+import {reportRecoveryEvent} from "../../../lib/recoveryTelemetry";
+import {classifyRecoveryError} from "../../../lib/recoveryTelemetry";
 
 export default function PasswordRecoveryCallback(){
   const [status,setStatus]=useState("Checking your secure recovery link…");
@@ -18,9 +20,16 @@ export default function PasswordRecoveryCallback(){
       const refresh_token=hash.get("refresh_token");
       const code=query.get("code");
       const token_hash=query.get("token_hash");
+      const callbackError=hash.get("error")||query.get("error");
+      const callbackDescription=hash.get("error_description")||query.get("error_description")||"";
       // Never leave recovery credentials in browser history after reading them.
       window.history.replaceState(null,"",window.location.pathname);
       try {
+        if(callbackError){
+          reportRecoveryEvent("password_recovery_failed","recovery_link",classifyRecoveryError({code:callbackError,message:callbackDescription}));
+          if(active)setStatus("This recovery link was rejected or has expired. Request a fresh link.");
+          return;
+        }
         let error: {message:string}|null=null;
         if(access_token&&refresh_token) {
           const result=await supabase.auth.setSession({access_token,refresh_token});
@@ -32,34 +41,25 @@ export default function PasswordRecoveryCallback(){
           const result=await supabase.auth.verifyOtp({token_hash,type:"recovery"});
           error=result.error;
         } else {
-          // The global auth provider may already have consumed a valid URL
-          // fragment and persisted its session before this component mounts.
-          const existing=await supabase.auth.getUser();
-          if(!existing.error&&existing.data.user){
-            window.location.replace("/set-password?recovery=1");
-            return;
-          }
-          if(active)setStatus("This link is incomplete or has expired. Request a new password reset link.");
+          reportRecoveryEvent("password_recovery_failed","recovery_link","link_incomplete");
+          if(active)setStatus("This link is incomplete. Request a new password reset link.");
           return;
         }
         if(error){
-          // If the shared browser client processed the same one-time token
-          // first, use its verified session instead of showing a false expiry.
-          const existing=await supabase.auth.getUser();
-          if(!existing.error&&existing.data.user){
-            window.location.replace("/set-password?recovery=1");
-            return;
-          }
+          reportRecoveryEvent("password_recovery_failed","recovery_link",classifyRecoveryError(error));
           if(active)setStatus("This link could not be verified or was already used. Request another.");
           return;
         }
         const {data, error:userError}=await supabase.auth.getUser();
         if(userError||!data.user){
+          reportRecoveryEvent("password_recovery_failed","recovery_link","session_unavailable");
           if(active)setStatus("We could not establish a secure recovery session. Request another link.");
           return;
         }
+        reportRecoveryEvent("password_recovery_verified","recovery_link");
         window.location.replace("/set-password?recovery=1");
       }catch{
+        reportRecoveryEvent("password_recovery_failed","recovery_link","network");
         if(active)setStatus("A connection error interrupted recovery. Request a new link if this continues.");
       }
     }
