@@ -36,22 +36,20 @@ export default function SignupForm({ error, next="/home" }: { error?: string; ne
         />
       </label>
 
-      <fieldset className="signup-paths" aria-label="Choose how you join FACKTS Music">
-        <legend>Choose your FACKTS Music path</legend>
-        <p>Two ways in. One music community.</p>
-        <div className="signup-path-grid">
-          <label className={"signup-path-card"+(path==="creative"?" selected":"")}>
-            <input type="radio" name="account_path" value="creative" required checked={path==="creative"} onChange={()=>{setPath("creative");setIdentity("");}}/>
-            <strong>CREATIVE</strong>
-            <span>Artists, producers, engineers, songwriters, managers, filmmakers and other music professionals.</span>
-          </label>
-          <label className={"signup-path-card"+(path==="fan"?" selected":"")}>
-            <input type="radio" name="account_path" value="fan" required checked={path==="fan"} onChange={()=>{setPath("fan");setIdentity("");}}/>
-            <strong>FAN</strong>
-            <span>Listen, discover, follow, like, comment, vote and build your music library.</span>
-          </label>
+      <section className="signup-paths" aria-label="Account paths">
+        <h3>Joining as</h3>
+        <input name="account_path" type="hidden" value={path||""}/>
+        <div className="signup-path-grid" role="group" aria-label="Choose your account type">
+          <button type="button" className={"signup-path-card"+(path==="creative"?" selected":"")} aria-pressed={path==="creative"} onClick={()=>{setPath("creative");setIdentity("");}}>
+            <strong>Creative</strong>
+            <span>Artists, producers, engineers and other music professionals.</span>
+          </button>
+          <button type="button" className={"signup-path-card"+(path==="fan"?" selected":"")} aria-pressed={path==="fan"} onClick={()=>{setPath("fan");setIdentity("");}}>
+            <strong>Fan</strong>
+            <span>Listen, discover music, follow artists and build your library.</span>
+          </button>
         </div>
-      </fieldset>
+      </section>
       {path==="creative"&&<div className="signup-identity-field">
         <label htmlFor="signup-account-type">What kind of creative are you?</label>
         <select id="signup-account-type" name="creator_type" required className="dark-select" value={identity} onChange={e=>setIdentity(e.target.value)}>
@@ -123,7 +121,7 @@ export default function SignupForm({ error, next="/home" }: { error?: string; ne
         <span>I agree to the <Link href="/terms" target="_blank" rel="noopener noreferrer">Terms of Use</Link> and acknowledge the <Link href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Notice</Link> and <Link href="/copyright" target="_blank" rel="noopener noreferrer">Copyright Policy</Link>.</span>
       </label>
 
-      <button className="login-submit-btn" type="submit">
+      <button className="login-submit-btn" type="submit" disabled={!path}>
         Create Account →
       </button>
     </form>

@@ -23,13 +23,14 @@ export async function saveCatalogueAttribution(form:FormData){
  const creditedName=read(form,"credited_artist_name").slice(0,130);
  const creditedId=read(form,"credited_artist_profile_id");
  const uploadedBy=read(form,"uploaded_by_profile_id");
- const creditVerified=form.get("credit_verified")==="on";
  const creditEvidence=read(form,"credit_evidence_reference").slice(0,350);
+ const creditVerified=Boolean(creditedId&&creditedName&&creditEvidence);
  const rightsName=read(form,"rights_holder_name").slice(0,150);
  const evidence=read(form,"rights_evidence_reference").slice(0,350);
  const note=read(form,"attribution_note").slice(0,1000);
  if(creditedId&&!uuid.test(creditedId)||uploadedBy&&!uuid.test(uploadedBy))fail("Choose a valid person.");
- if(creditVerified&&(!creditedId||!creditedName||!creditEvidence))fail("To verify an artist link, select the actual Artist account and add credit evidence.");
+ if(creditEvidence&&!creditedId)fail("Select the artist account before adding verified credit evidence.");
+ if(creditedId&&!creditedName)fail("Enter the public artist credit for the linked artist.");
  if(state==="verified"&&(ownership==="unverified"||!rightsName||!evidence))fail("Verified ownership needs a rights holder and evidence reference.");
  if((ownership!=="unverified"||state==="verified")&&!creditedName)fail("Enter the credited artist or group name.");
  if(creditedId){

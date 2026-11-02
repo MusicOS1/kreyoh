@@ -5,8 +5,10 @@ const read=path=>readFileSync(new URL("../"+path,import.meta.url),"utf8");
 test("signup requires a deliberate fan or creative identity and asks Other Creative for details",()=>{
  const form=read("components/SignupForm.tsx"),action=read("app/signup/actions.ts");
  assert.match(form,/name="account_path"/);
- assert.match(form,/value="creative"/);
- assert.match(form,/value="fan"/);
+ assert.match(form,/aria-pressed=\{path==="creative"\}/);
+ assert.match(form,/aria-pressed=\{path==="fan"\}/);
+ assert.match(form,/onClick=\{\(\)=>\{setPath\("fan"\)/);
+ assert.doesNotMatch(form,/type="radio"/);
  assert.match(form,/name="creator_type"/);
  assert.match(form,/Select your primary discipline/);
  assert.match(action,/account_path/);

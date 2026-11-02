@@ -38,6 +38,6 @@ test("player retains queue control; signup has explicit Creative and Fan paths",
   assert.match(source("components/TrackPlaylist.tsx"),/fan-queue-toggle/);
   assert.match(source("app/fan/page.tsx"),/initialTab=\{initialTab\}/);
   assert.match(source("components/SignupForm.tsx"),/name="account_path"/);
-  assert.match(source("components/SignupForm.tsx"),/CREATIVE/);
-  assert.match(source("components/SignupForm.tsx"),/>FAN<\/strong>/);
+  assert.match(source("components/SignupForm.tsx"),/<strong>Creative<\/strong>/);
+  assert.match(source("components/SignupForm.tsx"),/<strong>Fan<\/strong>/);
 });

@@ -1,20 +1,69 @@
-.fm-catalogue-attribution{max-width:1150px;margin:0 auto;padding-bottom:110px}
-.fm-catalogue-attribution h1{font-size:clamp(29px,3.5vw,48px);line-height:1.07;letter-spacing:-.045em}
-.fm-catalogue-attribution>p{max-width:850px;line-height:1.65}
-.fm-catalogue-paths{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:25px 0}
-.fm-catalogue-paths section{padding:23px;background:#171717;border:1px solid #383838;border-radius:13px}
-.fm-catalogue-paths strong{color:#ff6a00;font:850 13px "Gotham","DM Sans",sans-serif}
-.fm-catalogue-paths p{color:#b8b8bf;line-height:1.6;font-size:13px}
-.fm-catalogue-paths a{color:#ff8e39}
-.fm-catalogue-form form{display:grid;gap:18px}
-.fm-catalogue-attribution :is(.fm-catalogue-form label,.fm-catalogue-search label){display:grid;gap:7px;font-weight:700;font-size:13px;color:#eee}
-.fm-catalogue-attribution :is(input,select,textarea){width:100%;border:1px solid #4a4a4f;background:#1c1c1f;color:#fff;border-radius:8px;padding:11px 12px;min-height:44px}
-.fm-catalogue-attribution textarea{min-height:90px;resize:vertical}
-.fm-catalogue-attribution .fm-catalogue-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-.fm-catalogue-attribution button{background:#ff6a00;color:#111;padding:12px 18px;border:0;border-radius:8px;font-weight:850;cursor:pointer;justify-self:start}
-.fm-catalogue-attribution button:disabled{opacity:.5;cursor:default}
-.fm-catalogue-search{display:flex;align-items:end;gap:12px;margin:20px 0}
-.fm-catalogue-search label{flex:1}.fm-catalogue-records article{display:grid;grid-template-columns:120px minmax(130px,2fr) 1fr 1fr 90px;gap:12px;padding:14px 0;border-bottom:1px solid #383838;font-size:12px}
-.fm-catalogue-records article strong{color:#ff6a00}.fm-catalogue-records article small{color:#a1a1aa}
-.fm-catalogue-success{color:#82dcb0!important;background:#123022;border:1px solid #356b51;padding:13px;border-radius:8px}
-@media(max-width:760px){.fm-catalogue-paths,.fm-catalogue-attribution .fm-catalogue-two{grid-template-columns:1fr}.fm-catalogue-search{display:grid}.fm-catalogue-records article{grid-template-columns:1fr 1fr;gap:9px}}
+/* Catalogue controls: dark ink on light surfaces, no decorative widgets.
+   Control Room's ambient form rules sometimes put light text on white fields;
+   these selectors deliberately match both label and field on this page. */
+.control-room .fm-catalogue-attribution{
+ font-family:"DM Sans",sans-serif!important;color:#202124!important;
+ max-width:1120px;margin:0 auto;padding:22px 24px 100px;background:transparent;
+}
+.control-room .fm-catalogue-attribution h1,
+.control-room .fm-catalogue-attribution h2{font-family:"Gotham","DM Sans",sans-serif!important;
+ color:#171717!important;letter-spacing:-.035em;font-weight:800}
+.control-room .fm-catalogue-attribution h1{font-size:clamp(30px,3vw,42px);line-height:1.15;margin:10px 0}
+.control-room .fm-catalogue-attribution h2{font-size:22px;line-height:1.3;margin:4px 0 14px}
+.control-room .fm-catalogue-attribution p,
+.control-room .fm-catalogue-attribution .community-card p{color:#50535b!important;line-height:1.55;font-size:14px}
+.control-room .fm-catalogue-attribution .eyebrow{color:#a44f11!important}
+.control-room .fm-catalogue-attribution .fm-catalogue-paths{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:20px 0}
+.control-room .fm-catalogue-attribution .fm-catalogue-paths section{
+ background:#fff!important;border:1px solid #d9d9db!important;border-radius:10px;
+ padding:17px 18px;color:#161616!important;box-shadow:none!important}
+.control-room .fm-catalogue-attribution .fm-catalogue-paths strong{
+ color:#222!important;font:800 14px "Gotham","DM Sans",sans-serif}
+.control-room .fm-catalogue-attribution .fm-catalogue-paths a,
+.control-room .fm-catalogue-attribution .community-actions a{color:#ac4f0e!important;font-weight:750}
+.control-room .fm-catalogue-attribution .community-card{
+ background:#fff!important;border:1px solid #e1e1e3!important;color:#202124!important;
+ border-radius:12px!important;padding:24px!important;box-shadow:none!important}
+.control-room .fm-catalogue-attribution .fm-catalogue-form form{display:grid;gap:18px;margin-top:16px}
+.control-room .fm-catalogue-attribution .fm-catalogue-two{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.control-room .fm-catalogue-attribution label,
+.control-room .fm-catalogue-attribution .fm-catalogue-search label{
+ display:flex!important;flex-direction:column!important;align-items:stretch!important;
+ gap:7px!important;color:#27282b!important;font:700 13px/1.45 "DM Sans",sans-serif!important;
+ text-transform:none!important;letter-spacing:normal!important;opacity:1!important;
+}
+.control-room .fm-catalogue-attribution :is(input:not([type=checkbox]),select,textarea){
+ display:block!important;width:100%!important;min-height:45px!important;max-width:100%;
+ background:#fff!important;color:#171717!important;opacity:1!important;
+ border:1px solid #b9bbc1!important;border-radius:8px!important;
+ padding:11px 13px!important;box-shadow:none!important;
+ font:500 14px/1.45 "DM Sans",sans-serif!important;
+}
+.control-room .fm-catalogue-attribution :is(input,textarea)::placeholder{
+ color:#777b83!important;opacity:1!important}
+.control-room .fm-catalogue-attribution :is(select,textarea,input):focus-visible{
+ outline:2px solid #e96910!important;outline-offset:1px!important}
+.control-room .fm-catalogue-attribution textarea{min-height:95px!important}
+.control-room .fm-catalogue-attribution label small{font-size:12px!important;
+ color:#60636b!important;font-weight:400!important}
+.control-room .fm-catalogue-attribution .fm-catalogue-search{display:flex;
+ align-items:end;gap:12px;margin:18px 0}
+.control-room .fm-catalogue-attribution .fm-catalogue-search label{flex:1}
+.control-room .fm-catalogue-attribution button{
+ border:1px solid #d15b0c!important;background:#e8660b!important;
+ color:#fff!important;padding:12px 17px!important;border-radius:8px!important;
+ font:800 13px "DM Sans",sans-serif!important;cursor:pointer}
+.control-room .fm-catalogue-attribution button:disabled{opacity:.5!important;cursor:default}
+.control-room .fm-catalogue-attribution .fm-catalogue-records article{
+ display:grid;grid-template-columns:105px minmax(150px,2fr) 1fr 1fr 90px;
+ gap:12px;border-bottom:1px solid #e4e4e5;padding:14px 0;font-size:12px;color:#40434b}
+.control-room .fm-catalogue-attribution .fm-catalogue-records article strong{color:#202124}
+.control-room .fm-catalogue-attribution .fm-catalogue-success{background:#f0faf3!important;
+ border:1px solid #b9dac0;color:#19552c!important;padding:12px;border-radius:8px}
+@media(max-width:720px){.control-room .fm-catalogue-attribution{padding:12px 12px 110px}
+ .control-room .fm-catalogue-attribution .fm-catalogue-paths,
+ .control-room .fm-catalogue-attribution .fm-catalogue-two{grid-template-columns:1fr}
+ .control-room .fm-catalogue-attribution .fm-catalogue-search{display:grid}
+ .control-room .fm-catalogue-attribution .fm-catalogue-records article{grid-template-columns:1fr 1fr}}

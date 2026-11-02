@@ -1,0 +1,66 @@
+/* Studio Operations: compact, typography-led platform form. */
+.control-room .admin-studio-sessions{max-width:1120px;margin:0 auto;
+ padding:24px 22px 120px;color:#202124!important;font-family:"DM Sans",sans-serif!important}
+.control-room .admin-studio-sessions *{box-sizing:border-box}
+.control-room .admin-studio-top span,
+.control-room .admin-studio-section-heading span{color:#ad5312!important;font-size:11px;
+ letter-spacing:.11em;font-weight:850}
+.control-room .admin-studio-sessions h1,
+.control-room .admin-studio-sessions h2{color:#1c1c1d!important;
+ font-family:"Gotham","DM Sans",sans-serif!important;
+ font-weight:800;letter-spacing:-.035em}
+.control-room .admin-studio-sessions h1{font-size:clamp(32px,3.3vw,46px);margin:8px 0 12px}
+.control-room .admin-studio-sessions h2{font-size:21px;margin:4px 0 19px}
+.control-room .admin-studio-sessions p{color:#545860!important;
+ font-size:13px!important;line-height:1.6}
+.control-room .admin-studio-top{margin-bottom:22px}
+.control-room .admin-studio-top p{max-width:760px}
+.control-room .admin-studio-section{background:#fff!important;border:1px solid #e0e0e3!important;
+ border-radius:12px;margin:15px 0 21px;padding:24px!important;color:#202124!important;
+ box-shadow:none!important}
+.control-room .admin-studio-section-heading{display:flex;align-items:flex-start;justify-content:space-between;
+ gap:12px;flex-wrap:wrap}
+.control-room .admin-studio-section-heading a{color:#b7520d!important;font-size:12px;font-weight:750}
+.control-room .admin-studio-sessions .admin-studio-search{display:flex;align-items:flex-end;gap:13px;margin:12px 0}
+.control-room .admin-studio-sessions .admin-studio-search label{flex:1}
+.control-room .admin-studio-sessions .admin-studio-form{margin-top:9px}
+.control-room .admin-studio-sessions .admin-studio-fields{display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));gap:17px}
+.control-room .admin-studio-sessions label{display:flex!important;flex-direction:column!important;
+ align-items:stretch!important;gap:7px!important;color:#26272a!important;
+ font:700 13px/1.45 "DM Sans",sans-serif!important;opacity:1!important;
+ text-transform:none!important;letter-spacing:normal!important}
+.control-room .admin-studio-sessions label small{font-size:11px!important;
+ font-weight:400!important;color:#62666d!important}
+.control-room .admin-studio-sessions :is(input,select,textarea){
+ width:100%!important;min-height:44px!important;max-width:100%;
+ background:#fff!important;color:#181a1d!important;
+ border:1px solid #b8bbc2!important;border-radius:8px!important;
+ box-shadow:none!important;padding:10px 12px!important;
+ font:500 14px/1.45 "DM Sans",sans-serif!important;opacity:1!important}
+.control-room .admin-studio-sessions :is(input,textarea)::placeholder{color:#777b83!important}
+.control-room .admin-studio-sessions textarea{min-height:80px!important;resize:vertical}
+.control-room .admin-studio-sessions select[multiple]{min-height:118px!important}
+.control-room .admin-studio-sessions .admin-studio-wide{grid-column:1/-1}
+.control-room .admin-studio-sessions button{background:#e9670b!important;border:1px solid #d45c07!important;
+ color:#fff!important;border-radius:8px!important;min-height:43px;padding:10px 17px!important;
+ font:800 13px "DM Sans",sans-serif!important;cursor:pointer}
+.control-room .admin-studio-sessions :is(input,select,textarea,button):focus-visible{
+ outline:2px solid #e9670b!important;outline-offset:2px!important}
+.control-room .admin-studio-form-footer{display:flex;justify-content:space-between;
+ align-items:center;gap:20px;padding-top:20px}
+.control-room .admin-studio-form-footer p{margin:0;max-width:630px}
+.control-room .admin-studio-notice{background:#edf7f0;color:#19592c!important;
+ padding:13px 15px;border:1px solid #b5dbbd;border-radius:9px}
+.control-room .admin-studio-error{background:#fff1ed;color:#8c2718!important;
+ padding:13px 15px;border:1px solid #eac5bc;border-radius:9px}
+.control-room .admin-studio-history>div{display:grid;grid-template-columns:minmax(170px,1.5fr) 1fr 1fr 100px;
+ gap:14px;padding:13px 0;border-bottom:1px solid #e2e2e4;
+ color:#3f4148;font:500 12px "DM Sans",sans-serif}
+.control-room .admin-studio-history strong{color:#202124;font-weight:750}
+@media(max-width:720px){.control-room .admin-studio-sessions{padding:14px 12px 120px}
+ .control-room .admin-studio-section{padding:17px!important}
+ .control-room .admin-studio-sessions .admin-studio-search{display:grid;gap:9px}
+ .control-room .admin-studio-sessions .admin-studio-fields{grid-template-columns:1fr}
+ .control-room .admin-studio-sessions .admin-studio-form-footer{display:grid}
+ .control-room .admin-studio-history>div{grid-template-columns:1fr 1fr;gap:8px}}

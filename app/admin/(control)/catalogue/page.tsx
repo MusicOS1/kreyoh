@@ -30,8 +30,8 @@ export default async function CatalogueAttribution({searchParams}:{searchParams:
  return <main className="community-page fm-catalogue-attribution">
   <div className="community-actions"><Link href="/admin/releases">← Releases</Link><Link href="/tracks">Project demos</Link><Link href="/production">Production workspace</Link></div>
   <span className="eyebrow">FACKTS MUSIC · CATALOGUE GOVERNANCE</span>
-  <h1>Who uploaded it? Who made it? Who owns it?</h1>
-  <p>An artist or an administrator can upload either a <strong>project demo</strong> or a <strong>release</strong>. Upload permissions do not determine who receives artist credit or who owns the master. Classify these independently, with evidence before verification.</p>
+  <h1>Catalogue attribution</h1>
+  <p>Identify the uploader, credited artist and rights holder for an existing demo or release. These are different responsibilities.</p>
   {params.saved&&<p className="fm-catalogue-success" role="status">Attribution saved. No audio, votes, comments, credits, split sheets or public listings were modified.</p>}
   {params.error&&<p className="form-error-alert" role="alert">{params.error}</p>}
   {!schemaReady&&<p className="form-error-alert" role="alert">The attribution register needs the new database migration before records can be saved. Existing songs and project demos are still available.</p>}
@@ -41,8 +41,8 @@ export default async function CatalogueAttribution({searchParams}:{searchParams:
   </div>
   <form method="get" action="/admin/catalogue" className="fm-catalogue-search"><label htmlFor="catalogue-q">Find a recording</label><input id="catalogue-q" name="q" defaultValue={query} placeholder="Search working titles and release titles"/><button type="submit">Search</button></form>
   <section className="community-card fm-catalogue-form">
-   <h2>Record source, artist and rights attribution</h2>
-   <p>Choose an existing track or release. For historical records, begin with <strong>Not yet verified</strong>; do not infer ownership from the uploader's account. This register is private to authorised Admin users.</p>
+   <h2>Recording details</h2>
+   <p>Select a recording, then enter what is known. Leave historical ownership unverified until the supporting agreement is available.</p>
    <form action={saveCatalogueAttribution}>
     <label>Recording
      <select name="source" required defaultValue="">
@@ -81,9 +81,9 @@ export default async function CatalogueAttribution({searchParams}:{searchParams:
       </select>
      </label>
     </div>
-    <label className="community-check"><input type="checkbox" name="credit_verified"/> Confirm the selected performing Artist account has been checked against the actual recording credits (independent of master ownership).</label>
-    <label>Artist credit evidence reference
-      <input name="credit_evidence_reference" maxLength={350} placeholder="Session credit, artist approval or signed performer record"/>
+    <label>Artist credit evidence (optional)
+      <input name="credit_evidence_reference" maxLength={350} placeholder="Approval record or signed performer credit"/>
+      <small>A linked artist appears on their profile only when the credit and evidence are supplied. This does not establish ownership.</small>
     </label>
     <div className="fm-catalogue-two">
      <label>Recording / master rights
