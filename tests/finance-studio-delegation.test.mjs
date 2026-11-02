@@ -18,6 +18,8 @@ test("Payments show feedback and prevent duplicate submission after network unce
  assert.match(action,/transaction_code",incomingCode/);
  assert.match(action,/alreadyRecorded:true/);
  assert.match(action,/payment_reference",reference/);
+ assert.match(action,/\.eq\("member_user_id",memberUserId\)/);
+ assert.match(action,/\.eq\("payment_period",period\)/);
  assert.match(action,/status","posted/);
  assert.match(action,/recordMembershipPaymentWithFeedback/);
  assert.match(action,/try\{await notifyUser/);

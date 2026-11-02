@@ -141,10 +141,11 @@ export async function recordMembershipPayment(fd:FormData):Promise<{id:string;co
   if(method!=="Cash"){
     const {data:matching,error:matchingError}=await admin.from("project_membership_transactions")
       .select("id,transaction_code,member_user_id,amount,payment_period")
-      .eq("project_id",project.id).eq("payment_method",method)
+      .eq("project_id",project.id).eq("member_user_id",memberUserId)
+      .eq("payment_period",period).eq("payment_method",method)
       .ilike("payment_reference",reference).eq("status","posted").limit(1);
     if(matchingError)throw new Error("Could not check the payment reference. Check the ledger before retrying.");
-    if(matching?.length)throw new Error("This payment reference is already posted in this project ("+matching[0].transaction_code+"). Do not record it twice.");
+    if(matching?.length)throw new Error("This payment reference is already posted for this member and month ("+matching[0].transaction_code+"). Do not record it twice.");
   }
 
   const{data:membership}=await admin.from("project_members")
