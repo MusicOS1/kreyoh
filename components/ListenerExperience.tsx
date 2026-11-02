@@ -220,7 +220,11 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
      <div className="fs-shows">{editorial.filter(x=>x.kind==="show").map(item=><article key={item.id}>
        {item.image&&<img src={item.image} alt="" loading="lazy"/>}
        <div><h2>{item.title}</h2><p>{item.description}</p>{item.url&&<a target="_blank" rel="noopener noreferrer" href={item.url}>Watch <ArrowUpRight size={16}/></a>}</div></article>)}</div>
-     {!editorial.some(x=>x.kind==="show")&&<p className="fs-empty">New shows and artist conversations are on the way.</p>}
+     {!editorial.some(x=>x.kind==="show")&&<div className="fs-shows-empty">
+       <h2>No shows published yet.</h2>
+       <p>Discover the artists and their music while this space develops.</p>
+       <button type="button" onClick={()=>selectTab("Artists")}>Discover artists <ArrowUpRight size={16}/></button>
+     </div>}
     </div>}
     {tab==="My Library"&&<div className="fs-main-view"><div className="fs-page-heading"><span>YOUR SPACE</span><h1>Your library</h1>
       <p>Your favourite music, playlists and artists. Available when signed in.</p></div>

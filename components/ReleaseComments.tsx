@@ -22,10 +22,18 @@ export default function ReleaseComments({
 
   const refresh=useCallback(async()=>{
     const revision=++loadRevision.current;setLoading(true);
-    try{const result=await backgroundInteraction<{ok:boolean;comments:PublicReleaseComment[];error?:string}>('commentsList',{releaseId});
+    try{
+      const response=await fetch("/api/releases/"+encodeURIComponent(releaseId)+"/comments",{cache:"no-store",headers:{"Accept":"application/json"},signal:AbortSignal.timeout(15000)});
+      const result: {ok:boolean;comments?:PublicReleaseComment[];error?:string}=await response.json();
       if(revision!==loadRevision.current)return;
-      if(result.ok){setComments(result.comments.map(comment=>deletedLocally.current.has(comment.id)?{...comment,deleted:true,body:''}:comment));setLoaded(true);setLoadError('');}else setLoadError(result.error||'Unable to load comments.');
-    }catch{if(revision===loadRevision.current)setLoadError('Comments could not be loaded. Reconnect and retry.');}
+      if(!response.ok||!result.ok||!Array.isArray(result.comments))throw new Error(result.error||"Unable to retrieve comments.");
+      setComments(result.comments.map(comment=>deletedLocally.current.has(comment.id)?{...comment,deleted:true,body:''}:comment));
+      setLoaded(true);setLoadError("");
+    }catch(error){
+      if(revision===loadRevision.current)setLoadError(error instanceof Error&&error.name==="TimeoutError"
+        ?"Comments took too long to load. Retry."
+        :error instanceof Error&&error.message!=="Failed to fetch"?error.message:"Comments are temporarily unavailable.");
+    }
     finally{if(revision===loadRevision.current)setLoading(false);}
   },[releaseId]);
 
