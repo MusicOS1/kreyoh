@@ -35,9 +35,10 @@ export default function SignupForm({ error, next="/home" }: { error?: string; ne
         />
       </label>
 
-      <label>
-        How are you joining FACKTS Music?
+      <div className="signup-identity-field">
+        <label htmlFor="signup-account-type">How are you joining FACKTS Music?</label>
         <select
+          id="signup-account-type"
           name="creator_type"
           required
           value={identity}
@@ -63,16 +64,16 @@ export default function SignupForm({ error, next="/home" }: { error?: string; ne
           <option>Other Creative</option>
         </select>
 
-        {identity==="Other Creative"&&<label className="signup-other-creative">
-          What kind of creative are you?
-          <input name="other_creative_type" maxLength={80} minLength={2} required placeholder="e.g. DJ, photographer, dancer, music curator"/>
-        </label>}
         <small>
           Fans get the listening experience. Creatives get an identity and professional workspace. This describes how you join the community. It does not automatically
           give access to another person's project. Project roles and permissions
           activate when the project invites or assigns you.
         </small>
-      </label>
+      </div>
+      {identity==="Other Creative"&&<label className="signup-other-creative">
+        What kind of creative are you?
+        <input name="other_creative_type" maxLength={80} minLength={2} required placeholder="e.g. DJ, photographer, dancer, music curator"/>
+      </label>}
 
       <label>
         Email Address

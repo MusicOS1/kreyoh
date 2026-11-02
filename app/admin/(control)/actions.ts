@@ -43,21 +43,21 @@ export async function updateManagedCreatorProfile(fd:FormData){
   const selected=Array.from(new Set(fd.getAll("creator_types").map(String).filter(type=>creatorTypeOptions.has(type))));
   if(category==="creative"&&selected.length===0)throw Error("Choose at least one creative discipline, or select Fan.");
   const creatorTypes=category==="fan"?["Fan"]:selected;
-  const speciality=read(fd,"other_creative_type").replace(/\\s+/g," ").slice(0,80);
+  const speciality=read(fd,"other_creative_type").replace(/\s+/g," ").slice(0,80);
   if(category==="creative"&&selected.includes("Other Creative")&&speciality.length<2)throw Error("Specify what kind of creative this person is.");
-  const {data:existing,error:readError}=await admin.from("profiles").select("id,creator_types,skills_genres").eq("id",userId).maybeSingle();
+  const {data:existing,error:readError}=await admin.from("profiles").select("id,creator_types,skills_genres,epk_tagline,interview_title,interview_url,achievements").eq("id",userId).maybeSingle();
   if(readError||!existing)throw Error("Account not found.");
   const songs=Array.from({length:5},(_,index)=>({title:read(fd,`song_${index+1}_title`),url:read(fd,`song_${index+1}_url`)})).filter(song=>song.title);
   const update={
     full_name:read(fd,"full_name"),stage_name:read(fd,"stage_name")||null,nickname:read(fd,"nickname")||null,
-    bio:read(fd,"bio")||null,epk_tagline:read(fd,"epk_tagline")||null,location:read(fd,"location")||null,
+    bio:read(fd,"bio")||null,epk_tagline:existing.epk_tagline||null,location:read(fd,"location")||null,
     creator_types:creatorTypes,
     ...(category==="creative"&&selected.includes("Other Creative")?{skills_genres:Array.from(new Set([...(existing.skills_genres||[]),speciality]))}:{}),
     social_links:read(fd,"social_url")?{primary:read(fd,"social_url")}:{},
     streaming_links:read(fd,"streaming_url")?{primary:read(fd,"streaming_url")}:{},
-    top_songs:songs,interview_title:read(fd,"interview_title")||null,
-    interview_url:read(fd,"interview_url")||null,
-    achievements:read(fd,"achievements").split("\\n").map(item=>item.trim()).filter(Boolean).slice(0,8),
+    top_songs:songs,interview_title:existing.interview_title||null,
+    interview_url:existing.interview_url||null,
+    achievements:existing.achievements||[],
     updated_at:new Date().toISOString()
   };
   if(!update.full_name)throw Error("Full name is required.");
