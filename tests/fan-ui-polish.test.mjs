@@ -49,7 +49,7 @@ test("FACKTS chart is a single real-data ranking and the public comments use a r
  const chart=file("app/billboard/page.tsx");
  const component=file("components/BillboardChart.tsx");
  const comments=file("components/ReleaseComments.tsx");
- const api=file("app/api/releases/[id]/comments/route.ts");
+ const api=file("app/api/releases/[releaseId]/comments/route.ts");
  assert.match(chart,/chart\(\)/);
  assert.match(chart,/BillboardChart/);
  assert.doesNotMatch(chart,/TrackPlaylist/);
