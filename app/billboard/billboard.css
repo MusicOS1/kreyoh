@@ -130,3 +130,33 @@
  .fc-chart-outro{display:grid;padding:23px}
 }
 @media(prefers-reduced-motion:reduce){.fm-chart-page *{transition:none!important;animation:none!important}}
+
+/* Song detail: comments should read as a conversation, not an oversized CTA. */
+.community-page.fm-chart-detail-page{--community-accent:#ff6a00;max-width:1120px;padding-top:43px;padding-bottom:120px;
+ background:#0b0b0b;color:#fff;font-family:"DM Sans",sans-serif}
+.fm-chart-detail-page .billboard-hero{border-color:#313133}
+.fm-chart-detail-page .billboard-hero h1,.fm-chart-detail-page .community-card h2{font-family:"Gotham","DM Sans",sans-serif;letter-spacing:-.05em}
+.fm-chart-detail-page .community-card{border:1px solid #303034;background:#151515;border-radius:15px;padding:22px}
+.fm-chart-detail-page .community-card p{color:#b9b9bf}
+.fm-chart-detail-page .community-card .fc-voting-note{font-size:12px;color:#a1a1aa;margin:7px 0}
+.fm-chart-detail-page .fm-comments{border:0;margin:0;padding:0}
+.fm-chart-detail-page .fm-comments-toggle{background:transparent!important;border:0!important;border-bottom:1px solid #363638!important;
+ border-radius:0!important;display:flex;align-items:center;justify-content:flex-start;gap:11px;
+ color:#fff!important;font:800 18px "Gotham","DM Sans",sans-serif!important;
+ padding:5px 0 17px!important;width:100%;text-align:left;min-height:44px}
+.fm-chart-detail-page .fm-comments-toggle svg{color:#ff6a00;flex:none}
+.fm-chart-detail-page .fm-comments-toggle:hover{color:#ff8c39!important}
+.fm-chart-detail-page .fm-comments-panel{padding:18px 0 0}
+.fm-chart-detail-page .fm-comments-join{font-size:13px}
+.fm-chart-detail-page .fm-comments-join a{color:#ff8c39}
+.fm-chart-detail-page .fm-comments-error{background:#291917;border:1px solid #5c3127;color:#ffcfb5;
+ border-radius:9px;display:flex;flex-wrap:wrap;gap:10px;padding:12px 13px;font-size:12px}
+.fm-chart-detail-page .fm-comments-error button{background:transparent!important;border:0!important;
+ color:#ff8c39!important;min-height:26px!important;padding:0!important;font-size:12px!important}
+.fm-chart-detail-page .fm-comment-compose textarea{border-color:#424246;background:#1c1c1d}
+.fm-chart-detail-page .fm-comment-compose-bottom button{background:#ff6a00!important;color:#111!important}
+@media(max-width:700px){
+ .community-page.fm-chart-detail-page{padding:25px 14px 115px}
+ .fm-chart-detail-page .community-card{padding:15px}
+ .fm-chart-detail-page .fm-comments-toggle{font-size:16px!important}
+}

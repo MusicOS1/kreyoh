@@ -57,6 +57,6 @@ export default function BillboardChart({entries,allCount,userId,votedIds,feature
    {!entries.length&&<div className="fc-no-results">No matching releases. <Link href="/billboard">View the full chart</Link>.</div>}
    {featured&&stars.length===entries.length&&stars.length>0&&<p className="fc-all-featured">All ranked songs are shown above.</p>}
   </section>
-  <p className="fc-chart-method">Chart positions currently follow verified weekly fan votes. Each published release can receive one vote per verified account per week. Historical movement will only appear when reliable comparative chart data is available.</p>
+  <p className="fc-chart-method">Ranked by verified weekly fan votes · Resets Mondays at 00:00 EAT.</p>
  </div>;
 }
