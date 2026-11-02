@@ -62,7 +62,7 @@ export async function updateManagedCreatorProfile(fd:FormData){
   };
   if(!update.full_name)throw Error("Full name is required.");
   const {data:changed,error}=await admin.from("profiles").update(update).eq("id",userId).select("id").maybeSingle();
-  if(error||!changed)throw Error(error?.message||"Account not updated.");
+  if(error||!changed)throw Error(error?.code==="23505"?"That public name is already registered. Choose another.":error?.message||"Account not updated.");
   await admin.from("platform_events").insert({user_id:actor.id,event_name:"account_category_updated",category:"admin",entity_type:"profile",entity_id:userId,metadata:{previous:existing.creator_types,current:creatorTypes,creative_speciality:speciality||null}});
   revalidatePath("/admin/users");revalidatePath(`/admin/users/${userId}`);revalidatePath("/creators");revalidatePath("/listen");revalidatePath("/fan");
 }

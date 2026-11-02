@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import {cleanPublicName,validatePublicName} from "../lib/publicName";
 import { signup } from "../app/signup/actions";
 import Link from "next/link";
 
@@ -8,6 +9,26 @@ export default function SignupForm({ error, next="/home" }: { error?: string; ne
   const [visible, setVisible] = useState(false);
   const [identity, setIdentity] = useState("");
   const [path,setPath]=useState<"creative"|"fan"|null>(null);
+  const [publicName,setPublicName]=useState("");
+  const [nameCheck,setNameCheck]=useState<{status:"idle"|"checking"|"available"|"taken"|"error";name:string}>({status:"idle",name:""});
+  const cleanedName=cleanPublicName(publicName);
+  const nameError=publicName.trim()?validatePublicName(publicName):null;
+  useEffect(()=>{
+    if(!path||nameError||!cleanedName)return;
+    const controller=new AbortController();
+    const timer=window.setTimeout(async()=>{
+      setNameCheck({status:"checking",name:cleanedName});
+      try{
+        const response=await fetch("/api/signup/name-availability?name="+encodeURIComponent(cleanedName),{signal:controller.signal,cache:"no-store"});
+        const result:{available?:boolean;error?:string}=await response.json();
+        if(controller.signal.aborted)return;
+        setNameCheck({status:!response.ok?"error":result.available?"available":"taken",name:cleanedName});
+      }catch{if(!controller.signal.aborted)setNameCheck({status:"error",name:cleanedName});}
+    },350);
+    return ()=>{window.clearTimeout(timer);controller.abort();};
+  },[cleanedName,nameError,path]);
+  const checkedName=nameCheck.name===cleanedName;
+  const canSubmit=Boolean(path&&!nameError&&checkedName&&nameCheck.status==="available");
 
   return (
     <form action={signup} className="login-card"><input name="next" type="hidden" value={next}/>
@@ -74,6 +95,25 @@ export default function SignupForm({ error, next="/home" }: { error?: string; ne
         Specify your discipline
         <input name="other_creative_type" maxLength={80} minLength={2} required placeholder="e.g. DJ, dancer, photographer, music curator"/>
       </label>}
+      {path&&<label className="signup-public-name">
+        {path==="fan"?"Public display name":"Creative / stage name"}
+        <input name="public_name" type="text" value={publicName}
+          onChange={event=>{setPublicName(event.target.value);setNameCheck({status:"idle",name:""});}}
+          onBlur={()=>setPublicName(cleanPublicName(publicName))}
+          required minLength={2} maxLength={50} autoComplete="off"
+          placeholder={path==="fan"?"The name fans see":"Your professional or artist name"}
+          aria-describedby="signup-public-name-status"/>
+        <small id="signup-public-name-status" role="status" aria-live="polite" className={
+          "signup-name-status"+(checkedName&&nameCheck.status==="available"?" is-available":
+            checkedName&&(nameCheck.status==="taken"||nameCheck.status==="error")?" is-unavailable":"")
+        }>
+          {nameError||(!publicName.trim()?"Choose a unique name. Registered names cannot be reused.":
+            !checkedName||nameCheck.status==="checking"||nameCheck.status==="idle"?"Checking name availability…":
+            nameCheck.status==="available"?"Name available":
+            nameCheck.status==="taken"?"This name is already registered. Try another.":
+            "Could not check this name. Please retry.")}
+        </small>
+      </label>}
       {path==="fan"&&<p className="signup-fan-description">Your account opens in FACKTS Listen. You can become a creative later without losing your listening history.</p>}
 
       <label>
@@ -121,7 +161,7 @@ export default function SignupForm({ error, next="/home" }: { error?: string; ne
         <span>I agree to the <Link href="/terms" target="_blank" rel="noopener noreferrer">Terms of Use</Link> and acknowledge the <Link href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Notice</Link> and <Link href="/copyright" target="_blank" rel="noopener noreferrer">Copyright Policy</Link>.</span>
       </label>
 
-      <button className="login-submit-btn" type="submit" disabled={!path}>
+      <button className="login-submit-btn" type="submit" disabled={!canSubmit}>
         Create Account →
       </button>
     </form>
