@@ -5,6 +5,7 @@ import {revalidatePath} from "next/cache";
 import {requireControlRoomPermission} from "../../../../lib/controlRoom";
 import {createAdminClient} from "../../../../lib/supabase/admin";
 import {requireStudioScope} from "../../../../lib/studioScope";
+import {setStudioRecorderGrant} from "../../../../lib/studioRecorderAccess";
 
 const uuid=/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 const read=(form:FormData,key:string)=>String(form.get(key)||"").trim();
@@ -84,4 +85,17 @@ export async function createPlatformStudioSession(form:FormData){
  }
  revalidatePath(url);revalidatePath("/studio-sessions");revalidatePath("/workspace");
  redirect(url+"?project_id="+encodeURIComponent(projectId)+"&created="+encodeURIComponent(id)+(failures.length?"&warning="+encodeURIComponent(failures.join("; ")):""));
+}
+
+/** Grant or revoke studio-only access. Does not grant project membership or Admin. */
+export async function setPlatformStudioRecorder(fd:FormData){
+ const actor=await requireControlRoomPermission("sessions");
+ const projectId=read(fd,"project_id"),userId=read(fd,"user_id");
+ if(!uuid.test(projectId)||!uuid.test(userId))throw new Error("Choose a project and registered user.");
+ const admin=createAdminClient();
+ const active=read(fd,"active")==="true";
+ await setStudioRecorderGrant(admin,{projectId,userId,actorId:actor.id,active});
+ revalidatePath("/admin/studio-sessions");
+ revalidatePath("/studio-recording");
+ redirect("/admin/studio-sessions?project_id="+encodeURIComponent(projectId)+"&delegated="+(active?"granted":"revoked"));
 }

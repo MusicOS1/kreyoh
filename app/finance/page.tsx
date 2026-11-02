@@ -1,4 +1,5 @@
 import SimpleFinanceForm from "../../components/SimpleFinanceForm";
+import MembershipPaymentForm from "../../components/MembershipPaymentForm";
 import RecordBrowser from "../../components/RecordBrowser";
 import {readAllRows} from "../../lib/recordReads";
 import styles from "../../components/SimpleFinance.module.css";
@@ -10,7 +11,6 @@ import {creatorDisplayName} from "../../lib/profileIdentity";
 import {
   addProjectExpense,
   addRevenueRecord,
-  recordMembershipPayment,
   saveProjectBudget
 } from "./actions";
 
@@ -202,12 +202,12 @@ export default async function FinancePage({
   const totalCashIn=lifetimeMembershipCollected+commercialReceived;
   const cashAvailable=totalCashIn-paidSpend;
 
-  if(params.view!=='details'){
+  if(params.view==='summary'){
     const history=[...transactions.map((t:any)=>({id:`member-${t.id}`,title:t.transaction_code||'Member payment',date:t.transaction_date,status:t.status,amount:Number(t.amount),currency:t.currency,kind:'Income',detail:'Membership payment',href:`/finance/transactions/${t.id}`})),...revenue.map((r:any)=>({id:`income-${r.id}`,title:r.revenue_source||'Income record',date:r.received_date||r.expected_date||r.created_at,status:r.payment_status,amount:Number(r.amount),currency:r.currency,kind:'Income',detail:r.notes||'',href:''})),...expenses.map((e:any)=>({id:`expense-${e.id}`,title:String(e.notes||'').split('\n')[0]||e.category||'Uncategorised expense',date:e.expense_date,status:e.payment_status,amount:Number(e.amount),currency:e.currency,kind:'Expense',detail:e.notes||'',href:''}))].sort((a,b)=>String(b.date).localeCompare(String(a.date)));
     return <AppShell><div className={`content ${styles.root}`}><header><span className="eyebrow">{project.code} / PROJECT FINANCE</span><h1>Financial tracker</h1><p>{project.name} · Actual receipts and payments in KES. Expected income is excluded from available cash.</p></header><section className={styles.totals}>{[['Money received',totalCashIn],['Money spent',paidSpend],['Available balance',cashAvailable],['Outstanding commitments',committedSpend]].map(([label,value])=><article key={String(label)}><span>{label}</span><strong>KES {Number(value).toLocaleString('en-KE')}</strong></article>)}</section>
     {isProjectAdmin&&<details><summary>Record income or expense</summary><p>Record money actually received or paid. Use the membership tools below for KES 2,000 member payments.</p><SimpleFinanceForm tracks={tracks.map((t:any)=>({id:t.id,name:t.working_title}))} members={members.map((m:any)=>({id:m.user_id,name:creatorDisplayName(first(m.profiles))}))}/></details>}
     <section><h2>Transaction history</h2><p>All currencies and statuses remain visible. Reversed, cancelled and unpaid entries do not contribute to available cash.</p><RecordBrowser label="transactions" items={history.map(r=>({id:r.id,title:r.title,code:r.detail,status:r.status,date:r.date}))}>{history.map(r=><details key={r.id} id={r.id} className={styles.row}><summary><span><strong>{r.href?<Link href={r.href}>{r.title}</Link>:r.title}</strong><small>{r.kind} · {String(r.date||'').slice(0,10)} · {r.status}</small></span><strong>{r.currency} {r.amount.toLocaleString('en-KE')}</strong></summary><div>{r.detail||'No additional notes recorded.'}</div></details>)}</RecordBrowser></section>
-    <details><summary>Membership, budgets, reports & reconciliation</summary><p>KES 2,000 membership accounts, payment references, reversals, budgets and revenue reports are retained.</p><Link href="/finance?view=details">Open detailed finance tools →</Link></details></div></AppShell>;
+    <div className="panel"><h2>Membership payments and ledger</h2><p>See current member dues, enter a payment and view full payment references.</p><Link href="/finance">Open membership finance →</Link></div></div></AppShell>;
   }
   if(!isProjectAdmin){
     const from=params.from||"";
@@ -458,7 +458,8 @@ export default async function FinancePage({
         <div>
           <span className="eyebrow">{project.code} / MEMBERSHIP & PROJECT ECONOMICS</span>
           <h1>Project Finance</h1>
-          <p>Membership is simple: every active member owes KES 2,000 per month. Payments are separate transactions and overpayments become credit.</p>
+          <p>Membership payments, member balances, expenses and project income. All financial activity stays within this project.</p>
+          <Link className="secondary-button-inline" href="/finance?view=summary">Switch to simplified summary →</Link>
         </div>
       </div>
 
@@ -484,29 +485,16 @@ export default async function FinancePage({
       <section className="finance-two">
         <details className="beat-intake-disclosure" open>
           <summary className="beat-intake-summary"><span>PAYMENT TRANSACTION</span><strong>Record a member payment</strong><small>Select any active member. Overpayments are allowed and show as credit.</small><b>Open +</b></summary>
-          <form action={recordMembershipPayment} className="panel operations-form">
-            <select name="member_user_id" required defaultValue="">
-              <option value="" disabled>Choose project member</option>
-              {members.map((m:any)=>{
-                const p=memberMap.get(m.user_id);
-                const a=accountByMember.get(m.user_id);
-                const paid=paidByMember.get(m.user_id)||0;
-                const position=paid>MONTHLY_FEE
-                  ?`credit KES ${(paid-MONTHLY_FEE).toLocaleString("en-KE")}`
-                  :paid===MONTHLY_FEE
-                  ?"paid"
-                  :`outstanding KES ${(MONTHLY_FEE-paid).toLocaleString("en-KE")}`;
-                return<option key={m.user_id} value={m.user_id}>{a?.member_code?`${a.member_code} · `:""}{creatorDisplayName(p)} · {position}</option>
-              })}
-            </select>
-            <input name="amount" type="number" min="0.01" step="0.01" required placeholder="Payment amount"/>
-            <input name="payment_period" type="month" defaultValue={selectedMonth} required/>
-            <input name="transaction_date" type="date" defaultValue={new Date().toISOString().slice(0,10)}/>
-            <select name="payment_method" defaultValue="M-Pesa"><option>M-Pesa</option><option>Cash</option><option>Bank Transfer</option><option>Card</option><option>Other</option></select>
-            <input name="payment_reference" placeholder="M-Pesa / bank reference"/>
-            <textarea name="note" placeholder="Small note: e.g. extra KES 1,000 paid in advance, confirmed by…"/>
-            <button>Record Payment Transaction</button>
-          </form>
+          <MembershipPaymentForm projectName={project.name} month={selectedMonth} members={members.map((m:any)=>{
+            const p=memberMap.get(m.user_id);
+            const a=accountByMember.get(m.user_id);
+            const paid=paidByMember.get(m.user_id)||0;
+            const position=paid>MONTHLY_FEE
+              ? "Credit KES "+(paid-MONTHLY_FEE).toLocaleString("en-KE")
+              :paid===MONTHLY_FEE?"Paid"
+              : "Due KES "+(MONTHLY_FEE-paid).toLocaleString("en-KE");
+            return {id:m.user_id,name:(a?.member_code?a.member_code+" · ":"")+creatorDisplayName(p),position};
+          })}/>
         </details>
 
         <article className="panel">
@@ -581,7 +569,7 @@ export default async function FinancePage({
           <span>{transactions.length} recorded</span>
         </div>
 
-        <div className="txn-ledger">
+        <div id="payment-ledger" className="txn-ledger">
           <table>
             <thead><tr><th>Transaction</th><th>Payment Month</th><th>Date</th><th>Member</th><th>Amount</th><th>Method / Ref</th><th>Note</th><th>Status</th></tr></thead>
             <tbody>

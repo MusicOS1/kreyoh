@@ -4,7 +4,7 @@ import AppShell from "../../../../components/AppShell";
 import {creatorDisplayName} from "../../../../lib/profileIdentity";
 import {getWorkspace} from "../../../../lib/workspace";
 import {canEditProjectFinance,canViewProjectFinanceReport} from "../../../../lib/financeAccess";
-import {recordMembershipPayment} from "../../actions";
+import {recordMembershipPaymentLegacy} from "../../actions";
 
 const MONTHLY_FEE=2000;
 
@@ -131,7 +131,7 @@ export default async function MembershipMemberPage({
           <h2>Record another payment</h2>
           <p>Overpayments are allowed. Anything above KES 2,000 for this month shows as member credit.</p>
 
-          {canEdit?<form action={recordMembershipPayment} className="operations-form">
+          {canEdit?<form action={recordMembershipPaymentLegacy} className="operations-form">
             <input type="hidden" name="member_user_id" value={account.member_user_id}/>
             <input name="amount" type="number" min="0.01" step="0.01" required placeholder="Payment amount"/>
             <input name="payment_period" type="month" defaultValue={selectedMonth} required/>

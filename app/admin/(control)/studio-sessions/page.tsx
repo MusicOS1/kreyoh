@@ -3,20 +3,21 @@ import SessionParticipantsDropdown from "../../../../components/SessionParticipa
 import "../../../../components/session-participants.css";
 import {createAdminClient} from "../../../../lib/supabase/admin";
 import {requireControlRoomPermission} from "../../../../lib/controlRoom";
-import {createPlatformStudioSession} from "./actions";
+import {createPlatformStudioSession,setPlatformStudioRecorder} from "./actions";
 import "./studio-admin.css";
 
 export const dynamic="force-dynamic";
 const uuid=/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 const first=(value:any)=>Array.isArray(value)?value[0]:value;
 export default async function AdminStudioSessions({searchParams}:{
- searchParams:Promise<{q?:string;project_id?:string;created?:string;error?:string;warning?:string}>
+ searchParams:Promise<{q?:string;person?:string;project_id?:string;created?:string;error?:string;warning?:string;delegated?:string}>
 }){
  await requireControlRoomPermission("sessions");
  const params=await searchParams;
  const admin=createAdminClient();
  const q=String(params.q||"").trim().replace(/[,%()]/g," ").slice(0,70);
  const selectedId=uuid.test(params.project_id||"")?params.project_id!:"";
+ const personQuery=String(params.person||"").trim().replace(/[,%()]/g," ").slice(0,70);
  let projectQuery=admin.from("projects").select("id,code,name,status").order("name").limit(50);
  if(q)projectQuery=projectQuery.or("name.ilike.%"+q+"%,code.ilike.%"+q+"%");
  const [projectsResult,chosenResult]=await Promise.all([
@@ -34,6 +35,15 @@ export default async function AdminStudioSessions({searchParams}:{
  const memberOptions=(peopleResult.data||[]).map(row=>({
   id:row.user_id,name:first(row.profiles)?.stage_name||first(row.profiles)?.full_name||row.user_id
  }));
+ const [recordersResult,matchingPeopleResult]=chosen?await Promise.all([
+   admin.from("studio_session_recorders").select("user_id,active,profiles!studio_session_recorders_user_id_fkey(full_name,stage_name)")
+     .eq("project_id",chosen.id).eq("active",true).limit(200),
+   personQuery.length>=2
+     ?admin.from("profiles").select("id,full_name,stage_name").or("full_name.ilike.%"+personQuery+"%,stage_name.ilike.%"+personQuery+"%").limit(30)
+     :Promise.resolve({data:[],error:null})
+ ]):[{data:[],error:null},{data:[],error:null}];
+ const recorders=recordersResult.data||[];
+ const matchingPeople=matchingPeopleResult.data||[];
  const selectRows=chosen&&!projects.some(p=>p.id===chosen.id)?[chosen,...projects]:projects;
  const ready=Boolean(chosen&&!trackResult.error&&!peopleResult.error&&!sessionsResult.error);
  return <main className="admin-studio-sessions">
@@ -44,6 +54,7 @@ export default async function AdminStudioSessions({searchParams}:{
   {params.created&&<p role="status" className="admin-studio-notice">Session created successfully for {chosen?.name||"the selected project"}.</p>}
   {params.warning&&<p role="alert" className="admin-studio-error">Session was created. Additional action required: {params.warning}</p>}
   {params.error&&<p role="alert" className="admin-studio-error">{params.error}</p>}
+  {params.delegated&&<p role="status" className="admin-studio-notice">Studio recording access {params.delegated==="granted"?"granted":"revoked"}. The person can use <Link href="/studio-recording">Studio Recording</Link> after signing in.</p>}
   <section className="admin-studio-section">
    <h2>Choose project</h2>
    <form method="get" action="/admin/studio-sessions" className="admin-studio-search">
@@ -108,6 +119,39 @@ export default async function AdminStudioSessions({searchParams}:{
      <button type="submit">Create session</button>
     </div>
    </form>}
+  </section>}
+  {chosen&&<section className="admin-studio-section">
+   <h2>Delegate studio recording</h2>
+   <p>Grant project-specific recording access to someone with a registered FACKTS Music account, without making them a project admin or adding them as a project member. Their only new workspace is <Link href="/studio-recording">Studio Recording</Link>.</p>
+   {recordersResult.error?<p role="alert">Studio recording delegation needs its database setup before it can be used.</p>:<>
+    <form method="get" action="/admin/studio-sessions" className="admin-studio-search">
+     <input type="hidden" name="project_id" value={chosen.id}/>
+     <label>Search registered person
+      <input type="search" name="person" defaultValue={personQuery} placeholder="e.g. Greg"/>
+     </label><button type="submit">Find person</button>
+    </form>
+    {personQuery&&matchingPeople.length===0&&<p>No registered account matched this name. They must create a FACKTS account first; no Admin invitation is needed.</p>}
+    {matchingPeople.length>0&&<form className="admin-studio-search" action={setPlatformStudioRecorder}>
+     <input type="hidden" name="project_id" value={chosen.id}/><input type="hidden" name="active" value="true"/>
+     <label>Grant studio recording to
+      <select name="user_id" defaultValue="" required><option value="" disabled>Choose the registered user</option>
+       {matchingPeople.map(person=><option key={person.id} value={person.id}>{person.stage_name||person.full_name}</option>)}
+      </select>
+     </label><button type="submit">Grant recording access</button>
+    </form>}
+    <h3>Current recorders</h3>
+    {recorders.length===0?<p>No delegates for this project yet.</p>:
+     <div className="admin-studio-history">{recorders.map(person=><div key={person.user_id}>
+      <strong>{first(person.profiles)?.stage_name||first(person.profiles)?.full_name||"Registered account"}</strong>
+      <span>Studio recording only</span>
+      <form action={setPlatformStudioRecorder}>
+       <input type="hidden" name="project_id" value={chosen.id}/>
+       <input type="hidden" name="user_id" value={person.user_id}/>
+       <input type="hidden" name="active" value="false"/>
+       <button type="submit">Revoke</button>
+      </form>
+     </div>)}</div>}
+   </>}
   </section>}
   {chosen&&ready&&<section className="admin-studio-section">
    <h2>Recent sessions — {chosen.name}</h2>

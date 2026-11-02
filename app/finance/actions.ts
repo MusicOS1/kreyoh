@@ -106,7 +106,7 @@ export async function addRevenueRecord(fd:FormData){
   revalidatePath("/finance");
 }
 
-export async function recordMembershipPayment(fd:FormData){
+export async function recordMembershipPayment(fd:FormData):Promise<{id:string;code:string;alreadyRecorded:boolean}>{
   const{admin,user,project,roles}=await getWorkspace();
   if(!project)throw new Error("Project access required.");
   requireFinanceAdmin(roles);
@@ -116,10 +116,36 @@ export async function recordMembershipPayment(fd:FormData){
   const method=read(fd,"payment_method")||"Other";
   const reference=read(fd,"payment_reference");
   const period=monthStart(read(fd,"payment_period")||new Date().toISOString().slice(0,7));
+  const token=read(fd,"payment_entry_token");
+  if(token&&!/^[0-9a-f-]{36}$/i.test(token))throw new Error("Payment form expired. Refresh and try again.");
+  const incomingCode=token?"TXN-"+token.replaceAll("-","").toUpperCase():transactionCode();
 
   if(!memberUserId)throw new Error("Choose a project member.");
   if(!Number.isFinite(amount)||amount<=0)throw new Error("Enter a valid payment amount.");
   if(method!=="Cash"&&!reference)throw new Error("Add the payment reference for non-cash payments.");
+  if(reference.length>120)throw new Error("Payment reference is too long.");
+
+  // A timed-out browser may have sent the payment already. A stable token
+  // prevents retrying the same form from posting a second ledger entry.
+  if(token){
+    const {data:previous,error:lookupError}=await admin.from("project_membership_transactions")
+      .select("id,transaction_code,member_user_id,amount,payment_period,status")
+      .eq("project_id",project.id).eq("transaction_code",incomingCode).maybeSingle();
+    if(lookupError)throw new Error("Could not confirm the earlier payment attempt. Check the ledger before retrying.");
+    if(previous){
+      if(previous.member_user_id!==memberUserId||Number(previous.amount)!==amount||String(previous.payment_period)!==period)
+        throw new Error("This payment form was used for another transaction. Reload Finance.");
+      return {id:previous.id,code:previous.transaction_code,alreadyRecorded:true};
+    }
+  }
+  if(method!=="Cash"){
+    const {data:matching,error:matchingError}=await admin.from("project_membership_transactions")
+      .select("id,transaction_code,member_user_id,amount,payment_period")
+      .eq("project_id",project.id).eq("payment_method",method)
+      .ilike("payment_reference",reference).eq("status","posted").limit(1);
+    if(matchingError)throw new Error("Could not check the payment reference. Check the ledger before retrying.");
+    if(matching?.length)throw new Error("This payment reference is already posted in this project ("+matching[0].transaction_code+"). Do not record it twice.");
+  }
 
   const{data:membership}=await admin.from("project_members")
     .select("id")
@@ -154,7 +180,7 @@ export async function recordMembershipPayment(fd:FormData){
     account=created;
   }
 
-  const code=transactionCode();
+  const code=incomingCode;
 
   const{data:transaction,error}=await admin.from("project_membership_transactions").insert({
     account_id:account.id,
@@ -172,9 +198,20 @@ export async function recordMembershipPayment(fd:FormData){
     recorded_by:user.id,
   }).select("id").single();
 
-  if(error)throw new Error(error.message);
+  if(error){
+    if(error.code==="23505"&&token){
+      const {data:existing}=await admin.from("project_membership_transactions")
+        .select("id,transaction_code,member_user_id,amount,payment_period")
+        .eq("project_id",project.id).eq("transaction_code",code).maybeSingle();
+      if(existing&&existing.member_user_id===memberUserId&&Number(existing.amount)===amount&&String(existing.payment_period)===period)
+        return {id:existing.id,code,alreadyRecorded:true};
+    }
+    throw new Error(error.message);
+  }
 
-  await notifyUser(admin,{
+  // Once saved, notification or audit failures must NOT produce a false
+  // “payment failed” response that encourages a duplicate retry.
+  try{await notifyUser(admin,{
     userId:memberUserId,
     projectId:project.id,
     type:"membership_payment_recorded",
@@ -182,9 +219,9 @@ export async function recordMembershipPayment(fd:FormData){
     body:`${code}: KES ${amount.toLocaleString("en-KE")} was recorded for ${new Date(`${period}T12:00:00`).toLocaleDateString("en-KE",{month:"long",year:"numeric"})}.`,
     entityType:"membership_transaction",
     entityId:transaction!.id
-  });
+  });}catch(error){console.error("Membership payment saved; notification failed",error);}
 
-  await admin.from("platform_events").insert({
+  try{await admin.from("platform_events").insert({
     user_id:user.id,
     project_id:project.id,
     event_name:"membership_payment_recorded",
@@ -198,12 +235,13 @@ export async function recordMembershipPayment(fd:FormData){
       currency:"KES",
       payment_period:period
     }
-  });
+  });}catch(error){console.error("Membership payment saved; audit notification failed",error);}
 
   revalidatePath("/finance");
   revalidatePath(`/finance/members/${account.id}`);
   revalidatePath(`/finance/transactions/${transaction!.id}`);
   revalidatePath("/inbox");
+  return {id:transaction!.id,code,alreadyRecorded:false};
 }
 
 export async function reverseMembershipPayment(fd:FormData){
@@ -264,4 +302,25 @@ export async function recordSimpleTransaction(_state:{message?:string},fd:FormDa
   const audit=await admin.from('platform_events').insert({user_id:user.id,project_id:project.id,event_name:'finance_transaction_recorded',category:'finance',entity_type:kind==='income'?'revenue_record':'project_expense',metadata:{kind,amount,currency:'KES',date,description,category,track_id:track||null,member_user_id:member||null}});
   revalidatePath('/finance');return {message:audit.error?'Transaction saved. Audit logging is temporarily unavailable; do not submit again.':'Transaction saved.'};
  }catch(error){return {message:error instanceof Error?error.message:'Transaction could not be saved.'};}
+}
+
+/** UI wrapper reports actionable status rather than a generic connection error. */
+export async function recordMembershipPaymentWithFeedback(
+  _state:{ok:boolean;message:string;code?:string},fd:FormData
+):Promise<{ok:boolean;message:string;code?:string}>{
+ try{
+  const result=await recordMembershipPayment(fd);
+  return {ok:true,code:result.code,
+   message:result.alreadyRecorded
+     ?"Payment already recorded ("+result.code+"). No duplicate was created."
+     :"Payment recorded successfully. Reference: "+result.code+"."};
+ }catch(error){
+  console.error("recordMembershipPaymentWithFeedback",error);
+  return {ok:false,message:error instanceof Error?error.message:"Payment not confirmed. Check the ledger before submitting again."};
+ }
+}
+
+/** Keep older member-detail forms compatible without exposing action results. */
+export async function recordMembershipPaymentLegacy(fd:FormData):Promise<void>{
+ await recordMembershipPayment(fd);
 }
