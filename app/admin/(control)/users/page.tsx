@@ -22,7 +22,7 @@ export default async function AdminUsers({searchParams}:{searchParams:Promise<{q
     const types:Array<string>=Array.isArray(u.creator_types)?u.creator_types:[];
     if(!params.type||params.type==="All")return true;
     if(params.type==="Unclassified")return types.length===0;
-    if(params.type==="Creative")return types.some(type=>type!=="Fan"&&type!=="Listener");
+    if(params.type==="Creative")return !types.includes("Artist")&&types.some(type=>type!=="Fan"&&type!=="Listener");
     return types.includes(params.type);
   });
 
