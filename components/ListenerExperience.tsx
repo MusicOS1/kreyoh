@@ -118,6 +118,12 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
  const recent=library.filter(item=>item.kind==='recent').map(item=>releases.find(release=>release.id===item.item_id)).filter((item):item is Release=>Boolean(item)).slice(0,5);
  const spotlightTracks=spotlightArtist?releases.filter(r=>releaseHasArtist(r,spotlightArtist.id,spotlightArtist.name)).slice(0,4):[];
  const firstSpotlightTrack=spotlightTracks[0];
+ const searchRef=useRef<HTMLInputElement>(null);
+ const focusSearch=()=>{searchRef.current?.focus();searchRef.current?.scrollIntoView({block:"start",behavior:"smooth"});};
+ const matchingArtists=artistsDirectory.filter(a=>[a.name,a.location,a.tagline,...a.genres].join(" ").toLowerCase().includes(query.trim().toLowerCase())).slice(0,12);
+ const matchingTracks=releases.filter(r=>[r.title,r.artist_name,r.collection||"",r.genre||""].join(" ").toLowerCase().includes(query.trim().toLowerCase())).slice(0,40);
+ const currentRelease=releases.find(r=>r.id===progress.id)||null;
+ const activeArtist=currentRelease?artistsDirectory.find(a=>releaseHasArtist(currentRelease,a.id,a.name)):null;
  const trackList=(tracks:Release[],isChart=false)=> <div className="fs-track-list">
   {tracks.slice(0,visibleCount).map((release,index)=><StreamTrackRow
     key={release.id} release={release} rank={isChart?index+1:undefined} userId={userId}
