@@ -73,7 +73,7 @@ export default function ArtistDiscovery({
   {selectedArtist?<div className="fm-artist-detail fm-fan-artist-detail" key={selectedArtist.id}>
    <button type="button" className="fm-artist-back" onClick={()=>setSelected(null)}>← All artists</button>
    <MixtapeArtistStage className="mx-discovery-stage" name={selectedArtist.name}
-    portrait={selectedArtist.hero||selectedArtist.avatar} description={selectedArtist.tagline||selectedArtist.bio}
+    portrait={selectedArtist.avatar||selectedArtist.hero} description={selectedArtist.tagline||selectedArtist.bio}
     genres={selectedArtist.genres} location={selectedArtist.location}
     actions={<>
      {artistReleases.length>0&&<button type="button" className="mx-primary-action" onClick={()=>onPlay(artistReleases[0])}>▶ Play music</button>}
