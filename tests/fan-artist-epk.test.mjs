@@ -24,3 +24,13 @@ test("public artist links are validated and artist picks never become automatic 
  assert.match(view,/These are not automatically counted as their own releases/);
  assert.match(view,/No verified FACKTS releases/);
 });
+
+test("fan spotlight renders a portrait and readable responsive primary and secondary actions",()=>{
+ const stage=source("components/ArtistDiscovery.tsx"),styles=source("components/streaming/streaming.css");
+ assert.match(stage,/portrait=\{selectedArtist\.avatar\|\|selectedArtist\.hero\}/);
+ assert.match(styles,/\.fm-fan-artist-detail \.mx-artist-stage \.mx-stage-actions > \.mx-stage-profile-link\{/);
+ assert.match(styles,/background:#202020!important/);
+ assert.match(styles,/text-decoration:none!important/);
+ assert.match(styles,/flex-wrap:wrap/);
+ assert.match(styles,/@media\(max-width:520px\)/);
+});
