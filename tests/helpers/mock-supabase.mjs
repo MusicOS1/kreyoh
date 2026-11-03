@@ -36,6 +36,7 @@ export function mockSupabase(options={}){
   if(url.pathname.startsWith('/storage/v1/object/project-documents/')&&req.method==='POST'){state.files.push({path:url.pathname,size:Buffer.byteLength(body)});return send(200,{Key:url.pathname,Id:'88888888-8888-4888-8888-888888888888'});}
   const table=url.pathname.split('/').pop();
   if(options.handleRest&&await options.handleRest({req,res,url,body,send,state,identity,table}))return;
+  if(url.pathname==='/rest/v1/rpc/fackts_public_name_available'&&req.method==='POST')return send(200,true);
   if(url.pathname==='/rest/v1/rpc/send_member_message'&&req.method==='POST'){
    const input=JSON.parse(body);state.messages.push({id:crypto.randomUUID(),sender_id:input.p_sender,recipient_id:input.p_recipient,body:input.p_body,created_at:new Date().toISOString(),read_at:null});return send(200,null);
   }
