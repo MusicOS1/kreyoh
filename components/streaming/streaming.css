@@ -433,3 +433,37 @@ body:has(.fm-streaming-ui){background:#0b0b0b}
  .fm-streaming-ui .fm-fan-artist-picks small{grid-column:2}
 }
 @media(prefers-reduced-motion:reduce){.fm-streaming-ui .fm-fan-artist-gallery img{transition:none}}
+
+
+/* Fan artist spotlight: explicit button hierarchy overrides legacy mixtape styles. */
+.fm-streaming-ui .fm-fan-artist-detail .mx-artist-stage .mx-stage-text{min-width:0}
+.fm-streaming-ui .fm-fan-artist-detail .mx-artist-stage .mx-stage-actions{
+ display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;gap:12px;width:100%;margin-top:24px
+}
+.fm-streaming-ui .fm-fan-artist-detail .mx-artist-stage .mx-stage-actions > :is(button,a){
+ box-sizing:border-box;display:inline-flex;flex:0 1 auto;align-items:center;justify-content:center;
+ min-height:46px;max-width:100%;padding:11px 18px;border-radius:11px;text-align:center;
+ text-decoration:none!important;font:750 13px/1.25 "DM Sans",sans-serif;white-space:normal;cursor:pointer
+}
+.fm-streaming-ui .fm-fan-artist-detail .mx-artist-stage .mx-stage-actions > .mx-outline-action,
+.fm-streaming-ui .fm-fan-artist-detail .mx-artist-stage .mx-stage-actions > .mx-primary-action{
+ background:#ff6a00!important;border:1px solid #ff6a00!important;color:#111!important
+}
+.fm-streaming-ui .fm-fan-artist-detail .mx-artist-stage .mx-stage-actions > .mx-stage-profile-link{
+ padding:11px 18px!important;background:#202020!important;border:1px solid #626267!important;
+ color:#fff!important;text-decoration:none!important;text-underline-offset:0!important
+}
+.fm-streaming-ui .fm-fan-artist-detail .mx-artist-stage .mx-stage-actions > .mx-stage-profile-link:is(:hover,:focus-visible){
+ background:#2b2b2b!important;border-color:#ff6a00!important;color:#fff!important
+}
+.fm-streaming-ui .fm-fan-artist-detail .mx-artist-stage .mx-stage-actions > :is(button,a):focus-visible{
+ outline:2px solid #ff6a00;outline-offset:3px
+}
+@media(max-width:840px){
+ .fm-streaming-ui .fm-fan-artist-detail .mx-artist-stage .mx-stage-actions{gap:9px;margin-top:18px}
+ .fm-streaming-ui .fm-fan-artist-detail .mx-artist-stage .mx-stage-actions > :is(button,a){padding:11px 13px;font-size:12px}
+}
+@media(max-width:520px){
+ .fm-streaming-ui .fm-fan-artist-detail .mx-artist-stage .mx-stage-actions > :is(button,a){flex:1 1 145px;min-height:44px}
+ .fm-streaming-ui .fm-fan-artist-detail .mx-artist-stage .mx-stage-text{padding:22px 18px 24px}
+}
