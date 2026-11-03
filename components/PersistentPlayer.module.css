@@ -1,355 +1,417 @@
+
+/* FACKTS Music shared player. Scope all geometry to the persistent dock so
+   project production players and their audio logic remain untouched. */
 .dock {
-  --fan-text: #e8deef;
-  --fan-muted: #86778f;
-  --fan-surface: #16131b;
-  --fan-border: #ffffff12;
-  --fan-accent: #d9ad68;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 115;
-  background: #141117fa;
-  border-top: 1px solid #ffffff14;
-  backdrop-filter: blur(25px);
-  padding: 14px 170px 14px 24px;
-  color: var(--fan-text);
-  box-shadow: 0 -10px 50px #0004;
-  font-family: 'Avenir Next', Arial, sans-serif;
+  --fan-text:#fff;
+  --fan-muted:#a1a1a6;
+  --fan-accent:#ff6a00;
+  position:fixed;
+  inset-inline:0;
+  bottom:0;
+  z-index:115;
+  isolation:isolate;
+  box-sizing:border-box;
+  padding:11px clamp(16px,2.6vw,36px) 10px;
+  background:linear-gradient(160deg,#181818 0%,#0b0b0b 85%);
+  border-top:1px solid #343434;
+  box-shadow:0 -12px 36px #0009;
+  color:#fff;
+  font-family:"DM Sans",system-ui,sans-serif;
 }
 .dock :global(.track-chart-room) {
-  margin: 0 !important;
-  padding: 0 !important;
-  background: transparent !important;
-  border: 0 !important;
-  display: block !important;
-  max-height: none !important;
-  overflow: visible !important;
+  display:block!important;
+  padding:0!important;
+  margin:0!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
 }
 .dock :global(.track-chart-player) {
-  min-height: 0 !important;
-  height: auto !important;
-  align-content: center !important;
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  display: grid !important;
-  grid-template-columns: 52px minmax(100px, 1fr) minmax(220px, 1.6fr) auto;
-  grid-template-rows: auto auto;
-  align-items: center;
-  gap: 5px 16px;
-  padding: 0 !important;
-  max-width: 1500px;
-  margin: auto;
-  min-width: 0;
+  display:grid!important;
+  grid-template-columns:56px minmax(115px,200px) 38px minmax(250px,1fr) 164px;
+  grid-template-rows:47px 29px;
+  align-items:center;
+  align-content:center!important;
+  gap:0 clamp(9px,1vw,16px);
+  box-sizing:border-box;
+  max-width:1500px;
+  width:100%;
+  min-width:0;
+  min-height:0!important;
+  height:auto!important;
+  margin:0 auto!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
 }
 .dock :global(.track-player-art) {
-  width: 52px !important;
-  height: 52px !important;
-  grid-column: 1;
-  grid-row: 1/3;
-  margin: 0 !important;
-  border-radius: 8px;
-  overflow: hidden;
+  grid-column:1;
+  grid-row:1/3;
+  width:54px!important;
+  height:54px!important;
+  margin:0!important;
+  border-radius:9px!important;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+  background:#252525!important;
+  color:#ff6a00!important;
+  box-shadow:none!important;
 }
-.dock :global(.track-player-art) img {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover;
-}
+.dock :global(.track-player-art) img {width:100%!important;height:100%!important;object-fit:cover;}
+.dock :global(.track-player-art)::before,
+.dock :global(.track-player-art)::after {display:none!important;}
 .dock :global(.track-player-copy) {
-  grid-column: 2;
-  grid-row: 1/3;
-  min-width: 0;
-  text-align: left !important;
+  grid-column:2;
+  grid-row:1/3;
+  align-self:center;
+  min-width:0;
+  text-align:left!important;
 }
-.dock :global(.track-player-copy) > span {
-  display: none;
-}
+.dock :global(.track-player-copy)>span {display:none;}
 .dock :global(.track-player-copy) h3 {
-  font-size: 13px !important;
-  font-weight: 500;
-  margin: 0 0 5px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--fan-text) !important;
+  font-family:"Gotham","DM Sans",system-ui,sans-serif;
+  color:#fff!important;
+  font-size:13px!important;
+  font-weight:750!important;
+  line-height:1.35;
+  letter-spacing:-.01em;
+  margin:0 0 4px!important;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 .dock :global(.track-player-copy) p {
-  font-size: 11px !important;
-  color: var(--fan-muted) !important;
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  margin:0!important;
+  color:#b4b4b7!important;
+  font-size:11px!important;
+  font-weight:450;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
+.dock :global(.player-save-toggle) {
+  grid-column:3;
+  grid-row:1/3;
+  align-self:center;
+  justify-self:center;
+  width:38px;
+  height:42px;
+  display:grid!important;
+  place-items:center;
+  color:#d6d6d8;
+  background:transparent!important;
+  border:0!important;
+  border-radius:50%;
+  padding:0;
+  margin:0;
+  cursor:pointer;
+}
+.dock :global(.player-save-toggle) svg {width:19px;height:19px;fill:none;transition:transform .16s ease;}
+.dock :global(.player-save-toggle[aria-pressed="true"]) {color:#ff6a00!important;}
+.dock :global(.player-save-toggle[aria-pressed="true"]) svg {fill:currentColor;}
+.dock :global(.player-save-toggle:hover) svg {transform:scale(1.1);}
 .dock :global(.track-playlist-transport) {
-  grid-column: 3;
-  grid-row: 1;
-  gap: 9px !important;
-  margin: 0 !important;
-  justify-content: center;
+  grid-column:4;
+  grid-row:1;
+  min-width:0;
+  display:flex!important;
+  align-items:center;
+  justify-content:center!important;
+  gap:clamp(7px,1.3vw,19px)!important;
+  margin:0!important;
 }
 .dock :global(.track-playlist-transport) button {
-  display: grid !important;
-  place-items: center;
-  width: 34px !important;
-  height: 34px !important;
-  min-height: 34px !important;
-  font-size: 11px !important;
-  border-color: transparent !important;
-  background: transparent !important;
-  color: #bfa9ca !important;
+  position:relative;
+  display:grid!important;
+  place-items:center;
+  flex:0 0 34px;
+  width:34px!important;
+  height:34px!important;
+  min-height:34px!important;
+  padding:0!important;
+  margin:0!important;
+  background:transparent!important;
+  color:#d6d6d9!important;
+  border:0!important;
+  border-radius:50%;
+  font-size:14px!important;
+  cursor:pointer;
+  transition:transform .16s ease,color .16s ease;
 }
+.dock :global(.track-playlist-transport) button:hover {transform:scale(1.06);color:#fff!important;}
+.dock :global(.track-playlist-transport) button[aria-pressed="true"] {color:#ff6a00!important;}
+.dock :global(.track-playlist-transport) button svg {width:19px;height:19px;}
 .dock :global(.track-playlist-transport) button:global(.main) {
-  background: #d9ad68 !important;
-  color: #1d150e !important;
-  width: 38px !important;
-  height: 38px !important;
+  flex-basis:49px;
+  width:49px!important;
+  height:49px!important;
+  min-height:49px!important;
+  background:linear-gradient(145deg,#ffa04a 0%,#ff6a00 43%,#bd3900 100%)!important;
+  color:#fff!important;
+  border:2px solid #ff8b23!important;
+  box-shadow:inset 0 1px 2px #ffdf8844,0 0 0 3px #100b08,0 0 0 4px #ff6a0070,0 3px 12px #ff6a003b;
 }
+.dock :global(.track-playlist-transport) button:global(.main):hover {color:#fff!important;box-shadow:0 0 0 3px #130b06,0 0 0 4px #ff6a00,0 0 18px #ff6a0050;}
+.dock :global(.track-playlist-transport) button:global(.main) svg {width:24px;height:24px;}
+.dock :global(.repeat-one) {position:absolute;font-size:8px;right:1px;bottom:1px;}
 .dock :global(.player-progress) {
-  grid-column: 3;
-  grid-row: 2;
-  margin: 0 !important;
+  grid-column:4;
+  grid-row:2;
+  display:grid!important;
+  grid-template-columns:35px minmax(0,1fr) 35px;
+  align-items:center;
+  gap:9px;
+  min-width:0;
+  margin:0!important;
 }
-.dock :global(.player-progress) input {
-  width: 100%;
-  accent-color: #d9ad68;
-  min-height: 16px !important;
-  height: 16px !important;
-  margin: 0 !important;
-  padding: 0 !important;
+.dock :global(.player-progress) input[type="range"] {
+  grid-row:1;
+  grid-column:2;
+  display:block;
+  -webkit-appearance:none;
+  appearance:none;
+  width:100%;
+  height:4px!important;
+  min-height:4px!important;
+  padding:0!important;
+  margin:0!important;
+  border:0;
+  border-radius:999px;
+  background:#505050;
+  cursor:pointer;
+  touch-action:none;
 }
-.dock :global(.player-progress) > div {
-  display: flex !important;
-  justify-content: space-between;
-  font-size: 9px;
-  color: #73607d;
+.dock :global(.player-progress) input::-webkit-slider-thumb {
+  -webkit-appearance:none;
+  width:11px;
+  height:11px;
+  border:0;
+  background:#fff;
+  border-radius:50%;
 }
-.dock :global(.player-speed),
-.dock :global(.player-mode-label) {
-  display: none !important;
+.dock :global(.player-progress) input::-moz-range-thumb {
+  width:11px;height:11px;border:0;background:#fff;border-radius:50%;
 }
+.dock :global(.player-progress)>div {display:contents!important;color:#a8a8ad;font-size:10px;}
+.dock :global(.player-progress)>div span:first-child {grid-column:1;grid-row:1;text-align:right;font-variant-numeric:tabular-nums;}
+.dock :global(.player-progress)>div span:last-child {grid-column:3;grid-row:1;text-align:left;font-variant-numeric:tabular-nums;}
 .dock :global(.player-volume) {
-  display: flex !important;
-  grid-column: 4;
-  grid-row: 1/3;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  min-width: 130px;
-  color: var(--fan-text);
+  grid-column:5;
+  grid-row:1/3;
+  display:flex!important;
+  align-items:center;
+  justify-content:flex-end;
+  gap:6px;
+  min-width:0;
+  margin:0!important;
+  color:#fff;
 }
 .dock :global(.player-mute-toggle) {
-  border: 0;
-  background: transparent;
-  color: var(--fan-text);
-  cursor: pointer;
-  width: 36px;
-  height: 40px;
-  display: inline-grid;
-  place-items: center;
-  flex: none;
-}
-.dock :global(.player-mute-toggle):hover,
-.dock :global(.player-mute-toggle):focus-visible {
-  color: #ff6a00;
+  flex:none;
+  display:grid;
+  place-items:center;
+  width:36px;
+  height:40px;
+  padding:0;
+  border:0!important;
+  background:transparent!important;
+  color:#e4e4e5!important;
+  cursor:pointer;
 }
 .dock :global(.player-volume) input[type="range"] {
-  width: 92px;
-  min-width: 72px;
-  height: 22px;
-  margin: 0;
-  accent-color: #ff6a00;
-  cursor: pointer;
+  accent-color:#ff6a00;
+  width:min(92px,9vw);
+  min-width:60px;
+  height:26px;
+  margin:0;
+  padding:0;
+  cursor:pointer;
 }
-.dock :global(.player-volume) :is(button,input):focus-visible {
-  outline: 2px solid #ff6a00;
-  outline-offset: 2px;
-}
+.dock :global(.player-speed),
+.dock :global(.player-mode-label) {display:none!important;}
 .dock :global(.fan-queue-toggle) {
-  position: absolute;
-  right: 62px;
-  top: 25px;
-  min-height: 42px;
-  padding: 8px 12px;
-  border: 1px solid #ffffff18;
-  background: #211827;
-  color: #bda7c9;
-  border-radius: 8px;
-  font: inherit;
-  font-size: 10px;
+  position:absolute;
+  right:60px;
+  top:10px;
+  width:76px;
+  min-height:36px;
+  padding:6px 8px;
+  border:1px solid #ffffff26;
+  border-radius:9px;
+  background:#242424;
+  color:#fff;
+  font:600 11px "DM Sans",sans-serif;
+  cursor:pointer;
 }
 .dock :global(.dismiss-listening) {
-  position: absolute;
-  right: 12px;
-  top: 25px;
-  width: 40px;
-  min-height: 42px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #8c799a;
-  font-size: 20px;
-  cursor: pointer;
+  position:absolute;
+  right:14px;
+  top:12px;
+  width:34px;
+  height:34px;
+  border:0;
+  border-radius:50%;
+  background:transparent;
+  color:#b3b3b6;
+  font-size:21px;
+  cursor:pointer;
 }
 .dock :global(.resume-listening) {
-  grid-column: 4;
-  grid-row: 1/3;
-  min-height: 42px;
-  max-width: 140px;
-  padding: 10px 15px;
-  border: 1px solid #d9ad6840;
-  border-radius: 8px;
-  background: #d9ad6815;
-  color: #d9ad68;
-  font: inherit;
-  font-size: 11px;
-  margin-right: 0;
-  cursor: pointer;
+  position:absolute;
+  top:calc(100% + 8px);
+  left:50%;
+  transform:translateX(-50%);
+  min-height:38px;
+  padding:6px 12px;
+  border-radius:9px;
+  background:#242424;
+  border:1px solid #ff6a0055;
+  color:#fff;
+  white-space:nowrap;
+  z-index:2;
+  cursor:pointer;
 }
-.dock :global(.track-chart-list) {
-  display: none;
-}
+.dock :global(.track-chart-list) {display:none;}
 .dock :global(.is-expanded .track-chart-list) {
-  display: block;
-  position: absolute;
-  bottom: calc(100% + 8px);
-  right: 20px;
-  width: min(500px, calc(100vw - 40px));
-  max-height: 50dvh;
-  overflow: auto;
-  padding: 14px;
-  border: 1px solid #ffffff15;
-  border-radius: 14px;
-  background: #18121f;
-  box-shadow: 0 -20px 90px #0008;
+  display:block;
+  position:absolute;
+  bottom:calc(100% + 8px);
+  right:12px;
+  width:min(450px,calc(100vw - 24px));
+  max-height:52dvh;
+  overflow:auto;
+  padding:12px;
+  border:1px solid #414141;
+  border-radius:14px;
+  background:#181818;
+  box-shadow:0 -16px 50px #000a;
 }
-.dock :global(.track-chart-list) article {
-  grid-template-columns: 1fr !important;
+.dock :global(.track-chart-list) article {grid-template-columns:1fr!important;}
+.dock :global(.track-ballot-notice) {grid-column:1/-1;margin:6px 0;color:#ffb17b;font-size:11px;}
+.dock :global(button:focus-visible),
+.dock :global(input:focus-visible) {outline:2px solid #ff6a00!important;outline-offset:3px;}
+@media (max-width:1000px) {
+  .dock :global(.track-chart-player) {
+    grid-template-columns:48px minmax(90px,1fr) 34px minmax(170px,1.2fr) 112px;
+    gap:0 8px;
+  }
+  .dock :global(.track-player-art) {width:46px!important;height:46px!important;}
+  .dock :global(.player-volume) input[type="range"]{min-width:55px;width:65px;}
 }
-.dock :global(.track-ballot-notice) {
-  grid-column: 1/-1;
-  margin: 5px 0;
-  font-size: 11px;
-  color: #c9b29b;
-}
-@media (max-width: 760px) {
+@media (max-width:900px) {
   .dock {
-    bottom: calc(70px + env(safe-area-inset-bottom));
-    padding: 11px 50px 9px 14px;
+    left:8px;
+    right:8px;
+    bottom:max(8px,env(safe-area-inset-bottom));
+    padding:9px 10px 7px;
+    border:1px solid #ffffff22;
+    border-radius:14px;
+    background:#161616;
+    box-shadow:0 8px 28px #000b;
+    max-height:88px;
+  }
+  /* On app screens, never cover the navigation. */
+  :global(body:has(.fan-mobile-nav, .fs-mobile-nav, .mobile-bottom-nav)) .dock {
+    bottom:calc(72px + env(safe-area-inset-bottom));
   }
   .dock :global(.track-chart-player) {
-    grid-template-columns: 40px minmax(0, 1fr) 78px;
-    grid-template-rows: auto auto;
-    gap: 4px 11px;
+    grid-template-columns:42px minmax(0,1fr) 31px 32px 87px;
+    grid-template-rows:45px 7px;
+    gap:2px 6px;
+    width:100%;
+    min-width:0;
+    max-width:none;
   }
   .dock :global(.track-player-art) {
-    width: 40px !important;
-    height: 40px !important;
-    grid-column: 1;
-    grid-row: 1;
+    grid-column:1;grid-row:1;
+    width:42px!important;height:42px!important;
+    border-radius:7px!important;
+    font-size:20px!important;
   }
-  .dock :global(.track-player-copy) {
-    grid-column: 2;
-    grid-row: 1;
-  }
-  .dock :global(.track-player-copy) h3 {
-    font-size: 12px !important;
-  }
-  .dock :global(.track-player-copy) p {
-    font-size: 10px !important;
-  }
+  .dock :global(.track-player-copy){grid-column:2;grid-row:1;}
+  .dock :global(.track-player-copy) h3{font-size:12px!important;margin-bottom:2px!important;}
+  .dock :global(.track-player-copy) p{font-size:10px!important;}
+  .dock :global(.player-save-toggle) {grid-column:3;grid-row:1;width:30px;height:40px;}
+  .dock :global(.player-save-toggle) svg {width:18px;height:18px;}
   .dock :global(.track-playlist-transport) {
-    grid-column: 3;
-    grid-row: 1;
-    gap: 1px !important;
-    justify-content: end;
+    grid-column:5;grid-row:1;
+    gap:3px!important;
+    justify-content:flex-end!important;
   }
-  .dock :global(.track-playlist-transport) button {
-    display: none !important;
-  }
+  .dock :global(.track-playlist-transport) button {display:none!important;}
   .dock :global(.track-playlist-transport) button:global(.main),
   .dock :global(.track-playlist-transport) button:nth-child(4) {
-    display: grid !important;
-    width: 38px !important;
-    height: 38px !important;
-    min-height: 38px !important;
-    font-size: 15px !important;
+    display:grid!important;
+    flex:0 0 39px;
+    width:39px!important;height:39px!important;min-height:39px!important;
   }
-  .dock :global(.player-progress) {
-    grid-column: 1/-1;
-    grid-row: 2;
+  .dock :global(.track-playlist-transport) button:global(.main) {
+    flex-basis:41px;
+    width:41px!important;height:41px!important;min-height:41px!important;
+    border-width:1px!important;
   }
+  .dock :global(.track-playlist-transport) button:global(.main) svg {width:21px;height:21px;}
+  .dock :global(.track-playlist-transport) button:nth-child(4) svg {width:20px;height:20px;}
   .dock :global(.player-volume) {
-    grid-column: 1/-1;
-    grid-row: 3;
-    width: 100%;
-    justify-content: flex-end;
-    gap: 10px;
-    min-height: 32px;
+    grid-column:4;grid-row:1;
+    justify-content:center;
   }
-  .dock :global(.player-volume) input[type="range"] {
-    width: clamp(100px, 32vw, 180px);
-    min-width: 100px;
+  .dock :global(.player-mute-toggle) {width:31px;height:38px;}
+  .dock :global(.player-mute-toggle) svg {width:17px;height:17px;}
+  .dock :global(.player-volume) input[type="range"] {display:none!important;}
+  .dock :global(.player-progress) {
+    grid-column:1/-1;grid-row:2;
+    display:block!important;
+    height:7px;min-height:7px;
+    margin:0!important;
   }
-  .dock :global(.player-progress) > div {
-    display: none !important;
+  .dock :global(.player-progress) input[type="range"] {
+    display:block;
+    width:100%;
+    min-height:4px!important;height:4px!important;
+    margin:1px 0 0!important;
   }
-  .dock :global(.player-progress) input {
-    min-height: 25px !important;
-    height: 25px !important;
-  }
-  .dock :global(.resume-listening) {
-    grid-column: 1/-1;
-    grid-row: 4;
-    max-width: none;
-    min-height: 40px;
-    margin: 2px 0 0;
-    font-size: 12px;
-  }
+  .dock :global(.player-progress) input::-webkit-slider-thumb {width:8px;height:8px;}
+  .dock :global(.player-progress)>div {display:none!important;}
   .dock :global(.fan-queue-toggle) {
-    right: 6px;
-    top: 10px;
-    min-height: 44px;
-    min-width: 38px;
-    width: 38px;
-    font-size: 0;
-    padding: 4px;
-    background: transparent;
-    border: 0;
-  }
-  .dock :global(.fan-queue-toggle) > span {
-    font-size: 20px;
+    right:40px;
+    top:-26px;
+    width:61px;
+    min-height:24px;
+    padding:2px 6px;
+    border:1px solid #ffffff2a;
+    border-radius:7px 7px 0 0;
+    background:#181818;
+    font-size:10px;
   }
   .dock :global(.dismiss-listening) {
-    right: 6px;
-    top: auto;
-    bottom: 1px;
-    min-height: 28px;
-    width: 38px;
-    font-size: 15px;
+    right:4px;
+    top:-26px;
+    height:24px;
+    width:30px;
+    border-radius:7px 7px 0 0;
+    background:#181818;
+    font-size:16px;
   }
   .dock :global(.is-expanded .track-chart-list) {
-    right: 8px;
-    width: calc(100vw - 16px);
-    max-height: 45dvh;
-    padding: 12px;
+    right:0;
+    width:min(420px,calc(100vw - 16px));
+    max-height:40dvh;
   }
-  .dock :global(.track-chart-list) button {
-    min-height: 40px;
-  }
+  .dock :global(.resume-listening) {top:auto;bottom:calc(100% + 8px);}
 }
-
-.dock :global(.track-player-art) {
-  background: #25202b !important;
-  box-shadow: none !important;
-  font-size: 24px !important;
+@media (max-width:355px) {
+  .dock :global(.track-chart-player) {grid-template-columns:38px minmax(0,1fr) 27px 28px 77px;gap:2px 4px;}
+  .dock :global(.track-player-art) {width:38px!important;height:38px!important;}
+  .dock :global(.track-playlist-transport) button:global(.main) {width:37px!important;height:37px!important;flex-basis:37px;}
+  .dock :global(.track-playlist-transport) button:nth-child(4) {width:34px!important;height:34px!important;flex-basis:34px;}
 }
-.dock :global(.track-player-art)::before,
-.dock :global(.track-player-art)::after {
-  display: none !important;
-}
-.dock :global(.track-player-copy) h3 {
-  font-weight: 500 !important;
+@media (prefers-reduced-motion:reduce) {
+  .dock :global(button),.dock :global(svg){transition:none!important;animation:none!important;}
 }
