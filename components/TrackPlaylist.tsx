@@ -8,6 +8,9 @@ import {moveQueueTrack,nextPlaybackIndex} from "../lib/playerQueue";
 import {backgroundInteraction} from "../lib/backgroundInteraction";
 import {Volume2Icon,VolumeXIcon} from "./Icons";
 
+// Stable shared empty list: never recreate a dependency array during render.
+const EMPTY_SAVED_IDS: string[] = [];
+
 /** Shared accessible transport artwork; the audio/queue engine is unchanged. */
 function PlayerGlyph({kind}:{kind:"shuffle"|"previous"|"play"|"pause"|"next"|"repeat"|"heart"}){
  const props={width:20,height:20,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.9,strokeLinecap:"round" as const,strokeLinejoin:"round" as const,"aria-hidden":true as const};
@@ -25,7 +28,7 @@ function PlayerGlyph({kind}:{kind:"shuffle"|"previous"|"play"|"pause"|"next"|"re
 
 export type PlaylistTrack={id:string;title:string;subtitle:string;src:string;artwork?:string;ranking?:number;listened:boolean;eligible:boolean;finalScore?:number;communityScore?:number;arScore?:number;firstPlaceVotes?:number;};
 
-export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedStats=false,enableRanking=true,votingOpen=true,autoStart=false,compact=false,onTrackPlay,onProgress,onPlaybackChange,seekRequest,playRequest,persistenceKey,showSaveAction=false,initialSavedIds=[]}:{tracks:PlaylistTrack[];resultsVisible?:boolean;showDetailedStats?:boolean;enableRanking?:boolean;votingOpen?:boolean;autoStart?:boolean;compact?:boolean;onTrackPlay?:(id:string)=>void;onProgress?:(id:string,position:number,duration:number)=>void;onPlaybackChange?:(id:string,playing:boolean)=>void;seekRequest?:{id:string;time:number;nonce:number};playRequest?:{id:string;nonce:number};persistenceKey?:string;showSaveAction?:boolean;initialSavedIds?:string[]}){
+export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedStats=false,enableRanking=true,votingOpen=true,autoStart=false,compact=false,onTrackPlay,onProgress,onPlaybackChange,seekRequest,playRequest,persistenceKey,showSaveAction=false,initialSavedIds=EMPTY_SAVED_IDS}:{tracks:PlaylistTrack[];resultsVisible?:boolean;showDetailedStats?:boolean;enableRanking?:boolean;votingOpen?:boolean;autoStart?:boolean;compact?:boolean;onTrackPlay?:(id:string)=>void;onProgress?:(id:string,position:number,duration:number)=>void;onPlaybackChange?:(id:string,playing:boolean)=>void;seekRequest?:{id:string;time:number;nonce:number};playRequest?:{id:string;nonce:number};persistenceKey?:string;showSaveAction?:boolean;initialSavedIds?:string[]}){
  const[current,setCurrent]=useState(0),[localTracks,setLocalTracks]=useState(tracks),[notice,setNotice]=useState(""),[isPlaying,setIsPlaying]=useState(false),[expanded,setExpanded]=useState(false),[pending,setRankPending]=useState(false);
  const [shuffle,setShuffle]=useState(false),[repeat,setRepeat]=useState<"off"|"all"|"one">("off"),[speed,setSpeed]=useState(1),[position,setPosition]=useState(0),[duration,setDuration]=useState(0),[volume,setVolume]=useState(1);
  const {identity,ready}=useMusicIdentity();
