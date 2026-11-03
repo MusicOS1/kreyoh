@@ -8,12 +8,29 @@ import {moveQueueTrack,nextPlaybackIndex} from "../lib/playerQueue";
 import {backgroundInteraction} from "../lib/backgroundInteraction";
 import {Volume2Icon,VolumeXIcon} from "./Icons";
 
+/** Shared accessible transport artwork; the audio/queue engine is unchanged. */
+function PlayerGlyph({kind}:{kind:"shuffle"|"previous"|"play"|"pause"|"next"|"repeat"|"heart"}){
+ const props={width:20,height:20,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.9,strokeLinecap:"round" as const,strokeLinejoin:"round" as const,"aria-hidden":true as const};
+ switch(kind){
+  case "play":return <svg {...props} viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5L8 5.5Z" fill="currentColor" stroke="none"/></svg>;
+  case "pause":return <svg {...props}><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none"/></svg>;
+  case "previous":return <svg {...props}><path d="M5 5v14M19 5 9 12l10 7V5Z"/></svg>;
+  case "next":return <svg {...props}><path d="M19 5v14M5 5l10 7-10 7V5Z"/></svg>;
+  case "shuffle":return <svg {...props}><path d="m17 3 4 4-4 4M3 17h3c5 0 7-10 12-10h3M17 21l4-4-4-4M3 7h3c2.5 0 4.1 2.2 5.5 4.5M14 16c1.1.7 2.4 1 4 1h3"/></svg>;
+  case "repeat":return <svg {...props}><path d="m17 2 4 4-4 4M3 10V8a2 2 0 0 1 2-2h16M7 22l-4-4 4-4M21 14v2a2 2 0 0 1-2 2H3"/></svg>;
+  case "heart":return <svg {...props}><path d="M20.6 5.7a5.5 5.5 0 0 0-7.8 0l-.8.8-.8-.8a5.5 5.5 0 1 0-7.8 7.8L12 22l8.6-8.5a5.5 5.5 0 0 0 0-7.8Z"/></svg>;
+ }
+}
+
+
 export type PlaylistTrack={id:string;title:string;subtitle:string;src:string;artwork?:string;ranking?:number;listened:boolean;eligible:boolean;finalScore?:number;communityScore?:number;arScore?:number;firstPlaceVotes?:number;};
 
-export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedStats=false,enableRanking=true,votingOpen=true,autoStart=false,compact=false,onTrackPlay,onProgress,onPlaybackChange,seekRequest,playRequest,persistenceKey}:{tracks:PlaylistTrack[];resultsVisible?:boolean;showDetailedStats?:boolean;enableRanking?:boolean;votingOpen?:boolean;autoStart?:boolean;compact?:boolean;onTrackPlay?:(id:string)=>void;onProgress?:(id:string,position:number,duration:number)=>void;onPlaybackChange?:(id:string,playing:boolean)=>void;seekRequest?:{id:string;time:number;nonce:number};playRequest?:{id:string;nonce:number};persistenceKey?:string}){
+export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedStats=false,enableRanking=true,votingOpen=true,autoStart=false,compact=false,onTrackPlay,onProgress,onPlaybackChange,seekRequest,playRequest,persistenceKey,showSaveAction=false,initialSavedIds=[]}:{tracks:PlaylistTrack[];resultsVisible?:boolean;showDetailedStats?:boolean;enableRanking?:boolean;votingOpen?:boolean;autoStart?:boolean;compact?:boolean;onTrackPlay?:(id:string)=>void;onProgress?:(id:string,position:number,duration:number)=>void;onPlaybackChange?:(id:string,playing:boolean)=>void;seekRequest?:{id:string;time:number;nonce:number};playRequest?:{id:string;nonce:number};persistenceKey?:string;showSaveAction?:boolean;initialSavedIds?:string[]}){
  const[current,setCurrent]=useState(0),[localTracks,setLocalTracks]=useState(tracks),[notice,setNotice]=useState(""),[isPlaying,setIsPlaying]=useState(false),[expanded,setExpanded]=useState(false),[pending,setRankPending]=useState(false);
  const [shuffle,setShuffle]=useState(false),[repeat,setRepeat]=useState<"off"|"all"|"one">("off"),[speed,setSpeed]=useState(1),[position,setPosition]=useState(0),[duration,setDuration]=useState(0),[volume,setVolume]=useState(1);
  const {identity,ready}=useMusicIdentity();
+ const [savedIds,setSavedIds]=useState<string[]>(initialSavedIds),[savingTrack,setSavingTrack]=useState<string|null>(null);
+ useEffect(()=>setSavedIds(initialSavedIds),[initialSavedIds]);
  const pathname=usePathname();
  const storageKey=persistenceKey||(identity?`fm-listening:${identity.id}:workspace:${pathname}`:"");
  const restoredKey=useRef(""),pendingPosition=useRef<{id:string;position:number}|null>(null),lastSaved=useRef(0);
@@ -71,6 +88,21 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
  function togglePlayback(){setCanResume(false);const p=audioRef.current;if(!p)return;p.paused?p.play().catch(()=>setIsPlaying(false)):p.pause();}
  function setPlayerVolume(value:number){const next=Math.max(0,Math.min(1,value));if(next>0)lastAudibleVolume.current=next;setVolume(next);if(audioRef.current)audioRef.current.volume=next;}
  function toggleMute(){setPlayerVolume(volume===0?lastAudibleVolume.current:0);}
+ async function toggleSaved(){
+  if(!identity){window.location.assign("/login?next=/fan");return;}
+  if(savingTrack)return;
+  const id=selected.id,wasSaved=savedIds.includes(id);
+  setSavingTrack(id);setSavedIds(old=>wasSaved?old.filter(item=>item!==id):[...old,id]);setNotice("");
+  try{
+   const result=await backgroundInteraction<{ok:boolean;error?:string}>("library",{kind:"saved",id,enabled:!wasSaved});
+   if(!result.ok)throw new Error(result.error||"Could not save this song.");
+   window.dispatchEvent(new CustomEvent("fm-library-change",{detail:{kind:"saved",id,enabled:!wasSaved}}));
+  }catch(error){
+   setSavedIds(old=>wasSaved?[...new Set([...old,id])]:old.filter(item=>item!==id));
+   setNotice(error instanceof Error?error.message:"Could not update liked songs. Try again.");
+  }finally{setSavingTrack(null);}
+ }
+
 
  function captureListen(){
   if(!enableRanking||!votingOpen)return;
@@ -101,12 +133,13 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
   <div className="track-chart-player">
    <div className={selected.artwork?"track-player-art has-artwork":"track-player-art"}>{selected.artwork?<img src={selected.artwork} alt={`${selected.title} artwork`}/>:<span aria-hidden="true">♫</span>}</div>
    <div className="track-player-copy"><span>NOW PLAYING</span><h3>{selected.title}</h3><p>{selected.subtitle}</p></div>
+   {showSaveAction&&<button type="button" className="player-save-toggle" aria-label={savedIds.includes(selected.id)?"Remove "+selected.title+" from liked songs":"Save "+selected.title+" to liked songs"} title={savedIds.includes(selected.id)?"Remove from liked songs":"Save to liked songs"} aria-pressed={savedIds.includes(selected.id)} disabled={Boolean(savingTrack)} onClick={()=>void toggleSaved()}><PlayerGlyph kind="heart"/></button>}
    <audio ref={audioRef} key={selected.src} src={selected.src} preload="metadata" onLoadedMetadata={()=>{setDuration(audioRef.current?.duration||0);const pending=pendingPosition.current;
     const audio=audioRef.current;
     if(audio){audio.volume=volume;if(pending?.id===selected.id){const time=Math.min(pending.position,Math.max(0,(Number.isFinite(audio.duration)?audio.duration:pending.position)-.1));audio.currentTime=time;setPosition(time);pendingPosition.current=null;}else setPosition(0);}}} onPlay={()=>{setIsPlaying(true);onPlaybackChange?.(selected.id,true);onTrackPlay?.(selected.id);}} onPause={()=>{savePosition(true);setIsPlaying(false);onPlaybackChange?.(selected.id,false);}} onTimeUpdate={()=>{savePosition();setPosition(audioRef.current?.currentTime||0);captureListen();if(audioRef.current)onProgress?.(selected.id,audioRef.current.currentTime,Number.isFinite(audioRef.current.duration)?audioRef.current.duration:0);}} onEnded={ended} onError={()=>{setIsPlaying(false);setNotice("This audio could not be loaded. Refresh the page and try again.");}}/>
    {canResume&&<button type="button" className="resume-listening" onClick={togglePlayback}>Resume Listening</button>}
-   <div className="player-progress"><input type="range" aria-label="Seek in track" min={0} max={Number.isFinite(duration)?duration:0} step={0.1} value={position} onChange={e=>{if(audioRef.current)audioRef.current.currentTime=Number(e.target.value);setPosition(Number(e.target.value));}}/><div><span>{clock(position)}</span><span>{clock(Number.isFinite(duration)?duration:0)}</span></div></div>
-   <div className="track-playlist-transport" aria-label="Playlist controls"><button type="button" aria-label="Shuffle" aria-pressed={shuffle} onClick={()=>{played.current=[];setShuffle(value=>!value);}} title="Shuffle">⤨</button><button type="button" onClick={previousTrack} aria-label="Previous track">◀◀</button><button type="button" className="main" onClick={togglePlayback} aria-label={isPlaying?"Pause":"Play"}>{isPlaying?"Ⅱ":"▶"}</button><button type="button" onClick={nextTrack} aria-label="Next track">▶▶</button><button type="button" aria-label={`Repeat: ${repeat}`} aria-pressed={repeat!=="off"} title={`Repeat: ${repeat}`} onClick={()=>setRepeat(value=>value==="off"?"all":value==="all"?"one":"off")}>{repeat==="one"?"↻ 1":"↻"}</button></div><p className="player-mode-label">{shuffle?"Shuffle on":"In order"} · Repeat {repeat} · {current+1} / {localTracks.length}</p>
+   <div className="player-progress"><input style={{background:`linear-gradient(to right, #ff6a00 0%, #ff6a00 ${duration>0?Math.min(100,Math.max(0,position/duration*100)):0}%, #555 ${duration>0?Math.min(100,Math.max(0,position/duration*100)):0}%, #555 100%)`}} type="range" aria-label="Seek in track" min={0} max={Number.isFinite(duration)?duration:0} step={0.1} value={position} onChange={e=>{if(audioRef.current)audioRef.current.currentTime=Number(e.target.value);setPosition(Number(e.target.value));}}/><div><span>{clock(position)}</span><span>{clock(Number.isFinite(duration)?duration:0)}</span></div></div>
+   <div className="track-playlist-transport" aria-label="Playlist controls"><button type="button" aria-label="Shuffle" aria-pressed={shuffle} onClick={()=>{played.current=[];setShuffle(value=>!value);}} title="Shuffle"><PlayerGlyph kind="shuffle"/></button><button type="button" onClick={previousTrack} aria-label="Previous track"><PlayerGlyph kind="previous"/></button><button type="button" className="main" onClick={togglePlayback} aria-label={isPlaying?"Pause":"Play"}>{isPlaying?<PlayerGlyph kind="pause"/>:<PlayerGlyph kind="play"/>}</button><button type="button" onClick={nextTrack} aria-label="Next track"><PlayerGlyph kind="next"/></button><button type="button" aria-label={`Repeat: ${repeat}`} aria-pressed={repeat!=="off"} title={`Repeat: ${repeat}`} onClick={()=>setRepeat(value=>value==="off"?"all":value==="all"?"one":"off")}><PlayerGlyph kind="repeat"/>{repeat==="one"&&<span className="repeat-one">1</span>}</button></div><p className="player-mode-label">{shuffle?"Shuffle on":"In order"} · Repeat {repeat} · {current+1} / {localTracks.length}</p>
    <div className="player-volume" role="group" aria-label="Volume controls">
      <button type="button" className="player-mute-toggle" aria-label={volume===0?"Unmute":"Mute"} aria-pressed={volume===0} onClick={toggleMute}>
       {volume===0?<VolumeXIcon size={19}/>:<Volume2Icon size={19}/>}
