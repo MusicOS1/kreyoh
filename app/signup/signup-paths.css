@@ -1,0 +1,42 @@
+/* FACKTS Music: typography-led Creative / Fan selection.
+   Scoped rules override the broad login-card button styles. */
+.login-card .signup-paths{margin:4px 0 12px;padding:0;border:0;background:transparent}
+.login-card .signup-paths h3{font-family:"Gotham","DM Sans",sans-serif;font-weight:800;font-size:14px;
+ letter-spacing:-.01em;color:#f5f5f5;margin:0 0 11px}
+.login-card .signup-path-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.login-card .signup-path-grid .signup-path-card{
+ display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+ gap:6px!important;min-width:0;min-height:0!important;text-align:left!important;cursor:pointer;
+ border:1px solid #3a3a3f!important;border-radius:10px!important;
+ background:#161616!important;box-shadow:none!important;padding:14px 15px!important;
+ color:#fff!important;transform:none!important;transition:border-color .15s ease!important;
+ line-height:1.4!important;letter-spacing:normal!important;
+}
+.login-card .signup-path-grid .signup-path-card.selected{border-color:#ff6a00!important;background:#161616!important}
+.login-card .signup-path-grid .signup-path-card strong{
+ font:800 17px/1.25 "Gotham","DM Sans",sans-serif!important;
+ letter-spacing:-.035em!important;color:#fff!important;
+}
+.login-card .signup-path-grid .signup-path-card span{
+ font:400 12px/1.5 "DM Sans",sans-serif!important;color:#bcbcc2!important;
+ text-transform:none!important;letter-spacing:normal!important;
+}
+.login-card .signup-path-grid .signup-path-card:hover{border-color:#ff8b3d!important}
+.login-card .signup-path-grid .signup-path-card:focus-visible{outline:2px solid #ff6a00;outline-offset:2px}
+.login-card .signup-identity-field{display:grid;gap:7px}
+.login-card .signup-identity-field>label,.login-card .signup-other-creative{font-weight:700;color:#f3f3f3}
+.login-card .signup-fan-description{font-size:12px;line-height:1.5;color:#c0c0c5!important;margin:0 0 8px}
+.login-card .login-submit-btn:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:430px){.login-card .signup-path-grid{grid-template-columns:1fr}
+ .login-card .signup-path-grid .signup-path-card{padding:12px 14px!important}}
+
+/* Clear, restrained name availability feedback. */
+.login-card .signup-public-name{display:flex;flex-direction:column;gap:7px;color:#f2f2f2;
+ font:700 13px/1.4 "DM Sans",sans-serif;margin:6px 0}
+.login-card .signup-public-name input{width:100%;min-height:44px;background:#191919;color:#fff;
+ border:1px solid #666;border-radius:8px;padding:11px 13px;font:500 14px "DM Sans",sans-serif}
+.login-card .signup-public-name input:focus-visible{outline:2px solid #ff6a00;outline-offset:1px}
+.login-card .signup-name-status{display:block!important;margin:1px 0 3px;color:#b3b3bc!important;
+ font:500 12px/1.4 "DM Sans",sans-serif!important}
+.login-card .signup-name-status.is-available{color:#97dfb3!important}
+.login-card .signup-name-status.is-unavailable{color:#ffb29b!important}

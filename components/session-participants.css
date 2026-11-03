@@ -1,0 +1,136 @@
+/* FACKTS Music — compact tag-based participants selector.
+   Shared by central Admin and project Studio Sessions. */
+.session-participants-field{
+ position:relative;isolation:isolate;display:flex;flex-direction:column;
+ gap:8px;min-width:0;width:100%;font-family:"DM Sans",sans-serif;
+}
+.session-participants-field:focus-within{z-index:110}
+.session-participants-label{color:inherit;font:700 13px/1.4 "DM Sans",sans-serif}
+
+/* Names stay visible above the field, each with an independent remove X. */
+.session-participants-tags{
+ display:flex;flex-wrap:wrap;align-items:center;gap:7px;
+ min-width:0;width:100%;padding:2px 0;
+}
+.session-participants-tag{
+ display:inline-flex;align-items:center;gap:6px;max-width:100%;
+ border:1px solid #76533a;background:#30231a;color:#fff4e9;
+ border-radius:7px;padding:4px 5px 4px 10px;
+ font:600 12px/1.25 "DM Sans",sans-serif;
+}
+.session-participants-tag-name{
+ min-width:0;max-width:min(30ch,65vw);overflow:hidden;
+ text-overflow:ellipsis;white-space:nowrap;
+}
+.session-participants-field .session-participants-remove{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ flex:none!important;width:21px!important;height:21px!important;min-width:21px!important;
+ min-height:21px!important;margin:0!important;padding:0!important;border:0!important;
+ border-radius:5px!important;background:transparent!important;color:inherit!important;
+ font:500 19px/1 "DM Sans",sans-serif!important;cursor:pointer!important;
+}
+.session-participants-field .session-participants-remove:hover{
+ background:rgba(255,106,0,.18)!important;color:#ff6a00!important;
+}
+.session-participants-picker{position:relative;width:100%;min-width:0}
+.session-participants-field .session-participants-trigger{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ min-width:0!important;width:100%!important;height:44px!important;min-height:44px!important;
+ margin:0!important;padding:10px 13px!important;border-radius:8px!important;
+ border:1px solid #646771!important;background:#16191e!important;color:#f5f5f7!important;
+ font:500 13px/1.3 "DM Sans",sans-serif!important;letter-spacing:normal!important;
+ text-align:left!important;box-shadow:none!important;cursor:pointer!important;
+}
+.session-participants-trigger-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.session-participants-chevron{flex:none;margin-left:12px;font-size:15px;color:inherit}
+.session-participants-field :is(button,input):focus-visible{
+ outline:2px solid #ff6a00!important;outline-offset:2px!important;
+}
+.session-participants-panel{
+ position:absolute;left:0;right:0;top:calc(100% + 5px);z-index:120;
+ min-width:0;max-width:100%;background:#1b1d21;color:#f5f5f7;
+ border:1px solid #535760;border-radius:9px;overflow:hidden;
+ box-shadow:0 14px 30px rgba(0,0,0,.28);
+}
+.session-participants-search-wrap{padding:8px;border-bottom:1px solid #3c3f45}
+.session-participants-field .session-participants-search-wrap input[type=search]{
+ display:block!important;width:100%!important;height:38px!important;min-height:38px!important;
+ padding:8px 10px!important;margin:0!important;border-radius:7px!important;
+ border:1px solid #565964!important;background:#121418!important;color:#f5f5f7!important;
+ font:500 13px/1.35 "DM Sans",sans-serif!important;box-shadow:none!important;
+}
+.session-participants-field .session-participants-search-wrap input::placeholder{color:#a4a8b0!important}
+.session-participants-options{
+ display:flex;flex-direction:column;gap:1px;max-height:240px;
+ overflow-y:auto;overscroll-behavior:contain;padding:5px;
+}
+/* Reset all form/button typography, heights and padding from the parent portal.
+   The screenshot's giant rows were inherited from broad Admin form rules. */
+.session-participants-field .session-participants-options .session-participants-option{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ flex:0 0 auto!important;gap:9px!important;width:100%!important;min-width:0!important;
+ height:auto!important;min-height:36px!important;max-height:50px!important;
+ margin:0!important;padding:8px 10px!important;border:1px solid transparent!important;
+ border-radius:6px!important;background:transparent!important;color:inherit!important;
+ text-align:left!important;text-transform:none!important;letter-spacing:normal!important;
+ font:500 13px/1.3 "DM Sans",sans-serif!important;
+ box-shadow:none!important;transform:none!important;cursor:pointer!important;
+}
+.session-participants-option-name{
+ min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ font:inherit!important;color:inherit!important;
+}
+.session-participants-field .session-participants-options .session-participants-option:hover,
+.session-participants-field .session-participants-options .session-participants-option:focus-visible{
+ border-color:#725036!important;background:rgba(255,106,0,.12)!important;
+}
+.session-participants-field .session-participants-options .session-participants-option.is-selected{
+ color:#ffa869!important;background:rgba(255,106,0,.08)!important;
+}
+.session-participants-selected-mark{
+ display:inline-flex;flex:none;justify-content:center;align-items:center;
+ color:#ff6a00;font-size:13px;font-weight:850;
+}
+.session-participants-no-results{margin:0!important;padding:14px 10px!important;
+ font:400 12px "DM Sans",sans-serif!important;color:#a1a1aa!important}
+
+/* Admin uses a white form surface; dark text and concise single-line names. */
+.control-room .admin-studio-sessions .session-participants-field{color:#202124!important}
+.control-room .admin-studio-sessions .session-participants-label{color:#27282b!important}
+.control-room .admin-studio-sessions .session-participants-tag{
+ background:#fff0e3!important;border-color:#ffc38f!important;color:#3a2a20!important;
+}
+.control-room .admin-studio-sessions .session-participants-field .session-participants-remove{
+ background:transparent!important;color:#895022!important;
+}
+.control-room .admin-studio-sessions .session-participants-field .session-participants-remove:hover{
+ color:#e5660c!important;background:#ffdfbf!important;
+}
+.control-room .admin-studio-sessions .session-participants-field .session-participants-trigger{
+ background:#fff!important;color:#181a1d!important;border-color:#b8bbc2!important;
+}
+.control-room .admin-studio-sessions .session-participants-panel{
+ background:#fff!important;color:#202124!important;border-color:#b7bac2!important;
+ box-shadow:0 12px 24px rgba(25,28,35,.15)!important;
+}
+.control-room .admin-studio-sessions .session-participants-search-wrap{border-bottom-color:#e6e6e8}
+.control-room .admin-studio-sessions .session-participants-field .session-participants-search-wrap input[type=search]{
+ background:#fff!important;color:#181a1d!important;border-color:#b7bac2!important;
+}
+.control-room .admin-studio-sessions .session-participants-field .session-participants-search-wrap input::placeholder{
+ color:#74777f!important;
+}
+.control-room .admin-studio-sessions .session-participants-field .session-participants-options .session-participants-option{
+ background:transparent!important;color:#23252a!important;
+}
+.control-room .admin-studio-sessions .session-participants-field .session-participants-options .session-participants-option:hover{
+ background:#fff1e6!important;color:#3a2a20!important;
+}
+.control-room .admin-studio-sessions .session-participants-field .session-participants-options .session-participants-option.is-selected{
+ background:#fff0e3!important;color:#693410!important;
+}
+/* Project frontend keeps portal/session disclosure containers from cropping the menu. */
+.studio-history-page .beat-intake-disclosure,
+.studio-history-page .beat-intake-disclosure .operations-form{overflow:visible!important}
+.studio-history-page .session-participants-field{align-self:stretch}
+@media(max-width:580px){.session-participants-options{max-height:215px}}

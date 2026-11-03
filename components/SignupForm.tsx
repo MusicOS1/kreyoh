@@ -1,11 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import {cleanPublicName,validatePublicName} from "../lib/publicName";
 import { signup } from "../app/signup/actions";
 import Link from "next/link";
 
 export default function SignupForm({ error, next="/home" }: { error?: string; next?: string }) {
   const [visible, setVisible] = useState(false);
+  const [identity, setIdentity] = useState("");
+  const [path,setPath]=useState<"creative"|"fan"|null>(null);
+  const [publicName,setPublicName]=useState("");
+  const [nameCheck,setNameCheck]=useState<{status:"idle"|"checking"|"available"|"taken"|"error";name:string}>({status:"idle",name:""});
+  const cleanedName=cleanPublicName(publicName);
+  const nameError=publicName.trim()?validatePublicName(publicName):null;
+  useEffect(()=>{
+    if(!path||nameError||!cleanedName)return;
+    const controller=new AbortController();
+    const timer=window.setTimeout(async()=>{
+      setNameCheck({status:"checking",name:cleanedName});
+      try{
+        const response=await fetch("/api/signup/name-availability?name="+encodeURIComponent(cleanedName),{signal:controller.signal,cache:"no-store"});
+        const result:{available?:boolean;error?:string}=await response.json();
+        if(controller.signal.aborted)return;
+        setNameCheck({status:!response.ok?"error":result.available?"available":"taken",name:cleanedName});
+      }catch{if(!controller.signal.aborted)setNameCheck({status:"error",name:cleanedName});}
+    },350);
+    return ()=>{window.clearTimeout(timer);controller.abort();};
+  },[cleanedName,nameError,path]);
+  const checkedName=nameCheck.name===cleanedName;
+  const canSubmit=Boolean(path&&!nameError&&checkedName&&nameCheck.status==="available");
 
   return (
     <form action={signup} className="login-card"><input name="next" type="hidden" value={next}/>
@@ -13,7 +36,7 @@ export default function SignupForm({ error, next="/home" }: { error?: string; ne
         <span className="eyebrow">CREATE YOUR ACCOUNT</span>
         <h2>Join FACKTS Music</h2>
         <p>
-          Listen, vote, connect or build your music profile. Project access is assigned
+          Choose the Creative path or the Fan path. Project access is assigned
           separately when you join or are invited into a project.
         </p>
       </div>
@@ -34,38 +57,64 @@ export default function SignupForm({ error, next="/home" }: { error?: string; ne
         />
       </label>
 
-      <label>
-        I mainly work as
-        <select
-          name="creator_type"
-          required
-          defaultValue={next.startsWith("/fan")?"Fan / Listener":"Artist"}
-          className="dark-select"
-        >
-          <option>Fan / Listener</option>
+      <section className="signup-paths" aria-label="Account paths">
+        <h3>Joining as</h3>
+        <input name="account_path" type="hidden" value={path||""}/>
+        <div className="signup-path-grid" role="group" aria-label="Choose your account type">
+          <button type="button" className={"signup-path-card"+(path==="creative"?" selected":"")} aria-pressed={path==="creative"} onClick={()=>{setPath("creative");setIdentity("");}}>
+            <strong>Creative</strong>
+            <span>Artists, producers, engineers and other music professionals.</span>
+          </button>
+          <button type="button" className={"signup-path-card"+(path==="fan"?" selected":"")} aria-pressed={path==="fan"} onClick={()=>{setPath("fan");setIdentity("");}}>
+            <strong>Fan</strong>
+            <span>Listen, discover music, follow artists and build your library.</span>
+          </button>
+        </div>
+      </section>
+      {path==="creative"&&<div className="signup-identity-field">
+        <label htmlFor="signup-account-type">What kind of creative are you?</label>
+        <select id="signup-account-type" name="creator_type" required className="dark-select" value={identity} onChange={e=>setIdentity(e.target.value)}>
+          <option value="" disabled>Select your primary discipline</option>
           <option>Artist</option>
-          <option>Producer</option>
           <option>Artist + Producer</option>
+          <option>Producer</option>
           <option>Songwriter / Composer</option>
           <option>Engineer / Technical</option>
-
           <option>A&R</option>
           <option>Artist Manager</option>
           <option>Studio Owner</option>
-
           <option>Videographer / Photographer</option>
           <option>Designer / Visual Creative</option>
           <option>Content / Media</option>
           <option>Session Musician</option>
           <option>Other Creative</option>
         </select>
-
-        <small>
-          This describes how you join the community. It does not automatically
-          give access to another person's project. Project roles and permissions
-          activate when the project invites or assigns you.
+        <small>Choose your professional identity, not a project position. Project access is granted separately by invitation or assignment.</small>
+      </div>}
+      {path==="creative"&&identity==="Other Creative"&&<label className="signup-other-creative">
+        Specify your discipline
+        <input name="other_creative_type" maxLength={80} minLength={2} required placeholder="e.g. DJ, dancer, photographer, music curator"/>
+      </label>}
+      {path&&<label className="signup-public-name">
+        {path==="fan"?"Public display name":"Creative / stage name"}
+        <input name="public_name" type="text" value={publicName}
+          onChange={event=>{setPublicName(event.target.value);setNameCheck({status:"idle",name:""});}}
+          onBlur={()=>setPublicName(cleanPublicName(publicName))}
+          required minLength={2} maxLength={50} autoComplete="off"
+          placeholder={path==="fan"?"The name fans see":"Your professional or artist name"}
+          aria-describedby="signup-public-name-status"/>
+        <small id="signup-public-name-status" role="status" aria-live="polite" className={
+          "signup-name-status"+(checkedName&&nameCheck.status==="available"?" is-available":
+            checkedName&&(nameCheck.status==="taken"||nameCheck.status==="error")?" is-unavailable":"")
+        }>
+          {nameError||(!publicName.trim()?"Choose a unique name. Registered names cannot be reused.":
+            !checkedName||nameCheck.status==="checking"||nameCheck.status==="idle"?"Checking name availability…":
+            nameCheck.status==="available"?"Name available":
+            nameCheck.status==="taken"?"This name is already registered. Try another.":
+            "Could not check this name. Please retry.")}
         </small>
-      </label>
+      </label>}
+      {path==="fan"&&<p className="signup-fan-description">Your account opens in FACKTS Listen. You can become a creative later without losing your listening history.</p>}
 
       <label>
         Email Address
@@ -112,7 +161,7 @@ export default function SignupForm({ error, next="/home" }: { error?: string; ne
         <span>I agree to the <Link href="/terms" target="_blank" rel="noopener noreferrer">Terms of Use</Link> and acknowledge the <Link href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Notice</Link> and <Link href="/copyright" target="_blank" rel="noopener noreferrer">Copyright Policy</Link>.</span>
       </label>
 
-      <button className="login-submit-btn" type="submit">
+      <button className="login-submit-btn" type="submit" disabled={!canSubmit}>
         Create Account →
       </button>
     </form>

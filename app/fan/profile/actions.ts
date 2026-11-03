@@ -35,7 +35,9 @@ export async function saveFanProfile(formData:FormData){
     social_links:social?{primary:social}:{},
     updated_at:new Date().toISOString()
   }).eq("id",user.id).select("id").maybeSingle();
-  if(error||!data)redirect("/fan/profile?error="+encodeURIComponent("Could not save your profile. Please try again."));
+  if(error||!data)redirect("/fan/profile?error="+encodeURIComponent(
+    error?.code==="23505"?"That display name is already registered. Please choose another.":"Could not save your profile. Please try again."
+  ));
   revalidatePath("/fan");
   revalidatePath("/fan/profile");
   revalidatePath("/settings");

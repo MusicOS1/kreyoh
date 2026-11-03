@@ -15,6 +15,8 @@ const navigation = [
   { label: "Hero Studio & discovery", href: "/admin/discovery", group: "Operations", permission: "music" },
   { label: "Public releases", href: "/admin/releases", group: "Operations", permission: "music" },
   { label: "Bulk song importer", href: "/admin/releases/bulk", group: "Operations", permission: "music" },
+  { label: "Catalogue attribution", href: "/admin/catalogue", group: "Operations", permission: "music" },
+  { label: "Studio sessions", href: "/admin/studio-sessions", group: "Operations", permission: "sessions" },
   { label: "Overview", href: "/admin", group: "Command", permission: "overview" },
   { label: "People & access", href: "/admin/users", group: "Management", permission: "people" },
   { label: "Platform administrators", href: "/admin/administrators", group: "Management", permission: "people" },

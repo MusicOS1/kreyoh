@@ -6,7 +6,7 @@ test("creator professions are accessible compact checkboxes and existing values 
  const page=get("app/admin/(control)/users/[userId]/page.tsx");
  const css=get("app/admin/control-room.css");
  assert.match(page,/<fieldset className="control-creator-types">/);
- assert.match(page,/<legend>Creative disciplines<\/legend>/);
+ assert.match(page,/<legend>Creative disciplines \(creative accounts only\)<\/legend>/);
  assert.match(page,/name="creator_types" value=\{type\} defaultChecked=\{\(user.creator_types\|\|\[\]\).includes\(type\)\}/);
  assert.match(css,/\.control-creator-types-grid input\[type="checkbox"\]/);
  assert.match(css,/width:18px!important/);

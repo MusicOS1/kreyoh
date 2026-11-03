@@ -1,0 +1,58 @@
+import {test} from "node:test";
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const s=(path)=>readFileSync(new URL("../"+path,import.meta.url),"utf8");
+
+test("Finance opens the full member ledger rather than hiding entry behind details",()=>{
+ const finance=s("app/finance/page.tsx");
+ assert.match(finance,/if\(params\.view==='summary'\)/);
+ assert.match(finance,/MembershipPaymentForm/);
+ assert.match(finance,/member-ledger/);
+ assert.match(finance,/Record a member payment/);
+ assert.match(finance,/id="payment-ledger"/);
+ assert.match(finance,/Switch to simplified summary/);
+});
+test("Payments show feedback and prevent duplicate submission after network uncertainty",()=>{
+ const action=s("app/finance/actions.ts"),form=s("components/MembershipPaymentForm.tsx");
+ assert.match(action,/payment_entry_token/);
+ assert.match(action,/transaction_code",incomingCode/);
+ assert.match(action,/alreadyRecorded:true/);
+ assert.match(action,/payment_reference",reference/);
+ assert.match(action,/\.eq\("member_user_id",memberUserId\)/);
+ assert.match(action,/\.eq\("payment_period",period\)/);
+ assert.match(action,/status","posted/);
+ assert.match(action,/recordMembershipPaymentWithFeedback/);
+ assert.match(action,/try\{await notifyUser/);
+ assert.match(action,/Membership payment saved; notification failed/);
+ assert.match(form,/useActionState\(recordMembershipPaymentWithFeedback/);
+ assert.match(form,/payment_entry_token/);
+ assert.match(form,/navigator.onLine/);
+ assert.match(form,/Do not resubmit after a connection timeout/);
+ assert.match(form,/disabled=\{pending\|\|!connected\|\|!token\}/);
+});
+test("Scoped studio recorder delegation requires explicit project grant and can be revoked",()=>{
+ const schema=s("supabase/migrations/20261103_studio_session_recorders.sql");
+ const gate=s("lib/studioRecorderAccess.ts");
+ const actions=s("app/studio-recording/actions.ts");
+ const page=s("app/studio-recording/page.tsx");
+ const admin=s("app/admin/(control)/studio-sessions/page.tsx");
+ const ctrl=s("app/admin/(control)/studio-sessions/actions.ts");
+ assert.match(schema,/studio_session_recorders/);
+ assert.match(schema,/primary key \(project_id,user_id\)/);
+ assert.match(schema,/row level security/);
+ assert.match(gate,/hasStudioRecorderGrant/);
+ assert.match(gate,/setStudioRecorderGrant/);
+ assert.match(actions,/await hasStudioRecorderGrant\(admin,projectId,user.id\)/);
+ assert.match(actions,/requireStudioScope\(admin,projectId,null,trackId,participants\)/);
+ assert.match(actions,/\.eq\("project_id",projectId\)/);
+ assert.match(actions,/createDelegatedStudioSession/);
+ assert.match(actions,/updateDelegatedStudioSession/);
+ assert.doesNotMatch(actions,/member_roles\.insert/);
+ assert.doesNotMatch(actions,/project_members\.insert/);
+ assert.doesNotMatch(actions,/finance/);
+ assert.match(ctrl,/requireControlRoomPermission\("sessions"\)/);
+ assert.match(ctrl,/setPlatformStudioRecorder/);
+ assert.match(admin,/Grant recording access/);
+ assert.match(admin,/Revoke/);
+ assert.match(page,/Studio Recording/);
+});

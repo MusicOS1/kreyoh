@@ -68,7 +68,7 @@ export async function updateProfile(formData: FormData): Promise<void> {
     .update(profileUpdate)
     .eq("id", user.id);
 
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(error.code==="23505"?"That public name is already registered. Choose a different stage or display name.":error.message);
 
   revalidatePath("/");
   revalidatePath("/settings");

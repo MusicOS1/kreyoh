@@ -11,6 +11,7 @@ export function creditedToArtist(artistName:string,profileName:string){
  return credited.split(/\s+(?:&|and|feat\.?|ft\.?|with|x)\s+|\s*[,;/+]\s*/i).some(part=>part===person);
 }
 
-export function releaseHasArtist(release:{artist_id:string;artist_name:string;explicit_artist_link?:boolean;featured_artist_ids?:string[]},id:string,name:string){
+export function releaseHasArtist(release:{artist_id:string;artist_name:string;explicit_artist_link?:boolean;featured_artist_ids?:string[];attributed_artist_profile_id?:string},id:string,name:string){
+ if(release.attributed_artist_profile_id)return release.attributed_artist_profile_id===id;
  return release.explicit_artist_link ? release.artist_id===id || Boolean(release.featured_artist_ids?.includes(id)) : release.artist_id===id && creditedToArtist(release.artist_name,name);
 }

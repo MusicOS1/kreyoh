@@ -8,7 +8,7 @@ const first=(v:any)=>Array.isArray(v)?v[0]:v;
 export default async function AdminUsers({searchParams}:{searchParams:Promise<{q?:string;type?:string}>}) {
   const actor=await requireControlRoomPermission("people");
   const params=await searchParams; const admin=createAdminClient();
-  let query=admin.from("profiles").select("id,full_name,stage_name,email,avatar_url,creator_types,account_status,project_members(id,status,projects(id,name),member_roles(roles(name)))").order("created_at",{ascending:false}).limit(100);
+  let query=admin.from("profiles").select("id,full_name,stage_name,email,avatar_url,creator_types,account_status,project_members(id,status,projects(id,name),member_roles(roles(name)))").order("created_at",{ascending:false}).limit(250);
   if(params.q){const q=params.q.replace(/[,%()]/g," ");query=query.or(`full_name.ilike.%${q}%,stage_name.ilike.%${q}%,email.ilike.%${q}%`)}
   const [{data:users=[]},{data:projects=[]},{data:roles=[]}]=await Promise.all([
     query,
@@ -18,11 +18,28 @@ export default async function AdminUsers({searchParams}:{searchParams:Promise<{q
   const safeUsers = users ?? [];
   const safeProjects = projects ?? [];
   const safeRoles = roles ?? [];
-  const visible=safeUsers.filter((u:any)=>!params.type||(u.creator_types||[]).includes(params.type));
+  const visible=safeUsers.filter((u:any)=>{
+    const types:Array<string>=Array.isArray(u.creator_types)?u.creator_types:[];
+    if(!params.type||params.type==="All")return true;
+    if(params.type==="Unclassified")return types.length===0;
+    if(params.type==="Creative")return !types.includes("Artist")&&types.some(type=>type!=="Fan"&&type!=="Listener");
+    return types.includes(params.type);
+  });
 
   return <>
-    <section className="control-page-hero users"><span className="control-eyebrow">PEOPLE AND ACCESS</span><h1>The whole creative room.</h1><p>Manage creators and music-project memberships. <Link href="/admin/administrators">Platform administrator permissions →</Link></p></section>
+    <section className="control-page-hero users"><span className="control-eyebrow">PEOPLE AND ACCESS</span><h1>The whole creative room.</h1><p>Manage fans, artists, other creatives and music-project memberships. <Link href="/admin/administrators">Platform administrator permissions →</Link></p></section>
 
+    <section className="control-panel"><header><div><span className="control-eyebrow">ACCOUNT DIRECTORY</span><h2>Fans, artists and other creatives</h2></div></header>
+      <form method="get" action="/admin/users" className="control-picker">
+        <input type="search" name="q" defaultValue={params.q||""} placeholder="Search name or email" aria-label="Search people"/>
+        <select name="type" defaultValue={params.type||"All"} aria-label="Account category">
+          <option value="All">All accounts</option><option value="Fan">Fans</option>
+          <option value="Artist">Artists</option><option value="Creative">Other creatives</option>
+          <option value="Unclassified">Needs classification</option>
+        </select><button type="submit">Filter accounts</button>
+        <p>{visible.length} accounts in this view. Open a person to change their classification.</p>
+      </form>
+    </section>
     <section className="control-panel"><header><div><span className="control-eyebrow">MUSIC PROJECT ACCESS</span><h2>Add existing accounts to a music project</h2></div></header>
       <form action={addUsersToManagedProject} className="control-picker">
         <select name="project_id" required defaultValue=""><option value="" disabled>Select project</option>{safeProjects.map((p:any)=><option key={p.id} value={p.id}>{p.name}</option>)}</select>
@@ -34,7 +51,7 @@ export default async function AdminUsers({searchParams}:{searchParams:Promise<{q
 
     <section className="control-directory">{visible.map((u:any)=>{const active=(u.project_members||[]).filter((m:any)=>m.status==="active");const removed=(u.project_members||[]).filter((m:any)=>m.status==="removed");return <article className="control-user-card" key={u.id}>
       <div className="control-avatar">{u.avatar_url?<img src={u.avatar_url} alt=""/>:(u.stage_name||u.full_name||"U").slice(0,2).toUpperCase()}</div>
-      <div><Link href={`/admin/users/${u.id}`}><h2>{u.stage_name||u.full_name||"Creator"}</h2></Link><p>{u.email}</p><span>{(u.creator_types||[]).join(" / ")||"Creator"}</span></div>
+      <div><Link href={`/admin/users/${u.id}`}><h2>{u.stage_name||u.full_name||"Creator"}</h2></Link><p>{u.email}</p><span>{(u.creator_types||[]).join(" / ")||"Needs classification"}</span></div>
       <div className="control-memberships">
         {active.map((m:any)=>{const project=first(m.projects);const roleNames=(m.member_roles||[]).map((x:any)=>first(x.roles)?.name).filter(Boolean);const isLead=roleNames.includes("Project Lead");return <div key={m.id} style={{display:"grid",gap:"7px"}}><span><b>{project?.name}</b><small>{roleNames.join(", ")||"Project member"}</small></span>
           {isLead?<form action={setManagedProjectLead} style={{display:"flex",gap:"6px",flexWrap:"wrap"}}><input type="hidden" name="member_id" value={m.id}/><input type="hidden" name="mode" value="remove"/><select name="fallback_role" defaultValue="Artist">{safeRoles.filter((r:any)=>r.name!=="Project Lead").map((r:any)=><option key={r.name}>{r.name}</option>)}</select><button className="control-restore">Remove Project Lead</button></form>:<form action={setManagedProjectLead}><input type="hidden" name="member_id" value={m.id}/><input type="hidden" name="mode" value="add"/><button className="control-restore">Make Project Lead</button></form>}

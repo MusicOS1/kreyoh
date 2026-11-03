@@ -445,3 +445,18 @@
   .control-room .control-project-card .control-project-kpis{gap:7px}
   .control-room .control-project-card .control-project-kpis small{min-height:31px;padding:6px 10px;font-size:12px}
 }
+
+/* Fan/creative account controls and safe reviewable audio correction. */
+.control-room .control-release-replacement{border-top:1px solid #48403a;padding:14px 0;margin-top:20px}
+.control-room .control-release-replacement summary{cursor:pointer;display:list-item;color:#e97016;font-weight:850;padding:7px 0}
+.control-room .control-release-replacement form{display:grid;gap:12px;margin-top:12px;max-width:660px}
+.control-room .control-release-replacement form>p{color:inherit;line-height:1.6}
+.control-room .control-release-replacement label{display:grid;gap:6px;font-size:13px;font-weight:750}
+.control-room .control-release-replacement :is(input[type=file],textarea){width:100%;padding:10px;background:#1e1e20;border:1px solid #5a5653;border-radius:8px;color:#fff}
+.control-room .control-release-replacement textarea{min-height:80px}
+.control-room .control-release-replacement .community-check{display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.control-room .control-release-replacement .community-check input{width:18px;height:18px;flex:none}
+.control-room .control-release-replacement button{background:#ff6a00;color:#0b0b0b;border:0;border-radius:8px;padding:11px 16px;font-weight:850;justify-self:start;cursor:pointer}
+.control-room .control-release-replacement button:disabled{opacity:.65;cursor:wait}
+.control-room .control-release-replacement progress{width:100%;accent-color:#ff6a00}
+.control-room .control-release-replacement [role=status]{color:#e97016}
