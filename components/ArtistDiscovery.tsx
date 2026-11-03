@@ -80,7 +80,7 @@ export default function ArtistDiscovery({
      {selectedArtist.catalogueOnly?<span className="mx-stage-notice">Official artist profile not yet linked</span>:
       viewerId?<button type="button" className="mx-outline-action" disabled={followPending(selectedArtist.id)}
        aria-busy={followPending(selectedArtist.id)} aria-pressed={following(selectedArtist.id)}
-       onClick={()=>onFollow(selectedArtist.id)}>{following(selectedArtist.id)?"✓ Following":"+ Follow"}</button>:
+       onClick={()=>onFollow(selectedArtist.id)}>{following(selectedArtist.id)?"✓ Following":"+ Follow artist"}</button>:
       <Link className="mx-outline-action" href={"/login?next="+encodeURIComponent("/fan?tab=Artists")}>Sign in to follow</Link>}
      {fullHref&&<Link className="mx-stage-profile-link" href={fullHref}>Open full profile ↗</Link>}
     </>}
