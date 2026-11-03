@@ -37,11 +37,11 @@ try{
  await page.goto(origin+'/signup?next=/fan');await page.getByLabel('Full Name',{exact:true}).fill('Test Listener');await page.getByLabel('Email Address',{exact:true}).fill('listener@example.test');
  // Form labels may evolve; keep the fixture tied to the existing field names.
  await page.locator('input[name="password"]').fill('Local test password 123!');await page.locator('input[name="confirm_password"]').fill('Local test password 123!');
- await page.locator('select[name="creator_type"]').selectOption('Fan / Listener');await page.locator('input[name="accepted_terms"]').check();await page.locator('button[type="submit"]').click();
+ await page.getByRole('group',{name:'Choose your account type'}).getByRole('button',{name:/^Fan/}).click();await page.locator('input[name="public_name"]').fill('Listener Fixture 2026');await page.getByText('Name available',{exact:true}).waitFor();await page.locator('input[name="accepted_terms"]').check();await page.locator('button[type="submit"]').click();
  await page.getByRole('heading',{name:'Account created'}).waitFor();pass('Registration and confirmation instructions (mock auth, no email sent)');
  await page.goto(origin+'/auth/callback?token_hash=local-confirmation&type=signup&next=%2Ffan%3Ftab%3DArtists');
- await page.waitForURL('**/fan?tab=Artists');await page.getByRole('heading',{name:'Artists worth knowing.',exact:true}).waitFor();pass('Email token confirmation callback preserves deep link (mock verification)');
- await page.reload();await page.getByRole('heading',{name:'Artists worth knowing.',exact:true}).waitFor();pass('Authenticated refresh');
+ await page.waitForURL('**/fan?tab=Artists');await page.getByRole('heading',{name:'Meet the artists.',exact:true}).waitFor();pass('Email token confirmation callback preserves deep link (mock verification)');
+ await page.reload();await page.getByRole('heading',{name:'Meet the artists.',exact:true}).waitFor();pass('Authenticated refresh');
  await page.goto(origin+'/');await page.getByRole('button',{name:'Toggle navigation',exact:true}).click();await page.getByRole('navigation',{name:'Mobile navigation'}).getByRole('link',{name:'My Workspace',exact:true}).waitFor();await page.keyboard.press('Escape');assert.equal(await page.getByRole('heading',{name:'Discover music. Find your people. Be part of it.'}).count(),1);assert.equal(await page.locator('[data-fm-header]').count(),0);pass('Signed-in homepage keeps original public content and one public header');
  const beforeRefresh=state.refreshes;
  const expiring=(await browser.cookies()).find(c=>c.name.endsWith('-auth-token')&&c.value.startsWith('base64-'));
