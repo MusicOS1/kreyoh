@@ -23,6 +23,15 @@ export default async function AdminDiagnostics({ searchParams }: { searchParams:
   const successes = auth.filter(e => e.event_name === "login_completed");
   const failed = auth.filter(e => e.event_name === "login_failed" || e.event_name === "login_access_denied");
   const reasons = countBy(failed.map(e => valueOf((e.metadata as Record<string, unknown> | null)?.reason)));
+  const resetRequests = auth.filter(e=>e.event_name==="password_reset_requested");
+  const resetRequestsFailed = auth.filter(e=>e.event_name==="password_reset_request_failed");
+  const recoveryFailed = auth.filter(e=>e.event_name==="password_recovery_failed");
+  const recoveryVerified = auth.filter(e=>e.event_name==="password_recovery_verified");
+  const passwordUpdates = auth.filter(e=>e.event_name==="password_change_completed");
+  const passwordUpdateFailures = auth.filter(e=>e.event_name==="password_change_failed");
+  const recoveryReasons=countBy([...resetRequestsFailed,...recoveryFailed,...passwordUpdateFailures]
+    .map(e=>valueOf((e.metadata as Record<string,unknown>|null)?.reason)));
+
   const surfaces = countBy(failed.map(e => valueOf((e.metadata as Record<string, unknown> | null)?.surface)));
   const timeoutCount = failed.filter(e => ["timeout", "network", "service_unavailable"].includes(valueOf((e.metadata as Record<string, unknown> | null)?.reason))).length;
   const open = incidents.filter(e => !e.resolved_at);
@@ -42,6 +51,12 @@ export default async function AdminDiagnostics({ searchParams }: { searchParams:
         ["Login attempts", attempted.length, "New instrumentation only"],
         ["Successful logins", successes.length, "Historical and new records"],
         ["Failed logins", failed.length, "Recorded failed submissions"],
+        ["Reset emails requested",resetRequests.length,"Requests recorded (not delivery confirmations)"],
+        ["Reset email failures",resetRequestsFailed.length,"Delivery or service errors"],
+        ["Recovery links verified",recoveryVerified.length,"Verified by server or reported by client"],
+        ["Recovery link failures",recoveryFailed.length,"Invalid / expired / interrupted links"],
+        ["Password changes reported",passwordUpdates.length,"Completed updates reported by clients"],
+        ["Password change failures",passwordUpdateFailures.length,"Rejected updates and missing sessions"],
         ["Failure rate", rate === null ? "—" : rate + "%", "Recorded attempts only"],
         ["Network / timeout failures", timeoutCount, "Classification, not a raw trace"],
         ["Application incidents", incidents.length, "Recorded system and browser failures"],
@@ -53,10 +68,20 @@ export default async function AdminDiagnostics({ searchParams }: { searchParams:
       <article className="control-panel"><header><div><span className="control-eyebrow">APPLICATION</span><h2>Where problems occur</h2></div></header>{!sources.length ? <p className="control-empty">No application incidents recorded in this period.</p> : sources.map(([source,count]) => <div className="control-row" key={source}><div><strong>{label(source)}</strong><small>Recorded incident source</small></div><b>{count}</b></div>)}<p>Login surfaces: {surfaces.map(([name, count]) => label(name) + " (" + count + ")").join(" · ") || "No failures recorded"}.</p></article>
     </section>
     <section className="control-grid">
+      <article className="control-panel"><header><div><span className="control-eyebrow">RECOVERY FAILURES</span><h2>Why password resets fail</h2></div></header>
+      {recoveryReasons.length===0?<p className="control-empty">No classified recovery failures have been captured in this time period.</p>:
+       recoveryReasons.map(([reason,count])=><div className="control-row" key={reason}><div><strong>{label(reason)}</strong><small>Client-reported or server-recorded outcome</small></div><b>{count}</b></div>)}
+      </article>
+      <article className="control-panel"><header><div><span className="control-eyebrow">RECOVERY PIPELINE</span><h2>Links and password changes</h2></div></header>
+      {([["Reset requested",resetRequests.length],["Reset request failed",resetRequestsFailed.length],["Link verified",recoveryVerified.length],["Link verification failed",recoveryFailed.length],["Password updated (reported)",passwordUpdates.length],["Password update failed",passwordUpdateFailures.length]] as const).map(([name,count])=>
+       <div className="control-row" key={name}><div><strong>{name}</strong></div><b>{count}</b></div>)}
+      </article>
+    </section>
+    <section className="control-grid">
       <article className="control-panel"><header><div><span className="control-eyebrow">TREND</span><h2>Recorded daily activity</h2></div></header>{daysRows.map(d => <div className="control-bar" key={d.day}><span>{d.day}</span><i style={{ width: Math.max(2, (d.attempts + d.incidents) / peak * 100) + "%" }} /><strong>{d.attempts} attempts · {d.fails} failed · {d.incidents} incidents</strong></div>)}</article>
       <article className="control-panel"><header><div><span className="control-eyebrow">ROUTES</span><h2>Most affected screens</h2></div></header>{!routes.length ? <p className="control-empty">No screen-level errors captured yet.</p> : routes.slice(0,10).map(([route,count]) => <div className="control-row" key={route}><div><strong>{route}</strong></div><b>{count}</b></div>)}</article>
     </section>
     <section className="control-panel"><header><div><span className="control-eyebrow">INVESTIGATION LOG</span><h2>Latest recorded incidents</h2></div><Link href="/admin/system">System settings</Link></header>{!incidents.length ? <p className="control-empty">No incidents recorded. That is not proof the platform has had no errors.</p> : incidents.slice(0,100).map(e => <div className="control-row" key={e.id}><span className="control-status">{e.resolved_at ? "Resolved" : e.severity}</span><div><strong>{label(e.source)}</strong><small>{label(valueOf((e.context as Record<string, unknown> | null)?.reason))} · {valueOf((e.context as Record<string, unknown> | null)?.route)}</small></div><time>{time(e.created_at)}</time></div>)}</section>
-    <p className="control-empty">Coverage: sign-ins through FACKTS forms, client runtime and rendering failures for authenticated accounts, and explicitly instrumented service failures. This is not a full log of every Supabase/Vercel server event. Events before instrumentation cannot be recovered, and these lists are capped at 3,000 records per authentication source and 1,000 incident records per period.</p>
+    <p className="control-empty">Coverage: sign-ins through FACKTS forms, password-reset email requests, recovery callbacks, client-reported password updates, client runtime and rendering failures for authenticated accounts, and explicitly instrumented service failures. This is not a full log of every Supabase/Vercel server event. Events before instrumentation cannot be recovered, and these lists are capped at 3,000 records per authentication source and 1,000 incident records per period.</p>
   </>;
 }

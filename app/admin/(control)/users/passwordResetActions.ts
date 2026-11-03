@@ -3,6 +3,7 @@
 import {requireControlRoomPermission} from "../../../../lib/controlRoom";
 import {createAdminClient} from "../../../../lib/supabase/admin";
 import {PASSWORD_RECOVERY_REDIRECT} from "../../../../lib/passwordRecovery";
+import {recordAuthDiagnostic,classifyAuthFailure} from "../../../../lib/diagnostics";
 
 export type ResetLinkState = {ok:boolean;message:string};
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -36,19 +37,20 @@ export async function sendManagedPasswordReset(
 
   // Sends the native Supabase one-time recovery email. Never generate or show
   // temporary passwords, admin-created tokens or reusable login links.
-  let failure: {message?:string}|null = null;
+  let failure: unknown = null;
   try {
     const result = await admin.auth.resetPasswordForEmail(recipient,{
       redirectTo:PASSWORD_RECOVERY_REDIRECT
     });
     failure = result.error;
-  } catch {
-    return {ok:false,message:"The email service could not be reached. Please retry."};
+  } catch(error) {
+    failure=error;
   }
-  if (failure) return {
-    ok:false,
-    message:"The reset email could not be requested. Check email delivery and rate limits."
-  };
+  if (failure) {
+    await recordAuthDiagnostic({event:"password_reset_request_failed",surface:"admin_reset",userId:targetId,reason:classifyAuthFailure(failure)});
+    return {ok:false,message:"The reset email could not be requested. Check email delivery and rate limits."};
+  }
+  await recordAuthDiagnostic({event:"password_reset_requested",surface:"admin_reset",userId:targetId});
 
   const {error:auditError} = await admin.from("platform_events").insert({
     user_id:actor.id,category:"admin",

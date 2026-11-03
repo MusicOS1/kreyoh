@@ -1,9 +1,17 @@
 import { createAdminClient } from "./supabase/admin";
 
 // Authentication diagnostics never store credentials, addresses, tokens, or raw errors.
-export type AuthOutcome = "login_attempted" | "login_completed" | "login_failed" | "login_access_denied";
-export type AuthSurface = "main" | "control_room";
-export type DiagnosticReason = "invalid_credentials" | "email_unconfirmed" | "rate_limited" | "timeout" | "network" | "service_unavailable" | "access_denied" | "missing_fields" | "unknown";
+export type AuthOutcome =
+  | "login_attempted" | "login_completed" | "login_failed" | "login_access_denied"
+  | "password_reset_requested" | "password_reset_request_failed"
+  | "password_recovery_verified" | "password_recovery_failed"
+  | "password_change_completed" | "password_change_failed";
+export type AuthSurface = "main" | "control_room" | "forgot_password" | "admin_reset" | "recovery_link" | "set_password";
+export type DiagnosticReason =
+  | "invalid_credentials" | "email_unconfirmed" | "rate_limited" | "timeout"
+  | "network" | "service_unavailable" | "access_denied" | "missing_fields"
+  | "link_incomplete" | "link_expired" | "link_invalid"
+  | "session_unavailable" | "password_rejected" | "unknown";
 
 export function classifyAuthFailure(error: unknown): DiagnosticReason {
   if (!error || typeof error !== "object") return "unknown";
@@ -55,4 +63,19 @@ export async function recordServiceIncident(source: string, reason: DiagnosticRe
   } catch {
     console.warn("FACKTS service incident logging unavailable");
   }
+}
+
+/** Only bounded, classified recovery failures; never log URLs/tokens/emails. */
+export function classifyRecoveryFailure(error:unknown):DiagnosticReason{
+ if(!error||typeof error!=="object")return "unknown";
+ const {message,code,status}=error as {message?:string;code?:string;status?:number};
+ const diagnostic=classifyAuthFailure(error);
+ if(diagnostic!=="unknown")return diagnostic;
+ const value=String(code||"")+" "+String(message||"");
+ if(/expired|otp_expired|token.*expir/i.test(value))return "link_expired";
+ if(/invalid|already.*used|access_denied|otp_disabled/i.test(value))return "link_invalid";
+ if(/session.*missing|auth.session.missing/i.test(value))return "session_unavailable";
+ if(/password|weak_password|same_password/i.test(value))return "password_rejected";
+ if(status===403||status===401)return "access_denied";
+ return "unknown";
 }
