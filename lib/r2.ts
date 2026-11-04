@@ -11,6 +11,7 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import type {CORSRule} from "@aws-sdk/client-s3";
 
 type R2Config = {
   accountId: string;
@@ -64,7 +65,7 @@ export function ensureReleaseUploadCors(): Promise<void> {
   releaseCorsCheck = (async () => {
     const config = readR2Config();
     const client = createR2Client(config, true);
-    let rules: Array<{AllowedOrigins?: string[];AllowedMethods?: string[];AllowedHeaders?: string[];ExposeHeaders?: string[];MaxAgeSeconds?: number}> = [];
+    let rules: CORSRule[] = [];
     try {
       const result = await client.send(new GetBucketCorsCommand({Bucket: config.bucket}));
       rules = result.CORSRules || [];
