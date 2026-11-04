@@ -2,6 +2,7 @@
 import {useState,useRef,type FormEvent} from 'react';
 import {useRouter} from 'next/navigation';
 import {directUpload} from '../lib/directUpload';
+import ReleaseCreditsEditor, {type CreditDirectoryPerson} from './ReleaseCreditsEditor';
 import {prepareReleaseResult,finishReleaseResult,refreshReleaseUploadResult} from '../app/billboard/actions';
 
 const audioTypes:Record<string,string>={mp3:'audio/mpeg',wav:'audio/wav',m4a:'audio/mp4',flac:'audio/flac'};
@@ -16,9 +17,11 @@ async function uploadToR2(url:string,file:File,type:string,label:string,onProgre
  onProgress('Uploading '+label+'…');
  await directUpload(url,file,type,percent=>onProgress('Uploading '+label+'… '+percent+'%'));
 }
-export default function ReleaseSubmitForm(){
+export default function ReleaseSubmitForm({people}:{people:CreditDirectoryPerson[]}){
  const[busy,setBusy]=useState(false),[notice,setNotice]=useState('');
  const[recoverable,setRecoverable]=useState(false);
+ const[artistName,setArtistName]=useState('');
+ const[creditsResetToken,setCreditsResetToken]=useState(0);
  const draft=useRef<{id:string;signature:string}|null>(null);
  const formRef=useRef<HTMLFormElement>(null);
  const router=useRouter();
@@ -58,7 +61,7 @@ export default function ReleaseSubmitForm(){
    setNotice('Submitting for review…');
    const submitted=await finishReleaseResult(prepared.id);
    if(!submitted.ok)throw Error(submitted.error);
-   draft.current=null;formRef.current?.reset();setRecoverable(false);
+   draft.current=null;formRef.current?.reset();setArtistName('');setCreditsResetToken(value=>value+1);setRecoverable(false);
    setNotice('Submitted for review. Your song will appear after approval and its release date.');
    router.refresh();
   }catch(error){setRecoverable(Boolean(draft.current));setNotice(friendlyError(error));}
@@ -66,10 +69,10 @@ export default function ReleaseSubmitForm(){
  }
  return <form ref={formRef} className="community-form" onSubmit={submit}>
   <fieldset disabled={busy}><legend>Submit a finished song</legend><p>Public accounts can submit up to 10 songs in 24 hours. Authorised music admins can import up to 100 tracks per batch in the Control Room.</p>
-  <label>Song title<input name="title" maxLength={120} required/></label><label>Artist / act name<input name="artist_name" maxLength={100} required placeholder="e.g. Mad Meets Crazy"/></label>
+  <label>Song title<input name="title" maxLength={120} required/></label><label>Artist / act name<input name="artist_name" maxLength={100} required value={artistName} onChange={event=>setArtistName(event.target.value)} placeholder="e.g. Mad Meets Crazy"/></label>
   <div className="community-columns"><label>Collection / EP / album (optional)<input name="collection" maxLength={120} placeholder="e.g. Raw Volume 1"/></label><label>Track number<input name="track_number" type="number" min={1} max={100} defaultValue={1}/></label></div>
   <div className="community-columns"><label>Genre<input name="genre" maxLength={60}/></label><label>Release date (Kenya time)<input name="release_at" type="date"/><small>Leave blank to release as soon as approved.</small></label></div>
-  <label>About this song<textarea name="description" maxLength={2000}/></label><label>Credits<textarea name="credits" maxLength={2000} placeholder="Artists, writers, producers, mixing and mastering" required/></label>
+  <label>About this song<textarea name="description" maxLength={2000}/></label><ReleaseCreditsEditor key={creditsResetToken} people={people} artistName={artistName}/>
   <label>Finished audio · MP3, WAV, M4A or FLAC · max 150 MB<input type="file" name="audio" accept=".mp3,.wav,.m4a,.flac" required/></label>
   <label>Original cover artwork (optional) · JPG, PNG or WebP · max 10 MB<input type="file" name="cover" accept="image/jpeg,image/png,image/webp"/></label>
   <label className="community-check"><input name="debut" type="checkbox" defaultChecked/>This is the song’s first public release.</label>
