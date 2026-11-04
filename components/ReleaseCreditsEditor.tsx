@@ -33,7 +33,7 @@ export default function ReleaseCreditsEditor({
   ...(artistName.trim()?[`Primary artist: ${artistName.trim()}`]:[]),
   ...entries.map(person=>`${person.role}: ${person.name}`),
  ];
- const credits=creditLines.join('\\n');
+ const credits=creditLines.join('\n');
  const effectiveRole=role==='Other'?customRole.trim():role;
  const selectedPerson=people.find(person=>person.id===selectedId);
  const effectiveName=source==='registered'?selectedPerson?.name||'':externalName.trim();
@@ -46,7 +46,7 @@ export default function ReleaseCreditsEditor({
    setFeedback('This contributor is already credited in that role.');return;
   }
   const next=[...entries,{key:crypto.randomUUID(),role:effectiveRole,name:effectiveName,profileId:source==='registered'?selectedId:null}];
-  const nextCredits=[...(artistName.trim()?[`Primary artist: ${artistName.trim()}`]:[]),...next.map(p=>`${p.role}: ${p.name}`)].join('\\n');
+  const nextCredits=[...(artistName.trim()?[`Primary artist: ${artistName.trim()}`]:[]),...next.map(p=>`${p.role}: ${p.name}`)].join('\n');
   if(nextCredits.length>2000){setFeedback('The credits exceed 2,000 characters. Remove or shorten an entry.');return;}
   setEntries(next);setFeedback('');setSelectedId('');setSearch('');setExternalName('');setCustomRole('');
  };
