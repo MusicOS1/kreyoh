@@ -1,7 +1,7 @@
 "use client";
 import {useState,useRef,type FormEvent} from 'react';
 import {useRouter} from 'next/navigation';
-import {directUpload} from '../lib/directUpload';
+import {uploadReleaseFile} from '../lib/releaseRelayUpload';
 import ReleaseCreditsEditor, {type CreditDirectoryPerson} from './ReleaseCreditsEditor';
 import {prepareReleaseResult,finishReleaseResult,refreshReleaseUploadResult} from '../app/billboard/actions';
 
@@ -13,9 +13,8 @@ function friendlyError(error:unknown){
   return 'Connection failed. Your draft is safe; retry the upload without withdrawing the release.';
  return message;
 }
-async function uploadToR2(url:string,file:File,type:string,label:string,onProgress:(message:string)=>void){
- onProgress('Uploading '+label+'…');
- await directUpload(url,file,type,percent=>onProgress('Uploading '+label+'… '+percent+'%'));
+async function uploadToR2(id:string,kind:'audio'|'cover',url:string,file:File,type:string,label:string,onProgress:(message:string)=>void){
+ await uploadReleaseFile(id,kind,url,file,type,label,onProgress);
 }
 export default function ReleaseSubmitForm({people}:{people:CreditDirectoryPerson[]}){
  const[busy,setBusy]=useState(false),[notice,setNotice]=useState('');
@@ -53,10 +52,10 @@ export default function ReleaseSubmitForm({people}:{people:CreditDirectoryPerson
     if(!result.ok)throw Error(result.error);
     prepared=result.value;draft.current={id:prepared.id,signature};
    }
-   await uploadToR2(prepared.uploadUrl,audio,type,'audio',setNotice);
+   await uploadToR2(prepared.id,'audio',prepared.uploadUrl,audio,type,'audio',setNotice);
    if(prepared.coverUploadUrl){
     if(!(cover instanceof File)||!cover.size)throw Error('Choose your cover artwork to complete this draft.');
-    await uploadToR2(prepared.coverUploadUrl,cover,cover.type,'cover artwork',setNotice);
+    await uploadToR2(prepared.id,'cover',prepared.coverUploadUrl,cover,cover.type,'cover artwork',setNotice);
    }
    setNotice('Submitting for review…');
    const submitted=await finishReleaseResult(prepared.id);
@@ -110,8 +109,8 @@ export function ResumeReleaseDraft({id,title,audioType,needsCover}:{id:string;ti
    setNotice('Renewing upload links…');
    const result=await refreshReleaseUploadResult(id,cover?.type||'');
    if(!result.ok)throw Error(result.error);
-   await uploadToR2(result.value.uploadUrl,audio,audioType,'audio',setNotice);
-   if(result.value.coverUploadUrl&&cover)await uploadToR2(result.value.coverUploadUrl,cover,cover.type,'cover artwork',setNotice);
+   await uploadToR2(id,'audio',result.value.uploadUrl,audio,audioType,'audio',setNotice);
+   if(result.value.coverUploadUrl&&cover)await uploadToR2(id,'cover',result.value.coverUploadUrl,cover,cover.type,'cover artwork',setNotice);
    setNotice('Submitting for review…');
    const finished=await finishReleaseResult(id);
    if(!finished.ok)throw Error(finished.error);
