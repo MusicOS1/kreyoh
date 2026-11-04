@@ -5,6 +5,8 @@ import {
   CopyObjectCommand,
   HeadBucketCommand,
   HeadObjectCommand,
+  GetBucketCorsCommand,
+  PutBucketCorsCommand,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
@@ -51,6 +53,56 @@ function createR2Client(config: R2Config, multipart = false) {
       secretAccessKey: config.secretAccessKey,
     },
   });
+}
+
+// Release uploads use browser presigned PUTs. Preserve existing R2 CORS rules
+// (e.g. for beats/stems) and add only the exact known FACKTS origins if absent.
+// Caching keeps the bucket check off the hot path after the first request.
+let releaseCorsCheck: Promise<void> | null = null;
+export function ensureReleaseUploadCors(): Promise<void> {
+  if (releaseCorsCheck) return releaseCorsCheck;
+  releaseCorsCheck = (async () => {
+    const config = readR2Config();
+    const client = createR2Client(config, true);
+    let rules: Array<{AllowedOrigins?: string[];AllowedMethods?: string[];AllowedHeaders?: string[];ExposeHeaders?: string[];MaxAgeSeconds?: number}> = [];
+    try {
+      const result = await client.send(new GetBucketCorsCommand({Bucket: config.bucket}));
+      rules = result.CORSRules || [];
+    } catch (error) {
+      const name = error && typeof error === 'object' && 'name' in error ? String(error.name) : '';
+      if (!['NoSuchCORSConfiguration','NoSuchCORS','NotFound'].includes(name)) {
+        // Some R2 object-only tokens cannot inspect bucket settings.
+        // Keep existing uploads available rather than rejecting all requests.
+        console.warn('release-r2-cors-check-unavailable', name);
+        return;
+      }
+    }
+    const requiredOrigins = ['https://music.facktsafrica.co.ke','https://kreyoh.vercel.app','http://localhost:3000'];
+    const supported = (origin:string) => rules.some(rule =>
+      (rule.AllowedOrigins || []).includes(origin) &&
+      (rule.AllowedMethods || []).includes('PUT') &&
+      ((rule.AllowedHeaders || []).includes('*') ||
+        (rule.AllowedHeaders || []).some(header => header.toLowerCase() === 'content-type'))
+    );
+    const missing = requiredOrigins.filter(origin => !supported(origin));
+    if (!missing.length) return;
+    try {
+      await client.send(new PutBucketCorsCommand({
+        Bucket: config.bucket,
+        CORSConfiguration: {CORSRules: [...rules, {
+          AllowedOrigins: missing,
+          AllowedMethods: ['GET','HEAD','PUT'],
+          AllowedHeaders: ['Content-Type'],
+          ExposeHeaders: ['ETag'],
+          MaxAgeSeconds: 3600,
+        }]},
+      }));
+    } catch (error) {
+      console.error('release-r2-cors-update-failed', error);
+      throw new Error('Music storage needs its browser upload permissions repaired. Contact FACKTS Music support.');
+    }
+  })().catch(error => {releaseCorsCheck = null; throw error;});
+  return releaseCorsCheck;
 }
 
 export function isR2Configured() {
