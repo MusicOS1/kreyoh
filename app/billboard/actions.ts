@@ -2,7 +2,7 @@
 import {revalidatePath} from "next/cache";
 import {communityAccount,uuidPattern} from "../../lib/community";
 import {createAdminClient} from "../../lib/supabase/admin";
-import {assertR2ObjectAccess,createR2PresignedUrl,finalizeReleaseObject} from "../../lib/r2";
+import {assertR2ObjectAccess,createR2PresignedUrl,finalizeReleaseObject,ensureReleaseUploadCors} from "../../lib/r2";
 import {requireControlRoomPermission,hasControlRoomPermission} from "../../lib/controlRoom";
 import {releaseCommand} from "../../lib/releaseWorkflow";
 import { uploadResult } from "../../lib/uploadResult";
@@ -31,6 +31,7 @@ export async function prepareRelease(form:FormData){
    :'Public submissions are limited to 10 songs per 24 hours. Music admins can import catalogues from the Control Room.');
  const id=crypto.randomUUID(),prefix=`releases/${user.id}/${id}`;
  const audioKey=`${prefix}/audio`,coverKey=coverType?`${prefix}/cover`:null;
+ await ensureReleaseUploadCors();
  const uploadUrl=await createR2PresignedUrl('PUT',audioKey,900,audioType);
  const coverUploadUrl=coverKey?await createR2PresignedUrl('PUT',coverKey,900,coverType):null;
  const{error}=await admin.from('music_releases').insert({id,artist_id:user.id,title,artist_name:artist,collection,track_number:number,genre,description,credits,explicit:form.get('explicit')==='on',debut:form.get('debut')==='on',release_at:date.toISOString(),audio_key:audioKey,audio_type:audioType,cover_key:coverKey,rights_confirmed_at:new Date().toISOString()});
@@ -91,6 +92,7 @@ export async function refreshReleaseUploadResult(id: string, coverType: string) 
     .eq('id',id).eq('artist_id',user.id).eq('status','draft').single();
   if(error||!release)throw new Error('Draft not found.');
   if(release.cover_key&&!['image/jpeg','image/png','image/webp'].includes(coverType))throw new Error('Use a JPG, PNG or WebP cover.');
+  await ensureReleaseUploadCors();
   return {uploadUrl:await createR2PresignedUrl('PUT',release.audio_key,3600,release.audio_type),
     coverUploadUrl:release.cover_key?await createR2PresignedUrl('PUT',release.cover_key,3600,coverType):null};
  });
