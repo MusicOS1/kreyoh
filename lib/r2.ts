@@ -236,3 +236,64 @@ export async function freezeProductionReleaseObject(source:string,destination:st
  }await client.send(new CompleteMultipartUploadCommand({Bucket:config.bucket,Key:destination,UploadId,MultipartUpload:{Parts:parts}}));}
  catch(error){await client.send(new AbortMultipartUploadCommand({Bucket:config.bucket,Key:destination,UploadId})).catch(()=>{});throw error;}
 }
+
+
+/**
+ * Private same-origin release transfer fallback.
+ * Browsers send <=3 MiB chunks to Next.js when cross-origin R2 PUT fails.
+ * Next.js stores each chunk in R2 and assembles pairs into >=5 MiB
+ * multipart parts, avoiding both browser CORS and Vercel's body limit.
+ */
+export const RELEASE_RELAY_CHUNK_BYTES=3*1024*1024;
+const relayKey=(target:string,index:number)=>target+'.relay/'+String(index).padStart(3,'0');
+
+export async function uploadReleaseRelayChunk(target:string,index:number,data:Uint8Array){
+ const config=readR2Config();
+ await createR2Client(config,true).send(new PutObjectCommand({
+  Bucket:config.bucket,Key:relayKey(target,index),
+  Body:Buffer.from(data),ContentLength:data.byteLength,ContentType:'application/octet-stream'
+ }));
+}
+export async function uploadReleaseRelayPart(
+ target:string,uploadId:string,part:number,fileSize:number,chunkCount:number
+):Promise<string>{
+ const {UploadPartCommand}=await import('@aws-sdk/client-s3');
+ const config=readR2Config(),client=createR2Client(config,true);
+ const buffers:Buffer[]=[];
+ for(let index=(part-1)*2;index<Math.min(part*2,chunkCount);index++){
+  const expected=Math.min(RELEASE_RELAY_CHUNK_BYTES,fileSize-index*RELEASE_RELAY_CHUNK_BYTES);
+  let object;
+  try{object=await client.send(new GetObjectCommand({Bucket:config.bucket,Key:relayKey(target,index)}));}
+  catch{throw new Error('Upload chunk missing. Retry uploading the file.');}
+  const bytes=await object.Body?.transformToByteArray();
+  if(!bytes||bytes.byteLength!==expected)throw new Error('Upload chunk incomplete. Retry uploading the file.');
+  buffers.push(Buffer.from(bytes));
+ }
+ if(!buffers.length)throw Error('Upload part unavailable.');
+ const data=Buffer.concat(buffers);
+ const result=await client.send(new UploadPartCommand({
+  Bucket:config.bucket,Key:target,UploadId:uploadId,PartNumber:part,
+  Body:data,ContentLength:data.length
+ }));
+ if(!result.ETag)throw Error('Upload part could not be stored.');
+ return result.ETag;
+}
+export async function finishReleaseRelay(
+ target:string,uploadId:string,parts:{PartNumber:number;ETag:string}[],
+ size:number,contentType:string,chunkCount:number
+){
+ const config=readR2Config(),client=createR2Client(config,true);
+ try{
+  await finishR2Multipart(target,uploadId,parts);
+  const head=await client.send(new HeadObjectCommand({Bucket:config.bucket,Key:target}));
+  if(head.ContentLength!==size||head.ContentType!==contentType)
+   throw Error('The upload could not be verified. Retry the same draft.');
+ }catch(error){
+  await abortR2Multipart(target,uploadId).catch(()=>{});
+  throw error;
+ }
+ const {DeleteObjectsCommand}=await import('@aws-sdk/client-s3');
+ const keys=Array.from({length:chunkCount},(_,i)=>({Key:relayKey(target,i)}));
+ await client.send(new DeleteObjectsCommand({Bucket:config.bucket,Delete:{Objects:keys,Quiet:true}}))
+  .catch(error=>console.warn('release-relay-cleanup',error));
+}
