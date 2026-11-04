@@ -1,9 +1,9 @@
-import {assertProductionOrigin} from '../../../../lib/productionAccess';
-import {communityAccount,uuidPattern} from '../../../../lib/community';
+import {assertProductionOrigin} from '../../../../../lib/productionAccess';
+import {communityAccount,uuidPattern} from '../../../../../lib/community';
 import {
   RELEASE_RELAY_CHUNK_BYTES, uploadReleaseRelayChunk,
   uploadReleaseRelayPart, finishReleaseRelay, startR2Multipart
-} from '../../../../lib/r2';
+} from '../../../../../lib/r2';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
