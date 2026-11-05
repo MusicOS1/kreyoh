@@ -1,0 +1,24 @@
+.fm-release-search{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;margin:18px 0 24px}
+.fm-release-search label{display:grid;gap:7px;min-width:min(100%,280px);font-size:12px;font-weight:700;color:#d2d2d5}
+.fm-release-search input,.fm-release-editor :is(input:not([type=checkbox]),textarea,select){width:100%;max-width:100%;min-width:0;box-sizing:border-box;border:1px solid #45454a;border-radius:8px;background:#151515;color:#f8f8f8;padding:10px 12px;font:500 13px "DM Sans",sans-serif}
+.fm-release-search button,.fm-release-editor button[type=submit]{border:0;border-radius:9px;background:#ff6a00;color:#111;padding:10px 18px;min-height:42px;font:800 13px "DM Sans",sans-serif;cursor:pointer}
+.fm-release-search a{font:700 12px "DM Sans",sans-serif;padding:11px;color:#ff8b48}
+.fm-release-editor{margin:14px 0;padding:14px 16px;border:1px solid #38383e;border-radius:12px;background:#141414;color:#f8f8f8}
+.fm-release-editor>summary{cursor:pointer;user-select:none;font:750 14px "Gotham","DM Sans",sans-serif;color:#fff;list-style-position:inside}
+.fm-release-editor[open]>summary{margin-bottom:18px;color:#ff934f}
+.fm-release-editor form{display:grid;gap:15px;min-width:0}
+.fm-release-editor p{margin:0;color:#b6b6bb;font-size:12px;line-height:1.6}
+.fm-release-editor label{display:grid;gap:7px;min-width:0;font:700 12px "DM Sans",sans-serif;color:#dfdfe3}
+.fm-release-editor :is(input,textarea,select):focus-visible{outline:2px solid #ff6a00;outline-offset:2px}
+.fm-release-editor :is(input,textarea,select):read-only:not([type=checkbox]){opacity:.72;cursor:default}
+.fm-release-editor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.fm-release-editor-note{border-left:2px solid #ff6a00;padding:6px 11px;color:#d1bcae!important}
+.fm-release-editor-controls{display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+.fm-release-editor-controls span{font-size:11px;color:#a6a6ad}
+.fm-release-editor button:disabled{opacity:.6;cursor:wait}
+.fm-release-edit-ok{color:#8ce9b6!important}
+.fm-release-edit-error{color:#ffaaa2!important}
+.fm-release-editor .fm-release-editor-check{display:flex;align-items:center;gap:10px;line-height:1.5}
+.fm-release-editor .fm-release-editor-check input{width:16px;height:16px;accent-color:#ff6a00;flex:none}
+.fm-release-editor progress{width:100%;height:7px;accent-color:#ff6a00}
+@media(max-width:680px){.fm-release-editor-grid{grid-template-columns:1fr}.fm-release-editor{padding:13px 12px}.fm-release-search label{width:100%}}
