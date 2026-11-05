@@ -23,7 +23,7 @@ export default function ChatAppearanceControl(){
   return()=>{document.removeEventListener("pointerdown",outside);document.removeEventListener("keydown",escape);};
  },[open]);
  function select(wallpaper:ChatWallpaper){
-  if(!conversation?.setAppearance({wallpaper}))setError("Could not save this background on your device.");
+  if(!conversation?.setAppearance({wallpaper,image:conversation.appearance.image}))setError("Could not save this background on your device.");
   else{setError("");setOpen(false);}
  }
  async function choosePhoto(event:ChangeEvent<HTMLInputElement>){
