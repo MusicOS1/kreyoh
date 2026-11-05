@@ -47,3 +47,21 @@ test("admin release form maintains readable contrast against control-room light-
  assert.ok(styles.includes("select option"));
  assert.ok(styles.includes("::placeholder"));
 });
+
+test("release management supports a compact list and grid while retaining all editing actions",()=>{
+ const page=source("app/admin/(control)/releases/page.tsx");
+ const toggle=source("components/AdminReleaseViewToggle.tsx");
+ const css=source("app/admin/(control)/releases/release-editor.css");
+ const ast=ts.createSourceFile("AdminReleaseViewToggle.tsx",toggle,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+ assert.deepEqual(ast.parseDiagnostics.map(d=>d.messageText),[]);
+ assert.ok(page.includes("AdminReleaseViewToggle"));
+ assert.ok(page.includes("<details className=\"fm-release-item\""));
+ assert.ok(page.includes("<summary className=\"fm-release-summary\""));
+ for(const item of ["AdminReleaseDetailsEditor","AdminReleaseCoverReplacement","AdminReleaseAudioReplacement","ReleaseManagement"])assert.ok(page.includes(item),item);
+ for(const item of ['useState<ViewMode>("list")',"localStorage.setItem","aria-pressed","List</button>","Grid</button>"])assert.ok(toggle.includes(item),item);
+ for(const item of [".fm-release-view-grid .fm-release-items",".fm-release-summary","@media(max-width:760px)"])assert.ok(css.includes(item),item);
+ assert.ok(!page.includes('<article className="community-card"'));
+ assert.ok(page.includes('<BulkReleaseApproval count={pendingCount||0}/>'));
+ assert.ok(page.includes('  </AdminReleaseViewToggle>\n  <nav className="bulk-pagination"'));
+ assert.ok(!page.includes('BulkReleaseApprova\n'));
+});

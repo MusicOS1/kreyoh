@@ -57,3 +57,74 @@
   padding: 7px 10px;
   margin-right: 10px;
 }
+
+
+/* Compact release discovery. Only the open release displays full editing tools. */
+.fm-release-browser{margin:16px 0 22px;min-width:0}
+.fm-release-toolbar{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+.control-room .community-page .fm-release-toolbar p{margin:0;color:#505158;font:700 12px "DM Sans",sans-serif}
+.fm-release-toolbar p span{font-weight:450;color:#787982}
+.fm-release-view-buttons{display:flex;gap:3px;padding:4px;background:#e8e7e4;border:1px solid #d5d3ce;border-radius:11px}
+.control-room .community-page .fm-release-view-buttons button{background:transparent!important;color:#45464b!important;border:1px solid transparent!important;border-radius:8px!important;min-height:36px!important;padding:7px 13px!important;gap:7px;font:750 12px "DM Sans",sans-serif!important;box-shadow:none!important}
+.control-room .community-page .fm-release-view-buttons button[aria-pressed="true"]{background:#fff!important;color:#d95800!important;border-color:#e5e0d9!important;box-shadow:0 1px 4px #0000000c!important}
+.control-room .community-page .fm-release-view-buttons button:focus-visible{outline:2px solid #ff6a00;outline-offset:2px}
+.fm-release-items{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.control-room .community-page .fm-release-item{display:block;min-width:0;margin:0;padding:0;background:#fff;border:1px solid #e2e1dd;border-radius:13px;overflow:hidden;color:#212229;box-shadow:0 2px 8px #00000006}
+.control-room .community-page .fm-release-item[open]{border-color:#e6a16a;box-shadow:0 3px 15px #0000000b}
+.fm-release-summary{display:grid;grid-template-columns:48px minmax(0,1fr) minmax(80px,auto) 115px 79px;align-items:center;gap:12px;min-height:70px;box-sizing:border-box;cursor:pointer;list-style:none;padding:10px 16px}
+.fm-release-summary::-webkit-details-marker{display:none}
+.fm-release-summary:hover{background:#fbfaf8}
+.fm-release-summary:focus-visible{outline:2px solid #ff6a00;outline-offset:-3px}
+.fm-release-thumb,.fm-release-preview-art{display:grid;place-items:center;flex:none;background-color:#25262a;background-size:cover;background-position:center;color:#ff8b34;border-radius:8px}
+.fm-release-thumb{width:48px;height:48px;font-size:20px}
+.fm-release-row-copy{display:flex;flex-direction:column;gap:2px;min-width:0;line-height:1.3}
+.fm-release-row-copy strong{font:800 14px/1.3 "Gotham","DM Sans",sans-serif;color:#22232a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fm-release-artist{font:600 12px/1.3 "DM Sans",sans-serif;color:#4d4e53;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fm-release-row-copy small{font:500 11px/1.3 "DM Sans",sans-serif;color:#88898f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fm-release-status{justify-self:start;padding:5px 9px;border-radius:999px;background:#f1f0ed;color:#55545a;text-transform:capitalize;white-space:nowrap;font:750 10px/1.3 "DM Sans",sans-serif}
+.fm-release-status-published{background:#e3f5e9;color:#247a43}
+.fm-release-status-pending{background:#fff1de;color:#965400}
+.fm-release-status-rejected{background:#fce7e7;color:#a93030}
+.fm-release-row-date{font:550 11px "DM Sans",sans-serif;color:#74757b;white-space:nowrap}
+.fm-release-row-manage{display:inline-flex;align-items:center;justify-content:flex-end;gap:7px;color:#cf5a0d;font:750 11px "DM Sans",sans-serif;white-space:nowrap}
+.fm-release-row-manage span{font-size:21px;line-height:1;display:inline-block;transition:transform .16s ease}
+.fm-release-item[open] .fm-release-row-manage span{transform:rotate(180deg)}
+.fm-release-detail-body{display:grid;gap:14px;padding:18px 20px 24px;border-top:1px solid #e7e7e5;min-width:0}
+.fm-release-detail-head h2{font:800 19px/1.25 "Gotham","DM Sans",sans-serif;color:#25262a;margin:0 0 4px}
+.fm-release-detail-head p{font-size:12px;margin:0;color:#74747c}
+.fm-release-preview{display:grid;grid-template-columns:88px minmax(0,1fr);gap:15px;align-items:start;min-width:0}
+.fm-release-preview-art{width:88px;height:88px;font-size:26px}
+.fm-release-preview-info{display:grid;gap:7px;min-width:0}
+.fm-release-preview-info audio{display:block;max-width:570px;width:100%;margin:0}
+.fm-release-preview-info strong{font-size:12px;margin-top:4px}
+.fm-release-preview-info p{font-size:12px;line-height:1.5;margin:0;overflow-wrap:anywhere}
+.fm-release-detail-body>.community-muted{font-size:11px;line-height:1.55}
+.fm-release-detail-body>.fm-release-editor{margin:0}
+.fm-release-detail-body>.control-release-replacement{margin-top:0}
+.fm-release-view-grid .fm-release-items{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.fm-release-view-grid .fm-release-summary{min-height:120px;grid-template-columns:46px minmax(0,1fr);grid-template-areas:"cover title" "state date" "manage manage";gap:8px 10px;padding:13px;align-items:center}
+.fm-release-view-grid .fm-release-thumb{grid-area:cover;width:46px;height:46px}
+.fm-release-view-grid .fm-release-row-copy{grid-area:title}
+.fm-release-view-grid .fm-release-status{grid-area:state}
+.fm-release-view-grid .fm-release-row-date{grid-area:date;justify-self:end;font-size:10px}
+.fm-release-view-grid .fm-release-row-manage{grid-area:manage;justify-self:end}
+.fm-release-view-grid .fm-release-detail-body{padding:15px 13px}
+.fm-release-view-grid .fm-release-preview{grid-template-columns:1fr}
+.fm-release-view-grid .fm-release-preview-art{display:none}
+@media(max-width:1080px){.fm-release-view-grid .fm-release-items{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){
+ .fm-release-summary{grid-template-columns:42px minmax(0,1fr) auto;gap:9px;padding:10px 12px;min-height:63px}
+ .fm-release-thumb{width:42px;height:42px}
+ .fm-release-row-copy strong{font-size:12px}
+ .fm-release-row-date{display:none}
+ .fm-release-row-manage{display:none}
+ .fm-release-status{font-size:9px;padding:4px 7px}
+ .fm-release-view-grid .fm-release-items{grid-template-columns:minmax(0,1fr)}
+ .fm-release-view-grid .fm-release-summary{grid-template-columns:48px minmax(0,1fr);grid-template-areas:"cover title" "state manage";min-height:80px}
+ .fm-release-view-grid .fm-release-row-manage{display:inline-flex}
+ .fm-release-detail-body{padding:14px 12px 18px}
+ .fm-release-preview{grid-template-columns:1fr}
+ .fm-release-preview-art{display:none}
+ .fm-release-toolbar p span{display:none}
+}
+@media(prefers-reduced-motion:reduce){.fm-release-row-manage span{transition:none}}
