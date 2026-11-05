@@ -18,6 +18,8 @@ export default function AdminReleaseCoverReplacement({releaseId,linked=false}:{r
   setBusy(true);setProgress(0);setNotice("Authorising cover replacement…");
   try{
    const payload=new FormData(node);
+   // Never send the image bytes through a Server Action; the browser uploads directly to R2.
+   payload.delete("cover_file");
    payload.set("release_id",releaseId);payload.set("file_name",file.name);payload.set("file_size",String(file.size));
    const prepared=await prepareAdminCoverReplacement(payload);
    if(!prepared.ok)throw Error(prepared.error);
