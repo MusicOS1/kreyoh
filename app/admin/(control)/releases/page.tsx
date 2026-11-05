@@ -28,7 +28,8 @@ export default async function Releases({searchParams}:{searchParams:Promise<{pag
   <h1>Release management</h1>
   <p>Manage existing releases without charging artists for small corrections. Edit a title, description, credits or release date, replace cover artwork or upload an approved new recording without resetting plays, likes, comments or song links. Release visibility follows the scheduled Kenya date.</p>
   <form method="get" action="/admin/releases" className="fm-release-search"><label htmlFor="release-q">Find a release</label><input id="release-q" name="q" defaultValue={q} placeholder="Song title or artist name"/><button type="submit">Search</button>{q&&<Link href="/admin/releases">Clear</Link>}</form>
-  <BulkReleaseApprova
+  <BulkReleaseApproval count={pendingCount||0}/>
+  {!releases?.length&&<p>No releases on this page.</p>}
   <AdminReleaseViewToggle count={releases?.length||0}>
    {releases?.map(release=><details className="fm-release-item" key={release.id} id={"release-"+release.id}>
     <summary className="fm-release-summary">
@@ -66,8 +67,6 @@ export default async function Releases({searchParams}:{searchParams:Promise<{pag
     </div>
    </details>)}
   </AdminReleaseViewToggle>
-d} title={release.title} linked={Boolean(release.source_track_id)}/>
-   </article>)}
   <nav className="bulk-pagination" aria-label="Release review pages"><Link aria-disabled={page<=1} href={`/admin/releases?page=${Math.max(1,page-1)}${q?"&q="+encodeURIComponent(q):""}`}>← Previous</Link><span>Page {page} / {totalPages} · {count||0} reviewed or awaiting review</span><Link aria-disabled={page>=totalPages} href={`/admin/releases?page=${Math.min(totalPages,page+1)}${q?"&q="+encodeURIComponent(q):""}`}>Next →</Link></nav>
  </main>;
 }
