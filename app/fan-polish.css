@@ -345,3 +345,14 @@ html[data-fackts-fan-theme="ivory"] .fan-shell .fm-chat-person p{color:#48494c!i
  .fm-chat-send{width:40px!important}
  .fm-chat-emoji-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
 }
+
+/* Chat stays legible even when the listener chooses an ivory site theme. */
+.fm-chat-page{
+ --chat-bg:#0b0b0d;--chat-surface:#151517;--chat-raised:#252528;
+ --chat-text:#fff;--chat-muted:#aaa7a8;--chat-border:rgba(255,255,255,.14);
+ --chat-accent:#ff6a00;font-family:"DM Sans",sans-serif;
+}
+.fm-chat-page .fm-chat-person h1{font-family:"Gotham","DM Sans",sans-serif!important}
+html[data-fackts-fan-theme="ivory"] .fan-shell .fm-chat-page .fm-chat-bubble p,
+html[data-fackts-fan-theme="ivory"] .fan-shell .fm-chat-page .fm-chat-person h1{color:#fff!important}
+html[data-fackts-fan-theme="ivory"] .fan-shell .fm-chat-page .fm-chat-person p{color:#aaa7a8!important}
