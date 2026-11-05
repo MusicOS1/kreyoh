@@ -33,3 +33,16 @@ test("admin releases list offers metadata, cover, existing audio, and search",()
  const page=source("app/admin/(control)/releases/page.tsx");
  for(const name of ["AdminReleaseDetailsEditor","AdminReleaseCoverReplacement","AdminReleaseAudioReplacement","release-q"])assert.ok(page.includes(name),name);
 });
+
+test("admin release form maintains readable contrast against control-room light-theme overrides",()=>{
+ const styles=source("app/admin/(control)/releases/release-editor.css");
+ const community=source("app/community.css");
+ assert.match(community,/\\.control-room \\.community-page input[^\\n]*color:#171717/);
+ assert.match(styles,/\\.control-room \\.community-page \\.fm-release-editor :is\\(input:not\\(\\[type="checkbox"\\]\\), select, textarea\\)/);
+ assert.match(styles,/color: #f8fafc !important/);
+ assert.match(styles,/-webkit-text-fill-color: #f8fafc !important/);
+ assert.match(styles,/background: #202020 !important/);
+ assert.match(styles,/color-scheme: dark/);
+ assert.match(styles,/select option/);
+ assert.match(styles,/::placeholder/);
+});
