@@ -4,11 +4,12 @@ import {notFound,redirect} from "next/navigation";
 import AppShell from "../../../components/AppShell";
 import FanShell from "../../../components/FanShell";
 import ChatTimeline from "../../../components/ChatTimeline";
+import ChatAppearanceControl from "../../../components/ChatAppearanceControl";
 import {isFanProfile} from "../../../lib/fanProfile";
 import {getWorkspace} from "../../../lib/workspace";
 import {uuidPattern} from "../../../lib/community";
 import {creatorDisplayName} from "../../../lib/profileIdentity";
-import {ConversationProvider,ConversationAvailability,MessageComposer,ConversationRefresh,MemberBlock} from "../../../components/MemberConversation";
+import {ConversationProvider,ConversationAvailability,MessageComposer,ConversationRefresh,MemberBlock,MobileChatViewport} from "../../../components/MemberConversation";
 
 export default async function Conversation({params,searchParams}:{params:Promise<{userId:string}>;searchParams:Promise<{before?:string}>}){
  const other=(await params).userId;
@@ -20,10 +21,12 @@ export default async function Conversation({params,searchParams}:{params:Promise
  const name=creatorDisplayName(profile);
  const content=<main className="community-page member-community fm-chat-page">
    <ConversationProvider key={other+(before||'')} other={other} initial={{messages:data,disabled,blocked:ownBlock}} before={before}><div className="fm-chat-stage">
+    <MobileChatViewport/>
     <div className="fm-chat-header">
      <Link href="/messages" className="fm-chat-back" aria-label="Back to conversations">←</Link>
      <span className="fm-chat-header-avatar" aria-hidden="true">{profile.avatar_url?<img src={profile.avatar_url} alt=""/>:name.charAt(0).toUpperCase()}</span>
      <div className="fm-chat-person"><h1>{name}</h1><p>Private messages on FACKTS Music</p></div>
+     <ChatAppearanceControl/>
      <details className="fm-chat-more"><summary aria-label="Conversation options">•••</summary><div className="fm-chat-more-panel"><MemberBlock other={other} blocked={ownBlock}/><Link href="/messages">All conversations</Link></div></details>
     </div>
     <ConversationAvailability/>
