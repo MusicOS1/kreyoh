@@ -29,7 +29,20 @@ export function ConversationProvider({other,initial,before,children}:{other:stri
   try{const next=await backgroundInteraction<Snapshot>('conversation',{other,before});if(alive.current&&current===revision.current){setSnapshot(next);setError('');}}
   catch{if(alive.current&&current===revision.current)setError('Messages could not be refreshed. Reconnect to retry.');}
  },[other,before]);
- useEffect(()=>{alive.current=true;if(!before)void refresh();const timer=setInterval(()=>{if(!before&&document.visibilityState==='visible')void refresh();},10000);return()=>{alive.current=false;clearInterval(timer)};},[refresh,before]);
+ useEffect(()=>{
+  alive.current=true;
+  if(!before)void refresh();
+  const onChat=(event:Event)=>{
+   const sender=(event as CustomEvent<{senderId?:string;recipientId?:string}>).detail;
+   if(!before&&(sender?.senderId===other||sender?.recipientId===other))void refresh();
+  };
+  const onResume=()=>{if(!before&&document.visibilityState==="visible")void refresh();};
+  window.addEventListener("fm:chat:changed",onChat);
+  window.addEventListener("online",onResume);
+  document.addEventListener("visibilitychange",onResume);
+  const timer=setInterval(()=>{if(!before&&document.visibilityState==="visible")void refresh();},30000);
+  return()=>{alive.current=false;clearInterval(timer);window.removeEventListener("fm:chat:changed",onChat);window.removeEventListener("online",onResume);document.removeEventListener("visibilitychange",onResume)};
+ },[refresh,before,other]);
  return <Context.Provider value={{snapshot,refresh,appearance,setAppearance}}>{children}{error&&<p role="status">{error} <button onClick={()=>void refresh()}>Retry</button></p>}</Context.Provider>;
 }
 

@@ -356,3 +356,20 @@ html[data-fackts-fan-theme="ivory"] .fan-shell .fm-chat-person p{color:#48494c!i
 html[data-fackts-fan-theme="ivory"] .fan-shell .fm-chat-page .fm-chat-bubble p,
 html[data-fackts-fan-theme="ivory"] .fan-shell .fm-chat-page .fm-chat-person h1{color:#fff!important}
 html[data-fackts-fan-theme="ivory"] .fan-shell .fm-chat-page .fm-chat-person p{color:#aaa7a8!important}
+
+/* Live-alert preferences: deliberately scoped to the existing dark chat system. */
+.fm-chat-alert-settings{position:relative;flex:0 0 auto;z-index:20;font-family:"DM Sans",system-ui,sans-serif}
+.fm-chat-alert-trigger{min-height:38px;min-width:38px;padding:5px 8px;border-radius:50%;border:1px solid #373737!important;color:#fff!important;background:#171717!important;cursor:pointer}
+.fm-chat-alert-trigger:hover{border-color:#ff6a00!important}
+.fm-chat-alert-panel{position:absolute;z-index:60;right:0;top:calc(100% + 8px);width:min(330px,calc(100vw - 24px));background:#171717;color:#fff;border:1px solid #393939;box-shadow:0 14px 40px #000b;border-radius:14px;padding:16px;display:grid;gap:12px;font-size:13px;line-height:1.45}
+.fm-chat-alert-panel h2{font-family:"Gotham","DM Sans",sans-serif;color:#fff!important;font-size:16px!important;margin:0!important}
+.fm-chat-alert-panel p{color:#b8b8b8!important;font-size:12px!important;line-height:1.5;margin:0!important}
+.fm-chat-alert-panel label{display:flex!important;align-items:center;gap:9px;color:#fff!important;font-size:13px!important}
+.fm-chat-alert-panel label input[type=checkbox]{accent-color:#ff6a00;width:17px;height:17px;flex:0 0 auto}
+.fm-chat-alert-panel label input[type=checkbox]:disabled{opacity:.45}
+.fm-chat-alert-panel select{background:#0b0b0b!important;color:#fff!important;border:1px solid #3b3b3b!important;border-radius:9px;padding:10px;max-width:100%;width:100%}
+.fm-chat-alert-panel .fm-alert-test{background:#ff6a00!important;color:#0b0b0b!important;border:0!important;border-radius:9px!important;padding:10px 13px!important;min-height:35px!important;font-weight:750;cursor:pointer}
+.fm-chat-alert-panel .fm-alert-subnote{font-size:11px!important;color:#999!important}
+.fm-chat-live-toast{position:fixed;right:18px;bottom:100px;z-index:9999;background:#181818;border:1px solid #ff6a00a0;color:#fff;max-width:min(355px,calc(100vw - 24px));border-radius:13px;box-shadow:0 12px 28px #000b;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 15px;font:13px/1.5 "DM Sans",sans-serif}
+.fm-chat-live-toast a{color:#ff8e42;text-decoration:underline;white-space:nowrap}
+@media(max-width:650px){.fm-chat-alert-panel{right:-62px;max-height:62dvh;overflow:auto}.fm-chat-live-toast{bottom:80px;left:12px;right:12px;max-width:none}}

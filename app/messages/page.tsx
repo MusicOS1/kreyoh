@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AppShell from "../../components/AppShell";
+import ChatAlertPreferences from "../../components/ChatAlertPreferences";
 import FanShell from "../../components/FanShell";
 import {getWorkspace} from "../../lib/workspace";
 import {fanHeroSettings,heroImage} from "../../lib/fanHero";
@@ -35,7 +36,7 @@ export default async function Messages({searchParams}:{searchParams:Promise<{q?:
   </header>
   <div className="fm-inbox-main">
    <section className="fm-inbox-threads">
-    <div className="fm-inbox-section-head"><div><span className="eyebrow">YOUR PEOPLE</span><h2>Messages</h2></div><Link href="/fan">Discover music ↗</Link></div>
+    <div className="fm-inbox-section-head"><div><span className="eyebrow">YOUR PEOPLE</span><h2>Messages</h2></div><ChatAlertPreferences userId={user.id}/><Link href="/fan">Discover music ↗</Link></div>
     <form className="fm-inbox-search"><label htmlFor="fm-find-person" className="sr-only">Find a person</label><span aria-hidden="true">⌕</span><input id="fm-find-person" type="search" name="q" defaultValue={term} placeholder="Search conversations or artists"/><button type="submit">Find</button></form>
     {!filteredThreads.length&&<p className="fm-inbox-empty">{term?"No conversations match your search.":"Your conversations will appear here. Pick an artist below to say hello."}</p>}
     <div className="fm-inbox-thread-list">{filteredThreads.map(([id,message])=>{
