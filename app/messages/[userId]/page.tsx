@@ -21,7 +21,7 @@ export default async function Conversation({params,searchParams}:{params:Promise
  const messages=[...data].reverse();
  const name=creatorDisplayName(profile);
  const content=<main className="community-page member-community fm-chat-page">
-   <ConversationProvider key={other+(before||'')} other={other} initial={{messages:data,disabled,blocked:ownBlock}} before={before}><div className="fm-chat-stage">
+   <ConversationProvider key={other+(before||'')} other={other} initial={{messages:data,reactions:snapshot.reactions||[],disabled,blocked:ownBlock}} before={before}><div className="fm-chat-stage">
     <MobileChatViewport/>
     <div className="fm-chat-header">
      <Link href="/messages" className="fm-chat-back" aria-label="Back to conversations">←</Link>

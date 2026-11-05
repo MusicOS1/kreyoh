@@ -27,7 +27,7 @@ export default function ChatLiveAlerts(){
     return;
    }
    const senderId=typeof payload.senderId==="string"?payload.senderId:"";
-   if(!senderId||senderId===userId)return; // Outgoing messages and other tabs should not ring.
+   if(!senderId||senderId===userId||payload.readReceipt===true||payload.reaction===true)return; // Silent receipts and reactions.
    if(pathname==="/messages/"+senderId)return; // Already reading the conversation.
    const prefs=readChatAlerts(userId);
    if(!prefs.enabled||readChatMute(userId,senderId))return;
