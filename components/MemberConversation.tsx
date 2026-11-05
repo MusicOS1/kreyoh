@@ -103,7 +103,7 @@ export function MessageComposer({other,disabled}:{other:string;disabled:boolean}
   <div className="fm-chat-emoji-area" ref={emojiArea}>
    <button type="button" className="fm-chat-emoji" disabled={unavailable} onClick={()=>{setEmojiOpen(current=>!current);setEmojiSearch('');}} aria-label="Choose emoji" aria-haspopup="dialog" aria-expanded={emojiOpen}>☺</button>
    {emojiOpen&&<div className="fm-chat-emoji-picker" role="dialog" aria-label="Choose an emoji">
-    <label className="fm-chat-emoji-search"><span className="sr-only">Search emojis</span><input type="search" value={emojiSearch} onChange={event=>setEmojiSearch(event.target.value)} placeholder="Search emojis" autoComplete="off"/></label>
+    <label className="fm-chat-emoji-search"><span className="sr-only">Search emojis</span><input type="search" value={emojiSearch} onChange={event=>setEmojiSearch(event.target.value)} onKeyDown={event=>{if(event.key==="Enter")event.preventDefault();}} placeholder="Search emojis" autoComplete="off"/></label>
     <div className="fm-chat-emoji-scroll">{EMOJI_GROUPS.map(group=>{
      const items=group.items.filter(([emoji,name])=>!search||name.includes(search)||emoji.includes(search));
      return items.length>0?<section key={group.name}><h3>{group.name}</h3><div className="fm-chat-emoji-grid">{items.map(([emoji,name])=><button key={name} type="button" title={name} aria-label={name} onClick={()=>insertEmoji(emoji)}>{emoji}</button>)}</div></section>:null;
