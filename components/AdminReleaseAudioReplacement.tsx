@@ -20,6 +20,8 @@ export default function AdminReleaseAudioReplacement({releaseId,title,linked=fal
   setBusy(true);setProgress(0);setNotice("Preparing a secure replacement…");
   try{
    const data=new FormData(form);
+   // Keep the master file in the direct-to-R2 upload, never the server-action payload.
+   data.delete("replacement_file");
    data.set("release_id",releaseId);data.set("file_name",file.name);data.set("file_size",String(file.size));
    const prepared=await prepareAdminAudioReplacement(data);
    if(!prepared.ok)throw Error(prepared.error);
