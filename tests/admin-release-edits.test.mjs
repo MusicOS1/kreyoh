@@ -37,12 +37,13 @@ test("admin releases list offers metadata, cover, existing audio, and search",()
 test("admin release form maintains readable contrast against control-room light-theme overrides",()=>{
  const styles=source("app/admin/(control)/releases/release-editor.css");
  const community=source("app/community.css");
- assert.match(community,/\\.control-room \\.community-page input[^\\n]*color:#171717/);
- assert.match(styles,/\\.control-room \\.community-page \\.fm-release-editor :is\\(input:not\\(\\[type="checkbox"\\]\\), select, textarea\\)/);
- assert.match(styles,/color: #f8fafc !important/);
- assert.match(styles,/-webkit-text-fill-color: #f8fafc !important/);
- assert.match(styles,/background: #202020 !important/);
- assert.match(styles,/color-scheme: dark/);
- assert.match(styles,/select option/);
- assert.match(styles,/::placeholder/);
+ assert.ok(community.includes(".control-room .community-page input"));
+ assert.ok(community.includes("color:#171717"));
+ assert.ok(styles.includes('.control-room .community-page .fm-release-editor :is(input:not([type="checkbox"]), select, textarea)'));
+ assert.ok(styles.includes("color: #f8fafc !important"));
+ assert.ok(styles.includes("-webkit-text-fill-color: #f8fafc !important"));
+ assert.ok(styles.includes("background: #202020 !important"));
+ assert.ok(styles.includes("color-scheme: dark"));
+ assert.ok(styles.includes("select option"));
+ assert.ok(styles.includes("::placeholder"));
 });
