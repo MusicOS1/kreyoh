@@ -1,6 +1,7 @@
 "use client";
 import {useEffect,useState} from "react";
 import {usePathname,useRouter} from "next/navigation";
+import Link from "next/link";
 import {createClient} from "../lib/client";
 import {playChatTone,readChatAlerts,readChatMute} from "../lib/chatAlerts";
 import type {Session} from "@supabase/supabase-js";
@@ -36,7 +37,7 @@ export default function ChatLiveAlerts(){
    const href="/messages/"+encodeURIComponent(senderId);
    show("New message on FACKTS Music",href);
    if(prefs.showSystem&&typeof Notification!=="undefined"&&Notification.permission==="granted"&&document.hidden){
-    try{const n=new Notification("FACKTS Music",{body:"You have a new private message",icon:"/branding/fackts-music-logo.png",tag:"fackts-message-"+senderId});n.onclick=()=>{window.focus();window.location.assign(href);};}catch{}
+    try{const n=new Notification("FACKTS Music",{body:"You have a new private message",icon:"/branding/fackts-music-logo.png",tag:"fackts-message-"+senderId});n.onclick=()=>{window.focus();router.push(href);};}catch{}
    }
   };
   const connect=async(session:Session|null)=>{
@@ -60,5 +61,5 @@ export default function ChatLiveAlerts(){
  // pathname is intentionally a dependency so chat view suppression stays accurate.
  },[pathname,router]);
  if(!notice)return null;
- return <div className="fm-chat-live-toast" role="status"><span>{notice.text}</span><a href={notice.href} aria-label="Open new message">Open chat</a><button type="button" aria-label="Dismiss alert" onClick={()=>setNotice(null)} style={{background:"transparent",border:0,color:"#aaa",fontSize:18,cursor:"pointer"}}>×</button></div>;
+ return <div className="fm-chat-live-toast" role="status"><span>{notice.text}</span><Link href={notice.href} aria-label="Open new message">Open chat</Link><button type="button" aria-label="Dismiss alert" onClick={()=>setNotice(null)} style={{background:"transparent",border:0,color:"#aaa",fontSize:18,cursor:"pointer"}}>×</button></div>;
 }
