@@ -23,7 +23,9 @@ export default function ChatTimeline({messages:initialMessages,viewerId,otherNam
     previousLatest.current=latest;
   },[messages]);
   let previousDay="";
-  return <section ref={scrollRef} className="fm-chat-timeline" aria-label={"Conversation with "+otherName} aria-live="polite" aria-relevant="additions">
+  const wallpaper=conversation?.appearance.wallpaper||"studio";
+  const photo=wallpaper==="custom"?conversation?.appearance.image:undefined;
+  return <section ref={scrollRef} className={"fm-chat-timeline fm-wallpaper-"+wallpaper} style={photo?{backgroundImage:"linear-gradient(rgba(4,4,4,.40),rgba(4,4,4,.50)),url("+JSON.stringify(photo)+")",backgroundSize:"cover",backgroundPosition:"center"}:undefined} aria-label={"Conversation with "+otherName} aria-live="polite" aria-relevant="additions">
     {!messages.length&&<div className="fm-chat-empty"><span aria-hidden="true">✦</span><strong>Every connection starts somewhere.</strong><p>Send your first message and start a conversation about the music.</p></div>}
     {messages.map(message=>{
       const mine=message.sender_id===viewerId,day=dayKey(message.created_at);
