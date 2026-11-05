@@ -1,16 +1,19 @@
 "use client";
 import {createContext,useContext,useEffect,useRef,useState,useCallback,type FormEvent} from 'react';
 import {backgroundInteraction} from '../lib/backgroundInteraction';
-export type ChatMessage={id:string;body:string;sender_id:string;created_at:string;read_at:string|null};
-type Snapshot={messages:ChatMessage[];disabled:boolean;blocked:boolean};
+export type ChatMessage={id:string;body:string;sender_id:string;created_at:string;read_at:string|null;reply_to_id?:string|null};
+export type ChatReaction={message_id:string;user_id:string;emoji:string};
+export type ReplyTarget={id:string;body:string;sender:string};
+type Snapshot={messages:ChatMessage[];reactions:ChatReaction[];disabled:boolean;blocked:boolean};
 export type ChatWallpaper="studio"|"embers"|"midnight"|"graphite"|"custom";
 export type ChatAppearance={wallpaper:ChatWallpaper;image?:string};
 const WALLPAPERS:ChatWallpaper[]=["studio","embers","midnight","graphite","custom"];
-const Context=createContext<{snapshot:Snapshot;refresh:()=>Promise<void>;appearance:ChatAppearance;setAppearance:(next:ChatAppearance)=>boolean}|null>(null);
+const Context=createContext<{snapshot:Snapshot;refresh:()=>Promise<void>;appearance:ChatAppearance;setAppearance:(next:ChatAppearance)=>boolean;replyTarget:ReplyTarget|null;setReplyTarget:(reply:ReplyTarget|null)=>void}|null>(null);
 export const useConversation=()=>useContext(Context);
 export function ConversationProvider({other,initial,before,children}:{other:string;initial:Snapshot;before?:string;children:React.ReactNode}){
  const[snapshot,setSnapshot]=useState(initial),[error,setError]=useState('');
  const[appearance,setAppearanceState]=useState<ChatAppearance>({wallpaper:"studio"});
+ const[replyTarget,setReplyTarget]=useState<ReplyTarget|null>(null);
  const revision=useRef(0),alive=useRef(true);
  useEffect(()=>{
   try{
@@ -29,8 +32,21 @@ export function ConversationProvider({other,initial,before,children}:{other:stri
   try{const next=await backgroundInteraction<Snapshot>('conversation',{other,before});if(alive.current&&current===revision.current){setSnapshot(next);setError('');}}
   catch{if(alive.current&&current===revision.current)setError('Messages could not be refreshed. Reconnect to retry.');}
  },[other,before]);
- useEffect(()=>{alive.current=true;if(!before)void refresh();const timer=setInterval(()=>{if(!before&&document.visibilityState==='visible')void refresh();},10000);return()=>{alive.current=false;clearInterval(timer)};},[refresh,before]);
- return <Context.Provider value={{snapshot,refresh,appearance,setAppearance}}>{children}{error&&<p role="status">{error} <button onClick={()=>void refresh()}>Retry</button></p>}</Context.Provider>;
+ useEffect(()=>{
+  alive.current=true;
+  if(!before)void refresh();
+  const onChat=(event:Event)=>{
+   const sender=(event as CustomEvent<{senderId?:string;recipientId?:string}>).detail;
+   if(!before&&(sender?.senderId===other||sender?.recipientId===other))void refresh();
+  };
+  const onResume=()=>{if(!before&&document.visibilityState==="visible")void refresh();};
+  window.addEventListener("fm:chat:changed",onChat);
+  window.addEventListener("online",onResume);
+  document.addEventListener("visibilitychange",onResume);
+  const timer=setInterval(()=>{if(!before&&document.visibilityState==="visible")void refresh();},30000);
+  return()=>{alive.current=false;clearInterval(timer);window.removeEventListener("fm:chat:changed",onChat);window.removeEventListener("online",onResume);document.removeEventListener("visibilitychange",onResume)};
+ },[refresh,before,other]);
+ return <Context.Provider value={{snapshot,refresh,appearance,setAppearance,replyTarget,setReplyTarget}}>{children}{error&&<p role="status">{error} <button onClick={()=>void refresh()}>Retry</button></p>}</Context.Provider>;
 }
 
 /** Uses the visible viewport so iOS/Android keyboards never cover the composer. */
@@ -85,9 +101,9 @@ export function MessageComposer({other,disabled}:{other:string;disabled:boolean}
  },[emojiOpen]);
  async function submit(event:FormEvent<HTMLFormElement>){
   event.preventDefault();if(unavailable||lock.current||!draft.trim())return;
-  const body=draft;lock.current=true;setPending(true);setError('');
-  const data=new FormData();data.set('recipient',other);data.set('body',body);
-  try{const result=await backgroundInteraction<{error:string;sent:number}>('messageSend',data);if(result.error)throw new Error(result.error);setDraft(current=>current===body?'':current);await context?.refresh();input.current?.focus();}
+  const body=draft;const replyId=context?.replyTarget?.id;lock.current=true;setPending(true);setError('');
+  const data=new FormData();data.set('recipient',other);data.set('body',body);if(replyId)data.set('reply_to',replyId);
+  try{const result=await backgroundInteraction<{error:string;sent:number}>('messageSend',data);if(result.error)throw new Error(result.error);setDraft(current=>current===body?'':current);context?.setReplyTarget(null);await context?.refresh();input.current?.focus();}
   catch(error){setError(error instanceof Error?error.message:'Message could not be sent. Your text is kept.');}
   finally{lock.current=false;setPending(false);}
  }
@@ -100,6 +116,7 @@ export function MessageComposer({other,disabled}:{other:string;disabled:boolean}
  }
  const search=emojiSearch.trim().toLowerCase();
  return <form ref={form} onSubmit={submit} className="message-composer fm-chat-composer">
+  {context?.replyTarget&&<div className="fm-chat-reply-preview"><span><strong>Replying to {context.replyTarget.sender}</strong><small>{context.replyTarget.body.slice(0,130)}</small></span><button type="button" onClick={()=>context.setReplyTarget(null)} aria-label="Cancel reply">×</button></div>}
   <div className="fm-chat-emoji-area" ref={emojiArea}>
    <button type="button" className="fm-chat-emoji" disabled={unavailable} onClick={()=>{setEmojiOpen(current=>!current);setEmojiSearch('');}} aria-label="Choose emoji" aria-haspopup="dialog" aria-expanded={emojiOpen}>☺</button>
    {emojiOpen&&<div className="fm-chat-emoji-picker" role="dialog" aria-label="Choose an emoji">
