@@ -6,6 +6,7 @@ import {useMusicIdentity} from "./SessionExperience";
 import {usePathname} from "next/navigation";
 import {moveQueueTrack,nextPlaybackIndex} from "../lib/playerQueue";
 import {backgroundInteraction} from "../lib/backgroundInteraction";
+import {registerSystemMediaActions,updateSystemMediaTrack,updateSystemPlaybackState,updateSystemPlaybackPosition,type SystemMediaActions} from "../lib/systemMediaSession";
 import {Volume2Icon,VolumeXIcon} from "./Icons";
 
 // Stable shared empty list: never recreate a dependency array during render.
@@ -28,7 +29,7 @@ function PlayerGlyph({kind}:{kind:"shuffle"|"previous"|"play"|"pause"|"next"|"re
 
 export type PlaylistTrack={id:string;title:string;subtitle:string;src:string;artwork?:string;ranking?:number;listened:boolean;eligible:boolean;finalScore?:number;communityScore?:number;arScore?:number;firstPlaceVotes?:number;};
 
-export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedStats=false,enableRanking=true,votingOpen=true,autoStart=false,compact=false,onTrackPlay,onProgress,onPlaybackChange,seekRequest,playRequest,persistenceKey,showSaveAction=false,initialSavedIds=EMPTY_SAVED_IDS}:{tracks:PlaylistTrack[];resultsVisible?:boolean;showDetailedStats?:boolean;enableRanking?:boolean;votingOpen?:boolean;autoStart?:boolean;compact?:boolean;onTrackPlay?:(id:string)=>void;onProgress?:(id:string,position:number,duration:number)=>void;onPlaybackChange?:(id:string,playing:boolean)=>void;seekRequest?:{id:string;time:number;nonce:number};playRequest?:{id:string;nonce:number};persistenceKey?:string;showSaveAction?:boolean;initialSavedIds?:string[]}){
+export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedStats=false,enableRanking=true,votingOpen=true,autoStart=false,compact=false,onTrackPlay,onProgress,onPlaybackChange,seekRequest,playRequest,persistenceKey,showSaveAction=false,initialSavedIds=EMPTY_SAVED_IDS,systemMediaControls=false}:{tracks:PlaylistTrack[];resultsVisible?:boolean;showDetailedStats?:boolean;enableRanking?:boolean;votingOpen?:boolean;autoStart?:boolean;compact?:boolean;onTrackPlay?:(id:string)=>void;onProgress?:(id:string,position:number,duration:number)=>void;onPlaybackChange?:(id:string,playing:boolean)=>void;seekRequest?:{id:string;time:number;nonce:number};playRequest?:{id:string;nonce:number};persistenceKey?:string;showSaveAction?:boolean;initialSavedIds?:string[];systemMediaControls?:boolean}){
  const[current,setCurrent]=useState(0),[localTracks,setLocalTracks]=useState(tracks),[notice,setNotice]=useState(""),[isPlaying,setIsPlaying]=useState(false),[expanded,setExpanded]=useState(false),[pending,setRankPending]=useState(false);
  const [shuffle,setShuffle]=useState(false),[repeat,setRepeat]=useState<"off"|"all"|"one">("off"),[speed,setSpeed]=useState(1),[position,setPosition]=useState(0),[duration,setDuration]=useState(0),[volume,setVolume]=useState(1);
  const {identity,ready}=useMusicIdentity();
@@ -42,6 +43,8 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
  const playNextId=useRef<string|null>(null);
  const played=useRef<number[]>([]),history=useRef<number[]>([]),lastAudibleVolume=useRef(1);
  const audioRef=useRef<HTMLAudioElement>(null),autoPlayRef=useRef(autoStart),listenRecorded=useRef(new Set(tracks.filter(t=>t.listened).map(t=>t.id)));
+ const lastMediaSync=useRef(0);
+ const systemActions=useRef<SystemMediaActions>({play:()=>{},pause:()=>{},previous:()=>{},next:()=>{},stop:()=>{},seek:()=>{},seekBy:()=>{}});
 
  useEffect(()=>{const id=localTracks[current]?.id;setLocalTracks(tracks);const next=tracks.findIndex(t=>t.id===id);setCurrent(next<0?0:next);played.current=[];history.current=[];},[tracks]);
  useEffect(()=>{
@@ -65,6 +68,29 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
  useEffect(()=>{const save=()=>savePosition(true);window.addEventListener("pagehide",save);document.addEventListener("visibilitychange",save);return()=>{window.removeEventListener("pagehide",save);document.removeEventListener("visibilitychange",save);};},[storageKey,localTracks,current]);
  const rankLock=useRef(false);
  const selected=localTracks[Math.min(current,Math.max(0,localTracks.length-1))];
+ // Android media notification / lock-screen / Bluetooth headset transport.
+ // The persistent public player is the sole owner; project review players do not register controls.
+ useEffect(()=>{
+  if(!systemMediaControls)return;
+  return registerSystemMediaActions({
+   play:()=>systemActions.current.play(),
+   pause:()=>systemActions.current.pause(),
+   previous:()=>systemActions.current.previous(),
+   next:()=>systemActions.current.next(),
+   stop:()=>systemActions.current.stop(),
+   seek:seconds=>systemActions.current.seek(seconds),
+   seekBy:seconds=>systemActions.current.seekBy(seconds),
+  });
+ },[systemMediaControls]);
+ useEffect(()=>{
+  if(systemMediaControls&&selected)updateSystemMediaTrack({
+   title:selected.title,artist:selected.subtitle,artwork:selected.artwork,
+  });
+ },[systemMediaControls,selected?.id,selected?.title,selected?.subtitle,selected?.artwork]);
+ useEffect(()=>{
+  if(systemMediaControls)updateSystemPlaybackState(isPlaying);
+ },[systemMediaControls,isPlaying]);
+
 
  useEffect(()=>{const p=audioRef.current;if(!p)return;p.playbackRate=speed;if(autoPlayRef.current){autoPlayRef.current=false;p.play().catch(()=>setIsPlaying(false));}},[current,selected?.src,speed]);
 
@@ -91,6 +117,28 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
  function togglePlayback(){setCanResume(false);const p=audioRef.current;if(!p)return;p.paused?p.play().catch(()=>setIsPlaying(false)):p.pause();}
  function setPlayerVolume(value:number){const next=Math.max(0,Math.min(1,value));if(next>0)lastAudibleVolume.current=next;setVolume(next);if(audioRef.current)audioRef.current.volume=next;}
  function toggleMute(){setPlayerVolume(volume===0?lastAudibleVolume.current:0);}
+ function seekMedia(seconds:number){
+  const audio=audioRef.current;if(!audio||!Number.isFinite(seconds))return;
+  audio.currentTime=Math.max(0,Math.min(Number.isFinite(audio.duration)?audio.duration:seconds,seconds));
+  setPosition(audio.currentTime);syncMediaPosition(true);
+ }
+ function syncMediaPosition(force=false){
+  if(!systemMediaControls||!audioRef.current)return;
+  if(!force&&Date.now()-lastMediaSync.current<2500)return;
+  lastMediaSync.current=Date.now();
+  updateSystemPlaybackPosition(audioRef.current);
+ }
+ // Keep handlers current when shuffle, repeat, selected track, or queue changes.
+ // Hardware Next uses the same shuffle/repeat algorithm as the app's Next button.
+ systemActions.current={
+  play:()=>{setCanResume(false);void audioRef.current?.play().catch(()=>setIsPlaying(false));},
+  pause:()=>{audioRef.current?.pause();},
+  previous:()=>previousTrack(),
+  next:()=>nextTrack(),
+  stop:()=>{const audio=audioRef.current;if(audio){audio.pause();audio.currentTime=0;}setPosition(0);},
+  seek:seconds=>seekMedia(seconds),
+  seekBy:seconds=>seekMedia((audioRef.current?.currentTime||0)+seconds),
+ };
  async function toggleSaved(){
   if(!identity){window.location.assign("/login?next=/fan");return;}
   if(savingTrack)return;
@@ -139,9 +187,9 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
    {showSaveAction&&<button type="button" className="player-save-toggle" aria-label={savedIds.includes(selected.id)?"Remove "+selected.title+" from liked songs":"Save "+selected.title+" to liked songs"} title={savedIds.includes(selected.id)?"Remove from liked songs":"Save to liked songs"} aria-pressed={savedIds.includes(selected.id)} disabled={Boolean(savingTrack)} onClick={()=>void toggleSaved()}><PlayerGlyph kind="heart"/></button>}
    <audio ref={audioRef} key={selected.src} src={selected.src} preload="metadata" onLoadedMetadata={()=>{setDuration(audioRef.current?.duration||0);const pending=pendingPosition.current;
     const audio=audioRef.current;
-    if(audio){audio.volume=volume;if(pending?.id===selected.id){const time=Math.min(pending.position,Math.max(0,(Number.isFinite(audio.duration)?audio.duration:pending.position)-.1));audio.currentTime=time;setPosition(time);pendingPosition.current=null;}else setPosition(0);}}} onPlay={()=>{setIsPlaying(true);onPlaybackChange?.(selected.id,true);onTrackPlay?.(selected.id);}} onPause={()=>{savePosition(true);setIsPlaying(false);onPlaybackChange?.(selected.id,false);}} onTimeUpdate={()=>{savePosition();setPosition(audioRef.current?.currentTime||0);captureListen();if(audioRef.current)onProgress?.(selected.id,audioRef.current.currentTime,Number.isFinite(audioRef.current.duration)?audioRef.current.duration:0);}} onEnded={ended} onError={()=>{setIsPlaying(false);setNotice("This audio could not be loaded. Refresh the page and try again.");}}/>
+    if(audio){audio.volume=volume;if(pending?.id===selected.id){const time=Math.min(pending.position,Math.max(0,(Number.isFinite(audio.duration)?audio.duration:pending.position)-.1));audio.currentTime=time;setPosition(time);pendingPosition.current=null;}else setPosition(0);syncMediaPosition(true);}}} onPlay={()=>{setIsPlaying(true);syncMediaPosition(true);onPlaybackChange?.(selected.id,true);onTrackPlay?.(selected.id);}} onPause={()=>{savePosition(true);syncMediaPosition(true);setIsPlaying(false);onPlaybackChange?.(selected.id,false);}} onTimeUpdate={()=>{savePosition();setPosition(audioRef.current?.currentTime||0);syncMediaPosition();captureListen();if(audioRef.current)onProgress?.(selected.id,audioRef.current.currentTime,Number.isFinite(audioRef.current.duration)?audioRef.current.duration:0);}} onEnded={ended} onError={()=>{setIsPlaying(false);setNotice("This audio could not be loaded. Refresh the page and try again.");}}/>
    {canResume&&<button type="button" className="resume-listening" onClick={togglePlayback}>Resume Listening</button>}
-   <div className="player-progress"><input style={{background:`linear-gradient(to right, #ff6a00 0%, #ff6a00 ${duration>0?Math.min(100,Math.max(0,position/duration*100)):0}%, #555 ${duration>0?Math.min(100,Math.max(0,position/duration*100)):0}%, #555 100%)`}} type="range" aria-label="Seek in track" min={0} max={Number.isFinite(duration)?duration:0} step={0.1} value={position} onChange={e=>{if(audioRef.current)audioRef.current.currentTime=Number(e.target.value);setPosition(Number(e.target.value));}}/><div><span>{clock(position)}</span><span>{clock(Number.isFinite(duration)?duration:0)}</span></div></div>
+   <div className="player-progress"><input style={{background:`linear-gradient(to right, #ff6a00 0%, #ff6a00 ${duration>0?Math.min(100,Math.max(0,position/duration*100)):0}%, #555 ${duration>0?Math.min(100,Math.max(0,position/duration*100)):0}%, #555 100%)`}} type="range" aria-label="Seek in track" min={0} max={Number.isFinite(duration)?duration:0} step={0.1} value={position} onChange={e=>{if(audioRef.current)audioRef.current.currentTime=Number(e.target.value);setPosition(Number(e.target.value));syncMediaPosition(true);}}/><div><span>{clock(position)}</span><span>{clock(Number.isFinite(duration)?duration:0)}</span></div></div>
    <div className="track-playlist-transport" aria-label="Playlist controls"><button type="button" aria-label="Shuffle" aria-pressed={shuffle} onClick={()=>{played.current=[];setShuffle(value=>!value);}} title="Shuffle"><PlayerGlyph kind="shuffle"/></button><button type="button" onClick={previousTrack} aria-label="Previous track"><PlayerGlyph kind="previous"/></button><button type="button" className="main" onClick={togglePlayback} aria-label={isPlaying?"Pause":"Play"}>{isPlaying?<PlayerGlyph kind="pause"/>:<PlayerGlyph kind="play"/>}</button><button type="button" onClick={nextTrack} aria-label="Next track"><PlayerGlyph kind="next"/></button><button type="button" aria-label={`Repeat: ${repeat}`} aria-pressed={repeat!=="off"} title={`Repeat: ${repeat}`} onClick={()=>setRepeat(value=>value==="off"?"all":value==="all"?"one":"off")}><PlayerGlyph kind="repeat"/>{repeat==="one"&&<span className="repeat-one">1</span>}</button></div><p className="player-mode-label">{shuffle?"Shuffle on":"In order"} · Repeat {repeat} · {current+1} / {localTracks.length}</p>
    <div className="player-volume" role="group" aria-label="Volume controls">
      <button type="button" className="player-mute-toggle" aria-label={volume===0?"Unmute":"Mute"} aria-pressed={volume===0} onClick={toggleMute}>
