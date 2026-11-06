@@ -34,7 +34,7 @@ export default async function ShowDetails({params}:Props){
  return <>
   <PublicNavigation/>
   <main className="fm-show-detail">
-   <nav className="fm-show-back"><Link href="/fan?tab=Shows">← Shows &amp; sessions</Link></nav>
+   <nav className="fm-show-back"><Link href="/listen?tab=Shows">← Shows &amp; sessions</Link></nav>
    <header className="fm-show-detail-hero">
     {item.image&&<img src={item.image} alt={item.title+" poster"} className="fm-show-detail-art"/>}
     <div className="fm-show-detail-overlay" aria-hidden="true"/>
@@ -46,7 +46,7 @@ export default async function ShowDetails({params}:Props){
      <p className="fm-show-detail-summary">{item.description}</p>
      <div className="fm-show-detail-actions">
       {item.url&&<a className="fm-show-primary-link" href={item.url} target="_blank" rel="noopener noreferrer">Open live / watch <span aria-hidden="true">↗</span></a>}
-      <Link href="/fan?tab=Shows" className="fm-show-secondary-link">Explore more shows</Link>
+      <Link href="/listen?tab=Shows" className="fm-show-secondary-link">Explore more shows</Link>
      </div>
     </div>
    </header>
