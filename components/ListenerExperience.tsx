@@ -14,6 +14,7 @@ import StreamArtistHero from './streaming/StreamArtistHero';
 import ConfiguredFanHero from './ConfiguredFanHero';
 import StreamTrackRow from './streaming/StreamTrackRow';
 import ArtistDiscovery from './ArtistDiscovery';
+import ShowsLanding from './ShowsLanding';
 import {moveQueueTrack} from '../lib/playerQueue';
 import {backgroundInteraction} from '../lib/backgroundInteraction';
 type Release={attributed_artist_profile_id?:string;explicit_artist_link?:boolean;featured_artist_ids?:string[];id:string;title:string;artist_id:string;artist_name:string;collection:string;has_cover:boolean;release_at:string;votes:number;genre?:string};
@@ -216,16 +217,8 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
       <span>THE FACKTS CHART</span><h1>Billboard</h1><p>Music making moves across the FACKTS community.</p></div>}
       {rows.length?trackList(rows,true):<p className="fs-empty">The chart will appear once live releases are available.</p>}
     </div>}
-    {tab==="Shows"&&<div className="fs-main-view">{hero?<ConfiguredFanHero hero={hero} fallbackImage={featured}/>:<div className="fs-page-heading">
-     <span>BEHIND THE MUSIC</span><h1>Shows &amp; conversations</h1><p>Artist stories, studio moments and conversations.</p></div>}
-     <div className="fs-shows">{editorial.filter(x=>x.kind==="show").map(item=><article key={item.id}>
-       {item.image&&<img src={item.image} alt="" loading="lazy"/>}
-       <div><h2>{item.title}</h2><p>{item.description}</p>{item.url&&<a target="_blank" rel="noopener noreferrer" href={item.url}>Watch <ArrowUpRight size={16}/></a>}</div></article>)}</div>
-     {!editorial.some(x=>x.kind==="show")&&<div className="fs-shows-empty">
-       <h2>No shows published yet.</h2>
-       <p>Discover the artists and their music while this space develops.</p>
-       <button type="button" onClick={()=>selectTab("Artists")}>Discover artists <ArrowUpRight size={16}/></button>
-     </div>}
+    {tab==="Shows"&&<div className="fs-main-view">
+      <ShowsLanding items={editorial}/>
     </div>}
     {tab==="My Library"&&<div className="fs-main-view">{hero?<ConfiguredFanHero hero={hero} fallbackImage={featured}/>:<div className="fs-page-heading"><span>YOUR SPACE</span><h1>Your library</h1>
       <p>Your favourite music, playlists and artists. Available when signed in.</p></div>}
