@@ -1,9 +1,16 @@
 "use client";
 import {useActionState,useState} from "react";
+import Link from "next/link";
 import {backgroundFormAction} from "../lib/backgroundInteraction";
 import {fanHeroAreas,type FanHeroArea,type FanHeroConfig} from "../lib/fanHeroConfig";
 
 type Artwork={id:string;title:string;artist_name:string;has_cover:boolean};
+const destination:Record<FanHeroArea,string>={
+ "for-you":"/fan?tab=For%20You","artists":"/fan?tab=Artists","albums":"/fan?tab=Albums%20%26%20EPs",
+ "shows":"/fan?tab=Shows","billboard":"/billboard","library":"/fan?tab=My%20Library",
+ "following":"/fan?tab=Following","recent":"/fan?tab=Recently%20played",
+ "profile":"/fan/profile","inbox":"/messages"
+};
 function SingleHeroEditor({area,config,artwork}:{area:FanHeroArea;config:FanHeroConfig;artwork:Artwork[]}){
  const [state,action,pending]=useActionState(backgroundFormAction<{message:string;ok:boolean}>("hero",{message:"",ok:false}),{message:"",ok:false});
  const [title,setTitle]=useState(config.title),[eyebrow,setEyebrow]=useState(config.eyebrow),
@@ -36,7 +43,7 @@ function SingleHeroEditor({area,config,artwork}:{area:FanHeroArea;config:FanHero
     <label>Button destination <input name="ctaHref" value={ctaHref} maxLength={250} onChange={e=>setCtaHref(e.target.value)} placeholder="/listen"/></label>
    </div>
    <p className="hero-admin-hint">Use the cover selector for artwork already on FACKTS. For new photography, host the image securely and paste its URL. Hero copy and layout can be changed here at any time.</p>
-   <div className="hero-admin-save"><button type="submit" disabled={pending}>{pending?"Saving…":"Save hero"}</button>{state.message&&<span role="status" className={state.ok?"hero-admin-success":"hero-admin-error"}>{state.message}</span>}</div>
+   <div className="hero-admin-save"><button type="submit" disabled={pending}>{pending?"Saving…":enabled?"Publish hero":"Save without publishing"}</button>{state.message&&<span role="status" className={state.ok?"hero-admin-success":"hero-admin-error"}>{state.message}</span>}</div>
   </div>
   <aside className={"hero-admin-preview hero-preview-"+layout}>
     <span className="eyebrow">LIVE DESIGN PREVIEW</span>
@@ -47,14 +54,14 @@ function SingleHeroEditor({area,config,artwork}:{area:FanHeroArea;config:FanHero
       <b>{ctaLabel||"Start listening"} →</b>
      </div>
     </div>
-    <span>Preview only · {enabled?"Custom hero enabled":"Default automatic hero active"}</span>
+    <span>Preview only · {enabled?"Save to publish this custom hero":"Default automatic hero active — enable Publish custom hero and save"} · <Link href={destination[area]} target="_blank" rel="noopener noreferrer">Open live page ↗</Link></span>
   </aside>
  </form>;
 }
 export default function HeroAdminPanel({configs,artwork}:{configs:Record<FanHeroArea,FanHeroConfig>;artwork:Artwork[]}){
  const [selected,setSelected]=useState<FanHeroArea>("for-you");
  return <section className="hero-admin-panel">
-   <header><span className="eyebrow">FACKTS MUSIC / EDITORIAL SYSTEM</span><h2>Hero studio</h2><p>Control every listening hero. Pick the actual artwork, edit the copy and CTA, and choose how the image blends into the layout. Nothing new is published until you save it.</p></header>
+   <header><span className="eyebrow">FACKTS MUSIC / EDITORIAL SYSTEM</span><h2>Hero studio</h2><p>Control every listening hero. Pick the actual artwork, edit the copy and CTA, and choose how the image blends into the layout. To publish a custom hero, enable “Publish custom hero” and save. Otherwise, the page keeps its automatic design.</p></header>
    <div className="hero-admin-tabs" role="group" aria-label="Hero locations">{fanHeroAreas.map(item=><button type="button" key={item.id} aria-pressed={selected===item.id} onClick={()=>setSelected(item.id)}>{item.label}{configs[item.id].enabled&&<span aria-label="Customised">●</span>}</button>)}</div>
    <SingleHeroEditor key={selected} area={selected} config={configs[selected]} artwork={artwork}/>
  </section>;

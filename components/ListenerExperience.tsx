@@ -11,6 +11,7 @@ import './streaming/streaming.css';
 import {SearchIcon,PlayIcon,ArrowUpRight} from './Icons';
 import {StreamSidebar,StreamMobileNav} from './streaming/StreamNavigation';
 import StreamArtistHero from './streaming/StreamArtistHero';
+import ConfiguredFanHero from './ConfiguredFanHero';
 import StreamTrackRow from './streaming/StreamTrackRow';
 import ArtistDiscovery from './ArtistDiscovery';
 import {moveQueueTrack} from '../lib/playerQueue';
@@ -172,11 +173,11 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
     </section>
    </div>:<>
     {tab==="For You"&&<div className="fs-main-view">
-      <StreamArtistHero artist={spotlightArtist} track={firstSpotlightTrack} onPlay={id=>playSong(id)}
+      {hero?<ConfiguredFanHero hero={hero} fallbackImage={featured}/>:<StreamArtistHero artist={spotlightArtist} track={firstSpotlightTrack} onPlay={id=>playSong(id)}
        onOpen={openArtist} onFollow={id=>void change("following",id,!has("following",id))}
        following={Boolean(spotlightArtist&&has("following",spotlightArtist.id))}
        followPending={Boolean(spotlightArtist&&followPending(spotlightArtist.id))}
-       userId={userId} fallbackImage={featured}/>
+       userId={userId} fallbackImage={featured}/>}
       {recent.length>0&&<section className="fs-section">
        <div className="fs-section-heading"><h2>Pick up where you left off</h2><button type="button" onClick={()=>selectTab("Recently played")}>History <ArrowUpRight size={16}/></button></div>
        <div className="fs-recent">{recent.map(r=><button type="button" key={r.id} onClick={()=>play(r)}>
@@ -195,12 +196,12 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
        {releases.length?trackList([...releases].sort((a,b)=>b.release_at.localeCompare(a.release_at)).slice(0,12)):<p className="fs-empty">Approved releases will appear here once published.</p>}
       </section>
     </div>}
-    {tab==="Artists"&&<div className="fs-main-view"><ArtistDiscovery key={artistFocusId||"directory"}
+    {tab==="Artists"&&<div className="fs-main-view">{hero&&<ConfiguredFanHero hero={hero} fallbackImage={featured}/>}<ArtistDiscovery key={artistFocusId||"directory"}
       initialArtistId={artistFocusId} artists={artistsDirectory} releases={releases} viewerId={userId}
       following={id=>has("following",id)} followPending={followPending} followNotice={notice}
       onFollow={id=>void change("following",id,!has("following",id))} onPlay={play}/></div>}
     {tab==="Albums & EPs"&&<div className="fs-main-view">
-      <div className="fs-page-heading"><span>THE CATALOGUE</span><h1>Albums &amp; EPs</h1><p>Discover real collections and releases from FACKTS artists.</p></div>
+      {hero?<ConfiguredFanHero hero={hero} fallbackImage={featured}/>:<div className="fs-page-heading"><span>THE CATALOGUE</span><h1>Albums &amp; EPs</h1><p>Discover real collections and releases from FACKTS artists.</p></div>}
       {collections.length>0&&<section className="fs-section"><div className="fs-section-heading"><h2>Collections</h2><span>{collections.length} collections</span></div>
        <div className="fs-album-shelf">{collections.map(c=><button type="button" className="fs-album-tile" key={c.id}
         onClick={()=>{setQuery(c.name);}}>
@@ -211,12 +212,12 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
        {releases.length?trackList(releases):<p className="fs-empty">Published music will appear here.</p>}
       </section>
     </div>}
-    {tab==="Billboard"&&<div className="fs-main-view"><div className="fs-page-heading">
-      <span>THE FACKTS CHART</span><h1>Billboard</h1><p>Music making moves across the FACKTS community.</p></div>
+    {tab==="Billboard"&&<div className="fs-main-view">{hero?<ConfiguredFanHero hero={hero} fallbackImage={featured}/>:<div className="fs-page-heading">
+      <span>THE FACKTS CHART</span><h1>Billboard</h1><p>Music making moves across the FACKTS community.</p></div>}
       {rows.length?trackList(rows,true):<p className="fs-empty">The chart will appear once live releases are available.</p>}
     </div>}
-    {tab==="Shows"&&<div className="fs-main-view"><div className="fs-page-heading">
-     <span>BEHIND THE MUSIC</span><h1>Shows &amp; conversations</h1><p>Artist stories, studio moments and conversations.</p></div>
+    {tab==="Shows"&&<div className="fs-main-view">{hero?<ConfiguredFanHero hero={hero} fallbackImage={featured}/>:<div className="fs-page-heading">
+     <span>BEHIND THE MUSIC</span><h1>Shows &amp; conversations</h1><p>Artist stories, studio moments and conversations.</p></div>}
      <div className="fs-shows">{editorial.filter(x=>x.kind==="show").map(item=><article key={item.id}>
        {item.image&&<img src={item.image} alt="" loading="lazy"/>}
        <div><h2>{item.title}</h2><p>{item.description}</p>{item.url&&<a target="_blank" rel="noopener noreferrer" href={item.url}>Watch <ArrowUpRight size={16}/></a>}</div></article>)}</div>
@@ -226,8 +227,8 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
        <button type="button" onClick={()=>selectTab("Artists")}>Discover artists <ArrowUpRight size={16}/></button>
      </div>}
     </div>}
-    {tab==="My Library"&&<div className="fs-main-view"><div className="fs-page-heading"><span>YOUR SPACE</span><h1>Your library</h1>
-      <p>Your favourite music, playlists and artists. Available when signed in.</p></div>
+    {tab==="My Library"&&<div className="fs-main-view">{hero?<ConfiguredFanHero hero={hero} fallbackImage={featured}/>:<div className="fs-page-heading"><span>YOUR SPACE</span><h1>Your library</h1>
+      <p>Your favourite music, playlists and artists. Available when signed in.</p></div>}
      <section className="fs-library-controls">
       <div className="fs-library-pills"><button type="button" aria-pressed={!playlistId} onClick={()=>setPlaylistId("")}>♥ Liked songs</button>
        {lists.map(l=><button key={l.item_id} type="button" aria-pressed={playlistId===l.item_id} onClick={()=>setPlaylistId(l.item_id)}>{l.label}</button>)}
@@ -242,8 +243,8 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
      </section>
      {rows.length?trackList(rows):<div className="fs-empty">Your library is ready. Like a track or add one to a playlist to see it here.</div>}
     </div>}
-    {(tab==="Following"||tab==="Recently played")&&<div className="fs-main-view"><div className="fs-page-heading">
-      <span>YOUR MUSIC</span><h1>{tab==="Following"?"Following":"Recently played"}</h1><p>{tab==="Following"?"Latest music from artists you follow.":"Return to the music you listened to."}</p></div>
+    {(tab==="Following"||tab==="Recently played")&&<div className="fs-main-view">{hero?<ConfiguredFanHero hero={hero} fallbackImage={featured}/>:<div className="fs-page-heading">
+      <span>YOUR MUSIC</span><h1>{tab==="Following"?"Following":"Recently played"}</h1><p>{tab==="Following"?"Latest music from artists you follow.":"Return to the music you listened to."}</p></div>}
       {rows.length?trackList(rows):<div className="fs-empty">{tab==="Following"?"Follow artists and their released music will show here.":"Your listening history will show here after you play music."}
        <button type="button" onClick={()=>selectTab("Artists")}>Explore artists <ArrowUpRight size={16}/></button></div>}
     </div>}

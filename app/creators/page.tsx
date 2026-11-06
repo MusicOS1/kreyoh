@@ -4,6 +4,8 @@ import PublicNavigation from "../../components/PublicNavigation";
 import AppShell from "../../components/AppShell";
 import {viewer} from "../../lib/community";
 import PublicFooter from "../../components/PublicFooter";
+import {fanHeroSettings} from "../../lib/fanHero";
+import ConfiguredFanHero from "../../components/ConfiguredFanHero";
 import { createAdminClient } from "../../lib/supabase/admin";
 import { ArrowUpRight } from "../../components/Icons";
 
@@ -23,7 +25,8 @@ export default async function PublicCreatorsPage({
   searchParams: Promise<{ q?: string; role?: string; page?: string }>;
 }) {
   const params = await searchParams;
-  const sessionUser=await viewer();
+  const [sessionUser,heroSettings]=await Promise.all([viewer(),fanHeroSettings()]);
+  const customHero=heroSettings.artists.enabled?heroSettings.artists:undefined;
   const admin = createAdminClient();
   const page = Math.max(1, Number(params.page) || 1);
   const from = (page - 1) * PAGE_SIZE;
@@ -58,11 +61,11 @@ export default async function PublicCreatorsPage({
 
   const directory=(
     <main className="public-site fm-v3-site fm-creators-page">
-
+      {customHero&&<ConfiguredFanHero hero={customHero}/>}
       <section className="fm-directory-hero">
-        <div className="fm-v3-kicker"><span /> PUBLIC CREATOR NETWORK</div>
+        {!customHero&&<><div className="fm-v3-kicker"><span /> PUBLIC CREATOR NETWORK</div>
         <h1>Find the people<br /><em>moving the sound.</em></h1>
-        <p>Artists, producers, engineers, songwriters and the wider creative room — public profiles built from real participation inside FACKTS Music.</p>
+        <p>Artists, producers, engineers, songwriters and the wider creative room — public profiles built from real participation inside FACKTS Music.</p></>}
 
         <form className="fm-directory-search">
           <input name="q" defaultValue={queryText} placeholder="Search creators, sound, city…" />
