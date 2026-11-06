@@ -1,6 +1,7 @@
 "use client";
 import {useActionState,useState} from "react";
 import Link from "next/link";
+import AdminEditorialImageUpload from "./AdminEditorialImageUpload";
 import {backgroundFormAction} from "../lib/backgroundInteraction";
 import {fanHeroAreas,type FanHeroArea,type FanHeroConfig} from "../lib/fanHeroConfig";
 
@@ -18,6 +19,7 @@ function SingleHeroEditor({area,config,artwork}:{area:FanHeroArea;config:FanHero
   [releaseId,setReleaseId]=useState(config.releaseId),[layout,setLayout]=useState(config.layout),
   [ctaLabel,setCtaLabel]=useState(config.ctaLabel),[ctaHref,setCtaHref]=useState(config.ctaHref),
   [enabled,setEnabled]=useState(config.enabled);
+ const [imageUploading,setImageUploading]=useState(false);
  const selection=fanHeroAreas.find(item=>item.id===area)!;
  const artworkUrl=releaseId?"/api/releases/"+releaseId+"/media?kind=cover":image||"/branding/fackts-creative-community.jpg";
  return <form className="hero-admin-editor" action={action}>
@@ -38,12 +40,13 @@ function SingleHeroEditor({area,config,artwork}:{area:FanHeroArea;config:FanHero
     <label>Use a published song cover <select name="releaseId" value={releaseId} onChange={e=>setReleaseId(e.target.value)}>
       <option value="">Use my image URL below</option>{artwork.filter(item=>item.has_cover).map(item=><option key={item.id} value={item.id}>{item.title} · {item.artist_name}</option>)}
      </select></label>
-    <label className="hero-admin-wide">Image URL (optional when a song is selected) <input name="image" value={image} maxLength={600} onChange={e=>setImage(e.target.value)} placeholder="https://… or /branding/fackts-creative-community.jpg"/></label>
+    <label className="hero-admin-wide">Image URL (optional when a song is selected) <input name="image" value={image} maxLength={600} onChange={e=>setImage(e.target.value)} placeholder="https://… or upload below"/></label>
+    <div className="hero-admin-wide"><AdminEditorialImageUpload image={releaseId?"":image} onUploaded={url=>{setReleaseId("");setImage(url);}} onBusyChange={setImageUploading}/></div>
     <label>Button label <input name="ctaLabel" value={ctaLabel} maxLength={45} onChange={e=>setCtaLabel(e.target.value)} placeholder="Explore music"/></label>
     <label>Button destination <input name="ctaHref" value={ctaHref} maxLength={250} onChange={e=>setCtaHref(e.target.value)} placeholder="/listen"/></label>
    </div>
-   <p className="hero-admin-hint">Use the cover selector for artwork already on FACKTS. For new photography, host the image securely and paste its URL. Hero copy and layout can be changed here at any time.</p>
-   <div className="hero-admin-save"><button type="submit" disabled={pending}>{pending?"Saving…":enabled?"Publish hero":"Save without publishing"}</button>{state.message&&<span role="status" className={state.ok?"hero-admin-success":"hero-admin-error"}>{state.message}</span>}</div>
+   <p className="hero-admin-hint">Use the cover selector for artwork already on FACKTS. Upload a picture directly from your device or paste a secure image URL. Hero copy and layout can be changed here at any time.</p>
+   <div className="hero-admin-save"><button type="submit" disabled={pending||imageUploading}>{pending?"Saving…":enabled?"Publish hero":"Save without publishing"}</button>{state.message&&<span role="status" className={state.ok?"hero-admin-success":"hero-admin-error"}>{state.message}</span>}</div>
   </div>
   <aside className={"hero-admin-preview hero-preview-"+layout}>
     <span className="eyebrow">LIVE DESIGN PREVIEW</span>
