@@ -5,7 +5,6 @@ import PublicFooter from "../../../components/PublicFooter";
 import {discoveryContent} from "../../../lib/discoveryContent";
 import {publicMusicArtists} from "../../../lib/musicArtists";
 import {showDateLabel} from "../../../components/ShowsLanding";
-import "../../../app/shows-experience.css";
 
 export const dynamic="force-dynamic";
 type Props={params:Promise<{id:string}>};
