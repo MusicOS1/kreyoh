@@ -6,7 +6,7 @@ import { returningUser } from '../../lib/returningUser';
 import { createAdminClient } from '../../lib/supabase/admin';
 import EcosystemFrame from './EcosystemFrame';
 import ListenerExperience from '../ListenerExperience';
-export default async function PublicMusicPage() {
+export default async function PublicMusicPage({initialTab='For You'}:{initialTab?:string}={}) {
   const [identity, music, editorial, artists, heroes] =
     await Promise.allSettled([
       returningUser(),
@@ -36,6 +36,7 @@ export default async function PublicMusicPage() {
   return (
     <EcosystemFrame identity={viewer} active="listener">
       <ListenerExperience
+        initialTab={initialTab}
         releases={music.status === 'fulfilled' ? music.value : []}
         editorial={editorial.status === 'fulfilled' ? editorial.value : []}
         artistsDirectory={artists.status === 'fulfilled' ? artists.value : []}
