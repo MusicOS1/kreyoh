@@ -44,7 +44,7 @@ export async function saveFanHero(_prior:State,form:FormData):Promise<State>{
     updated_by:user.id,updated_at:new Date().toISOString()
   },{onConflict:"setting_key"});
   if(error)throw Error("Hero could not be saved: "+error.message);
-  for(const path of ["/fan","/listen","/billboard","/fan/profile","/messages","/admin/discovery"])revalidatePath(path);
+  for(const path of ["/fan","/listen","/billboard","/creators","/fan/profile","/messages","/admin/discovery"])revalidatePath(path);
   return{message:"Saved "+fanHeroAreas.find(item=>item.id===area)?.label+" hero.",ok:true};
  }catch(error){return{message:error instanceof Error?error.message:"Could not save hero.",ok:false};}
 }
