@@ -65,7 +65,8 @@ export default function HeroAdminPanel({configs,artwork}:{configs:Record<FanHero
  const [selected,setSelected]=useState<FanHeroArea>("for-you");
  return <section className="hero-admin-panel">
    <header><span className="eyebrow">FACKTS MUSIC / EDITORIAL SYSTEM</span><h2>Hero studio</h2><p>Control every listening hero. Pick the actual artwork, edit the copy and CTA, and choose how the image blends into the layout. To publish a custom hero, enable “Publish custom hero” and save. Otherwise, the page keeps its automatic design.</p></header>
-   <div className="hero-admin-tabs" role="group" aria-label="Hero locations">{fanHeroAreas.map(item=><button type="button" key={item.id} aria-pressed={selected===item.id} onClick={()=>setSelected(item.id)}>{item.label}{configs[item.id].enabled&&<span aria-label="Customised">●</span>}</button>)}</div>
+   <p className="hero-admin-hint">Shows &amp; sessions now create their own featured hero automatically from the published show below. You do not need to set up the same show twice. <a href="#shows-editor">Manage shows &amp; sessions ↓</a></p>
+   <div className="hero-admin-tabs" role="group" aria-label="Hero locations">{fanHeroAreas.filter(item=>item.id!=="shows").map(item=><button type="button" key={item.id} aria-pressed={selected===item.id} onClick={()=>setSelected(item.id)}>{item.label}{configs[item.id].enabled&&<span aria-label="Customised">●</span>}</button>)}</div>
    <SingleHeroEditor key={selected} area={selected} config={configs[selected]} artwork={artwork}/>
  </section>;
 }
