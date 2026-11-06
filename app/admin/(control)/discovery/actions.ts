@@ -2,6 +2,7 @@
 import {requireControlRoomPermission} from '../../../../lib/controlRoom';
 import {createAdminClient} from '../../../../lib/supabase/admin';
 import {revalidatePath} from 'next/cache';
+import {editorialImageStoragePath,assertEditorialImageUploaded} from '../../../../lib/editorialImages';
 export async function saveDiscovery(_: {message:string},fd:FormData){
  await requireControlRoomPermission('music');
  try{
@@ -13,7 +14,9 @@ export async function saveDiscovery(_: {message:string},fd:FormData){
  else{
  const title=read('title'),description=read('description'),kind=read('kind'),image=read('image'),url=read('url'),position=Number(read('position'));
  if(!title||title.length>120||description.length>600||!['show','feature'].includes(kind)||!Number.isInteger(position)||position<0||position>999)throw Error('Check title, description and display order.');
- for(const value of [image,url])if(value){const parsed=new URL(value);if(parsed.protocol!=='https:')throw Error('Use a full https:// link.');}
+ if(image&&!editorialImageStoragePath(image)){let parsed:URL;try{parsed=new URL(image);}catch{throw Error('Upload a picture or use a full https:// image URL.');}if(parsed.protocol!=='https:')throw Error('Use a full https:// image URL.');}
+ if(url){let parsed:URL;try{parsed=new URL(url);}catch{throw Error('Use a full https:// Watch link.');}if(parsed.protocol!=='https:')throw Error('Use a full https:// Watch link.');}
+ await assertEditorialImageUploaded(image);
  const{error}=await admin.from('system_settings').upsert({setting_key:id,setting_value:{title,description,kind,image,url,position,published:fd.get('published')==='on'},updated_at:new Date().toISOString()},{onConflict:'setting_key'});if(error)throw error;
  }
  for(const path of ['/listen','/fan','/admin/discovery'])revalidatePath(path);

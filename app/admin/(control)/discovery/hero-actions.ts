@@ -3,6 +3,7 @@ import {revalidatePath} from "next/cache";
 import {requireControlRoomPermission} from "../../../../lib/controlRoom";
 import {createAdminClient} from "../../../../lib/supabase/admin";
 import {fanHeroAreas,heroKey,normalizeHero,type FanHeroArea} from "../../../../lib/fanHero";
+import {editorialImageStoragePath,assertEditorialImageUploaded} from "../../../../lib/editorialImages";
 
 type State={message:string;ok:boolean};
 const read=(data:FormData,key:string)=>String(data.get(key)||"").trim();
@@ -23,11 +24,12 @@ export async function saveFanHero(_prior:State,form:FormData):Promise<State>{
      ctaLabel.length>45||ctaHref.length>250||image.length>600)throw Error("Hero copy exceeds the character limit.");
   if(enabled&&!title)throw Error("Enter a headline to publish this hero.");
   if(image){
-   if(!image.startsWith("/branding/")){
+   if(!image.startsWith("/branding/")&&!editorialImageStoragePath(image)){
     let url:URL;try{url=new URL(image);}catch{throw Error("Use a secure https image URL or a local /branding/ image.");}
     if(url.protocol!=="https:")throw Error("Only https image URLs are supported.");
    }
   }
+  await assertEditorialImageUploaded(image);
   if(ctaHref){
    if(!(ctaHref.startsWith("/")&&!ctaHref.startsWith("//")&&!/[\\\x00-\x20]/.test(ctaHref))){
     let url:URL;try{url=new URL(ctaHref);}catch{throw Error("CTA needs a local path or a secure https URL.");}

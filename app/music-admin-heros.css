@@ -183,3 +183,15 @@
  .fm-configured-hero .fm-configured-hero-shade{background:linear-gradient(0deg,#0b0b0b 13%,#0b0b0bea 32%,#0b0b0b00 85%)}
  .fm-configured-hero.fm-hero-spotlight .fm-configured-hero-image{inset:20px 8% auto auto;width:40%;height:auto;aspect-ratio:1;transform:rotate(3deg)}
 }
+
+
+/* Admin media picker shared by Hero Studio, Shows and featured stories. */
+.admin-editorial-upload{display:grid;gap:10px;margin:8px 0 14px;padding:14px;border:1px solid #8885;border-radius:12px;background:rgba(127,127,127,.06);min-width:0}
+.admin-editorial-upload-label{display:grid!important;gap:9px;font-size:12px!important;font-weight:750!important;line-height:1.4}
+.admin-editorial-upload-label input[type=file]{width:100%;max-width:100%;min-width:0;min-height:42px;box-sizing:border-box;padding:9px;border:1px dashed #8887;border-radius:8px;cursor:pointer;color:inherit;background:rgba(127,127,127,.05);font:inherit}
+.admin-editorial-upload-thumb{display:block;width:min(100%,360px);height:152px;object-fit:cover;border:1px solid #8885;border-radius:10px;background:#111}
+.admin-editorial-upload-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.admin-editorial-upload-actions>button{min-height:42px!important;border-radius:9px!important;border:1px solid #ff6a00!important;background:#ff6a00!important;color:#111!important;font:inherit!important;font-weight:800!important;font-size:12px!important;padding:9px 16px!important;cursor:pointer}
+.admin-editorial-upload-actions>button:disabled{cursor:not-allowed;opacity:.5}
+.admin-editorial-upload-actions small{font-size:11px;opacity:.7}
+.admin-editorial-upload p{margin:0;font-size:12px;overflow-wrap:anywhere}
