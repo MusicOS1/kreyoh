@@ -1,4 +1,6 @@
 import Link from "next/link";
+import {fanHeroSettings} from "../../lib/fanHero";
+import ConfiguredFanHero from "../../components/ConfiguredFanHero";
 import PublicNavigation from "../../components/PublicNavigation";
 import PublicFooter from "../../components/PublicFooter";
 import BillboardChart,{type ChartEntry} from "../../components/BillboardChart";
@@ -10,7 +12,8 @@ export const dynamic="force-dynamic";
 export const metadata={title:"FACKTS Billboard | Weekly Music Chart",description:"The ranked music chart for independent FACKTS artists. Discover, play and support real releases."};
 export default async function Billboard({searchParams}:{searchParams:Promise<{collection?:string;artist?:string;q?:string}>}){
  const params=await searchParams;
- const [releases,user]=await Promise.all([chart(),viewer()]);
+ const [releases,user,heroSettings]=await Promise.all([chart(),viewer(),fanHeroSettings()]);
+ const customHero=heroSettings.billboard.enabled?heroSettings.billboard:undefined;
  const votedResult=user?await createAdminClient().from("music_votes").select("release_id").eq("user_id",user.id).eq("week_start",currentChartWeek()):{data:[]};
  const votedIds=(votedResult.data||[]).map(row=>row.release_id);
  const query=(params.q||"").trim().slice(0,120).toLowerCase();
@@ -26,7 +29,10 @@ export default async function Billboard({searchParams}:{searchParams:Promise<{co
  const dateLabel=new Intl.DateTimeFormat("en-KE",{day:"numeric",month:"long",year:"numeric",timeZone:"Africa/Nairobi"}).format(week);
  const isFiltered=Boolean(params.collection||params.artist||query);
  return <><PublicNavigation/><main className="fm-chart-page">
-  <header className="fc-chart-header">
+  {customHero?<div className="fm-billboard-custom">
+   <ConfiguredFanHero hero={customHero}/>
+   <div className="fc-chart-meta"><span>WEEK OF {dateLabel.toUpperCase()}</span><span>{releases.length} LIVE SONGS</span><span>UPDATED WEEKLY</span></div>
+  </div>:<header className="fc-chart-header">
    <div className="fc-brand-kicker"><span className="fc-orange-bar"/> FACKTS MUSIC CHARTS</div>
    <div className="fc-header-grid">
     <div><h1>FACKTS <span>BILLBOARD.</span></h1>
@@ -34,7 +40,7 @@ export default async function Billboard({searchParams}:{searchParams:Promise<{co
      <div className="fc-chart-meta"><span>WEEK OF {dateLabel.toUpperCase()}</span><span>{releases.length} LIVE SONGS</span><span>UPDATED WEEKLY</span></div></div>
     <div className="fc-header-number" aria-label={"Top "+releases.length+" releases"}>TOP <strong>{Math.min(40,releases.length)||"—"}</strong></div>
    </div>
-  </header>
+  </header>}
   <div className="fc-chart-toolbar">
    <div className="fc-chart-toolbar-copy"><strong>{isFiltered?"Filtered chart":"This week's rankings"}</strong><span>Discover the music behind the numbers.</span></div>
    <form className="fc-chart-search" method="get" action="/billboard">
