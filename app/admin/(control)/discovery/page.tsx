@@ -10,10 +10,10 @@ export default async function DiscoveryAdmin(){
  return <main className="community-page">
    <h1>Music discovery & heroes</h1>
    <HeroAdminPanel configs={heroes} artwork={artwork.map(item=>({id:item.id,title:item.title,artist_name:item.artist_name,has_cover:Boolean(item.has_cover)}))}/>
-   <section className="discovery-admin-stories">
+   <section className="discovery-admin-stories" id="shows-editor">
     <h2>Shows, sessions & featured stories</h2>
-    <p>Manage the editorial shelves fans see when browsing. Save drafts or select Show publicly to publish.</p>
-    <details className="community-card"><summary>Add content</summary><DiscoveryEditor/></details>
+    <p>Create a show once here. The featured published show becomes the main Shows hero automatically, with a clickable details page, artist lineup and programme. Upload the poster and save; no separate Shows hero setup is needed.</p>
+    <details className="community-card" open><summary>Add a show or story</summary><DiscoveryEditor/></details>
     {items.map(item=><details className="community-card" key={item.id}><summary>{item.title} · {item.published?"Published":"Draft"}</summary><DiscoveryEditor item={item}/></details>)}
    </section>
  </main>;
