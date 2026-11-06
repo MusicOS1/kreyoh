@@ -195,3 +195,25 @@
 .admin-editorial-upload-actions>button:disabled{cursor:not-allowed;opacity:.5}
 .admin-editorial-upload-actions small{font-size:11px;opacity:.7}
 .admin-editorial-upload p{margin:0;font-size:12px;overflow-wrap:anywhere}
+
+
+/* Focused event editor: the poster at the bottom feeds the show hero automatically. */
+.discovery-admin-stories{scroll-margin-top:110px}
+.fm-event-editor{display:grid;gap:16px;max-width:900px}
+.fm-event-editor>label,.fm-event-editor-section>label,.fm-event-editor-fields>label{display:grid;gap:8px;font-size:13px;font-weight:720}
+.fm-event-editor input:not([type=checkbox]):not([type=file]),
+.fm-event-editor textarea,.fm-event-editor select{box-sizing:border-box;width:100%;max-width:100%;min-width:0;
+ min-height:44px;padding:12px 14px;border:1px solid #9996;border-radius:10px;
+ background:rgba(127,127,127,.07);color:inherit;font:inherit;font-size:13px}
+.fm-event-editor textarea{resize:vertical;line-height:1.5}
+.fm-event-editor-section{display:grid;gap:12px;padding:18px;border:1px solid #9995;border-radius:13px;background:rgba(100,100,100,.04)}
+.fm-event-editor-section h3{margin:0;font-size:19px;letter-spacing:-.03em;color:inherit}
+.fm-event-editor-section>p,.fm-event-editor>.hero-admin-hint{margin:0;font-size:12px;line-height:1.6;opacity:.78}
+.fm-event-editor-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.fm-event-editor .fm-event-feature{display:flex;align-items:center;gap:12px;font-size:13px;font-weight:750}
+.fm-event-editor .fm-event-feature input{width:20px!important;height:20px!important;min-height:0!important;accent-color:#ff6a00}
+.fm-event-editor-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.fm-event-editor-actions button{padding:12px 18px!important;min-height:44px!important;background:#ff6a00!important;color:#111!important;border:0!important;border-radius:9px!important;font-weight:850!important}
+.fm-event-editor-actions button:disabled{opacity:.5}
+.fm-event-editor-actions button[name=delete]{background:transparent!important;color:inherit!important;border:1px solid #9996!important}
+@media(max-width:700px){.fm-event-editor-fields{grid-template-columns:1fr}.fm-event-editor-section{padding:13px}}
