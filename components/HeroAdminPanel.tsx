@@ -1,9 +1,16 @@
 "use client";
 import {useActionState,useState} from "react";
+import Link from "next/link";
 import {backgroundFormAction} from "../lib/backgroundInteraction";
 import {fanHeroAreas,type FanHeroArea,type FanHeroConfig} from "../lib/fanHeroConfig";
 
 type Artwork={id:string;title:string;artist_name:string;has_cover:boolean};
+const destination:Record<FanHeroArea,string>={
+ "for-you":"/fan?tab=For%20You","artists":"/fan?tab=Artists","albums":"/fan?tab=Albums%20%26%20EPs",
+ "shows":"/fan?tab=Shows","billboard":"/billboard","library":"/fan?tab=My%20Library",
+ "following":"/fan?tab=Following","recent":"/fan?tab=Recently%20played",
+ "profile":"/fan/profile","inbox":"/messages"
+};
 function SingleHeroEditor({area,config,artwork}:{area:FanHeroArea;config:FanHeroConfig;artwork:Artwork[]}){
  const [state,action,pending]=useActionState(backgroundFormAction<{message:string;ok:boolean}>("hero",{message:"",ok:false}),{message:"",ok:false});
  const [title,setTitle]=useState(config.title),[eyebrow,setEyebrow]=useState(config.eyebrow),
@@ -47,7 +54,7 @@ function SingleHeroEditor({area,config,artwork}:{area:FanHeroArea;config:FanHero
       <b>{ctaLabel||"Start listening"} →</b>
      </div>
     </div>
-    <span>Preview only · {enabled?"Custom hero enabled":"Default automatic hero active"}</span>
+    <span>Preview only · {enabled?"Save to publish this custom hero":"Default automatic hero active — enable Publish custom hero and save"} · <Link href={destination[area]} target="_blank" rel="noopener noreferrer">Open live page ↗</Link></span>
   </aside>
  </form>;
 }
