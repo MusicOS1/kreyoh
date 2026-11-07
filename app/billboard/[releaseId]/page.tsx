@@ -5,6 +5,7 @@ import PublicFooter from '../../../components/PublicFooter';
 import ReleaseAudienceActions from '../../../components/ReleaseAudienceActions';
 import {VoteButton,ShareRelease,ReleaseVoteCount} from '../../../components/ReleaseControls';
 import ReleaseComments from '../../../components/ReleaseComments';
+import MusicPlayCount from '../../../components/MusicPlayCount';
 import '../billboard.css';
 import {viewer,currentChartWeek,uuidPattern} from '../../../lib/community';
 import {createAdminClient} from '../../../lib/supabase/admin';
@@ -19,7 +20,7 @@ export default async function Release({params}:{params:Promise<{releaseId:string
  <ReleaseAudienceActions releaseId={r.id} artistId={r.artist_id} userId={user?.id} saved={Boolean(library?.some((x:any)=>x.kind==='saved'&&x.item_id===r.id))} following={Boolean(library?.some((x:any)=>x.kind==='following'&&x.item_id===r.artist_id))} playlists={(library||[]).filter((x:any)=>x.kind==='playlist')}/>
  <Link href={'/creators/'+r.artist_id}>Artist profile →</Link>{featured?.map((person:any)=><Link key={person.id} href={'/creators/'+person.id}>Featuring {person.stage_name||person.full_name}</Link>)}
 
- <section className="community-card"><h2>{r.plays==null?"Play count unavailable":`${r.plays.toLocaleString()} recorded plays`} · <ReleaseVoteCount id={r.id} count={r.votes}/> this week</h2><p className="fc-voting-note">Voting resets Mondays at 00:00 EAT.</p><div className="community-actions">{user?<VoteButton id={r.id} voted={Boolean(vote)} own={r.artist_id===user.id}/>:<Link href={`/login?next=/billboard/${r.id}`}>Sign in to vote</Link>}<ShareRelease id={r.id} title={r.title}/><Link href={`/messages/${r.artist_id}`}>Message the artist</Link></div></section>
+ <section className="community-card"><h2><MusicPlayCount id={r.id} count={r.plays}/> · <ReleaseVoteCount id={r.id} count={r.votes}/> this week</h2><p className="fc-voting-note">Voting resets Mondays at 00:00 EAT.</p><div className="community-actions">{user?<VoteButton id={r.id} voted={Boolean(vote)} own={r.artist_id===user.id}/>:<Link href={`/login?next=/billboard/${r.id}`}>Sign in to vote</Link>}<ShareRelease id={r.id} title={r.title}/><Link href={`/messages/${r.artist_id}`}>Message the artist</Link></div></section>
  <section className="community-card"><ReleaseComments releaseId={r.id} viewerId={user?.id} initialOpen/></section>
  <section className="community-card"><h2>About the release</h2><p className="preserve-lines">{r.description||'The artist has not added a description yet.'}</p><p>{r.genre} · Released {new Date(r.release_at).toLocaleDateString('en-KE',{timeZone:'Africa/Nairobi'})}</p><h3>Credits</h3><p className="preserve-lines">{r.credits||'Credits pending from the artist.'}</p></section>
  </main><PublicFooter/></>;
