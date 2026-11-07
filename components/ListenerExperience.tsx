@@ -12,6 +12,8 @@ import {SearchIcon,PlayIcon,ArrowUpRight} from './Icons';
 import {StreamSidebar,StreamMobileNav} from './streaming/StreamNavigation';
 import StreamArtistHero from './streaming/StreamArtistHero';
 import ConfiguredFanHero from './ConfiguredFanHero';
+import ArtworkOfTheWeek from './ArtworkOfTheWeek';
+import {publishedArtworkOfWeek} from '../lib/artworkOfWeek';
 import StreamTrackRow from './streaming/StreamTrackRow';
 import ArtistDiscovery from './ArtistDiscovery';
 import ShowsLanding from './ShowsLanding';
@@ -64,6 +66,7 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
  const area=({"For You":"for-you","Artists":"artists","Albums & EPs":"albums","Shows":"shows","Billboard":"billboard","My Library":"library","Following":"following","Recently played":"recent"} as Record<string,FanHeroArea>)[tab]||"for-you";
  const configured=heroSettings?.[area];
  const hero=configured?.enabled?configured:undefined;
+ const artworkOfWeek=heroSettings?publishedArtworkOfWeek(heroSettings,releases):null;
  const featured=useMemo(()=>{
   if(hero?.releaseId)return "/api/releases/"+hero.releaseId+"/media?kind=cover";
   if(hero?.image)return hero.image;
@@ -179,6 +182,7 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
        following={Boolean(spotlightArtist&&has("following",spotlightArtist.id))}
        followPending={Boolean(spotlightArtist&&followPending(spotlightArtist.id))}
        userId={userId} fallbackImage={featured}/>}
+      {artworkOfWeek&&<ArtworkOfTheWeek feature={artworkOfWeek}/>}
       {recent.length>0&&<section className="fs-section">
        <div className="fs-section-heading"><h2>Pick up where you left off</h2><button type="button" onClick={()=>selectTab("Recently played")}>History <ArrowUpRight size={16}/></button></div>
        <div className="fs-recent">{recent.map(r=><button type="button" key={r.id} onClick={()=>play(r)}>
