@@ -2,18 +2,20 @@ import { chart, currentChartWeek } from '../../lib/community';
 import { discoveryContent } from '../../lib/discoveryContent';
 import { publicMusicArtists } from '../../lib/musicArtists';
 import { fanHeroSettings } from '../../lib/fanHero';
+import { selectedDiscoverArtistId } from '../../lib/featuredArtist';
 import { returningUser } from '../../lib/returningUser';
 import { createAdminClient } from '../../lib/supabase/admin';
 import EcosystemFrame from './EcosystemFrame';
 import ListenerExperience from '../ListenerExperience';
 export default async function PublicMusicPage({initialTab='For You'}:{initialTab?:string}={}) {
-  const [identity, music, editorial, artists, heroes] =
+  const [identity, music, editorial, artists, heroes, featuredArtist] =
     await Promise.allSettled([
       returningUser(),
       chart(),
       discoveryContent(),
       publicMusicArtists(),
       fanHeroSettings(),
+      selectedDiscoverArtistId(),
     ]);
   const viewer = identity.status === 'fulfilled' ? identity.value : null;
   const [library, votes] = viewer
@@ -40,6 +42,7 @@ export default async function PublicMusicPage({initialTab='For You'}:{initialTab
         releases={music.status === 'fulfilled' ? music.value : []}
         editorial={editorial.status === 'fulfilled' ? editorial.value : []}
         artistsDirectory={artists.status === 'fulfilled' ? artists.value : []}
+        featuredArtistId={featuredArtist.status === 'fulfilled' ? featuredArtist.value : ''}
         heroSettings={heroes.status === 'fulfilled' ? heroes.value : undefined}
         userId={viewer?.id}
         name={viewer?.name}
