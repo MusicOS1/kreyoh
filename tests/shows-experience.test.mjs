@@ -32,7 +32,7 @@ test("Shows have one canonical editor, featured fan hero and detail page",()=>{
   assert.ok(edit.includes('name="'+field+'"'),"Missing admin field: "+field);
  }
  assert.match(details,/programmeImage/);
- assert.match(details,/publicMusicArtists/);
+ assert.match(details,/publicShowParticipants/);
  assert.match(details,/item\.url/);
  assert.match(details,/notFound\(\)/);
 });
@@ -45,4 +45,33 @@ test("upload accepts large PNG posters for local optimization without changing s
  assert.match(upload,/uploadToSignedUrl/);
  assert.match(upload,/mediaType\(selected\)/);
  assert.match(read("app/admin/(control)/discovery/actions.ts"),/assertEditorialImageUploaded\(programmeImage\)/);
+});
+
+test("a public songwriter/composer may appear on a show without being relabelled Artist",()=>{
+ const resolver=read("lib/publicShowParticipants.ts");
+ const details=read("app/shows/[id]/page.tsx");
+ assert.match(resolver,/profile_visibility/);
+ assert.match(resolver,/account_status/);
+ assert.match(resolver,/\.in\("stage_name",requested\)/);
+ assert.match(resolver,/creator_types/);
+ assert.match(details,/artist\.roles\.slice/);
+});
+test("poster uploads start on selection and cropping is saved and displayed",()=>{
+ const uploader=read("components/AdminEditorialImageUpload.tsx");
+ const editor=read("components/DiscoveryEditor.tsx");
+ const hero=read("components/HeroAdminPanel.tsx");
+ const render=read("components/ShowsLanding.tsx");
+ const detail=read("app/shows/[id]/page.tsx");
+ const store=read("app/admin/(control)/discovery/actions.ts");
+ assert.match(uploader,/void uploadSelected\(selected\)/);
+ assert.match(uploader,/Picture uploaded ✓/);
+ assert.match(editor,/HeroImagePositioner/);
+ assert.match(editor,/name="imageX"/);
+ assert.match(editor,/name="imageY"/);
+ assert.match(editor,/name="imageZoom"/);
+ assert.match(hero,/HeroImagePositioner/);
+ assert.match(store,/normalizeImageCrop/);
+ assert.match(render,/imageCropStyle\(featured\)/);
+ assert.match(detail,/imageCropStyle\(item\)/);
+ assert.match(read("components/ConfiguredFanHero.tsx"),/imageCropStyle\(hero\)/);
 });
