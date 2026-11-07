@@ -3,6 +3,7 @@ import {requireControlRoomPermission} from "../../../../lib/controlRoom";
 import {createAdminClient} from "../../../../lib/supabase/admin";
 import {revalidatePath} from "next/cache";
 import {editorialImageStoragePath,assertEditorialImageUploaded} from "../../../../lib/editorialImages";
+import {normalizeImageCrop} from "../../../../lib/heroImageCrop";
 
 type State={message:string;id?:string;removed?:boolean};
 function textValue(form:FormData,key:string){return String(form.get(key)||"").trim();}
@@ -57,7 +58,8 @@ export async function saveDiscovery(_:State,fd:FormData):Promise<State>{
     title,description,kind,image,url,position,published:fd.get("published")==="on",
     featured:kind==="show"&&fd.get("featured")==="on",
     venue:kind==="show"?venue:"",eventStart,eventEnd,artistNames,
-    programme:kind==="show"?programme:"",programmeImage:kind==="show"?programmeImage:""
+    programme:kind==="show"?programme:"",programmeImage:kind==="show"?programmeImage:"",
+    ...normalizeImageCrop({imageX:read("imageX"),imageY:read("imageY"),imageZoom:read("imageZoom")})
    };
    const{error}=await admin.from("system_settings").upsert({
     setting_key:id,setting_value:value,updated_at:new Date().toISOString()
