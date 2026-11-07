@@ -2,7 +2,7 @@ import "server-only";
 import {createAdminClient} from "./supabase/admin";
 
 export type ShowParticipant={
- id:string;name:string;slug:string;avatar:string|null;roles:string[];
+ id:string;name:string;slug:string;avatar:string|null;roles:string[];aliases:string[];
 };
 /** Public, active creative profiles are eligible to appear in a show lineup.
  * They do NOT have to change their creator_types to Artist; composers,
@@ -31,6 +31,7 @@ export async function publicShowParticipants(names:string[]):Promise<ShowPartici
   unique.set(profile.id,{
    id:profile.id,
    name:stage||nick,
+   aliases:[stage,nick].filter(Boolean),
    slug:profile.public_slug||profile.id,
    avatar:profile.avatar_url||profile.hero_image_url||null,
    roles:Array.isArray(profile.creator_types)?profile.creator_types.filter((r:unknown):r is string=>typeof r==="string").slice(0,3):[]
