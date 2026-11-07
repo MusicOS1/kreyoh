@@ -15,6 +15,7 @@ export type FanHeroConfig={
  area:FanHeroArea;enabled:boolean;title:string;eyebrow:string;description:string;
  image:string;releaseId:string;layout:"editorial"|"immersive"|"spotlight";
  ctaLabel:string;ctaHref:string;
+ imageX:number;imageY:number;imageZoom:number;
 };
 export const heroKey=(area:FanHeroArea)=>"music_hero_"+area;
 export const heroAreaForTab=(tab:string):FanHeroArea=>({
