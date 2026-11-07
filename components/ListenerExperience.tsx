@@ -176,13 +176,22 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
       {matchingTracks.length?trackList(matchingTracks):<div className="fs-empty">No published songs match that search.</div>}
     </section>
    </div>:<>
-    {tab==="For You"&&<div className="fs-main-view">
-      {hero?<ConfiguredFanHero hero={hero} fallbackImage={featured}/>:<StreamArtistHero artist={spotlightArtist} track={firstSpotlightTrack} onPlay={id=>playSong(id)}
-       onOpen={openArtist} onFollow={id=>void change("following",id,!has("following",id))}
-       following={Boolean(spotlightArtist&&has("following",spotlightArtist.id))}
-       followPending={Boolean(spotlightArtist&&followPending(spotlightArtist.id))}
-       userId={userId} fallbackImage={featured}/>}
-      {artworkOfWeek&&<ArtworkOfTheWeek feature={artworkOfWeek}/>}
+    {tab==="For You"&&<div className="fs-main-view fm-discover-page">
+      <div className="fm-discover-intro">
+       <div><span>DISCOVER / FACKTS MUSIC</span><strong>Real artists. Real music.</strong></div>
+       <small>Handpicked sounds and artwork from our community</small>
+      </div>
+      <section className={"fm-discover-feature-zone"+(artworkOfWeek?" with-artwork":"")} aria-label="Discover featured music">
+       <div className="fm-discover-artist-feature">
+        <div className="fm-discover-feature-label"><span aria-hidden="true"/> IN THE SPOTLIGHT</div>
+        {hero?<ConfiguredFanHero hero={hero} fallbackImage={featured}/>:<StreamArtistHero artist={spotlightArtist} track={firstSpotlightTrack} onPlay={id=>playSong(id)}
+         onOpen={openArtist} onFollow={id=>void change("following",id,!has("following",id))}
+         following={Boolean(spotlightArtist&&has("following",spotlightArtist.id))}
+         followPending={Boolean(spotlightArtist&&followPending(spotlightArtist.id))}
+         userId={userId} fallbackImage={featured}/>}
+       </div>
+       {artworkOfWeek&&<ArtworkOfTheWeek feature={artworkOfWeek}/>}
+      </section>
       {recent.length>0&&<section className="fs-section">
        <div className="fs-section-heading"><h2>Pick up where you left off</h2><button type="button" onClick={()=>selectTab("Recently played")}>History <ArrowUpRight size={16}/></button></div>
        <div className="fs-recent">{recent.map(r=><button type="button" key={r.id} onClick={()=>play(r)}>
