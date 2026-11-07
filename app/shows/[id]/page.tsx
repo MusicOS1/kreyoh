@@ -3,7 +3,7 @@ import Link from "next/link";
 import PublicNavigation from "../../../components/PublicNavigation";
 import PublicFooter from "../../../components/PublicFooter";
 import {discoveryContent} from "../../../lib/discoveryContent";
-import {publicMusicArtists} from "../../../lib/musicArtists";
+import {publicShowParticipants} from "../../../lib/publicShowParticipants";
 import {showDateLabel} from "../../../components/ShowsLanding";
 import {imageCropStyle} from "../../../lib/heroImageCrop";
 
@@ -25,10 +25,11 @@ export default async function ShowDetails({params}:Props){
  const {id}=await params;
  const item=await loadShow(id);
  if(!item)notFound();
- const directory=await publicMusicArtists().catch(()=>[]);
  const names=item.artistNames||[];
+ const directory=await publicShowParticipants(names).catch(error=>{console.error("show-participants",error);return [];});
+ const normalized=(name:string)=>name.trim().toLocaleLowerCase("en");
  const lineup=names.map(name=>{
-  const matches=directory.filter(a=>a.name.trim().toLocaleLowerCase("en")===name.trim().toLocaleLowerCase("en"));
+  const matches=directory.filter(person=>person.aliases.some(alias=>normalized(alias)===normalized(name)));
   return {name,artist:matches.length===1?matches[0]:null};
  });
  const programme=(item.programme||"").split("\n").map(s=>s.trim()).filter(Boolean);
@@ -57,8 +58,8 @@ export default async function ShowDetails({params}:Props){
       <span className="fm-show-kicker">ON THE LINEUP</span><h2 id="fm-show-artists">Meet the artists</h2>
       <div className="fm-show-artist-grid">{lineup.map(({name,artist},i)=>{
        const inner=<>
-        {artist?.avatar||artist?.hero?<img src={artist.avatar||artist.hero||""} alt="" loading="lazy"/>:<span className="fm-show-artist-fallback">{name.slice(0,1).toUpperCase()}</span>}
-        <strong>{name}</strong><small>{artist?"View artist profile ↗":"Featured guest"}</small>
+        {artist?.avatar?<img src={artist.avatar} alt="" loading="lazy"/>:<span className="fm-show-artist-fallback">{name.slice(0,1).toUpperCase()}</span>}
+        <strong>{name}</strong><small>{artist?(artist.roles.slice(0,2).join(" · ")||"Public creator")+" · View profile ↗":"Featured guest"}</small>
        </>;
        return artist?<Link className="fm-show-artist-card" href={"/creators/"+encodeURIComponent(artist.slug||artist.id)} key={name+i}>{inner}</Link>
         :<article className="fm-show-artist-card" key={name+i}>{inner}</article>;
