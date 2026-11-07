@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useState} from "react";
+import {useEffect,useRef,useState} from "react";
 import {createClient} from "../lib/client";
 
 const MAX_BYTES=12*1024*1024;
@@ -42,9 +42,38 @@ export default function AdminEditorialImageUpload({
  const [file,setFile]=useState<File|null>(null);
  const [preview,setPreview]=useState("");
  const [busy,setBusy]=useState(false);
+ const busyRef=useRef(false);
  const [error,setError]=useState("");
  const [message,setMessage]=useState("");
  useEffect(()=>()=>{if(preview.startsWith("blob:"))URL.revokeObjectURL(preview);},[preview]);
+ async function uploadSelected(selected:File){
+  if(busyRef.current)return;
+  busyRef.current=true;
+  setBusy(true);onBusyChange?.(true);setError("");
+  try{
+   setMessage(selected.size>MAX_BYTES?"Optimizing large picture before upload…":"Uploading picture automatically…");
+   const imageFile=await preparePicture(selected);
+   const response=await fetch("/api/admin/editorial-images",{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({type:imageFile.type,size:imageFile.size})
+   });
+   const prepared=await response.json();
+   if(!response.ok||!prepared.ok)throw Error(prepared.error||"Could not prepare the picture upload.");
+   setMessage("Saving picture to FACKTS storage…");
+   const {error:uploadError}=await createClient().storage.from("music-images")
+    .uploadToSignedUrl(prepared.path,prepared.token,imageFile,{contentType:imageFile.type});
+   if(uploadError)throw Error("Storage upload failed: "+uploadError.message);
+   onUploaded(prepared.imageUrl);
+   setFile(null);setPreview("");
+   setMessage("Picture uploaded ✓ — click Save show / content to publish the changes.");
+  }catch(cause){
+   setError(cause instanceof Error?cause.message:"Picture upload failed. Choose or retry the picture.");
+   setMessage("");
+  }finally{
+   busyRef.current=false;
+   setBusy(false);onBusyChange?.(false);
+  }
+ }
  function selectFile(selected:File|undefined){
   setError("");setMessage("");setFile(null);setPreview("");
   if(!selected)return;
@@ -56,28 +85,7 @@ export default function AdminEditorialImageUpload({
   }
   setFile(selected);
   setPreview(URL.createObjectURL(selected));
-  if(selected.size>MAX_BYTES)setMessage("Selected "+mb(selected.size)+" MB picture. It will be optimized automatically before upload.");
- }
- async function upload(){
-  if(!file||busy)return;
-  setBusy(true);onBusyChange?.(true);setError("");setMessage("");
-  try{
-   const imageFile=await preparePicture(file);
-   const response=await fetch("/api/admin/editorial-images",{
-    method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({type:imageFile.type,size:imageFile.size})
-   });
-   const prepared=await response.json();
-   if(!response.ok||!prepared.ok)throw Error(prepared.error||"Could not prepare the picture upload.");
-   const {error:uploadError}=await createClient().storage.from("music-images")
-    .uploadToSignedUrl(prepared.path,prepared.token,imageFile,{contentType:imageFile.type});
-   if(uploadError)throw Error("Storage upload failed: "+uploadError.message);
-   onUploaded(prepared.imageUrl);
-   setFile(null);setPreview("");
-   setMessage("Picture uploaded successfully. Save this show or hero below to publish the changes.");
-  }catch(cause){
-   setError(cause instanceof Error?cause.message:"Picture upload failed. Please retry.");
-  }finally{setBusy(false);onBusyChange?.(false);}
+  void uploadSelected(selected);
  }
  const visibleImage=preview||image;
  return <div className="admin-editorial-upload">
@@ -87,12 +95,12 @@ export default function AdminEditorialImageUpload({
   </label>
   {visibleImage&&<img className="admin-editorial-upload-thumb" src={visibleImage} alt="Selected picture preview"/>}
   <div className="admin-editorial-upload-actions">
-   <button type="button" onClick={()=>void upload()} disabled={!file||busy}>
-    {busy?"Processing / uploading picture…":file?"Upload selected picture":"Choose picture first"}
-   </button>
+   {busy?<span className="fm-editorial-upload-working" role="status">Uploading…</span>:
+    error&&file?<button type="button" onClick={()=>void uploadSelected(file)}>Retry upload</button>:
+    <span className="fm-editorial-upload-working">{file?"Preparing picture…":"Selecting a picture starts upload automatically"}</span>}
    <small>JPG, PNG or WebP · 12 MB stored · large pictures optimized automatically</small>
   </div>
-  {message&&<p role="status" className="hero-admin-success">{message}</p>}
+  {message&&<p role="status" aria-live="polite" className="hero-admin-success">{message}</p>}
   {error&&<p role="alert" className="hero-admin-error">{error}</p>}
  </div>;
 }
