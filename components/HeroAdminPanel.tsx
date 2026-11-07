@@ -2,6 +2,8 @@
 import {useActionState,useState} from "react";
 import Link from "next/link";
 import AdminEditorialImageUpload from "./AdminEditorialImageUpload";
+import HeroImagePositioner from "./HeroImagePositioner";
+import {imageCropStyle} from "../lib/heroImageCrop";
 import {backgroundFormAction} from "../lib/backgroundInteraction";
 import {fanHeroAreas,type FanHeroArea,type FanHeroConfig} from "../lib/fanHeroConfig";
 
@@ -20,10 +22,14 @@ function SingleHeroEditor({area,config,artwork}:{area:FanHeroArea;config:FanHero
   [ctaLabel,setCtaLabel]=useState(config.ctaLabel),[ctaHref,setCtaHref]=useState(config.ctaHref),
   [enabled,setEnabled]=useState(config.enabled);
  const [imageUploading,setImageUploading]=useState(false);
+ const [crop,setCrop]=useState({imageX:config.imageX,imageY:config.imageY,imageZoom:config.imageZoom});
  const selection=fanHeroAreas.find(item=>item.id===area)!;
  const artworkUrl=releaseId?"/api/releases/"+releaseId+"/media?kind=cover":image||"/branding/fackts-creative-community.jpg";
  return <form className="hero-admin-editor" action={action}>
   <input type="hidden" name="area" value={area}/>
+  <input type="hidden" name="imageX" value={crop.imageX}/>
+  <input type="hidden" name="imageY" value={crop.imageY}/>
+  <input type="hidden" name="imageZoom" value={crop.imageZoom}/>
   <div className="hero-admin-settings">
    <div className="hero-admin-header"><div><span className="eyebrow">CONTROL ROOM / VISUAL EDITOR</span><h3>{selection.label}</h3></div>
     <label className="hero-admin-switch"><input type="checkbox" name="enabled" checked={enabled} onChange={e=>setEnabled(e.target.checked)}/> Publish custom hero</label>
@@ -42,6 +48,7 @@ function SingleHeroEditor({area,config,artwork}:{area:FanHeroArea;config:FanHero
      </select></label>
     <label className="hero-admin-wide">Image URL (optional when a song is selected) <input name="image" value={image} maxLength={600} onChange={e=>setImage(e.target.value)} placeholder="https://… or upload below"/></label>
     <div className="hero-admin-wide"><AdminEditorialImageUpload image={releaseId?"":image} onUploaded={url=>{setReleaseId("");setImage(url);}} onBusyChange={setImageUploading}/></div>
+    <div className="hero-admin-wide"><HeroImagePositioner image={artworkUrl} x={crop.imageX} y={crop.imageY} zoom={crop.imageZoom} onChange={setCrop} label="Position hero artwork"/></div>
     <label>Button label <input name="ctaLabel" value={ctaLabel} maxLength={45} onChange={e=>setCtaLabel(e.target.value)} placeholder="Explore music"/></label>
     <label>Button destination <input name="ctaHref" value={ctaHref} maxLength={250} onChange={e=>setCtaHref(e.target.value)} placeholder="/listen"/></label>
    </div>
@@ -51,7 +58,7 @@ function SingleHeroEditor({area,config,artwork}:{area:FanHeroArea;config:FanHero
   <aside className={"hero-admin-preview hero-preview-"+layout}>
     <span className="eyebrow">LIVE DESIGN PREVIEW</span>
     <div className="hero-admin-preview-canvas">
-     <img src={artworkUrl} alt="Chosen hero artwork"/>
+     <img src={artworkUrl} alt="Chosen hero artwork" style={imageCropStyle(crop)}/>
      <div className="hero-admin-preview-copy">
       <small>{eyebrow||"FACKTS MUSIC"}</small><h4>{title||selection.fallback}</h4><p>{description||"Describe what your visitors will find here."}</p>
       <b>{ctaLabel||"Start listening"} →</b>
