@@ -2,14 +2,15 @@ import {createHmac} from "node:crypto";
 import {assertProductionOrigin} from "../../../../lib/productionAccess";
 import {createAdminClient} from "../../../../lib/supabase/admin";
 import {viewer,uuidPattern} from "../../../../lib/community";
+import {musicListenThreshold,musicReplayBucket} from "../../../../lib/musicPlayTracking";
 
 export const runtime="nodejs";
 const headers={"Cache-Control":"private, no-store"};
 // One qualified play per actual listening session. The existing unique bucket index
 // only guards concurrent duplicate qualifications within the same second, not real replays.
-const qualifiedBucket=()=>Math.floor(Date.now()/1000);
+const qualifiedBucket=()=>musicReplayBucket(Date.now());
 const uuid=(value:unknown):value is string=>typeof value==="string"&&uuidPattern.test(value);
-const threshold=(duration:number)=>duration>=30?30:Math.max(5,Math.ceil(duration*.5));
+const threshold=musicListenThreshold;
 function browserKey(browserId:string,userId?:string){
  if(userId)return "member:"+userId;
  // A client-generated UUID is not a fingerprint; don't store IPs, user agents or email addresses.
