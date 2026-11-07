@@ -19,12 +19,22 @@ export async function chart(){
  if(!releases.length)return releases;
  // Explicit, independently verified performer links. No ownership data is exposed to fans.
  // Old schemas without this table still show the legacy catalogue safely.
- const {data:links,error:linkError}=await admin.from("music_catalogue_attributions")
-  .select("release_id,credited_artist_profile_id").in("release_id",releases.map(r=>r.id))
-  .eq("credit_verified",true).not("credited_artist_profile_id","is",null);
- if(linkError||!links?.length)return releases;
- const linked=new Map(links.map(l=>[l.release_id,l.credited_artist_profile_id]));
- return releases.map(release=>({...release,attributed_artist_profile_id:linked.get(release.id)||undefined}));
+ const [attributions,counts]=await Promise.all([
+  admin.from("music_catalogue_attributions")
+   .select("release_id,credited_artist_profile_id").in("release_id",releases.map(r=>r.id))
+   .eq("credit_verified",true).not("credited_artist_profile_id","is",null),
+  admin.rpc("public_release_play_counts",{p_release_ids:releases.map(r=>r.id)})
+ ]);
+ if(counts.error)console.error("Public play counts unavailable",counts.error);
+ const linked=new Map((attributions.error?[]:attributions.data||[]).map(l=>[l.release_id,l.credited_artist_profile_id]));
+ const playCounts=new Map((counts.error?[]:counts.data||[]).map(row=>[row.release_id,Number(row.plays)]));
+ // A missing RPC never becomes an invented zero; a release without sessions genuinely has 0 plays.
+ const enriched=releases.map(release=>({...release,
+  plays:counts.error?null:playCounts.get(release.id)||0,
+  attributed_artist_profile_id:linked.get(release.id)||undefined}));
+ // Listening is the primary FACKTS chart signal; weekly votes break ties.
+ return counts.error?enriched:enriched.sort((a,b)=>(b.plays||0)-(a.plays||0)||
+  b.votes-a.votes||b.release_at.localeCompare(a.release_at));
 }
 export function currentChartWeek(){
  const now=new Date(Date.now()+3*3600000);const day=(now.getUTCDay()+6)%7;
