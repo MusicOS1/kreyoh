@@ -8,6 +8,7 @@ import {moveQueueTrack,nextPlaybackIndex} from "../lib/playerQueue";
 import {backgroundInteraction} from "../lib/backgroundInteraction";
 import {registerSystemMediaActions,updateSystemMediaTrack,updateSystemPlaybackState,updateSystemPlaybackPosition,type SystemMediaActions} from "../lib/systemMediaSession";
 import {Volume2Icon,VolumeXIcon} from "./Icons";
+import {audibleProgressDelta,musicListenThreshold} from "../lib/musicPlayTracking";
 
 // Stable shared empty list: never recreate a dependency array during render.
 const EMPTY_SAVED_IDS: string[] = [];
@@ -219,12 +220,9 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
   const delta=audio.currentTime-capture.lastPosition;
   capture.lastTickMs=now;
   capture.lastPosition=audio.currentTime;
-  // Count audio listened, not clicks or seek jumps. A throttled background
-  // timeupdate can represent many seconds of valid listening.
-  const plausible=Math.max(0,elapsed*Math.max(.75,audio.playbackRate)+.75);
-  if(delta>0&&delta<=plausible+1.5)
-   capture.listened+=Math.min(delta,plausible);
-  const threshold=capture.duration>60?30:Math.max(5,Math.ceil(capture.duration*.5));
+  // Wall-clock capped progress survives background timeupdate throttling.
+  capture.listened+=audibleProgressDelta(delta,elapsed,audio.playbackRate);
+  const threshold=musicListenThreshold(capture.duration);
   if(!capture.started||capture.submitting||capture.listened<threshold)return;
   capture.submitting=true;
   void sendMusicPlay({action:"qualify",releaseId:capture.releaseId,
