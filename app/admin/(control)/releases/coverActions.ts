@@ -2,7 +2,7 @@
 import {revalidatePath} from "next/cache";
 import {createAdminClient} from "../../../../lib/supabase/admin";
 import {requireControlRoomPermission} from "../../../../lib/controlRoom";
-import {createR2PresignedUrl,assertR2ObjectAccess,finalizeReleaseObject} from "../../../../lib/r2";
+import {createR2PresignedUrl,assertR2ObjectAccess,finalizeReleaseObject,ensureReleaseUploadCors} from "../../../../lib/r2";
 import {uuidPattern} from "../../../../lib/community";
 
 type Result<T>={ok:true;value:T}|{ok:false;error:string};
@@ -33,6 +33,9 @@ export async function prepareAdminCoverReplacement(fd:FormData):Promise<Result<{
   if(!contentType||!Number.isSafeInteger(size)||size<1||size>maxBytes)throw Error("Artwork must be JPG, PNG or WebP, no larger than 10 MB.");
   const attemptId=crypto.randomUUID();
   const key=`releases/${release.artist_id}/${id}/admin-artwork/${attemptId}-incoming.${ext}`;
+  // Repair known production origins when bucket permissions allow it.
+  // Preview URLs are deliberately not added to R2 CORS: the secure relay handles them.
+  await ensureReleaseUploadCors().catch(error=>console.warn("admin-cover-browser-cors-unavailable",error));
   const uploadUrl=await createR2PresignedUrl("PUT",key,900,contentType);
   const {error}=await createAdminClient().from("platform_events").insert({
    id:attemptId,user_id:actor.id,event_name:"release_cover_replacement_prepared",category:"music",
