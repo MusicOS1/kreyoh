@@ -2,12 +2,15 @@
 import {useActionState,useState} from "react";
 import Link from "next/link";
 import AdminEditorialImageUpload from "./AdminEditorialImageUpload";
+import HeroImagePositioner from "./HeroImagePositioner";
+import {imageCropStyle} from "../lib/heroImageCrop";
+import {artworkOfWeekSetting,isMisplacedArtworkHero} from "../lib/artworkOfWeek";
 import {backgroundFormAction} from "../lib/backgroundInteraction";
 import {fanHeroAreas,type FanHeroArea,type FanHeroConfig} from "../lib/fanHeroConfig";
 
 type Artwork={id:string;title:string;artist_name:string;has_cover:boolean};
 const destination:Record<FanHeroArea,string>={
- "for-you":"/fan?tab=For%20You","artists":"/fan?tab=Artists","albums":"/fan?tab=Albums%20%26%20EPs",
+ "for-you":"/fan?tab=For%20You","artwork":"/fan?tab=For%20You","artists":"/fan?tab=Artists","albums":"/fan?tab=Albums%20%26%20EPs",
  "shows":"/fan?tab=Shows","billboard":"/billboard","library":"/fan?tab=My%20Library",
  "following":"/fan?tab=Following","recent":"/fan?tab=Recently%20played",
  "profile":"/fan/profile","inbox":"/messages"
@@ -20,11 +23,16 @@ function SingleHeroEditor({area,config,artwork}:{area:FanHeroArea;config:FanHero
   [ctaLabel,setCtaLabel]=useState(config.ctaLabel),[ctaHref,setCtaHref]=useState(config.ctaHref),
   [enabled,setEnabled]=useState(config.enabled);
  const [imageUploading,setImageUploading]=useState(false);
+ const [crop,setCrop]=useState({imageX:config.imageX,imageY:config.imageY,imageZoom:config.imageZoom});
  const selection=fanHeroAreas.find(item=>item.id===area)!;
  const artworkUrl=releaseId?"/api/releases/"+releaseId+"/media?kind=cover":image||"/branding/fackts-creative-community.jpg";
  return <form className="hero-admin-editor" action={action}>
   <input type="hidden" name="area" value={area}/>
+  <input type="hidden" name="imageX" value={crop.imageX}/>
+  <input type="hidden" name="imageY" value={crop.imageY}/>
+  <input type="hidden" name="imageZoom" value={crop.imageZoom}/>
   <div className="hero-admin-settings">
+   {area==="artwork"&&<p className="hero-admin-hint">This spotlight appears under Discover, just below the featured artist. Choose a published song cover and save it; clicking the feature opens the release. It does not belong on a listener’s profile.</p>}
    <div className="hero-admin-header"><div><span className="eyebrow">CONTROL ROOM / VISUAL EDITOR</span><h3>{selection.label}</h3></div>
     <label className="hero-admin-switch"><input type="checkbox" name="enabled" checked={enabled} onChange={e=>setEnabled(e.target.checked)}/> Publish custom hero</label>
    </div>
@@ -42,6 +50,7 @@ function SingleHeroEditor({area,config,artwork}:{area:FanHeroArea;config:FanHero
      </select></label>
     <label className="hero-admin-wide">Image URL (optional when a song is selected) <input name="image" value={image} maxLength={600} onChange={e=>setImage(e.target.value)} placeholder="https://… or upload below"/></label>
     <div className="hero-admin-wide"><AdminEditorialImageUpload image={releaseId?"":image} onUploaded={url=>{setReleaseId("");setImage(url);}} onBusyChange={setImageUploading}/></div>
+    <div className="hero-admin-wide"><HeroImagePositioner image={artworkUrl} x={crop.imageX} y={crop.imageY} zoom={crop.imageZoom} onChange={setCrop} label="Position hero artwork"/></div>
     <label>Button label <input name="ctaLabel" value={ctaLabel} maxLength={45} onChange={e=>setCtaLabel(e.target.value)} placeholder="Explore music"/></label>
     <label>Button destination <input name="ctaHref" value={ctaHref} maxLength={250} onChange={e=>setCtaHref(e.target.value)} placeholder="/listen"/></label>
    </div>
@@ -51,7 +60,7 @@ function SingleHeroEditor({area,config,artwork}:{area:FanHeroArea;config:FanHero
   <aside className={"hero-admin-preview hero-preview-"+layout}>
     <span className="eyebrow">LIVE DESIGN PREVIEW</span>
     <div className="hero-admin-preview-canvas">
-     <img src={artworkUrl} alt="Chosen hero artwork"/>
+     <img src={artworkUrl} alt="Chosen hero artwork" style={imageCropStyle(crop)}/>
      <div className="hero-admin-preview-copy">
       <small>{eyebrow||"FACKTS MUSIC"}</small><h4>{title||selection.fallback}</h4><p>{description||"Describe what your visitors will find here."}</p>
       <b>{ctaLabel||"Start listening"} →</b>
@@ -63,9 +72,14 @@ function SingleHeroEditor({area,config,artwork}:{area:FanHeroArea;config:FanHero
 }
 export default function HeroAdminPanel({configs,artwork}:{configs:Record<FanHeroArea,FanHeroConfig>;artwork:Artwork[]}){
  const [selected,setSelected]=useState<FanHeroArea>("for-you");
+ const legacyMisplaced=isMisplacedArtworkHero(configs.profile);
+ const viewConfigs:Record<FanHeroArea,FanHeroConfig>={...configs,
+  artwork:artworkOfWeekSetting(configs,artwork),
+  profile:legacyMisplaced?{...configs.profile,enabled:false,title:"",eyebrow:"",description:"",image:"",releaseId:"",ctaLabel:"",ctaHref:""}:configs.profile};
  return <section className="hero-admin-panel">
    <header><span className="eyebrow">FACKTS MUSIC / EDITORIAL SYSTEM</span><h2>Hero studio</h2><p>Control every listening hero. Pick the actual artwork, edit the copy and CTA, and choose how the image blends into the layout. To publish a custom hero, enable “Publish custom hero” and save. Otherwise, the page keeps its automatic design.</p></header>
-   <div className="hero-admin-tabs" role="group" aria-label="Hero locations">{fanHeroAreas.map(item=><button type="button" key={item.id} aria-pressed={selected===item.id} onClick={()=>setSelected(item.id)}>{item.label}{configs[item.id].enabled&&<span aria-label="Customised">●</span>}</button>)}</div>
-   <SingleHeroEditor key={selected} area={selected} config={configs[selected]} artwork={artwork}/>
+   <p className="hero-admin-hint">Artwork of the Week is now featured under Discover, separate from individual fan profiles. Shows &amp; sessions have their own editor below. <a href="#shows-editor">Manage shows &amp; sessions ↓</a></p>
+   <div className="hero-admin-tabs" role="group" aria-label="Hero locations">{fanHeroAreas.filter(item=>item.id!=="shows").map(item=><button type="button" key={item.id} aria-pressed={selected===item.id} onClick={()=>setSelected(item.id)}>{item.label}{viewConfigs[item.id].enabled&&<span aria-label="Customised">●</span>}</button>)}</div>
+   <SingleHeroEditor key={selected} area={selected} config={viewConfigs[selected]} artwork={artwork}/>
  </section>;
 }

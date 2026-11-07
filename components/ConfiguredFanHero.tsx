@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type {FanHeroConfig} from "../lib/fanHeroConfig";
+import {imageCropStyle} from "../lib/heroImageCrop";
 
 // Shared by the public chart, fan tabs and fan profile. Only the selected,
 // published area is rendered; disabled heroes retain their automatic design.
@@ -13,7 +14,8 @@ export default function ConfiguredFanHero({
   ?hero.ctaHref
   :hero.ctaHref.startsWith("https://")?hero.ctaHref:"";
  return <section className={"fm-configured-hero fm-hero-"+hero.layout} data-hero-area={hero.area} aria-label={hero.title||"FACKTS Music"}>
-  <img className="fm-configured-hero-image" src={image} alt="" aria-hidden="true" loading="eager"/>
+  <img className="fm-configured-hero-image" src={image} alt="" aria-hidden="true" loading="eager"
+   style={hero.layout==="spotlight"?{...imageCropStyle(hero),transform:`translateY(-50%) rotate(3deg) scale(${hero.imageZoom/100})`}:imageCropStyle(hero)}/>
   <div className="fm-configured-hero-shade" aria-hidden="true"/>
   <div className="fm-configured-hero-copy">
    <span className="fm-configured-hero-eyebrow">{hero.eyebrow||"FACKTS MUSIC"}</span>

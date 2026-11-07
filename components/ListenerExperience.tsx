@@ -12,13 +12,16 @@ import {SearchIcon,PlayIcon,ArrowUpRight} from './Icons';
 import {StreamSidebar,StreamMobileNav} from './streaming/StreamNavigation';
 import StreamArtistHero from './streaming/StreamArtistHero';
 import ConfiguredFanHero from './ConfiguredFanHero';
+import ArtworkOfTheWeek from './ArtworkOfTheWeek';
+import {publishedArtworkOfWeek} from '../lib/artworkOfWeek';
 import StreamTrackRow from './streaming/StreamTrackRow';
 import ArtistDiscovery from './ArtistDiscovery';
+import ShowsLanding from './ShowsLanding';
 import {moveQueueTrack} from '../lib/playerQueue';
 import {backgroundInteraction} from '../lib/backgroundInteraction';
-type Release={attributed_artist_profile_id?:string;explicit_artist_link?:boolean;featured_artist_ids?:string[];id:string;title:string;artist_id:string;artist_name:string;collection:string;has_cover:boolean;release_at:string;votes:number;genre?:string};
+type Release={attributed_artist_profile_id?:string;explicit_artist_link?:boolean;featured_artist_ids?:string[];id:string;title:string;artist_id:string;artist_name:string;collection:string;has_cover:boolean;release_at:string;votes:number;plays?:number|null;genre?:string};
 type Item={kind:string;item_id:string;label:string;track_ids:string[];updated_at:string};
-export default function ListenerExperience({releases,userId,name,initialTab='For You',initialLibrary=[],votedIds=[],unread=0,editorial=[],loadWarning,heroSettings,artistsDirectory=[],showFanNav=true}:{releases:Release[];userId?:string;name?:string;initialTab?:string;initialLibrary?:Item[];votedIds?:string[];unread?:number;editorial?:DiscoveryItem[];loadWarning?:string;heroSettings?:Record<FanHeroArea,FanHeroConfig>;artistsDirectory?:MusicArtist[];showFanNav?:boolean}){
+export default function ListenerExperience({releases,userId,name,initialTab='For You',initialLibrary=[],votedIds=[],unread=0,editorial=[],loadWarning,heroSettings,artistsDirectory=[],featuredArtistId="",showFanNav=true}:{releases:Release[];userId?:string;name?:string;initialTab?:string;initialLibrary?:Item[];votedIds?:string[];unread?:number;editorial?:DiscoveryItem[];loadWarning?:string;heroSettings?:Record<FanHeroArea,FanHeroConfig>;artistsDirectory?:MusicArtist[];featuredArtistId?:string;showFanNav?:boolean}){
  const[tab,setTab]=useState(initialTab),[artistFocusId,setArtistFocusId]=useState<string|null>(null),[query,setQuery]=useState(''),[library,setLibrary]=useState(initialLibrary),[notice,setNotice]=useState(''),[pendingItems,setPendingItems]=useState<Set<string>>(()=>new Set()),[playlistName,setPlaylistName]=useState(''),[playlistId,setPlaylistId]=useState('');
  const [visibleCount,setVisibleCount]=useState(20);
  const [creatingPlaylist,setCreatingPlaylist]=useState(false),[itemNotices,setItemNotices]=useState<Record<string,string>>({});
@@ -42,7 +45,9 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
  const has=(kind:string,id:string)=>library.some(x=>x.kind===kind&&x.item_id===id);
  const artistHighlights=artistsDirectory.slice(0,8);
  // Show a real, published artist before any generic promotional artwork.
- const spotlightArtist=useMemo(()=>artistsDirectory.find(artist=>(artist.hero||artist.avatar)&&releases.some(release=>releaseHasArtist(release,artist.id,artist.name)))||artistsDirectory.find(artist=>artist.hero||artist.avatar)||null,[artistsDirectory,releases]);
+ const spotlightArtist=useMemo(()=>artistsDirectory.find(artist=>artist.id===featuredArtistId)||
+  artistsDirectory.find(artist=>(artist.hero||artist.avatar)&&releases.some(release=>releaseHasArtist(release,artist.id,artist.name)))||
+  artistsDirectory.find(artist=>artist.hero||artist.avatar)||null,[artistsDirectory,releases,featuredArtistId]);
  const publicArtistById=useMemo(()=>new Map(artistsDirectory.map(artist=>[artist.id,artist])),[artistsDirectory]);
  const publicArtistIds=new Set(publicArtistById.keys());
  const isVerifiedArtistRelease=(release:Release)=>{const artist=publicArtistById.get(release.attributed_artist_profile_id||release.artist_id);return Boolean(artist&&releaseHasArtist(release,artist.id,artist.name));};
@@ -63,6 +68,7 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
  const area=({"For You":"for-you","Artists":"artists","Albums & EPs":"albums","Shows":"shows","Billboard":"billboard","My Library":"library","Following":"following","Recently played":"recent"} as Record<string,FanHeroArea>)[tab]||"for-you";
  const configured=heroSettings?.[area];
  const hero=configured?.enabled?configured:undefined;
+ const artworkOfWeek=heroSettings?publishedArtworkOfWeek(heroSettings,releases):null;
  const featured=useMemo(()=>{
   if(hero?.releaseId)return "/api/releases/"+hero.releaseId+"/media?kind=cover";
   if(hero?.image)return hero.image;
@@ -172,12 +178,22 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
       {matchingTracks.length?trackList(matchingTracks):<div className="fs-empty">No published songs match that search.</div>}
     </section>
    </div>:<>
-    {tab==="For You"&&<div className="fs-main-view">
-      {hero?<ConfiguredFanHero hero={hero} fallbackImage={featured}/>:<StreamArtistHero artist={spotlightArtist} track={firstSpotlightTrack} onPlay={id=>playSong(id)}
-       onOpen={openArtist} onFollow={id=>void change("following",id,!has("following",id))}
-       following={Boolean(spotlightArtist&&has("following",spotlightArtist.id))}
-       followPending={Boolean(spotlightArtist&&followPending(spotlightArtist.id))}
-       userId={userId} fallbackImage={featured}/>}
+    {tab==="For You"&&<div className="fs-main-view fm-discover-page">
+      <div className="fm-discover-intro">
+       <div><span>DISCOVER / FACKTS MUSIC</span><strong>Real artists. Real music.</strong></div>
+       <small>Handpicked sounds and artwork from our community</small>
+      </div>
+      <section className={"fm-discover-feature-zone"+(artworkOfWeek?" with-artwork":"")} aria-label="Discover featured music">
+       <div className="fm-discover-artist-feature">
+        <div className="fm-discover-feature-label"><span aria-hidden="true"/> IN THE SPOTLIGHT</div>
+        {hero?<ConfiguredFanHero hero={hero} fallbackImage={featured}/>:<StreamArtistHero artist={spotlightArtist} track={firstSpotlightTrack} onPlay={id=>playSong(id)}
+         onOpen={openArtist} onFollow={id=>void change("following",id,!has("following",id))}
+         following={Boolean(spotlightArtist&&has("following",spotlightArtist.id))}
+         followPending={Boolean(spotlightArtist&&followPending(spotlightArtist.id))}
+         userId={userId} fallbackImage={featured}/>}
+       </div>
+       {artworkOfWeek&&<ArtworkOfTheWeek feature={artworkOfWeek}/>}
+      </section>
       {recent.length>0&&<section className="fs-section">
        <div className="fs-section-heading"><h2>Pick up where you left off</h2><button type="button" onClick={()=>selectTab("Recently played")}>History <ArrowUpRight size={16}/></button></div>
        <div className="fs-recent">{recent.map(r=><button type="button" key={r.id} onClick={()=>play(r)}>
@@ -216,16 +232,8 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
       <span>THE FACKTS CHART</span><h1>Billboard</h1><p>Music making moves across the FACKTS community.</p></div>}
       {rows.length?trackList(rows,true):<p className="fs-empty">The chart will appear once live releases are available.</p>}
     </div>}
-    {tab==="Shows"&&<div className="fs-main-view">{hero?<ConfiguredFanHero hero={hero} fallbackImage={featured}/>:<div className="fs-page-heading">
-     <span>BEHIND THE MUSIC</span><h1>Shows &amp; conversations</h1><p>Artist stories, studio moments and conversations.</p></div>}
-     <div className="fs-shows">{editorial.filter(x=>x.kind==="show").map(item=><article key={item.id}>
-       {item.image&&<img src={item.image} alt="" loading="lazy"/>}
-       <div><h2>{item.title}</h2><p>{item.description}</p>{item.url&&<a target="_blank" rel="noopener noreferrer" href={item.url}>Watch <ArrowUpRight size={16}/></a>}</div></article>)}</div>
-     {!editorial.some(x=>x.kind==="show")&&<div className="fs-shows-empty">
-       <h2>No shows published yet.</h2>
-       <p>Discover the artists and their music while this space develops.</p>
-       <button type="button" onClick={()=>selectTab("Artists")}>Discover artists <ArrowUpRight size={16}/></button>
-     </div>}
+    {tab==="Shows"&&<div className="fs-main-view">
+      <ShowsLanding items={editorial}/>
     </div>}
     {tab==="My Library"&&<div className="fs-main-view">{hero?<ConfiguredFanHero hero={hero} fallbackImage={featured}/>:<div className="fs-page-heading"><span>YOUR SPACE</span><h1>Your library</h1>
       <p>Your favourite music, playlists and artists. Available when signed in.</p></div>}

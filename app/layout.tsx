@@ -13,6 +13,7 @@ import "./release-comments.css";
 import "./fan-premium.css";
 import "./fan-polish.css";
 import "./music-admin-heros.css";
+import "./shows-experience.css";
 import "./music-ecosystem.css";
 import "./legal.css";
 import "./mixtape-ui.css";

@@ -3,6 +3,7 @@ import {getWorkspace} from "../../../lib/workspace";
 import {fanHeroSettings,heroImage} from "../../../lib/fanHero";
 import FanShell from "../../../components/FanShell";
 import ConfiguredFanHero from "../../../components/ConfiguredFanHero";
+import {isMisplacedArtworkHero} from "../../../lib/artworkOfWeek";
 import ProfilePhotoUpload from "../../../components/ProfilePhotoUpload";
 import {saveFanProfile} from "./actions";
 
@@ -12,7 +13,7 @@ export default async function FanProfilePage({
 }:{searchParams:Promise<{saved?:string;error?:string}>}){
   const params=await searchParams;
   const [{user,profile,activeProjects},heroes]=await Promise.all([getWorkspace(),fanHeroSettings()]);
-  const hero=heroes.profile.enabled?heroes.profile:undefined;
+  const hero=heroes.profile.enabled&&!isMisplacedArtworkHero(heroes.profile)?heroes.profile:undefined;
   const displayName=profile?.nickname||profile?.full_name||"Listener";
   const initial=displayName.trim()[0]?.toUpperCase()||"F";
   return <FanShell name={displayName} activeTab="Profile" avatarUrl={profile?.avatar_url} creatorMode={Boolean(activeProjects?.length||profile?.creator_types?.some((type:string)=>type!=="Fan"&&type!=="Listener"))}>

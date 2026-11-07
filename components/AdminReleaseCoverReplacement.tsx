@@ -1,7 +1,7 @@
 "use client";
 import {useRef,useState} from "react";
 import {useRouter} from "next/navigation";
-import {directUpload} from "../lib/directUpload";
+import {uploadAdminCoverWithFallback} from "../lib/adminCoverUpload";
 import {prepareAdminCoverReplacement,finishAdminCoverReplacement} from "../app/admin/(control)/releases/coverActions";
 
 const fileTypes:Record<string,string>={jpg:"image/jpeg",jpeg:"image/jpeg",png:"image/png",webp:"image/webp"};
@@ -24,7 +24,11 @@ export default function AdminReleaseCoverReplacement({releaseId,linked=false}:{r
    const prepared=await prepareAdminCoverReplacement(payload);
    if(!prepared.ok)throw Error(prepared.error);
    setNotice("Uploading the corrected artwork…");
-   await directUpload(prepared.value.uploadUrl,file,prepared.value.contentType,setProgress);
+   await uploadAdminCoverWithFallback({
+    releaseId,attemptId:prepared.value.attemptId,uploadUrl:prepared.value.uploadUrl,
+    file,type:prepared.value.contentType,onProgress:setProgress,
+    onFallback:()=>setNotice("Direct storage upload blocked. Using secure FACKTS upload instead…")
+   });
    setNotice("Verifying and applying the artwork…");
    const finished=await finishAdminCoverReplacement(releaseId,prepared.value.attemptId);
    if(!finished.ok)throw Error(finished.error);

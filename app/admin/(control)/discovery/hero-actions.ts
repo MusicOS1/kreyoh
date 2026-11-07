@@ -17,7 +17,8 @@ export async function saveFanHero(_prior:State,form:FormData):Promise<State>{
     enabled,title:read(form,"title"),eyebrow:read(form,"eyebrow"),
     description:read(form,"description"),image:read(form,"image"),
     releaseId:read(form,"releaseId"),layout:read(form,"layout"),
-    ctaLabel:read(form,"ctaLabel"),ctaHref:read(form,"ctaHref")
+    ctaLabel:read(form,"ctaLabel"),ctaHref:read(form,"ctaHref"),
+    imageX:read(form,"imageX"),imageY:read(form,"imageY"),imageZoom:read(form,"imageZoom")
   });
   const {title,eyebrow,description,image,releaseId,ctaLabel,ctaHref}=payload;
   if(title.length>100||eyebrow.length>70||description.length>300||

@@ -3,6 +3,7 @@ import {requireControlRoomPermission} from "../../../../lib/controlRoom";
 import {createAdminClient} from "../../../../lib/supabase/admin";
 import {ReleaseManagement} from "../../../../components/ReleaseControls";
 import BulkReleaseApproval from "../../../../components/BulkReleaseApproval";
+import AdminDraftReview from "../../../../components/AdminDraftReview";
 import AdminReleaseAudioReplacement from "../../../../components/AdminReleaseAudioReplacement";
 import AdminReleaseDetailsEditor from "../../../../components/AdminReleaseDetailsEditor";
 import AdminReleaseCoverReplacement from "../../../../components/AdminReleaseCoverReplacement";
@@ -23,10 +24,17 @@ export default async function Releases({searchParams}:{searchParams:Promise<{pag
  ]);
  if(error)throw Error("Could not load release reviews.");
  const totalPages=Math.max(1,Math.ceil((count||0)/15));
+ const {data:playTotals,error:playError}=releases?.length
+  ?await admin.rpc("public_release_play_counts",{p_release_ids:releases.map(r=>r.id)})
+  :{data:[],error:null};
+ const playsById=new Map((playTotals||[]).map((row:{release_id:string;plays:number|string})=>[row.release_id,Number(row.plays)]));
  return <main className="community-page">
   <div className="community-actions"><Link href="/admin/releases/bulk">+ Add new songs (bulk or singles)</Link><Link href="/admin/catalogue">Review artist credit & ownership</Link><Link href="/admin/discovery">Edit fan heroes</Link><Link href="/billboard">Open Billboard →</Link></div>
   <h1>Release management</h1>
-  <p>Manage existing releases without charging artists for small corrections. Edit a title, description, credits or release date, replace cover artwork or upload an approved new recording without resetting plays, likes, comments or song links. Release visibility follows the scheduled Kenya date.</p>
+  {process.env.VERCEL_ENV==="preview"&&<p role="alert" className="fm-release-preview-warning">
+   Preview safety: this environment shares the FACKTS Music content database. Approving, rejecting or deleting a release here will change its status for the live catalogue. Review the exact draft before confirming.
+  </p>}
+  <p>Review pending songs, verify and approve uploaded drafts, reject or discard unfinished drafts, and correct approved releases without resetting plays, likes, comments or song links. Draft approval verifies actual audio and artwork before making a song public.</p>
   <form method="get" action="/admin/releases" className="fm-release-search"><label htmlFor="release-q">Find a release</label><input id="release-q" name="q" defaultValue={q} placeholder="Song title or artist name"/><button type="submit">Search</button>{q&&<Link href="/admin/releases">Clear</Link>}</form>
   <BulkReleaseApproval count={pendingCount||0}/>
   {!releases?.length&&<p>No releases on this page.</p>}
@@ -46,7 +54,9 @@ export default async function Releases({searchParams}:{searchParams:Promise<{pag
     <div className="fm-release-detail-body">
      <div className="fm-release-detail-head">
       <h2>{release.title}</h2>
-      <p>{release.artist_name} · {release.collection||"Single"} · {release.status} · Release {new Date(release.release_at).toLocaleDateString("en-KE",{timeZone:"Africa/Nairobi"})}</p>
+      <p>{release.artist_name} · {release.collection||"Single"} · {release.status} · Release {new Date(release.release_at).toLocaleDateString("en-KE",{timeZone:"Africa/Nairobi"})}
+       {release.status==="published"&&<strong className="fm-release-play-total"> · {playError?"Play stats unavailable":`${(playsById.get(release.id)||0).toLocaleString()} recorded plays`}</strong>}
+      </p>
      </div>
      <div className="fm-release-preview">
       <span className="fm-release-preview-art" style={release.cover_key?{backgroundImage:"url(/api/releases/"+release.id+"/media?kind=cover)"}:undefined} aria-hidden="true">♫</span>
@@ -59,7 +69,7 @@ export default async function Releases({searchParams}:{searchParams:Promise<{pag
      </div>
      <p>Rights confirmed: {release.rights_confirmed_at?new Date(release.rights_confirmed_at).toLocaleString("en-KE"):"No"}</p>
      {release.review_note&&<p>{release.review_note}</p>}
-     {release.source_track_id?<Link href={"/releases/"+release.id}>Review linked release · {release.workflow_state} →</Link>:<ReleaseManagement id={release.id} status={release.status}/>}
+     {release.source_track_id?<Link href={"/releases/"+release.id}>Review linked release · {release.workflow_state} →</Link>:release.status==="draft"||release.status==="rejected"?<AdminDraftReview id={release.id} status={release.status}/>:<ReleaseManagement id={release.id} status={release.status}/>}
      <p className="community-muted">Uploading and performing are different roles. Verify the artist and master ownership in <Link href="/admin/catalogue">Catalogue attribution</Link>.</p>
      <AdminReleaseDetailsEditor release={release}/>
      <AdminReleaseCoverReplacement releaseId={release.id} linked={Boolean(release.source_track_id)}/>

@@ -195,3 +195,104 @@
 .admin-editorial-upload-actions>button:disabled{cursor:not-allowed;opacity:.5}
 .admin-editorial-upload-actions small{font-size:11px;opacity:.7}
 .admin-editorial-upload p{margin:0;font-size:12px;overflow-wrap:anywhere}
+
+
+/* Focused event editor: the poster at the bottom feeds the show hero automatically. */
+.discovery-admin-stories{scroll-margin-top:110px}
+.fm-event-editor{display:grid;gap:16px;max-width:900px}
+.fm-event-editor>label,.fm-event-editor-section>label,.fm-event-editor-fields>label{display:grid;gap:8px;font-size:13px;font-weight:720}
+.fm-event-editor input:not([type=checkbox]):not([type=file]),
+.fm-event-editor textarea,.fm-event-editor select{box-sizing:border-box;width:100%;max-width:100%;min-width:0;
+ min-height:44px;padding:12px 14px;border:1px solid #9996;border-radius:10px;
+ background:rgba(127,127,127,.07);color:inherit;font:inherit;font-size:13px}
+.fm-event-editor textarea{resize:vertical;line-height:1.5}
+.fm-event-editor-section{display:grid;gap:12px;padding:18px;border:1px solid #9995;border-radius:13px;background:rgba(100,100,100,.04)}
+.fm-event-editor-section h3{margin:0;font-size:19px;letter-spacing:-.03em;color:inherit}
+.fm-event-editor-section>p,.fm-event-editor>.hero-admin-hint{margin:0;font-size:12px;line-height:1.6;opacity:.78}
+.fm-event-editor-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.fm-event-editor .fm-event-feature{display:flex;align-items:center;gap:12px;font-size:13px;font-weight:750}
+.fm-event-editor .fm-event-feature input{width:20px!important;height:20px!important;min-height:0!important;accent-color:#ff6a00}
+.fm-event-editor-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.fm-event-editor-actions button{padding:12px 18px!important;min-height:44px!important;background:#ff6a00!important;color:#111!important;border:0!important;border-radius:9px!important;font-weight:850!important}
+.fm-event-editor-actions button:disabled{opacity:.5}
+.fm-event-editor-actions button[name=delete]{background:transparent!important;color:inherit!important;border:1px solid #9996!important}
+@media(max-width:700px){.fm-event-editor-fields{grid-template-columns:1fr}.fm-event-editor-section{padding:13px}}
+
+
+/* Hero Studio + Shows: reposition photos by dragging the preview or using sliders. */
+.fm-artwork-positioner{display:grid;gap:12px;border:1px solid #8b8b8b55;border-radius:12px;padding:14px;min-width:0;background:rgba(100,100,100,.055)}
+.fm-artwork-positioner-heading{display:grid;gap:5px}
+.fm-artwork-positioner-heading strong{font-size:13px}
+.fm-artwork-positioner-heading span{font-size:12px;opacity:.76}
+.fm-artwork-positioner-preview{width:100%;aspect-ratio:16/8;position:relative;overflow:hidden;
+ border:1px solid #9997;border-radius:10px;background:#111;color:#eee;cursor:grab;
+ user-select:none;touch-action:none}
+.fm-artwork-positioner-preview:active{cursor:grabbing}
+.fm-artwork-positioner-preview img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;max-width:none;user-select:none;pointer-events:none}
+.fm-artwork-positioner-empty{position:absolute;inset:0;display:grid;place-items:center;padding:12px;font-size:12px}
+.fm-artwork-positioner-grid{position:absolute;inset:0;background:
+ linear-gradient(to right,transparent 33.15%,#ffffff35 33.3%,transparent 33.45%,transparent 66.5%,#ffffff35 66.65%,transparent 66.8%),
+ linear-gradient(to bottom,transparent 33.15%,#ffffff35 33.3%,transparent 33.45%,transparent 66.5%,#ffffff35 66.65%,transparent 66.8%);
+ pointer-events:none}
+.fm-artwork-positioner-sliders{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.fm-artwork-positioner-sliders label{display:grid;grid-template-columns:1fr auto;gap:7px;font-size:12px;min-width:0;font-weight:700}
+.fm-artwork-positioner-sliders label span{color:#ff6a00;font-variant-numeric:tabular-nums}
+.fm-artwork-positioner-sliders input[type=range]{grid-column:1/-1;max-width:100%;min-height:24px;accent-color:#ff6a00;cursor:pointer;padding:0}
+.fm-artwork-reset{justify-self:start;min-height:32px;border:1px solid #7778;border-radius:8px;background:transparent;color:inherit;font:inherit;font-size:12px;padding:6px 12px;cursor:pointer}
+.fm-editorial-upload-working{font-size:12px;font-weight:750;opacity:.85}
+@media(max-width:650px){.fm-artwork-positioner-sliders{grid-template-columns:1fr}.fm-artwork-positioner{padding:10px}.fm-artwork-positioner-preview{aspect-ratio:16/10}}
+
+
+/* Discover: dedicated featured artist management, independent of artwork of the week. */
+.fm-featured-artist-editor{display:grid;gap:20px;padding:clamp(17px,3vw,30px);border:1px solid #7774;border-radius:16px;
+ background:rgba(127,127,127,.035);margin:25px 0 35px}
+.fm-featured-artist-editor>header{display:grid;gap:7px}
+.fm-featured-artist-editor>header .eyebrow{font-size:10px;letter-spacing:.12em;color:#ff6a00;font-weight:800}
+.fm-featured-artist-editor>header h2{margin:0;font-size:clamp(23px,2.7vw,32px);line-height:1.2;letter-spacing:-.045em}
+.fm-featured-artist-editor>header p{max-width:800px;font-size:13px;line-height:1.6;color:inherit;opacity:.75;margin:0}
+.fm-featured-artist-form{display:grid;gap:15px;max-width:900px}
+.fm-featured-artist-form>label{display:grid;gap:7px;font-size:13px;font-weight:750}
+.fm-featured-artist-form select{min-height:46px;border-radius:10px;border:1px solid #9995;background:rgba(127,127,127,.08);
+ color:inherit;padding:10px 14px;min-width:0;max-width:640px;font:inherit}
+.fm-featured-artist-preview{display:flex;align-items:center;gap:13px;min-width:0;background:rgba(127,127,127,.045);
+ border:1px solid #8884;border-radius:12px;padding:12px;max-width:640px}
+.fm-featured-artist-preview img,.fm-featured-artist-initial{display:grid;place-items:center;width:68px;height:68px;
+ border-radius:10px;object-fit:cover;flex:none;background:#27180f;color:#ff6a00;font-size:25px;font-weight:900}
+.fm-featured-artist-preview>div{display:grid;gap:4px;min-width:0}
+.fm-featured-artist-preview>div>span{font-size:10px;color:#ff6a00;font-weight:850;text-transform:uppercase;letter-spacing:.1em}
+.fm-featured-artist-preview>div>strong{font-size:17px;overflow-wrap:anywhere}
+.fm-featured-artist-preview>div>small{font-size:12px;opacity:.7}
+.fm-featured-artist-warning{font-size:12px;line-height:1.55;color:#a95308;background:#ffa45214;
+ border:1px solid #ff9b5540;padding:13px 14px;border-radius:9px;margin:0}
+.fm-featured-artist-actions{display:flex;align-items:center;gap:17px;flex-wrap:wrap}
+.fm-featured-artist-actions button{min-height:44px;padding:11px 19px;background:#ff6a00;border:0;border-radius:9px;
+ color:#111;font-size:13px;font-weight:850;cursor:pointer}
+.fm-featured-artist-actions button:disabled{opacity:.55;cursor:wait}
+.fm-featured-artist-actions a{font-size:12px;text-decoration:none;color:inherit;font-weight:750}
+.fm-featured-artist-actions a:hover{color:#ff6a00}
+@media(max-width:680px){.fm-featured-artist-editor{margin:17px 0 26px;padding:15px}
+ .fm-featured-artist-preview img,.fm-featured-artist-initial{width:55px;height:55px}}
+
+
+/* Qualified listening dashboard: counts originate from music_play_sessions. */
+.fm-music-analytics{margin:22px 0;display:grid;gap:14px}
+.fm-song-stats-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.fm-song-stats-summary article{display:grid;gap:10px;min-width:0;padding:19px;background:#191919;
+ border:1px solid #ffffff20;border-radius:11px}
+.fm-song-stats-summary article span{font:700 12px/1.4 "DM Sans",sans-serif;color:#aaa}
+.fm-song-stats-summary article strong{font:900 clamp(27px,3vw,40px)/1 "Gotham","DM Sans",sans-serif;color:#ff6a00}
+.fm-music-analytics .fm-music-analytics-note{font-size:12px;line-height:1.6;color:#bbb;max-width:950px}
+.fm-music-play-table{display:grid;gap:0;width:100%;max-width:100%;overflow:hidden;border:1px solid #7774;border-radius:10px}
+.fm-music-play-head,.fm-music-play-row{display:grid;grid-template-columns:minmax(0,1fr) 130px 130px;
+ align-items:center;gap:12px;padding:11px 15px;border-bottom:1px solid #7773}
+.fm-music-play-head{background:#242424;color:#eee;font-size:11px;font-weight:850;text-transform:uppercase;letter-spacing:.055em}
+.fm-music-play-row:last-child{border-bottom:0}
+.fm-music-play-row:nth-child(odd){background:rgba(127,127,127,.04)}
+.fm-music-play-row>span{min-width:0;display:grid;gap:4px}
+.fm-music-play-row strong{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm-music-play-row small{color:#aaa;font-size:11px}
+.fm-music-play-row b{font-size:13px;font-weight:850;font-variant-numeric:tabular-nums}
+@media(max-width:680px){.fm-song-stats-summary{grid-template-columns:1fr}
+ .fm-music-play-head,.fm-music-play-row{grid-template-columns:minmax(0,1fr) 65px 65px;gap:7px;padding:10px}
+ .fm-music-play-head{font-size:9px}.fm-music-play-row b{font-size:11px}
+}

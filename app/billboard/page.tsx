@@ -22,7 +22,7 @@ export default async function Billboard({searchParams}:{searchParams:Promise<{co
   (!query||[r.title,r.artist_name,r.collection||""].join(" ").toLowerCase().includes(query)));
  const entries:ChartEntry[]=filtered.map(r=>({
   id:r.id,artist_id:r.artist_id,title:r.title,artist_name:r.artist_name,
-  collection:r.collection,has_cover:r.has_cover,votes:r.votes,explicit:r.explicit,debut:r.debut,
+  collection:r.collection,has_cover:r.has_cover,votes:r.votes,plays:r.plays,explicit:r.explicit,debut:r.debut,
   release_at:r.release_at,position:releases.findIndex(x=>x.id===r.id)+1
  }));
  const week=new Date(currentChartWeek()+"T12:00:00+03:00");

@@ -25,6 +25,7 @@ export function productionRest(db,options={}){
    else if(table==='release_engagement')result=await db.query('select release_engagement($1,$2) result',[b.p_actor,b.p_release]);
    else if(table==='set_music_vote')result=await db.query('select set_music_vote($1,$2,$3) result',[b.p_user,b.p_release,b.p_vote]);
    else if(table==='add_release_to_playlist')result=await db.query('select add_release_to_playlist($1,$2,$3) result',[b.p_user,b.p_playlist,b.p_release]);
+   else if(table==='public_release_play_counts'){send(200,[]);return true;} // Fixture has no public play sessions; no invented historical counts.
    if(result){send(200,result.rows[0].result);return true;}
   }catch(error){send(400,{message:error.message,code:error.code||'P0001'});return true;}}
 
