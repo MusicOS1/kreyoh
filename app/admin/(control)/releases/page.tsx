@@ -27,6 +27,9 @@ export default async function Releases({searchParams}:{searchParams:Promise<{pag
  return <main className="community-page">
   <div className="community-actions"><Link href="/admin/releases/bulk">+ Add new songs (bulk or singles)</Link><Link href="/admin/catalogue">Review artist credit & ownership</Link><Link href="/admin/discovery">Edit fan heroes</Link><Link href="/billboard">Open Billboard →</Link></div>
   <h1>Release management</h1>
+  {process.env.VERCEL_ENV==="preview"&&<p role="alert" className="fm-release-preview-warning">
+   Preview safety: this environment shares the FACKTS Music content database. Approving, rejecting or deleting a release here will change its status for the live catalogue. Review the exact draft before confirming.
+  </p>}
   <p>Review pending songs, verify and approve uploaded drafts, reject or discard unfinished drafts, and correct approved releases without resetting plays, likes, comments or song links. Draft approval verifies actual audio and artwork before making a song public.</p>
   <form method="get" action="/admin/releases" className="fm-release-search"><label htmlFor="release-q">Find a release</label><input id="release-q" name="q" defaultValue={q} placeholder="Song title or artist name"/><button type="submit">Search</button>{q&&<Link href="/admin/releases">Clear</Link>}</form>
   <BulkReleaseApproval count={pendingCount||0}/>
