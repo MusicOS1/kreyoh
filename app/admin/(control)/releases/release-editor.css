@@ -128,3 +128,18 @@
  .fm-release-toolbar p span{display:none}
 }
 @media(prefers-reduced-motion:reduce){.fm-release-row-manage span{transition:none}}
+
+/* Draft review: actionable controls visible inside each expanded release. */
+.fm-release-draft-review{display:grid;gap:11px;border:1px solid #ff6a0040;border-radius:12px;
+ background:linear-gradient(140deg,#241b17,#171717);padding:17px;color:#fff}
+.fm-release-draft-review h3{font:850 17px "Gotham","DM Sans",sans-serif;color:#fff;margin:0}
+.fm-release-draft-review>p{font:500 12px/1.6 "DM Sans",sans-serif;color:#c8c8ca;margin:0}
+.fm-release-draft-review label{display:grid;gap:7px;font:750 12px "DM Sans",sans-serif;color:#f2f2f2}
+.fm-release-draft-review textarea{width:100%;max-width:100%;min-height:74px;border:1px solid #666;
+ border-radius:8px;color:#fff;background:#202020;padding:12px;font:500 13px "DM Sans",sans-serif;box-sizing:border-box}
+.fm-release-draft-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.fm-release-draft-actions button{min-height:42px;padding:10px 16px;border:1px solid #777;border-radius:8px;
+ background:#262626;color:#fff;font:800 12px "DM Sans",sans-serif;cursor:pointer}
+.fm-release-draft-actions button[value=approve]{background:#ff6a00;color:#111;border-color:#ff6a00}
+.fm-release-draft-actions button[value=delete]{border-color:#8b4141;color:#ffb9b9}
+.fm-release-draft-actions button:disabled{opacity:.6;cursor:wait}
