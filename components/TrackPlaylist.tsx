@@ -209,9 +209,10 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
   void sendMusicPlay({action:"qualify",releaseId:capture.releaseId,
    sessionId:capture.sessionId,browserId:capture.browserId,
    duration:capture.duration,listenedSeconds:Math.min(capture.duration,capture.listened)})
-   .then(()=>{
+   .then(result=>{
     capture.qualified=true;
-    window.dispatchEvent(new CustomEvent("fm-qualified-play",{detail:{releaseId:capture.releaseId}}));
+    if(!result.alreadyCounted)
+     window.dispatchEvent(new CustomEvent("fm-qualified-play",{detail:{releaseId:capture.releaseId}}));
    })
    .catch(error=>console.warn("FACKTS qualified music play not recorded",error))
    .finally(()=>{capture.submitting=false;});
