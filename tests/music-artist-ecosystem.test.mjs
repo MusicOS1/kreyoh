@@ -22,7 +22,7 @@ test("unified artist listening and routes parse as TypeScript/TSX",()=>{
 test("fans browse artists, play and follow without leaving the current audio tree",()=>{
  const experience=read("components/ListenerExperience.tsx");
  const discovery=read("components/ArtistDiscovery.tsx");
- assert.match(experience,/tab==="Artists"&&<div className="fs-main-view"><ArtistDiscovery/);
+ assert.match(experience,/tab==="Artists"&&<div className="fs-main-view">\{hero&&<ConfiguredFanHero[\s\S]*?<ArtistDiscovery/);
  assert.match(experience,/onPlay=\{play\}/);
  assert.match(read("components/ListeningProvider.tsx"),/started&&queue\.length>0/);
  assert.match(discovery,/onFollow\(selectedArtist\.id\)/);
