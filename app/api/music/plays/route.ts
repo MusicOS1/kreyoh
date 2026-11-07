@@ -5,7 +5,9 @@ import {viewer,uuidPattern} from "../../../../lib/community";
 
 export const runtime="nodejs";
 const headers={"Cache-Control":"private, no-store"};
-const qualifiedBucket=()=>Math.floor(Date.now()/900000); // one qualifying play / listener / song / 15 minutes
+// One qualified play per actual listening session. The existing unique bucket index
+// only guards concurrent duplicate qualifications within the same second, not real replays.
+const qualifiedBucket=()=>Math.floor(Date.now()/1000);
 const uuid=(value:unknown):value is string=>typeof value==="string"&&uuidPattern.test(value);
 const threshold=(duration:number)=>duration>=30?30:Math.max(5,Math.ceil(duration*.5));
 function browserKey(browserId:string,userId?:string){
@@ -42,7 +44,10 @@ export async function POST(request:Request){
     listener_key:key,source:"public-player",duration_seconds:Math.ceil(duration),
     listened_seconds:0
    });
-   if(insertError&&insertError.code!=="23505")throw Error("Unable to start listening session.");
+   if(insertError&&insertError.code!=="23505"){
+    console.warn("public-music-play-start-rejected",{code:insertError.code});
+    throw Error("Unable to start listening session.");
+   }
    return Response.json({ok:true,started:true},{headers});
   }
   if(body.action!=="qualify")return Response.json({ok:false,error:"Invalid playback action."},{status:400,headers});
@@ -71,7 +76,7 @@ export async function POST(request:Request){
     qualified_at:new Date().toISOString(),qualified_bucket:current})
    .eq("id",session.id).is("qualified_at",null).select("id").maybeSingle();
   if(updateError?.code==="23505"){
-   // Existing qualified play this quarter hour; remove the orphan start, not historical counts.
+   // A concurrent same-second duplicate must not manufacture another play.
    await admin.from("music_play_sessions").delete().eq("id",session.id).is("qualified_at",null);
    return Response.json({ok:true,qualified:true,alreadyCounted:true},{headers});
   }
