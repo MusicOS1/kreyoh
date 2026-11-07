@@ -241,3 +241,34 @@
 .fm-artwork-reset{justify-self:start;min-height:32px;border:1px solid #7778;border-radius:8px;background:transparent;color:inherit;font:inherit;font-size:12px;padding:6px 12px;cursor:pointer}
 .fm-editorial-upload-working{font-size:12px;font-weight:750;opacity:.85}
 @media(max-width:650px){.fm-artwork-positioner-sliders{grid-template-columns:1fr}.fm-artwork-positioner{padding:10px}.fm-artwork-positioner-preview{aspect-ratio:16/10}}
+
+
+/* Discover: dedicated featured artist management, independent of artwork of the week. */
+.fm-featured-artist-editor{display:grid;gap:20px;padding:clamp(17px,3vw,30px);border:1px solid #7774;border-radius:16px;
+ background:rgba(127,127,127,.035);margin:25px 0 35px}
+.fm-featured-artist-editor>header{display:grid;gap:7px}
+.fm-featured-artist-editor>header .eyebrow{font-size:10px;letter-spacing:.12em;color:#ff6a00;font-weight:800}
+.fm-featured-artist-editor>header h2{margin:0;font-size:clamp(23px,2.7vw,32px);line-height:1.2;letter-spacing:-.045em}
+.fm-featured-artist-editor>header p{max-width:800px;font-size:13px;line-height:1.6;color:inherit;opacity:.75;margin:0}
+.fm-featured-artist-form{display:grid;gap:15px;max-width:900px}
+.fm-featured-artist-form>label{display:grid;gap:7px;font-size:13px;font-weight:750}
+.fm-featured-artist-form select{min-height:46px;border-radius:10px;border:1px solid #9995;background:rgba(127,127,127,.08);
+ color:inherit;padding:10px 14px;min-width:0;max-width:640px;font:inherit}
+.fm-featured-artist-preview{display:flex;align-items:center;gap:13px;min-width:0;background:rgba(127,127,127,.045);
+ border:1px solid #8884;border-radius:12px;padding:12px;max-width:640px}
+.fm-featured-artist-preview img,.fm-featured-artist-initial{display:grid;place-items:center;width:68px;height:68px;
+ border-radius:10px;object-fit:cover;flex:none;background:#27180f;color:#ff6a00;font-size:25px;font-weight:900}
+.fm-featured-artist-preview>div{display:grid;gap:4px;min-width:0}
+.fm-featured-artist-preview>div>span{font-size:10px;color:#ff6a00;font-weight:850;text-transform:uppercase;letter-spacing:.1em}
+.fm-featured-artist-preview>div>strong{font-size:17px;overflow-wrap:anywhere}
+.fm-featured-artist-preview>div>small{font-size:12px;opacity:.7}
+.fm-featured-artist-warning{font-size:12px;line-height:1.55;color:#a95308;background:#ffa45214;
+ border:1px solid #ff9b5540;padding:13px 14px;border-radius:9px;margin:0}
+.fm-featured-artist-actions{display:flex;align-items:center;gap:17px;flex-wrap:wrap}
+.fm-featured-artist-actions button{min-height:44px;padding:11px 19px;background:#ff6a00;border:0;border-radius:9px;
+ color:#111;font-size:13px;font-weight:850;cursor:pointer}
+.fm-featured-artist-actions button:disabled{opacity:.55;cursor:wait}
+.fm-featured-artist-actions a{font-size:12px;text-decoration:none;color:inherit;font-weight:750}
+.fm-featured-artist-actions a:hover{color:#ff6a00}
+@media(max-width:680px){.fm-featured-artist-editor{margin:17px 0 26px;padding:15px}
+ .fm-featured-artist-preview img,.fm-featured-artist-initial{width:55px;height:55px}}
