@@ -217,3 +217,27 @@
 .fm-event-editor-actions button:disabled{opacity:.5}
 .fm-event-editor-actions button[name=delete]{background:transparent!important;color:inherit!important;border:1px solid #9996!important}
 @media(max-width:700px){.fm-event-editor-fields{grid-template-columns:1fr}.fm-event-editor-section{padding:13px}}
+
+
+/* Hero Studio + Shows: reposition photos by dragging the preview or using sliders. */
+.fm-artwork-positioner{display:grid;gap:12px;border:1px solid #8b8b8b55;border-radius:12px;padding:14px;min-width:0;background:rgba(100,100,100,.055)}
+.fm-artwork-positioner-heading{display:grid;gap:5px}
+.fm-artwork-positioner-heading strong{font-size:13px}
+.fm-artwork-positioner-heading span{font-size:12px;opacity:.76}
+.fm-artwork-positioner-preview{width:100%;aspect-ratio:16/8;position:relative;overflow:hidden;
+ border:1px solid #9997;border-radius:10px;background:#111;color:#eee;cursor:grab;
+ user-select:none;touch-action:none}
+.fm-artwork-positioner-preview:active{cursor:grabbing}
+.fm-artwork-positioner-preview img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;max-width:none;user-select:none;pointer-events:none}
+.fm-artwork-positioner-empty{position:absolute;inset:0;display:grid;place-items:center;padding:12px;font-size:12px}
+.fm-artwork-positioner-grid{position:absolute;inset:0;background:
+ linear-gradient(to right,transparent 33.15%,#ffffff35 33.3%,transparent 33.45%,transparent 66.5%,#ffffff35 66.65%,transparent 66.8%),
+ linear-gradient(to bottom,transparent 33.15%,#ffffff35 33.3%,transparent 33.45%,transparent 66.5%,#ffffff35 66.65%,transparent 66.8%);
+ pointer-events:none}
+.fm-artwork-positioner-sliders{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.fm-artwork-positioner-sliders label{display:grid;grid-template-columns:1fr auto;gap:7px;font-size:12px;min-width:0;font-weight:700}
+.fm-artwork-positioner-sliders label span{color:#ff6a00;font-variant-numeric:tabular-nums}
+.fm-artwork-positioner-sliders input[type=range]{grid-column:1/-1;max-width:100%;min-height:24px;accent-color:#ff6a00;cursor:pointer;padding:0}
+.fm-artwork-reset{justify-self:start;min-height:32px;border:1px solid #7778;border-radius:8px;background:transparent;color:inherit;font:inherit;font-size:12px;padding:6px 12px;cursor:pointer}
+.fm-editorial-upload-working{font-size:12px;font-weight:750;opacity:.85}
+@media(max-width:650px){.fm-artwork-positioner-sliders{grid-template-columns:1fr}.fm-artwork-positioner{padding:10px}.fm-artwork-positioner-preview{aspect-ratio:16/10}}
