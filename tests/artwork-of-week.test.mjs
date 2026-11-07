@@ -36,7 +36,7 @@ test("legacy wrongly placed artwork resolves from a uniquely matched published r
  assert.match(fn,/\/api\/releases\//);
  assert.match(card,/fm-artwork-week-cover/);
  assert.match(card,/fm-artwork-week-card/);
- assert.match(card,/release\.artist_name/);
+ assert.match(card,/release\?\.artist_name/);
 });
 
 test("Discover features share a responsive editorial zone, without burying playback or the music feed",()=>{
