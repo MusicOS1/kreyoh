@@ -38,3 +38,22 @@ test("legacy wrongly placed artwork resolves from a uniquely matched published r
  assert.match(card,/fm-artwork-week-card/);
  assert.match(card,/release\.artist_name/);
 });
+
+test("Discover features share a responsive editorial zone, without burying playback or the music feed",()=>{
+ const fan=read("components/ListenerExperience.tsx");
+ const card=read("components/ArtworkOfTheWeek.tsx");
+ const stylesheet=read("components/streaming/streaming.css");
+ const index=fan.indexOf('tab==="For You"');
+ const browse=fan.slice(index,fan.indexOf('tab==="Artists"',index));
+ assert.match(browse,/fm-discover-feature-zone/);
+ assert.match(browse,/fm-discover-artist-feature/);
+ assert.match(browse,/artworkOfWeek&&<ArtworkOfTheWeek/);
+ assert.ok(browse.indexOf("fm-discover-artist-feature")<browse.indexOf("ArtworkOfTheWeek"));
+ assert.ok(browse.indexOf("ArtworkOfTheWeek")<browse.indexOf("Pick up where you left off"));
+ for(const control of ["onPlay={id=>playSong(id)}","onFollow={id=>void change","onOpen={openArtist}"])
+  assert.ok(browse.includes(control),"Artist action missing: "+control);
+ assert.match(card,/release\?\.title\|\|entry\.eyebrow/);
+ assert.match(stylesheet,/grid-template-columns:minmax\(0,1\.65fr\) minmax\(0,1fr\)/);
+ assert.match(stylesheet,/@media\(max-width:1110px\)/);
+ assert.match(stylesheet,/\.fm-discover-feature-zone \.fm-artwork-week-card/);
+});
