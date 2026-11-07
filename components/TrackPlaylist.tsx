@@ -12,7 +12,7 @@ import {Volume2Icon,VolumeXIcon} from "./Icons";
 // Stable shared empty list: never recreate a dependency array during render.
 const EMPTY_SAVED_IDS: string[] = [];
 type PublicPlaySession={releaseId:string;sessionId:string;browserId:string;duration:number;
- listened:number;lastPosition:number;started:boolean;qualified:boolean;submitting:boolean};
+ listened:number;lastPosition:number;lastTickMs:number;started:boolean;qualified:boolean;submitting:boolean};
 function listenerBrowserId(){
  try{
   const key="fm-public-listener-uuid";
@@ -180,30 +180,51 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
  function beginPublicPlay(){
   if(!systemMediaControls||enableRanking||!selected?.src.startsWith("/api/releases/"))return;
   const audio=audioRef.current;
+  // The play event may fire before duration metadata arrives; loadedmetadata
+  // and timeupdate call this function again after the duration is known.
   if(!audio||!Number.isFinite(audio.duration)||audio.duration<5)return;
   if(publicPlaySession.current?.releaseId===selected.id){
    publicPlaySession.current.lastPosition=audio.currentTime;
-   return; // A pause/resume is the same session, not a new play.
+   publicPlaySession.current.lastTickMs=performance.now();
+   return; // A pause/resume is the same play session.
   }
-  const capture:PublicPlaySession={releaseId:selected.id,sessionId:crypto.randomUUID(),
-   browserId:listenerBrowserId(),duration:audio.duration,
-   listened:0,lastPosition:audio.currentTime,started:false,qualified:false,submitting:false};
+  const capture:PublicPlaySession={
+   releaseId:selected.id,sessionId:crypto.randomUUID(),browserId:listenerBrowserId(),
+   duration:audio.duration,listened:0,lastPosition:audio.currentTime,
+   lastTickMs:performance.now(),started:false,qualified:false,submitting:false
+  };
   publicPlaySession.current=capture;
-  void sendMusicPlay({action:"start",releaseId:capture.releaseId,sessionId:capture.sessionId,
-   browserId:capture.browserId,duration:capture.duration}).then(()=>{
-    if(publicPlaySession.current===capture)capture.started=true;
-   }).catch(error=>console.warn("FACKTS music play start not counted",error));
+  void (async()=>{
+   for(let attempt=0;attempt<3;attempt++){
+    try{
+     await sendMusicPlay({action:"start",releaseId:capture.releaseId,
+      sessionId:capture.sessionId,browserId:capture.browserId,duration:capture.duration});
+     if(publicPlaySession.current===capture)capture.started=true;
+     return;
+    }catch(error){
+     console.warn("FACKTS music play session failed",{attempt:attempt+1,error});
+     if(attempt===2&&publicPlaySession.current===capture)
+      setNotice("Music plays, but the counter connection failed. Check your connection.");
+    }
+   }
+  })();
  }
  function capturePublicPlay(){
   if(!systemMediaControls||enableRanking)return;
   const audio=audioRef.current,capture=publicPlaySession.current;
   if(!audio||!capture||capture.releaseId!==selected?.id||audio.paused||audio.seeking||
     capture.qualified)return;
+  const now=performance.now();
+  const elapsed=Math.max(0,(now-capture.lastTickMs)/1000);
   const delta=audio.currentTime-capture.lastPosition;
+  capture.lastTickMs=now;
   capture.lastPosition=audio.currentTime;
-  // Seek jumps and rewinds never count as listening.
-  if(delta>0&&delta<=4)capture.listened+=delta;
-  const threshold=capture.duration>=30?30:Math.max(5,Math.ceil(capture.duration*.5));
+  // Count audio listened, not clicks or seek jumps. A throttled background
+  // timeupdate can represent many seconds of valid listening.
+  const plausible=Math.max(0,elapsed*Math.max(.75,audio.playbackRate)+.75);
+  if(delta>0&&delta<=plausible+1.5)
+   capture.listened+=Math.min(delta,plausible);
+  const threshold=capture.duration>60?30:Math.max(5,Math.ceil(capture.duration*.5));
   if(!capture.started||capture.submitting||capture.listened<threshold)return;
   capture.submitting=true;
   void sendMusicPlay({action:"qualify",releaseId:capture.releaseId,
@@ -214,7 +235,10 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
     if(!result.alreadyCounted)
      window.dispatchEvent(new CustomEvent("fm-qualified-play",{detail:{releaseId:capture.releaseId}}));
    })
-   .catch(error=>console.warn("FACKTS qualified music play not recorded",error))
+   .catch(error=>{
+    console.warn("FACKTS qualified music play not recorded",error);
+    setNotice("Playback continues, but this listen could not be recorded.");
+   })
    .finally(()=>{capture.submitting=false;});
  }
  function captureListen(){
@@ -247,9 +271,9 @@ export default function TrackPlaylist({tracks,resultsVisible=false,showDetailedS
    <div className={selected.artwork?"track-player-art has-artwork":"track-player-art"}>{selected.artwork?<img src={selected.artwork} alt={`${selected.title} artwork`}/>:<span aria-hidden="true">♫</span>}</div>
    <div className="track-player-copy"><span>NOW PLAYING</span><h3>{selected.title}</h3><p>{selected.subtitle}</p></div>
    {showSaveAction&&<button type="button" className="player-save-toggle" aria-label={savedIds.includes(selected.id)?"Remove "+selected.title+" from liked songs":"Save "+selected.title+" to liked songs"} title={savedIds.includes(selected.id)?"Remove from liked songs":"Save to liked songs"} aria-pressed={savedIds.includes(selected.id)} disabled={Boolean(savingTrack)} onClick={()=>void toggleSaved()}><PlayerGlyph kind="heart"/></button>}
-   <audio ref={audioRef} key={selected.src} src={selected.src} preload="metadata" onLoadedMetadata={()=>{setDuration(audioRef.current?.duration||0);const pending=pendingPosition.current;
+   <audio ref={audioRef} key={selected.src} src={selected.src} preload="metadata" onLoadedMetadata={()=>{setDuration(audioRef.current?.duration||0);if(audioRef.current&&!audioRef.current.paused)beginPublicPlay();const pending=pendingPosition.current;
     const audio=audioRef.current;
-    if(audio){audio.volume=volume;if(pending?.id===selected.id){const time=Math.min(pending.position,Math.max(0,(Number.isFinite(audio.duration)?audio.duration:pending.position)-.1));audio.currentTime=time;setPosition(time);pendingPosition.current=null;}else setPosition(0);syncMediaPosition(true);}}} onPlay={()=>{setIsPlaying(true);syncMediaPosition(true);beginPublicPlay();onPlaybackChange?.(selected.id,true);onTrackPlay?.(selected.id);}} onPause={()=>{savePosition(true);syncMediaPosition(true);setIsPlaying(false);onPlaybackChange?.(selected.id,false);}} onTimeUpdate={()=>{savePosition();setPosition(audioRef.current?.currentTime||0);syncMediaPosition();captureListen();capturePublicPlay();if(audioRef.current)onProgress?.(selected.id,audioRef.current.currentTime,Number.isFinite(audioRef.current.duration)?audioRef.current.duration:0);}} onEnded={()=>{publicPlaySession.current=null;ended();}} onSeeking={()=>{if(publicPlaySession.current&&audioRef.current)publicPlaySession.current.lastPosition=audioRef.current.currentTime;}} onError={()=>{setIsPlaying(false);setNotice("This audio could not be loaded. Refresh the page and try again.");}}/>
+    if(audio){audio.volume=volume;if(pending?.id===selected.id){const time=Math.min(pending.position,Math.max(0,(Number.isFinite(audio.duration)?audio.duration:pending.position)-.1));audio.currentTime=time;setPosition(time);pendingPosition.current=null;}else setPosition(0);syncMediaPosition(true);}}} onPlay={()=>{setIsPlaying(true);syncMediaPosition(true);beginPublicPlay();onPlaybackChange?.(selected.id,true);onTrackPlay?.(selected.id);}} onPause={()=>{savePosition(true);syncMediaPosition(true);setIsPlaying(false);onPlaybackChange?.(selected.id,false);}} onTimeUpdate={()=>{savePosition();setPosition(audioRef.current?.currentTime||0);syncMediaPosition();captureListen();if(!publicPlaySession.current||publicPlaySession.current.releaseId!==selected.id)beginPublicPlay();capturePublicPlay();if(audioRef.current)onProgress?.(selected.id,audioRef.current.currentTime,Number.isFinite(audioRef.current.duration)?audioRef.current.duration:0);}} onEnded={()=>{publicPlaySession.current=null;ended();}} onSeeking={()=>{if(publicPlaySession.current&&audioRef.current){publicPlaySession.current.lastPosition=audioRef.current.currentTime;publicPlaySession.current.lastTickMs=performance.now();}}} onError={()=>{setIsPlaying(false);setNotice("This audio could not be loaded. Refresh the page and try again.");}}/>
    {canResume&&<button type="button" className="resume-listening" onClick={togglePlayback}>Resume Listening</button>}
    <div className="player-progress"><input style={{background:`linear-gradient(to right, #ff6a00 0%, #ff6a00 ${duration>0?Math.min(100,Math.max(0,position/duration*100)):0}%, #555 ${duration>0?Math.min(100,Math.max(0,position/duration*100)):0}%, #555 100%)`}} type="range" aria-label="Seek in track" min={0} max={Number.isFinite(duration)?duration:0} step={0.1} value={position} onChange={e=>{if(audioRef.current)audioRef.current.currentTime=Number(e.target.value);setPosition(Number(e.target.value));syncMediaPosition(true);}}/><div><span>{clock(position)}</span><span>{clock(Number.isFinite(duration)?duration:0)}</span></div></div>
    <div className="track-playlist-transport" aria-label="Playlist controls"><button type="button" aria-label="Shuffle" aria-pressed={shuffle} onClick={()=>{played.current=[];setShuffle(value=>!value);}} title="Shuffle"><PlayerGlyph kind="shuffle"/></button><button type="button" onClick={previousTrack} aria-label="Previous track"><PlayerGlyph kind="previous"/></button><button type="button" className="main" onClick={togglePlayback} aria-label={isPlaying?"Pause":"Play"}>{isPlaying?<PlayerGlyph kind="pause"/>:<PlayerGlyph kind="play"/>}</button><button type="button" onClick={nextTrack} aria-label="Next track"><PlayerGlyph kind="next"/></button><button type="button" aria-label={`Repeat: ${repeat}`} aria-pressed={repeat!=="off"} title={`Repeat: ${repeat}`} onClick={()=>setRepeat(value=>value==="off"?"all":value==="all"?"one":"off")}><PlayerGlyph kind="repeat"/>{repeat==="one"&&<span className="repeat-one">1</span>}</button></div><p className="player-mode-label">{shuffle?"Shuffle on":"In order"} · Repeat {repeat} · {current+1} / {localTracks.length}</p>
