@@ -2,6 +2,7 @@
 import Link from "next/link";
 import TrackWaveform from "../TrackWaveform";
 import ReleaseComments from "../ReleaseComments";
+import MusicPlayCount from "../MusicPlayCount";
 import {ShareRelease,VoteButton,ReleaseVoteCount} from "../ReleaseControls";
 import {PlayIcon} from "../Icons";
 type Release={id:string;title:string;artist_id:string;artist_name:string;collection:string;has_cover:boolean;votes:number;plays?:number|null};
@@ -25,7 +26,7 @@ export default function StreamTrackRow({release,rank,userId,active,isPlaying,lik
    </button>
    <div className="fs-track-info">
     <Link href={"/billboard/"+encodeURIComponent(release.id)} className="fs-track-title">{release.title}</Link>
-    <div className="fs-track-byline">{onArtist?<button type="button" onClick={onArtist}>{release.artist_name}</button>:<span>{release.artist_name}</span>}{release.collection&&<span className="fs-track-collection"> · {release.collection}</span>}{release.plays!=null&&<span className="fs-track-play-count"> · {release.plays.toLocaleString()} plays</span>}</div>
+    <div className="fs-track-byline">{onArtist?<button type="button" onClick={onArtist}>{release.artist_name}</button>:<span>{release.artist_name}</span>}{release.collection&&<span className="fs-track-collection"> · {release.collection}</span>}<span className="fs-track-play-count"> · <MusicPlayCount id={release.id} count={release.plays}/></span></div>
    </div>
    {active&&isPlaying&&<span className="fs-now-playing" aria-label="Now playing"><i/><i/><i/></span>}
   </div>
