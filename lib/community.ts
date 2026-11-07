@@ -27,7 +27,7 @@ export async function chart(){
  ]);
  if(counts.error)console.error("Public play counts unavailable",counts.error);
  const linked=new Map((attributions.error?[]:attributions.data||[]).map(l=>[l.release_id,l.credited_artist_profile_id]));
- const playCounts=new Map((counts.error?[]:counts.data||[]).map(row=>[row.release_id,Number(row.plays)]));
+ const playCounts=new Map((counts.error?[]:counts.data||[]).map((row:{release_id:string;plays:number|string})=>[row.release_id,Number(row.plays)]));
  // A missing RPC never becomes an invented zero; a release without sessions genuinely has 0 plays.
  const enriched=releases.map(release=>({...release,
   plays:counts.error?null:playCounts.get(release.id)||0,
