@@ -5,6 +5,7 @@ import PublicFooter from "../../../components/PublicFooter";
 import {discoveryContent} from "../../../lib/discoveryContent";
 import {publicMusicArtists} from "../../../lib/musicArtists";
 import {showDateLabel} from "../../../components/ShowsLanding";
+import {imageCropStyle} from "../../../lib/heroImageCrop";
 
 export const dynamic="force-dynamic";
 type Props={params:Promise<{id:string}>};
@@ -36,7 +37,7 @@ export default async function ShowDetails({params}:Props){
   <main className="fm-show-detail">
    <nav className="fm-show-back"><Link href="/listen?tab=Shows">← Shows &amp; sessions</Link></nav>
    <header className="fm-show-detail-hero">
-    {item.image&&<img src={item.image} alt={item.title+" poster"} className="fm-show-detail-art"/>}
+    {item.image&&<img src={item.image} alt={item.title+" poster"} className="fm-show-detail-art" style={imageCropStyle(item)}/>}
     <div className="fm-show-detail-overlay" aria-hidden="true"/>
     <div className="fm-show-detail-intro">
      <span className="fm-show-kicker">FACKTS MUSIC / SHOWS &amp; SESSIONS</span>
