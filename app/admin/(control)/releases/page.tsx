@@ -24,6 +24,10 @@ export default async function Releases({searchParams}:{searchParams:Promise<{pag
  ]);
  if(error)throw Error("Could not load release reviews.");
  const totalPages=Math.max(1,Math.ceil((count||0)/15));
+ const {data:playTotals,error:playError}=releases?.length
+  ?await admin.rpc("public_release_play_counts",{p_release_ids:releases.map(r=>r.id)})
+  :{data:[],error:null};
+ const playsById=new Map((playTotals||[]).map((row:{release_id:string;plays:number|string})=>[row.release_id,Number(row.plays)]));
  return <main className="community-page">
   <div className="community-actions"><Link href="/admin/releases/bulk">+ Add new songs (bulk or singles)</Link><Link href="/admin/catalogue">Review artist credit & ownership</Link><Link href="/admin/discovery">Edit fan heroes</Link><Link href="/billboard">Open Billboard →</Link></div>
   <h1>Release management</h1>
@@ -50,7 +54,9 @@ export default async function Releases({searchParams}:{searchParams:Promise<{pag
     <div className="fm-release-detail-body">
      <div className="fm-release-detail-head">
       <h2>{release.title}</h2>
-      <p>{release.artist_name} · {release.collection||"Single"} · {release.status} · Release {new Date(release.release_at).toLocaleDateString("en-KE",{timeZone:"Africa/Nairobi"})}</p>
+      <p>{release.artist_name} · {release.collection||"Single"} · {release.status} · Release {new Date(release.release_at).toLocaleDateString("en-KE",{timeZone:"Africa/Nairobi"})}
+       {release.status==="published"&&<strong className="fm-release-play-total"> · {playError?"Play stats unavailable":`${(playsById.get(release.id)||0).toLocaleString()} recorded plays`}</strong>}
+      </p>
      </div>
      <div className="fm-release-preview">
       <span className="fm-release-preview-art" style={release.cover_key?{backgroundImage:"url(/api/releases/"+release.id+"/media?kind=cover)"}:undefined} aria-hidden="true">♫</span>
