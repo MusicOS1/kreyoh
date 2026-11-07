@@ -1,5 +1,6 @@
 export const fanHeroAreas=[
  {id:"for-you",label:"Fan home / For You",fallback:"Find your frequency."},
+ {id:"artwork",label:"Artwork of the Week",fallback:"Album Artwork of the Week"},
  {id:"artists",label:"Explore artists",fallback:"Meet the artists."},
  {id:"albums",label:"Albums & EPs",fallback:"Albums & EPs"},
  {id:"shows",label:"Shows & sessions",fallback:"Shows"},
