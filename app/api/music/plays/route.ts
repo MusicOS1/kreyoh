@@ -60,6 +60,11 @@ export async function POST(request:Request){
   const elapsed=(Date.now()-new Date(session.started_at).getTime())/1000;
   if(elapsed<Math.max(4,threshold(session.duration_seconds)*.7))
    return Response.json({ok:false,error:"Listen a little longer to qualify."},{status:409,headers});
+  const {data:stillLive,error:liveError}=await admin.from("music_releases")
+   .select("id").eq("id",body.releaseId).eq("status","published")
+   .lte("release_at",new Date().toISOString()).maybeSingle();
+  if(liveError||!stillLive)return Response.json({ok:false,error:"Release is no longer public."},
+   {status:403,headers});
   const current=qualifiedBucket();
   const {data:changed,error:updateError}=await admin.from("music_play_sessions")
    .update({listened_seconds:Math.min(Math.ceil(listened),session.duration_seconds),
