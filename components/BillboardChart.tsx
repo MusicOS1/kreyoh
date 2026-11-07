@@ -5,7 +5,7 @@ import {PlayIcon,ArrowUpRight} from "./Icons";
 import {VoteButton,ShareRelease,ReleaseVoteCount} from "./ReleaseControls";
 
 export type ChartEntry={id:string;artist_id:string;title:string;artist_name:string;collection:string|null;
- has_cover:boolean;votes:number;explicit?:boolean;debut?:boolean;release_at:string;position:number};
+ has_cover:boolean;votes:number;plays?:number|null;explicit?:boolean;debut?:boolean;release_at:string;position:number};
 type Props={entries:ChartEntry[];allCount:number;userId?:string;votedIds:string[];featured:boolean};
 const cover=(r:ChartEntry)=>"/api/releases/"+encodeURIComponent(r.id)+"/media?kind=cover";
 
@@ -32,7 +32,7 @@ export default function BillboardChart({entries,allCount,userId,votedIds,feature
       <PlayIcon size={22}/></button>
     </div>
     <div className="fc-podium-text"><Link href={"/billboard/"+r.id}><h2>{r.title}</h2></Link><p>{r.artist_name}</p>
-     <div className="fc-rank-stats"><span><ReleaseVoteCount id={r.id} count={r.votes}/></span><span>this week</span></div></div>
+     <div className="fc-rank-stats"><span>{r.plays==null?"Plays unavailable":`${r.plays.toLocaleString()} plays`}</span><span><ReleaseVoteCount id={r.id} count={r.votes}/> this week</span></div></div>
     <ChartActions r={r} userId={userId} voted={voted.has(r.id)}/>
    </article>)}
   </section>}
@@ -50,13 +50,13 @@ export default function BillboardChart({entries,allCount,userId,votedIds,feature
      <div className="fc-chart-song-title"><Link href={"/billboard/"+r.id}><strong>{r.title}</strong></Link>
       <span>{r.artist_name}</span>{r.collection&&<small>{r.collection}</small>}</div>
     </div>
-    <div className="fc-row-votes"><strong><ReleaseVoteCount id={r.id} count={r.votes}/></strong><small>this week</small></div>
+    <div className="fc-row-votes"><strong>{r.plays==null?"—":r.plays.toLocaleString()} plays</strong><small><ReleaseVoteCount id={r.id} count={r.votes}/> votes</small></div>
     <div className="fc-row-actions"><ChartActions r={r} userId={userId} voted={voted.has(r.id)}/>
       <Link className="fc-song-more" href={"/billboard/"+r.id} aria-label={"Details for "+r.title}><ArrowUpRight size={17}/></Link></div>
    </article>)}
    {!entries.length&&<div className="fc-no-results">No matching releases. <Link href="/billboard">View the full chart</Link>.</div>}
    {featured&&stars.length===entries.length&&stars.length>0&&<p className="fc-all-featured">All ranked songs are shown above.</p>}
   </section>
-  <p className="fc-chart-method">Ranked by verified weekly fan votes · Resets Mondays at 00:00 EAT.</p>
+  <p className="fc-chart-method">Ranked by recorded qualified listens, with weekly fan votes breaking ties. Votes reset Mondays at 00:00 EAT. Plays are lifetime counts since tracking was enabled.</p>
  </div>;
 }
