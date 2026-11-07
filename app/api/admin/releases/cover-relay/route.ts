@@ -30,10 +30,11 @@ async function authorizedUpload(request:Request):Promise<AuthorizedUpload>{
   admin.from("platform_events").select("created_at,metadata")
    .eq("id",attemptId).eq("event_name","release_cover_replacement_prepared")
    .eq("user_id",actor.id).eq("entity_id",releaseId).eq("entity_type","release").maybeSingle(),
-  admin.from("music_releases").select("id,artist_id,cover_key,status,source_track_id").eq("id",releaseId).maybeSingle()
+  admin.from("music_releases").select("id,artist_id,cover_key,status").eq("id",releaseId).maybeSingle()
  ]);
- if(error||!intent||releaseError||!release||release.source_track_id)
-  throw Error("Cover replacement authorisation not found.");
+ if(error)throw Error("Cover replacement authorisation lookup failed.");
+ if(releaseError)throw Error("Cover replacement release lookup failed.");
+ if(!intent||!release)throw Error("Cover replacement authorisation not found.");
  if(Date.now()-new Date(intent.created_at).getTime()>3600000)
   throw Error("Cover replacement authorisation expired. Choose the image again.");
  const {uploadKey,oldKey,status,contentType:preparedType,size:preparedSize}=intent.metadata||{};
