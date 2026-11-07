@@ -143,3 +143,9 @@
 .fm-release-draft-actions button[value=approve]{background:#ff6a00;color:#111;border-color:#ff6a00}
 .fm-release-draft-actions button[value=delete]{border-color:#8b4141;color:#ffb9b9}
 .fm-release-draft-actions button:disabled{opacity:.6;cursor:wait}
+
+
+.fm-release-preview-warning{margin:15px 0!important;padding:14px 17px;border:1px solid #ff6a0050;
+ border-left:4px solid #ff6a00;border-radius:9px;background:#fff0d9;color:#804100!important;
+ font:700 12px/1.6 "DM Sans",sans-serif}
+.fm-release-play-total{font:850 12px "DM Sans",sans-serif;color:#ff6a00}
