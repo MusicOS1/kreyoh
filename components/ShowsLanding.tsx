@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type {DiscoveryItem} from "../lib/discoveryContent";
+import {imageCropStyle} from "../lib/heroImageCrop";
 
 export function showHref(item:Pick<DiscoveryItem,"id">){
  return "/shows/"+encodeURIComponent(item.id.replace(/^music_discovery_/,""));
@@ -28,7 +29,7 @@ export default function ShowsLanding({items}:{items:DiscoveryItem[]}){
    <p>Live experiences, artist conversations and the stories behind the music.</p>
   </div>
   <Link className="fm-show-feature" href={showHref(featured)} aria-label={"View "+featured.title}>
-   {featured.image&&<img src={featured.image} alt="" loading="eager"/>}
+   {featured.image&&<img src={featured.image} alt="" loading="eager" style={imageCropStyle(featured)}/>}
    <span className="fm-show-feature-shade" aria-hidden="true"/>
    <div className="fm-show-feature-copy">
     <span className="fm-show-kicker">FEATURED {featured.eventStart?"SESSION":"SHOW"}</span>
@@ -43,7 +44,7 @@ export default function ShowsLanding({items}:{items:DiscoveryItem[]}){
   {rest.length>0&&<div className="fm-shows-browse">
    <div><span>EXPLORE THE SESSIONS</span><h2>More from FACKTS</h2></div>
    <div className="fm-show-cards">{rest.map(item=><Link key={item.id} href={showHref(item)} className="fm-show-card">
-    {item.image?<img src={item.image} alt="" loading="lazy"/>:<div className="fm-show-card-placeholder">FACKTS MUSIC</div>}
+    {item.image?<img src={item.image} alt="" loading="lazy" style={imageCropStyle(item)}/>:<div className="fm-show-card-placeholder">FACKTS MUSIC</div>}
     <div><span>{item.eventStart?showWhen(item.eventStart):"SESSION / FACKTS"}</span>
      <h3>{item.title}</h3><p>{item.description}</p><b>See details ↗</b></div>
    </Link>)}</div>
