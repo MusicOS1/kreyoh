@@ -24,19 +24,20 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
   const {data:musicStats,error:musicError}=await admin.rpc("public_music_play_stats",{
    p_from:fromDate,p_to:toDate
   });
-  const stats=(musicStats||[]).map(row=>({
+  type MusicStat={releaseId:string;lifetime:number;period:number;starts:number;listeners:number;lastPlay:string|null};
+  const stats:MusicStat[]=(musicStats||[]).map((row:any)=>({
    releaseId:String(row.release_id),lifetime:Number(row.lifetime_plays||0),
    period:Number(row.period_plays||0),starts:Number(row.period_starts||0),
    listeners:Number(row.period_listeners||0),lastPlay:row.last_play_at
-  })).sort((a,b)=>b.lifetime-a.lifetime);
-  const musicIds=stats.map(item=>item.releaseId);
+  })).sort((a:MusicStat,b:MusicStat)=>b.lifetime-a.lifetime);
+  const musicIds=stats.map((item:MusicStat)=>item.releaseId);
   const {data:musicReleases,error:musicNamesError}=musicIds.length
    ?await admin.from("music_releases").select("id,title,artist_name").in("id",musicIds)
    :{data:[],error:null};
-  const names=new Map((musicReleases||[]).map(item=>[item.id,item]));
-  const totalMusicPlays=stats.reduce((sum,item)=>sum+item.lifetime,0);
-  const periodMusicPlays=stats.reduce((sum,item)=>sum+item.period,0);
-  const periodMusicStarts=stats.reduce((sum,item)=>sum+item.starts,0);
+  const names=new Map((musicReleases||[]).map((item:{id:string;title:string;artist_name:string})=>[item.id,item]));
+  const totalMusicPlays=stats.reduce((sum:number,item:MusicStat)=>sum+item.lifetime,0);
+  const periodMusicPlays=stats.reduce((sum:number,item:MusicStat)=>sum+item.period,0);
+  const periodMusicStarts=stats.reduce((sum:number,item:MusicStat)=>sum+item.starts,0);
   const auth=authActivity||[];
   const attempted=auth.filter(e=>e.event_name==="login_attempted");
   const failed=auth.filter(e=>e.event_name==="login_failed"||e.event_name==="login_access_denied");
@@ -72,7 +73,7 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
     <p className="fm-music-analytics-note">A play qualifies after meaningful listening, with repeat plays deduplicated. Counts include only sessions actually recorded since instrumentation started; earlier untracked listening cannot be reconstructed.</p>
     <div className="fm-music-play-table" role="table" aria-label="Song-level listening counts">
      <div className="fm-music-play-head" role="row"><span role="columnheader">Published release</span><span role="columnheader">Lifetime plays</span><span role="columnheader">{days}-day plays</span></div>
-     {stats.map(item=><div className="fm-music-play-row" role="row" key={item.releaseId}>
+     {stats.map((item:MusicStat)=><div className="fm-music-play-row" role="row" key={item.releaseId}>
       <span role="cell"><strong>{names.get(item.releaseId)?.title||"Release"}</strong><small>{names.get(item.releaseId)?.artist_name||""}</small></span>
       <b role="cell">{item.lifetime.toLocaleString()}</b><b role="cell">{item.period.toLocaleString()}</b>
      </div>)}
