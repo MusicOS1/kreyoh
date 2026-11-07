@@ -4,6 +4,7 @@ import {useRouter} from "next/navigation";
 import {backgroundFormAction} from "../lib/backgroundInteraction";
 import type {DiscoveryItem} from "../lib/discoveryContent";
 import AdminEditorialImageUpload from "./AdminEditorialImageUpload";
+import HeroImagePositioner from "./HeroImagePositioner";
 
 export default function DiscoveryEditor({item}:{item?:DiscoveryItem}){
  const router=useRouter();
@@ -12,6 +13,7 @@ export default function DiscoveryEditor({item}:{item?:DiscoveryItem}){
  const [kind,setKind]=useState<"show"|"feature">(item?.kind||"show");
  const [image,setImage]=useState(item?.image||"");
  const [programmeImage,setProgrammeImage]=useState(item?.programmeImage||"");
+ const [crop,setCrop]=useState({imageX:item?.imageX??50,imageY:item?.imageY??50,imageZoom:item?.imageZoom??100});
  const [uploadingMain,setUploadingMain]=useState(false);
  const [uploadingProgramme,setUploadingProgramme]=useState(false);
  const uploading=uploadingMain||uploadingProgramme;
@@ -20,6 +22,9 @@ export default function DiscoveryEditor({item}:{item?:DiscoveryItem}){
  if(state.removed)return <p role="status">{state.message}</p>;
  return <form action={action} className="discovery-editor fm-event-editor">
   <input type="hidden" name="id" value={state.id||item?.id||""}/>
+  <input type="hidden" name="imageX" value={crop.imageX}/>
+  <input type="hidden" name="imageY" value={crop.imageY}/>
+  <input type="hidden" name="imageZoom" value={crop.imageZoom}/>
   <label>Content type
    <select name="kind" value={kind} onChange={e=>setKind(e.target.value as "show"|"feature")}>
     <option value="show">Show / live session</option>
@@ -39,6 +44,8 @@ export default function DiscoveryEditor({item}:{item?:DiscoveryItem}){
    </label>
    <AdminEditorialImageUpload image={image} onUploaded={setImage} onBusyChange={setUploadingMain}
     label="Upload show poster or hero image"/>
+   <HeroImagePositioner image={image} x={crop.imageX} y={crop.imageY} zoom={crop.imageZoom}
+    onChange={setCrop} label="Position the show hero image"/>
   </div>
   {kind==="show"&&<>
    <div className="fm-event-editor-section">
