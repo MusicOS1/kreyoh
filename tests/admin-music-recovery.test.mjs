@@ -71,7 +71,7 @@ test("real music plays qualify on server after a listening threshold and are ded
  assert.match(player,/beginPublicPlay/);
  assert.match(player,/capturePublicPlay/);
  assert.match(player,/onTimeUpdate/);
- assert.match(player,/delta>0&&delta<=4/);
+ assert.match(player,/audibleProgressDelta\(delta,elapsed,audio\.playbackRate\)/);
  assert.match(player,/!systemMediaControls\|\|enableRanking/);
 });
 test("recorded plays appear on listener, Billboard and music analytics without fabricated data",()=>{
