@@ -6,6 +6,7 @@ export type DiscoveryItem={
  published:boolean;position:number;
  featured?:boolean;eventStart?:string;eventEnd?:string;venue?:string;
  artistNames?:string[];programme?:string;programmeImage?:string;
+ imageX?:number;imageY?:number;imageZoom?:number;
 };
 export async function discoveryContent(includeDrafts=false):Promise<DiscoveryItem[]>{
  const{data,error}=await createAdminClient().from('system_settings')
