@@ -272,3 +272,27 @@
 .fm-featured-artist-actions a:hover{color:#ff6a00}
 @media(max-width:680px){.fm-featured-artist-editor{margin:17px 0 26px;padding:15px}
  .fm-featured-artist-preview img,.fm-featured-artist-initial{width:55px;height:55px}}
+
+
+/* Qualified listening dashboard: counts originate from music_play_sessions. */
+.fm-music-analytics{margin:22px 0;display:grid;gap:14px}
+.fm-song-stats-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.fm-song-stats-summary article{display:grid;gap:10px;min-width:0;padding:19px;background:#191919;
+ border:1px solid #ffffff20;border-radius:11px}
+.fm-song-stats-summary article span{font:700 12px/1.4 "DM Sans",sans-serif;color:#aaa}
+.fm-song-stats-summary article strong{font:900 clamp(27px,3vw,40px)/1 "Gotham","DM Sans",sans-serif;color:#ff6a00}
+.fm-music-analytics .fm-music-analytics-note{font-size:12px;line-height:1.6;color:#bbb;max-width:950px}
+.fm-music-play-table{display:grid;gap:0;width:100%;max-width:100%;overflow:hidden;border:1px solid #7774;border-radius:10px}
+.fm-music-play-head,.fm-music-play-row{display:grid;grid-template-columns:minmax(0,1fr) 130px 130px;
+ align-items:center;gap:12px;padding:11px 15px;border-bottom:1px solid #7773}
+.fm-music-play-head{background:#242424;color:#eee;font-size:11px;font-weight:850;text-transform:uppercase;letter-spacing:.055em}
+.fm-music-play-row:last-child{border-bottom:0}
+.fm-music-play-row:nth-child(odd){background:rgba(127,127,127,.04)}
+.fm-music-play-row>span{min-width:0;display:grid;gap:4px}
+.fm-music-play-row strong{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm-music-play-row small{color:#aaa;font-size:11px}
+.fm-music-play-row b{font-size:13px;font-weight:850;font-variant-numeric:tabular-nums}
+@media(max-width:680px){.fm-song-stats-summary{grid-template-columns:1fr}
+ .fm-music-play-head,.fm-music-play-row{grid-template-columns:minmax(0,1fr) 65px 65px;gap:7px;padding:10px}
+ .fm-music-play-head{font-size:9px}.fm-music-play-row b{font-size:11px}
+}
