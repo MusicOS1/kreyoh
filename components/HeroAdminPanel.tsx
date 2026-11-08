@@ -9,7 +9,7 @@ import {fanHeroAreas,type FanHeroArea,type FanHeroConfig} from "../lib/fanHeroCo
 
 type Artwork={id:string;title:string;artist_name:string;has_cover:boolean};
 const destination:Record<FanHeroArea,string>={
- "for-you":"/fan?tab=For%20You","artists":"/fan?tab=Artists","albums":"/fan?tab=Albums%20%26%20EPs",
+ "for-you":"/fan?tab=For%20You","artwork":"/fan?tab=For%20You","artists":"/fan?tab=Artists","albums":"/fan?tab=Albums%20%26%20EPs",
  "shows":"/fan?tab=Shows","billboard":"/billboard","library":"/fan?tab=My%20Library",
  "following":"/fan?tab=Following","recent":"/fan?tab=Recently%20played",
  "profile":"/fan/profile","inbox":"/messages"
