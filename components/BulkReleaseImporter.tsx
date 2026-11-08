@@ -4,6 +4,7 @@ import {useRouter} from "next/navigation";
 import {prepareReleaseResult,finishReleaseResult,refreshReleaseUploadResult} from "../app/billboard/actions";
 
 import {uploadReleaseFile} from "../lib/releaseRelayUpload";
+import {formatBulkProjectDescription,RELEASE_CONTEXT_OPTIONS,RECORDING_QUALITY_OPTIONS} from "../lib/bulkReleaseProject";
 import {
  readBulkUploadRecovery,saveBulkUploadRecovery,removeBulkUploadRecovery,
  findBulkUploadRecovery,fingerprintBulkFile
@@ -22,6 +23,8 @@ function fromFile(file:File,index:number):Row{
 export default function BulkReleaseImporter(){
  const [rows,setRows]=useState<Row[]>([]),[busy,setBusy]=useState(false);
  const [collection,setCollection]=useState(""),[artist,setArtist]=useState(""),[credits,setCredits]=useState("");
+ const [projectAbout,setProjectAbout]=useState(""),[releaseContext,setReleaseContext]=useState("");
+ const [recordingQuality,setRecordingQuality]=useState("");
  const [genre,setGenre]=useState(""),[releaseDate,setReleaseDate]=useState(""),[cover,setCover]=useState<File|null>(null);
  const [explicit,setExplicit]=useState(false),[debut,setDebut]=useState(true),[rights,setRights]=useState(false);
  const [notice,setNotice]=useState(""),[finished,setFinished]=useState(0);
@@ -88,7 +91,8 @@ export default function BulkReleaseImporter(){
   form.set("title",row.title.trim());form.set("artist_name",(row.artist||artist).trim());
   form.set("collection",collection);form.set("track_number",String(row.number));
   form.set("genre",genre);form.set("credits",credits.trim());form.set("release_at",releaseDate);
-  form.set("description","");form.set("audio_type",filenameType);form.set("audio_size",String(row.file.size));
+  form.set("description",formatBulkProjectDescription({about:projectAbout,releaseContext,recordingQuality}));
+  form.set("audio_type",filenameType);form.set("audio_size",String(row.file.size));
   if(cover){form.set("cover_type",cover.type);form.set("cover_size",String(cover.size));}
   form.set("rights","on");if(explicit)form.set("explicit","on");if(debut)form.set("debut","on");
   update(row.id,{status:"preparing",detail:"Verifying recording and preparing secure upload…"});
@@ -137,8 +141,13 @@ export default function BulkReleaseImporter(){
   if(busy||!rights)return;
   const queue=rows.filter(row=>row.status==="ready"||row.status==="failed");
   if(!queue.length)return;
-  if(!credits.trim()){setNotice("Enter official credits before importing.");return;}
   if(!artist.trim()&&queue.some(row=>!row.artist.trim())){setNotice("Add an artist to each song or enter a default artist.");return;}
+  if(!collection.trim()){setNotice("Enter a project name so listeners can see which project the songs belong to.");return;}
+  if((releaseContext==="Studio work in progress"||["Demo recording","Rough mix","Unmastered"].includes(recordingQuality))&&!projectAbout.trim()){
+   setNotice("Explain the project so listeners understand why these recordings are works in progress.");return;
+  }
+  try{formatBulkProjectDescription({about:projectAbout,releaseContext,recordingQuality});}
+  catch(error){setNotice(error instanceof Error?error.message:"Review project information.");return;}
   if(cover&&(cover.size>10*1024*1024||!["image/jpeg","image/png","image/webp"].includes(cover.type))){
    setNotice("Artwork must be JPG, PNG or WebP and at most 10 MB.");return;
   }
@@ -153,7 +162,7 @@ export default function BulkReleaseImporter(){
  }
  return <section className="bulk-importer">
    <header><span className="eyebrow">CATALOGUE INTAKE / R2</span><h2>Import up to 100 songs</h2>
-     <p>Secure, one-at-a-time uploads with automatic recovery when direct storage connections are blocked. Each song receives its own release record and enters the approval queue. This page is restricted to authorised music administrators.</p></header>
+     <p>Secure, recoverable uploads. Name the project and explain the sound so listeners can distinguish demos and unmastered recordings from finished masters. Every song still enters the existing approval queue.</p></header>
    {recoverableCount>0&&<p className="bulk-info" role="status">
     {recoverableCount} unfinished prepared upload(s) saved on this device.
     Reselect the original audio files to recover their draft IDs and resume stored chunks.
@@ -162,11 +171,32 @@ export default function BulkReleaseImporter(){
    <div className="bulk-import-controls">
     <label>Audio files <input ref={input} type="file" multiple accept=".mp3,.wav,.m4a,.flac" disabled={busy||drafts.current.size>0} onChange={event=>select(event.target.files)}/></label>
     <label>Default artist name <input value={artist} onChange={event=>setArtist(event.target.value)} maxLength={100} disabled={busy||drafts.current.size>0} placeholder="For filenames without an artist"/></label>
-    <label>Collection / EP / album <input value={collection} onChange={event=>setCollection(event.target.value)} maxLength={120} disabled={busy||drafts.current.size>0} placeholder="Same collection groups tracks"/></label>
+    <label>Project name <input value={collection} onChange={event=>setCollection(event.target.value)} required maxLength={120} disabled={busy||drafts.current.size>0} placeholder="e.g. Dirty Economy"/></label>
+    <label>Release context
+     <select value={releaseContext} onChange={event=>setReleaseContext(event.target.value)} disabled={busy||drafts.current.size>0}>
+      <option value="">Not specified</option>
+      {RELEASE_CONTEXT_OPTIONS.map(option=><option value={option} key={option}>{option}</option>)}
+     </select>
+    </label>
+    <label>Recording quality
+     <select value={recordingQuality} onChange={event=>setRecordingQuality(event.target.value)} disabled={busy||drafts.current.size>0}>
+      <option value="">Not specified</option>
+      {RECORDING_QUALITY_OPTIONS.map(option=><option value={option} key={option}>{option}</option>)}
+     </select>
+    </label>
+    <label className="bulk-wide">About the project
+     <textarea value={projectAbout} onChange={event=>setProjectAbout(event.target.value)} maxLength={1500} rows={4} disabled={busy||drafts.current.size>0}
+      placeholder="Explain why these recordings are being shared and whether they are finished masters."/>
+     <small>Shown to fans with recording labels. Required for demo, rough-mix, unmastered or work-in-progress uploads.</small>
+    </label>
     <label>Genre <input value={genre} onChange={event=>setGenre(event.target.value)} maxLength={60} disabled={busy||drafts.current.size>0}/></label>
     <label>Release date (Kenya time) <input type="date" value={releaseDate} onChange={event=>setReleaseDate(event.target.value)} disabled={busy||drafts.current.size>0}/></label>
     <label>Shared cover artwork (optional) <input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy||drafts.current.size>0} onChange={event=>setCover(event.target.files?.[0]||null)}/></label>
-    <label className="bulk-wide">Official credits applied to this batch <textarea value={credits} onChange={event=>setCredits(event.target.value)} maxLength={2000} disabled={busy||drafts.current.size>0} placeholder="Artists, songwriters, producers, engineers; edit titles/artists individually below."/></label>
+    <label className="bulk-wide">Initial credits (optional)
+     <textarea value={credits} onChange={event=>setCredits(event.target.value)} maxLength={2000} disabled={busy||drafts.current.size>0}
+      placeholder="Known contributors, if available. Leave empty while credits are being verified."/>
+     <small>Credits can be corrected through existing release and attribution controls after artist verification. This doesn't assign ownership or royalty splits.</small>
+    </label>
    </div>
    <div className="bulk-flags">
     <label><input type="checkbox" checked={debut} disabled={busy||drafts.current.size>0} onChange={event=>setDebut(event.target.checked)}/> First public release</label>
