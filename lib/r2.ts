@@ -297,3 +297,29 @@ export async function finishReleaseRelay(
  await client.send(new DeleteObjectsCommand({Bucket:config.bucket,Delete:{Objects:keys,Quiet:true}}))
   .catch(error=>console.warn('release-relay-cleanup',error));
 }
+
+
+/**
+ * Return successfully received relay chunks for a prepared R2 staging object.
+ * Listing a prefix is one R2 request, rather than HEAD per chunk, and keeps
+ * the recovery endpoint cheap even for a 150 MiB song.
+ */
+export async function listReleaseRelayChunks(target:string,size:number):Promise<number[]>{
+ const {ListObjectsV2Command}=await import('@aws-sdk/client-s3');
+ const config=readR2Config(),client=createR2Client(config,true);
+ const count=Math.ceil(size/RELEASE_RELAY_CHUNK_BYTES);
+ const prefix=target+'.relay/';
+ const result=await client.send(new ListObjectsV2Command({
+  Bucket:config.bucket,Prefix:prefix,MaxKeys:Math.min(1000,count+10)
+ }));
+ const found=new Set<number>();
+ for(const item of result.Contents||[]){
+  const suffix=(item.Key||'').slice(prefix.length);
+  if(!/^\d{3}$/.test(suffix))continue;
+  const index=Number(suffix);
+  if(index<0||index>=count)continue;
+  const expected=Math.min(RELEASE_RELAY_CHUNK_BYTES,size-index*RELEASE_RELAY_CHUNK_BYTES);
+  if(item.Size===expected)found.add(index);
+ }
+ return [...found].sort((a,b)=>a-b);
+}
