@@ -57,7 +57,11 @@ export async function GET(request:Request){
  try{
   const info=await resolveUpload(request);
   const [chunks,object]=await Promise.all([
-   listReleaseRelayChunks(info.key,info.size),
+   listReleaseRelayChunks(info.key,info.size).catch(error=>{
+    const code=error&&typeof error==='object'&&'name' in error?String(error.name):'unknown';
+    console.warn('release-relay-progress-list-unavailable',code);
+    return [] as number[]; // Keep secure uploads available even without ListBucket permission.
+   }),
    assertR2ObjectAccess(info.key).catch(()=>null)
   ]);
   const complete=Boolean(object?.ContentLength===info.size&&object?.ContentType===info.contentType);
