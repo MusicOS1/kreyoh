@@ -2,6 +2,7 @@ import "server-only";
 import {createAdminClient} from "./supabase/admin";
 
 import {fanHeroAreas,heroKey,type FanHeroArea,type FanHeroConfig} from "./fanHeroConfig";
+import {normalizeImageCrop} from "./heroImageCrop";
 export {fanHeroAreas,heroKey,heroAreaForTab} from "./fanHeroConfig";
 export type {FanHeroArea,FanHeroConfig} from "./fanHeroConfig";
 const validLayout=(layout:string):FanHeroConfig["layout"]=>["editorial","immersive","spotlight"].includes(layout)?layout as FanHeroConfig["layout"]:"editorial";
@@ -10,7 +11,8 @@ export function normalizeHero(area:FanHeroArea,value:unknown):FanHeroConfig{
  const field=(key:string,max:number)=>typeof source[key]==="string"?String(source[key]).slice(0,max):"";
  return {area,enabled:source.enabled===true,title:field("title",100),eyebrow:field("eyebrow",70),
   description:field("description",300),image:field("image",600),releaseId:field("releaseId",36),
-  layout:validLayout(field("layout",30)),ctaLabel:field("ctaLabel",45),ctaHref:field("ctaHref",250)};
+  layout:validLayout(field("layout",30)),ctaLabel:field("ctaLabel",45),ctaHref:field("ctaHref",250),
+  ...normalizeImageCrop(source)};
 }
 export async function fanHeroSettings():Promise<Record<FanHeroArea,FanHeroConfig>>{
  const keys=fanHeroAreas.map(item=>heroKey(item.id));
