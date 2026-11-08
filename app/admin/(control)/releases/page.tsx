@@ -39,7 +39,7 @@ export default async function ReleaseStacks({searchParams}:{searchParams:Promise
  ]);
  const basics=<>
   <div className="community-actions fm-release-stack-actions">
-   <Link href="/admin/releases/bulk">+ Upload music</Link>
+   <Link href="/admin/releases/bulk">Add new songs (bulk or singles)</Link>
    <Link href="/admin/releases/songs">All individual songs / approvals</Link>
    <Link href="/admin/catalogue">Review credits &amp; rights</Link>
    <Link href="/billboard">Open Billboard ↗</Link>
