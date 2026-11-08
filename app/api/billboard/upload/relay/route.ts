@@ -13,8 +13,10 @@ const maxAudioBytes = 150*1024*1024;
 const maxCoverBytes = 10*1024*1024;
 const jsonHeaders = {'Cache-Control':'no-store'};
 
-async function resolveUpload(request:Request):Promise<ReleaseUpload>{
-  assertProductionOrigin(request);
+async function resolveUpload(request:Request,write=false):Promise<ReleaseUpload>{
+  // Browsers omit Origin on most same-origin GETs. Writes keep CSRF checks;
+  // all requests still require authentication and draft ownership.
+  if(write)assertProductionOrigin(request);
   const url=new URL(request.url);
   const id=url.searchParams.get('id')||'';
   const kind=url.searchParams.get('kind');
@@ -77,7 +79,7 @@ function responseError(cause:unknown){
 export async function PUT(request:Request){
  let info:ReleaseUpload|undefined;
  try{
-    info=await resolveUpload(request);
+    info=await resolveUpload(request,true);
     const index=Number(new URL(request.url).searchParams.get('index'));
     if(!Number.isSafeInteger(index)||index<0||index>=info.count)throw Error('Invalid release upload request.');
     const expected=Math.min(RELEASE_RELAY_CHUNK_BYTES,info.size-index*RELEASE_RELAY_CHUNK_BYTES);
@@ -95,7 +97,7 @@ export async function PUT(request:Request){
 export async function POST(request:Request){
  let info:ReleaseUpload|undefined;
  try{
-    info=await resolveUpload(request);
+    info=await resolveUpload(request,true);
     const url=new URL(request.url);
     const action=url.searchParams.get('action');
     if(action==='start'){
