@@ -13,7 +13,7 @@ test("release management and approval controls parse as valid TypeScript",()=>{
  }
 });
 test("Draft and Pending releases have explicit Approve, Reject and Delete actions",()=>{
- const page=read("app/admin/(control)/releases/page.tsx");
+ const page=read("components/AdminReleaseRow.tsx");
  const ui=read("components/AdminDraftReview.tsx");
  assert.match(page,/import AdminDraftReview/);
  assert.match(page,/\["draft","pending","rejected"\]\.includes\(release\.status\)/);
@@ -25,7 +25,7 @@ test("Draft and Pending releases have explicit Approve, Reject and Delete action
   assert.ok(ui.includes(action),"Missing submitter "+action);
 });
 test("published release management and cover/audio controls remain unchanged",()=>{
- const page=read("app/admin/(control)/releases/page.tsx");
+ const page=read("components/AdminReleaseRow.tsx")+read("app/admin/(control)/releases/songs/page.tsx");
  for(const existing of ["ReleaseManagement","AdminReleaseDetailsEditor",
   "AdminReleaseCoverReplacement","AdminReleaseAudioReplacement",
   "AdminReleaseViewToggle","BulkReleaseApproval"])
