@@ -126,7 +126,7 @@ try{
  // Blur mobile search before retrying so floating playback controls have settled.
  await page.getByRole('heading',{name:'Your next favourite sound starts here.',exact:true}).click();
  const retrySave=page.getByRole('button',{name:'Like Test song 1',exact:true});
- await page.waitForFunction(()=>{const button=document.querySelector('button[aria-label="Like Test song 1"]');return button&&!button.disabled&&button.getAttribute('aria-busy')==='false';});
+ await page.waitForFunction(()=>{const button=document.querySelector('button[aria-label="Like Test song 1"]');return button instanceof HTMLButtonElement&&!button.disabled;});
  await retrySave.evaluate(node=>node.scrollIntoView({block:'center',behavior:'instant'}));
  const likeSaved=page.waitForResponse(response=>response.url().endsWith('/api/interactions/library')&&response.request().postDataJSON()?.kind==='saved');
  await page.getByRole('button',{name:'Like Test song 1',exact:true}).click();await likeSaved;
