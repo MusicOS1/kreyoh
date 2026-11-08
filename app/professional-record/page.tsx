@@ -27,9 +27,14 @@ const statusLabel=(status:string)=>{
   return labels[status]||String(status).replaceAll("_"," ").toUpperCase();
 };
 
-export default async function ProfessionalRecordPage(){
+export default async function ProfessionalRecordPage({searchParams}:{searchParams:Promise<{release?:string}>}){
   const{admin,user,project,activeProjects}=await getWorkspace();
   const superAdmin=await isSuperAdmin(user.id);
+  const requestedRelease=(await searchParams).release||"";
+  const {data:claimRelease}= /^[0-9a-f-]{36}$/i.test(requestedRelease)
+    ?await admin.from("music_releases").select("id,title,artist_name,collection")
+      .eq("id",requestedRelease).eq("status","published").lte("release_at",new Date().toISOString()).maybeSingle()
+    :{data:null};
 
   const[internalR,sessionR,claimsR,requestsR,membersR]=await Promise.all([
     admin.from("track_contributors").select("id,contribution_role,approved,tracks(id,working_title,track_code,project_id,projects(name,code))").eq("user_id",user.id),
@@ -91,6 +96,22 @@ export default async function ProfessionalRecordPage(){
       </article>
     </section>
 
+    {claimRelease&&<section className="panel">
+      <span className="eyebrow">FACKTS MUSIC / CLAIM AN EXISTING CREDIT</span>
+      <h2>Worked on {claimRelease.title}?</h2>
+      <p>{claimRelease.collection||"Single"} · Managed by FACKTS Music. Submit the part you actually contributed; your claim remains private until verified. A credit is not a claim to master ownership or royalties.</p>
+      <form action={createProfessionalClaim} className="operations-form">
+        <input type="hidden" name="release_id" value={claimRelease.id}/>
+        <label>Your contribution
+          <select name="contribution_role" required defaultValue="">
+            <option value="" disabled>Choose your role</option>
+            {["Primary Artist","Featured Artist","Performer","Rapper","Producer","Beatmaker","Songwriter","Composer","Mix Engineer","Mastering Engineer","Recording Engineer","Session Musician","Videographer","Other Creative"].map(role=><option key={role} value={role}>{role}</option>)}
+          </select>
+        </label>
+        <button type="submit">Submit credit claim</button>
+      </form>
+      <p>After submitting, attach a credible evidence link or note and request a collaborator confirmation from the claim record below. FACKTS will review before publishing credit.</p>
+    </section>}
     <details className="beat-intake-disclosure" open>
       <summary className="beat-intake-summary"><span>EXTERNAL CREDIT</span><strong>Claim work created outside FACKTS</strong><small>It starts as Self Claimed. It will not appear as a verified fact until verification is completed.</small><b>Open +</b></summary>
       <form action={createProfessionalClaim} className="panel operations-form">
