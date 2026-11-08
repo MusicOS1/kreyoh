@@ -317,7 +317,7 @@
     max-height:88px;
   }
   /* On app screens, never cover the navigation. */
-  :global(body:has(.fan-mobile-nav, .fs-mobile-nav, .mobile-bottom-nav)) .dock {
+  :global(body:has(.fan-mobile-nav, .fs-mobile-nav, .mobile-bottom-nav, nav[aria-label="Mobile primary navigation"])) .dock {
     bottom:calc(72px + env(safe-area-inset-bottom));
   }
   .dock :global(.track-chart-player) {
