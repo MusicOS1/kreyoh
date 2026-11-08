@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
 import {useRouter} from "next/navigation";
-import {prepareReleaseResult,finishReleaseResult,refreshReleaseUploadResult} from "../app/billboard/actions";
+import {prepareReleaseResult,finishReleaseResult,refreshReleaseUploadResult,updatePreparedReleaseProjectResult} from "../app/billboard/actions";
 
 import {uploadReleaseFile} from "../lib/releaseRelayUpload";
 import {formatBulkProjectDescription,RELEASE_CONTEXT_OPTIONS,RECORDING_QUALITY_OPTIONS} from "../lib/bulkReleaseProject";
@@ -131,7 +131,12 @@ export default function BulkReleaseImporter(){
    draft.coverDone=true;
    saveDraft(row,draft);
   }
-  update(row.id,{status:"submitting",detail:"Submitting for review…"});
+  update(row.id,{status:"submitting",detail:"Saving project details and submitting for review…"});
+  const updated=await updatePreparedReleaseProjectResult(draft.id,{
+   collection,credits:credits.trim(),
+   description:formatBulkProjectDescription({about:projectAbout,releaseContext,recordingQuality})
+  });
+  if(!updated.ok)throw Error(updated.error);
   const submitted=await finishReleaseResult(draft.id);
   if(!submitted.ok)throw Error(submitted.error);
   removeBulkUploadRecovery(draft.id);
