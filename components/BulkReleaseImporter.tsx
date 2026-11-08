@@ -3,7 +3,7 @@ import {useRef,useState} from "react";
 import {useRouter} from "next/navigation";
 import {prepareReleaseResult,finishReleaseResult,refreshReleaseUploadResult} from "../app/billboard/actions";
 
-import {directUpload} from "../lib/directUpload";
+import {uploadReleaseFile} from "../lib/releaseRelayUpload";
 type Row={id:string;file:File;title:string;artist:string;number:number;status:"ready"|"preparing"|"uploading"|"cover"|"submitting"|"done"|"failed";detail:string;};
 const accepted=new Set(["mp3","wav","m4a","flac"]);
 const types:Record<string,string>={mp3:"audio/mpeg",wav:"audio/wav",m4a:"audio/mp4",flac:"audio/flac"};
@@ -59,12 +59,14 @@ export default function BulkReleaseImporter(){
   }
   update(row.id,{status:"uploading",detail:"Uploading audio to storage…"});
   if(!draft.audioDone){
-   await directUpload(draft.uploadUrl,row.file,filenameType,percent=>update(row.id,{detail:`Uploading audio: ${percent}%`}));
+   await uploadReleaseFile(draft.id,"audio",draft.uploadUrl,row.file,filenameType,"audio",
+    message=>update(row.id,{detail:message}));
    draft.audioDone=true;
   }
   if(cover&&draft.coverUploadUrl&&!draft.coverDone){
    update(row.id,{status:"cover",detail:"Uploading shared artwork…"});
-   await directUpload(draft.coverUploadUrl,cover,cover.type,()=>{});
+   await uploadReleaseFile(draft.id,"cover",draft.coverUploadUrl,cover,cover.type,"shared cover",
+    message=>update(row.id,{detail:message}));
    draft.coverDone=true;
   }
   update(row.id,{status:"submitting",detail:"Submitting for review…"});
@@ -92,7 +94,7 @@ export default function BulkReleaseImporter(){
  }
  return <section className="bulk-importer">
    <header><span className="eyebrow">CATALOGUE INTAKE / R2</span><h2>Import up to 100 songs</h2>
-     <p>Secure, one-at-a-time direct-to-storage uploads. Each song receives its own release record and enters the approval queue. This page is restricted to authorised music administrators.</p></header>
+     <p>Secure, one-at-a-time uploads with automatic recovery when direct storage connections are blocked. Each song receives its own release record and enters the approval queue. This page is restricted to authorised music administrators.</p></header>
    <div className="bulk-import-controls">
     <label>Audio files <input ref={input} type="file" multiple accept=".mp3,.wav,.m4a,.flac" disabled={busy||drafts.current.size>0} onChange={event=>select(event.target.files)}/></label>
     <label>Default artist name <input value={artist} onChange={event=>setArtist(event.target.value)} maxLength={100} disabled={busy||drafts.current.size>0} placeholder="For filenames without an artist"/></label>
