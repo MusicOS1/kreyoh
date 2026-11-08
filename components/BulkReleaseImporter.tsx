@@ -29,7 +29,7 @@ export default function BulkReleaseImporter(){
  useEffect(()=>{setRecoverableCount(readBulkUploadRecovery().length);},[]);
  type Draft={id:string;uploadUrl:string;coverUploadUrl:string|null;
   audioDone:boolean;coverDone:boolean;fingerprint:string;restored:boolean;
-  coverExpected:boolean;coverName:string;coverSize:number};
+  coverExpected:boolean;coverName:string;coverSize:number;coverType:string};
  const drafts=useRef(new Map<string,Draft>());
  const stopRef=useRef(false),input=useRef<HTMLInputElement>(null);const router=useRouter();
  const count=(status:Row["status"])=>rows.filter(row=>row.status===status).length;
@@ -40,7 +40,7 @@ export default function BulkReleaseImporter(){
    fileModified:row.file.lastModified,fingerprint:draft.fingerprint,
    title:row.title,artist:row.artist,number:row.number,
    collection,defaultArtist:artist,credits,genre,releaseDate,
-   coverExpected:draft.coverExpected,coverName:draft.coverName,coverSize:draft.coverSize,
+   coverExpected:draft.coverExpected,coverName:draft.coverName,coverSize:draft.coverSize,coverType:draft.coverType,
    audioDone:draft.audioDone,coverDone:draft.coverDone,updatedAt:Date.now()
   });
   setRecoverableCount(readBulkUploadRecovery().length);
@@ -66,7 +66,7 @@ export default function BulkReleaseImporter(){
     audioDone:false,coverDone:previous.coverDone,
     fingerprint:previous.fingerprint,restored:true,
     coverExpected:previous.coverExpected,coverName:previous.coverName,
-    coverSize:previous.coverSize
+    coverSize:previous.coverSize,coverType:previous.coverType||"image/jpeg"
    });
    return {...row,title:previous.title,artist:previous.artist,number:previous.number};
   });
@@ -98,7 +98,7 @@ export default function BulkReleaseImporter(){
    const prepared=await prepareReleaseResult(form);
    if(!prepared.ok)throw Error(prepared.error);
    draft={...prepared.value,audioDone:false,coverDone:false,fingerprint,
-    restored:false,coverExpected:Boolean(cover),coverName:cover?.name||"",coverSize:cover?.size||0};
+    restored:false,coverExpected:Boolean(cover),coverName:cover?.name||"",coverSize:cover?.size||0,coverType:cover?.type||""};
    drafts.current.set(row.id,draft);
    saveDraft(row,draft);
   } else {
@@ -107,7 +107,7 @@ export default function BulkReleaseImporter(){
      (!cover||cover.name!==draft.coverName||cover.size!==draft.coverSize))
     throw Error("Select the original shared cover artwork to resume this draft.");
    if(!draft.audioDone||(cover&&!draft.coverDone)){
-    const refreshed=await refreshReleaseUploadResult(draft.id,cover?.type||"");
+    const refreshed=await refreshReleaseUploadResult(draft.id,cover?.type||draft.coverType||"");
     if(!refreshed.ok)throw Error(refreshed.error);
     Object.assign(draft,refreshed.value);
    }
