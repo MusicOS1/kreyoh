@@ -37,6 +37,7 @@ test("admin replacement is signed, audited, guarded, non-destructive and retains
  const actions=read("app/admin/(control)/releases/replaceActions.ts");
  const widget=read("components/AdminReleaseAudioReplacement.tsx");
  const page=read("app/admin/(control)/releases/page.tsx");
+ const trackManager=read("components/AdminReleaseRow.tsx");
  assert.match(actions,/requireControlRoomPermission\("music"\)/);
  assert.match(actions,/createR2PresignedUrl\("PUT"/);
  assert.match(actions,/release_audio_replacement_prepared/);
@@ -50,7 +51,7 @@ test("admin replacement is signed, audited, guarded, non-destructive and retains
  assert.match(widget,/directUpload/);
  assert.match(widget,/rights/);
  assert.match(page,/Add new songs \(bulk or singles\)/);
- assert.match(page,/AdminReleaseAudioReplacement/);
+ assert.match(trackManager,/AdminReleaseAudioReplacement/);
 });
 
 test("catalogue handles artist and admin uploads as demo or release without assigning master ownership automatically",()=>{
