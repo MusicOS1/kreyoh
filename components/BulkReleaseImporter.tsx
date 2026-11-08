@@ -42,7 +42,7 @@ export default function BulkReleaseImporter(){
    draftId:draft.id,fileName:row.file.name,fileSize:row.file.size,
    fileModified:row.file.lastModified,fingerprint:draft.fingerprint,
    title:row.title,artist:row.artist,number:row.number,
-   collection,defaultArtist:artist,credits,genre,releaseDate,
+   collection,defaultArtist:artist,credits,genre,releaseDate,projectAbout,releaseContext,recordingQuality,
    coverExpected:draft.coverExpected,coverName:draft.coverName,coverSize:draft.coverSize,coverType:draft.coverType,
    audioDone:draft.audioDone,coverDone:draft.coverDone,updatedAt:Date.now()
   });
@@ -77,6 +77,7 @@ export default function BulkReleaseImporter(){
   if(matched){
    setCollection(matched.collection);setArtist(matched.defaultArtist);
    setCredits(matched.credits);setGenre(matched.genre);setReleaseDate(matched.releaseDate);
+   setProjectAbout(matched.projectAbout||"");setReleaseContext(matched.releaseContext||"");setRecordingQuality(matched.recordingQuality||"");
   }
   setRows(restored);setFinished(0);
   const baseMessage=oversized.length?oversized.length+" file(s) excluded: audio must be 150 MB or less.":chosen.length>100?"Select up to 100 tracks per batch.":"";
