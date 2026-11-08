@@ -33,8 +33,8 @@ export default async function ReleaseStacks({searchParams}:{searchParams:Promise
  const admin=createAdminClient();
  const [{count:pendingCount},{count:allCount},{count:singleCount},{count:collectionCount}]=await Promise.all([
   admin.from("music_releases").select("id",{head:true,count:"exact"}).eq("status","pending"),
-  admin.from("music_releases").select("id",{head:true,count:"exact"}).in("status",["draft","pending","published","rejected"]),
-  admin.from("music_releases").select("id",{head:true,count:"exact"}).is("package_id",null).in("status",["draft","pending","published","rejected"]),
+  admin.from("music_releases").select("id",{head:true,count:"exact"}),
+  admin.from("music_releases").select("id",{head:true,count:"exact"}).is("package_id",null),
   admin.from("music_release_packages").select("id",{head:true,count:"exact"})
  ]);
  const basics=<>
@@ -48,7 +48,7 @@ export default async function ReleaseStacks({searchParams}:{searchParams:Promise
   <h1>Public releases</h1>
   <p>Manage a complete release as one stack instead of sorting through songs individually. Open any collection to review its tracks, change the release format, edit songs or moderate drafts. Grouping never moves copyrights, royalties, recordings or play counts.</p>
   <div className="fm-package-overview" aria-label="Catalogue overview">
-   <div><strong>{allCount||0}</strong><span>Songs</span></div>
+   <div><strong>{allCount||0}</strong><span>All tracks (including withdrawn)</span></div>
    <div><strong>{collectionCount||0}</strong><span>Collections</span></div>
    <div><strong>{singleCount||0}</strong><span>Singles</span></div>
    <div><strong>{pendingCount||0}</strong><span>Awaiting review</span></div>
@@ -66,7 +66,7 @@ export default async function ReleaseStacks({searchParams}:{searchParams:Promise
  </>;
  if(kind==="single"){
   let singles=admin.from("music_releases").select("*",{count:"exact"}).is("package_id",null)
-   .in("status",["draft","pending","published","rejected"]).order("created_at",{ascending:false});
+   .order("created_at",{ascending:false});
   if(q)singles=singles.or(`title.ilike.%${q}%,artist_name.ilike.%${q}%`);
   const {data,error,count}=await singles.range((page-1)*PAGE_SIZE,page*PAGE_SIZE-1);
   if(error)throw Error("Standalone singles could not be loaded.");
