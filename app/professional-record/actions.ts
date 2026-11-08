@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { getWorkspace } from "../../lib/workspace";
 import { isSuperAdmin } from "../../lib/controlRoom";
-import {uuidPattern} from "../../lib/community";
 
 const read=(fd:FormData,key:string)=>String(fd.get(key)||"").trim();
+const uuidPattern=/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 
 export async function createProfessionalClaim(fd:FormData){
   const{admin,user,project}=await getWorkspace();
@@ -81,7 +81,7 @@ export async function requestClaimConfirmation(fd:FormData){
     const {data:person}=await lookup;
     confirmerId=person?.id||"";
   }
-  if(!uuidPattern.test(confirmerId)||confirmerId===user.id)throw new Error("Choose a different FACKTS creator by username or email.");
+  if(!confirmerId||confirmerId===user.id)throw new Error("Choose another FACKTS creator to confirm the credit.");
 
   const{data:claim}=await admin.from("professional_credit_claims").select("id,claimant_id,work_title,contribution_role").eq("id",claimId).eq("claimant_id",user.id).maybeSingle();
   if(!claim)throw new Error("Claim not found.");
@@ -162,6 +162,7 @@ export async function verifyProfessionalClaim(fd:FormData){
   ]);
 
   if(!claim)throw new Error("Claim not found.");
+  if(["rejected","withdrawn","fackts_verified"].includes(claim.verification_status))throw new Error("This claim is no longer eligible for verification.");
   if((evidenceCount||0)<1)throw new Error("Attach evidence before FACKTS verification.");
   if((confirmedCount||0)<1)throw new Error("At least one relevant FACKTS creator must confirm this external credit first.");
   if((disputedCount||0)>0||claim.verification_status==="disputed")throw new Error("Resolve the dispute before verification.");
@@ -172,7 +173,7 @@ export async function verifyProfessionalClaim(fd:FormData){
     verified_by:user.id,
     verified_at:new Date().toISOString(),
     updated_at:new Date().toISOString(),
-  }).eq("id",claimId);
+  }).eq("id",claimId).in("verification_status",["self_claimed","evidence_attached","contributor_confirmed"]).select("id").maybeSingle();
   if(error)throw new Error(error.message);
 
   if(claim.release_id){
