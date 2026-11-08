@@ -97,3 +97,27 @@ export async function refreshReleaseUploadResult(id: string, coverType: string) 
     coverUploadUrl:release.cover_key?await createR2PresignedUrl('PUT',release.cover_key,3600,coverType):null};
  });
 }
+
+
+/** Bulk intake may recover an older prepared draft after a browser restart.
+ * Update only non-media draft metadata before the existing verified finish step.
+ * It cannot modify pending, approved, rejected, withdrawn or published songs.
+ */
+export async function updatePreparedReleaseProjectResult(id:string,data:{
+ collection:string;description:string;credits:string
+}){
+ return uploadResult(async()=>{
+  if(!uuidPattern.test(id))throw Error("Release not found.");
+  await requireControlRoomPermission("music");
+  const {admin,user}=await communityAccount();
+  const collection=data.collection.trim(),description=data.description.trim(),credits=data.credits.trim();
+  if(!collection||collection.length>120||description.length>2000||credits.length>2000)
+   throw Error("Correct the project name, description or credits.");
+  const {data:updated,error}=await admin.from("music_releases")
+   .update({collection,description,credits})
+   .eq("id",id).eq("artist_id",user.id).eq("status","draft")
+   .select("id").maybeSingle();
+  if(error||!updated)throw Error("Draft unavailable or already submitted. Reload before continuing.");
+  return{updated:true};
+ });
+}

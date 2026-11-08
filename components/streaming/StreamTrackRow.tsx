@@ -3,9 +3,10 @@ import Link from "next/link";
 import TrackWaveform from "../TrackWaveform";
 import ReleaseComments from "../ReleaseComments";
 import MusicPlayCount from "../MusicPlayCount";
+import {readBulkProjectDescription} from "../../lib/bulkReleaseProject";
 import {ShareRelease,VoteButton,ReleaseVoteCount} from "../ReleaseControls";
 import {PlayIcon} from "../Icons";
-type Release={id:string;title:string;artist_id:string;artist_name:string;collection:string;has_cover:boolean;votes:number;plays?:number|null};
+type Release={id:string;title:string;artist_id:string;artist_name:string;collection:string;description?:string;has_cover:boolean;votes:number;plays?:number|null};
 type Playlist={item_id:string;label:string;track_ids:string[]};
 type Props={
  release:Release;rank?:number;userId?:string;active:boolean;isPlaying:boolean;
@@ -17,6 +18,7 @@ type Props={
 };
 export default function StreamTrackRow({release,rank,userId,active,isPlaying,liked,likePending,onLike,onPlay,onArtist,onSeek,position,duration,playlists,onAddPlaylist,playlistPending,onMove,onRemove,isBillboard=false,voted=false,notice}:Props){
  const cover=release.has_cover?"/api/releases/"+release.id+"/media?kind=cover":null;
+ const projectInfo=readBulkProjectDescription(release.description);
  return <article className="fs-track" aria-label={release.title+" by "+release.artist_name}>
   <div className="fs-track-main">
    {rank!=null&&<span className="fs-track-rank" aria-label={"Position "+rank}>{rank}</span>}
@@ -26,7 +28,10 @@ export default function StreamTrackRow({release,rank,userId,active,isPlaying,lik
    </button>
    <div className="fs-track-info">
     <Link href={"/billboard/"+encodeURIComponent(release.id)} className="fs-track-title">{release.title}</Link>
-    <div className="fs-track-byline">{onArtist?<button type="button" onClick={onArtist}>{release.artist_name}</button>:<span>{release.artist_name}</span>}{release.collection&&<span className="fs-track-collection"> · {release.collection}</span>}<span className="fs-track-play-count"> · <MusicPlayCount id={release.id} count={release.plays}/></span></div>
+    <div className="fs-track-byline">{onArtist?<button type="button" onClick={onArtist}>{release.artist_name}</button>:<span>{release.artist_name}</span>}{release.collection&&<span className="fs-track-collection"> · {release.collection}</span>}
+     {projectInfo?.recordingQuality&&<span className="fs-project-quality-label">{projectInfo.recordingQuality}</span>}
+     {projectInfo?.releaseContext&&<span className="fs-project-quality-label">{projectInfo.releaseContext}</span>}
+     <span className="fs-track-play-count"> · <MusicPlayCount id={release.id} count={release.plays}/></span></div>
    </div>
    {active&&isPlaying&&<span className="fs-now-playing" aria-label="Now playing"><i/><i/><i/></span>}
   </div>
