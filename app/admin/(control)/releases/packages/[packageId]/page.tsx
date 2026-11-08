@@ -23,7 +23,7 @@ export default async function ManagedReleasePackage({params,searchParams}:{
  const page=Math.min(10000,Math.max(1,Number.parseInt(filter.page||"1",10)||1));
  const q=String(filter.q||"").trim().replace(/[,%()]/g," ").slice(0,90);
  let tracks=admin.from("music_releases").select("*",{count:"exact"})
-  .eq("package_id",packageId).in("status",["draft","pending","published","rejected"])
+  .eq("package_id",packageId)
   .order("track_number",{ascending:true}).order("created_at",{ascending:true}).order("id");
  if(q)tracks=tracks.or(`title.ilike.%${q}%,artist_name.ilike.%${q}%`);
  const [{data:releases,error,count},{count:pendingCount}]=await Promise.all([
@@ -40,7 +40,7 @@ export default async function ManagedReleasePackage({params,searchParams}:{
   <div className="community-actions"><Link href="/admin/releases">← All release stacks</Link><Link href="/admin/releases/songs">Individual songs</Link><Link href="/admin/releases/bulk">+ Add songs</Link></div>
   <span className="eyebrow">FACKTS MUSIC · {category.toUpperCase()}</span>
   <h1>{packageRow.name}</h1>
-  <p>This is one collection. Tracks keep individual playback, credits, approval status and statistics. A new project name entered on a song moves it to that collection without deleting it.</p>
+  <p>This is one collection. Tracks keep individual credits, approval status and statistics. Withdrawn tracks remain visible here for administration, but are not made public. A new project name entered on a song moves it to that collection without deleting it.</p>
   <div className="fm-package-detail-controls">
    <AdminReleasePackageFormat id={packageRow.id} format={packageRow.format}/>
    <p><strong>{count||0}</strong> tracks matching the filter · <strong>{pendingCount||0}</strong> awaiting review</p>
