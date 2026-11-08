@@ -467,3 +467,12 @@ body:has(.fm-streaming-ui){background:#0b0b0b}
  .fm-streaming-ui .fm-fan-artist-detail .mx-artist-stage .mx-stage-actions > :is(button,a){flex:1 1 145px;min-height:44px}
  .fm-streaming-ui .fm-fan-artist-detail .mx-artist-stage .mx-stage-text{padding:22px 18px 24px}
 }
+
+
+/* Recording context is shown only for intentionally labelled bulk-import songs. */
+.fm-streaming-ui .fs-track-byline .fs-project-quality-label{
+ display:inline-flex;align-items:center;vertical-align:middle;margin-left:7px;
+ padding:2px 7px;border:1px solid #ff6a005c;border-radius:5px;
+ color:#ffae75;font-size:10px;font-weight:750;line-height:1.3;
+ white-space:normal
+}

@@ -6,22 +6,33 @@ import ReleaseAudienceActions from '../../../components/ReleaseAudienceActions';
 import {VoteButton,ShareRelease,ReleaseVoteCount} from '../../../components/ReleaseControls';
 import ReleaseComments from '../../../components/ReleaseComments';
 import MusicPlayCount from '../../../components/MusicPlayCount';
+import {readBulkProjectDescription} from '../../../lib/bulkReleaseProject';
 import '../billboard.css';
 import {viewer,currentChartWeek,uuidPattern} from '../../../lib/community';
 import {createAdminClient} from '../../../lib/supabase/admin';
 async function getRelease(id:string){if(!uuidPattern.test(id))notFound();const{data,error}=await createAdminClient().from('music_weekly_chart').select('*').eq('id',id).maybeSingle();if(error)throw new Error('Release unavailable.');if(!data)notFound();const {data:counts,error:countError}=await createAdminClient().rpc("public_release_play_counts",{p_release_ids:[id]});if(countError)console.error("release-play-count-unavailable",countError);return {...data,plays:countError?null:Number(counts?.[0]?.plays||0)};}
-export async function generateMetadata({params}:{params:Promise<{releaseId:string}>}){const r=await getRelease((await params).releaseId);return{title:`${r.title} — ${r.artist_name}`,description:`Listen to ${r.title} by ${r.artist_name} on FACKTS Music and vote this week.`,openGraph:{images:r.has_cover?[`/api/releases/${r.id}/media?kind=cover`]:[],title:`${r.title} — ${r.artist_name}`,description:r.description?.slice(0,160)||'Listen and vote on FACKTS Music.'}};}
+export async function generateMetadata({params}:{params:Promise<{releaseId:string}>}){const r=await getRelease((await params).releaseId);const projectInfo=readBulkProjectDescription(r.description);return{title:`${r.title} — ${r.artist_name}`,description:`Listen to ${r.title} by ${r.artist_name} on FACKTS Music and vote this week.`,openGraph:{images:r.has_cover?[`/api/releases/${r.id}/media?kind=cover`]:[],title:`${r.title} — ${r.artist_name}`,description:(projectInfo?.about||r.description||'Listen and vote on FACKTS Music.').slice(0,160)}};}
 export default async function Release({params}:{params:Promise<{releaseId:string}>}){
  const r=await getRelease((await params).releaseId),user=await viewer();const admin=createAdminClient();
+ const projectInfo=readBulkProjectDescription(r.description);
  const{data:vote}=user?await admin.from('music_votes').select('release_id').eq('release_id',r.id).eq('user_id',user.id).eq('week_start',currentChartWeek()).maybeSingle():{data:null};
  const {data:featured=[]}=r.featured_artist_ids?.length?await admin.from('profiles').select('id,stage_name,full_name').in('id',r.featured_artist_ids).eq('profile_visibility','public').eq('account_status','active'):{data:[]};
  const {data:library=[]}=user?await admin.from('fan_music_library').select('kind,item_id,label,track_ids').eq('user_id',user.id):{data:[]};
- return <><PublicNavigation/><main className="community-page fm-chart-detail-page"><Link href="/billboard">← FACKTS Billboard</Link><header className="billboard-hero fm-billboard-photo-hero"><img className="fm-billboard-hero-art" src={r.has_cover?`/api/releases/${r.id}/media?kind=cover`:"/branding/fackts-creator-sky.jpg"} alt=""/><span className="eyebrow">{r.debut?'FIRST RELEASE ON FACKTS':'FACKTS MUSIC RELEASE'}</span><h1>{r.title}</h1><p>{r.artist_name}{r.explicit?' · Explicit':''}</p>{r.collection&&<Link href={`/billboard?collection=${encodeURIComponent(r.collection)}&artist=${r.artist_id}`}>{r.collection} · Track {r.track_number}</Link>}</header>
+ return <><PublicNavigation/><main className="community-page fm-chart-detail-page"><Link href="/billboard">← FACKTS Billboard</Link><header className="billboard-hero fm-billboard-photo-hero"><img className="fm-billboard-hero-art" src={r.has_cover?`/api/releases/${r.id}/media?kind=cover`:"/branding/fackts-creator-sky.jpg"} alt=""/><span className="eyebrow">{r.debut?'FIRST RELEASE ON FACKTS':'FACKTS MUSIC RELEASE'}</span><h1>{r.title}</h1><p>{r.artist_name}{r.explicit?' · Explicit':''}</p>{r.collection&&<Link href={`/billboard?collection=${encodeURIComponent(r.collection)}&artist=${r.artist_id}`}>{projectInfo?"Project: ":""}{r.collection} · Track {r.track_number}</Link>}
+ {projectInfo&&(projectInfo.releaseContext||projectInfo.recordingQuality)&&<div className="fm-project-disclosure" aria-label="Recording disclosure">
+  {projectInfo.releaseContext&&<span>{projectInfo.releaseContext}</span>}
+  {projectInfo.recordingQuality&&<span>{projectInfo.recordingQuality}</span>}
+ </div>}</header>
  <ReleaseAudienceActions releaseId={r.id} artistId={r.artist_id} userId={user?.id} saved={Boolean(library?.some((x:any)=>x.kind==='saved'&&x.item_id===r.id))} following={Boolean(library?.some((x:any)=>x.kind==='following'&&x.item_id===r.artist_id))} playlists={(library||[]).filter((x:any)=>x.kind==='playlist')}/>
  <Link href={'/creators/'+r.artist_id}>Artist profile →</Link>{featured?.map((person:any)=><Link key={person.id} href={'/creators/'+person.id}>Featuring {person.stage_name||person.full_name}</Link>)}
 
  <section className="community-card"><h2><MusicPlayCount id={r.id} count={r.plays}/> · <ReleaseVoteCount id={r.id} count={r.votes}/> this week</h2><p className="fc-voting-note">Voting resets Mondays at 00:00 EAT.</p><div className="community-actions">{user?<VoteButton id={r.id} voted={Boolean(vote)} own={r.artist_id===user.id}/>:<Link href={`/login?next=/billboard/${r.id}`}>Sign in to vote</Link>}<ShareRelease id={r.id} title={r.title}/><Link href={`/messages/${r.artist_id}`}>Message the artist</Link></div></section>
  <section className="community-card"><ReleaseComments releaseId={r.id} viewerId={user?.id} initialOpen/></section>
- <section className="community-card"><h2>About the release</h2><p className="preserve-lines">{r.description||'The artist has not added a description yet.'}</p><p>{r.genre} · Released {new Date(r.release_at).toLocaleDateString('en-KE',{timeZone:'Africa/Nairobi'})}</p><h3>Credits</h3><p className="preserve-lines">{r.credits||'Credits pending from the artist.'}</p></section>
+ <section className="community-card"><h2>{projectInfo?"About the project":"About the release"}</h2>
+ {projectInfo&&r.collection&&<h3>{r.collection}</h3>}
+ <p className="preserve-lines">{projectInfo?(projectInfo.about||"Project background has not been added."):r.description||'The artist has not added a description yet.'}</p>
+ {projectInfo&&(projectInfo.releaseContext||projectInfo.recordingQuality)&&<p className="fm-project-disclosure-note">Recording labels supplied by the uploader describe this version; they do not represent a FACKTS mastering or sound-quality certification.</p>}
+ <p>{r.genre} · Released {new Date(r.release_at).toLocaleDateString('en-KE',{timeZone:'Africa/Nairobi'})}</p>
+ <h3>Credits</h3><p className="preserve-lines">{r.credits||'Credits pending artist verification.'}</p></section>
  </main><PublicFooter/></>;
 }

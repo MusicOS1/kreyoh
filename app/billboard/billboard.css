@@ -160,3 +160,14 @@
  .fm-chart-detail-page .community-card{padding:15px}
  .fm-chart-detail-page .fm-comments-toggle{font-size:16px!important}
 }
+
+
+/* Transparent project/recording disclosure on intentionally labelled bulk imports. */
+.fm-chart-detail-page .fm-project-disclosure{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.fm-chart-detail-page .fm-project-disclosure span{
+ display:inline-flex;border:1px solid #ff6a0070;border-radius:6px;padding:6px 10px;
+ background:#ff6a0016;color:#ffb47b;font:800 11px/1.25 "DM Sans",sans-serif;
+}
+.fm-chart-detail-page .fm-project-disclosure-note{
+ font-size:12px;line-height:1.55;color:#a1a1aa
+}
