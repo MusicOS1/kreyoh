@@ -16,7 +16,7 @@ const filters=[
  {id:"lp",label:"LPs"},
  {id:"single",label:"Singles"}
 ] as const;
-const types=new Set(filters.map(x=>x.id));
+const types=new Set<string>(filters.map(x=>x.id));
 const PAGE_SIZE=18;
 type Filter=(typeof filters)[number]["id"];
 const label=(value:string)=>filters.find(x=>x.id===value)?.label||"Projects";
