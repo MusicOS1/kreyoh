@@ -3,7 +3,7 @@ import {commentOnTrack,deleteTrackNote} from '../../../tracks/actions';
 import {getWorkspace} from '../../../../lib/workspace';
 import {uuidPattern} from '../../../../lib/community';
 import {conversationSnapshot} from '../../../../lib/conversationSnapshot';
-import {sendMessage,markConversationRead,blockMember} from '../../../messages/actions';
+import {sendMessage,markConversationRead,blockMember,toggleMessageReaction} from '../../../messages/actions';
 import { updateFanLibrary,addReleaseToPlaylist } from '../../../fan/actions';
 import { voteForRelease, manageRelease } from '../../../billboard/actions';
 import { listReleaseComments, postReleaseComment, deleteReleaseComment } from '../../../release-comments/actions';
@@ -59,6 +59,7 @@ export async function POST(request: Request, context: { params: Promise<{ action
       },
       messageSend: form => sendMessage({error:'',sent:0},form),
       memberBlock: form => blockMember({message:''},form),
+      messageReaction: form => toggleMessageReaction(form),
       adminArtworkPrepare: prepareAdminArtworkUpload,
       adminArtworkSave: saveAdminArtwork,
       adminCredits: replaceAdminMusicCredits,
@@ -79,7 +80,7 @@ export async function POST(request: Request, context: { params: Promise<{ action
           const snapshot=await conversationSnapshot(input.other,input.before);
           if(!snapshot) return Response.json({ok:false,error:'Conversation unavailable.'},{status:403,headers});
           if(!input.before)await markConversationRead(input.other);
-          value={messages:snapshot.messages,disabled:snapshot.disabled,blocked:snapshot.blocked};break;
+          value={messages:snapshot.messages,reactions:snapshot.reactions||[],disabled:snapshot.disabled,blocked:snapshot.blocked};break;
         }
         case 'notificationRead': {
           if(input.id!==undefined&&(typeof input.id!=='string'||!uuidPattern.test(input.id)))throw new Error('Invalid notification');
