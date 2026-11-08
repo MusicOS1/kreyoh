@@ -2,7 +2,7 @@ import {assertProductionOrigin} from '../../../../../lib/productionAccess';
 import {communityAccount,uuidPattern} from '../../../../../lib/community';
 import {
   RELEASE_RELAY_CHUNK_BYTES, uploadReleaseRelayChunk,
-  uploadReleaseRelayPart, finishReleaseRelay, startR2Multipart, listReleaseRelayChunks
+  uploadReleaseRelayPart, finishReleaseRelay, startR2Multipart, listReleaseRelayChunks, assertR2ObjectAccess
 } from '../../../../../lib/r2';
 
 export const runtime = 'nodejs';
@@ -56,8 +56,12 @@ async function recordRelayEvent(info:ReleaseUpload,name:string,detail?:string){
 export async function GET(request:Request){
  try{
   const info=await resolveUpload(request);
-  const chunks=await listReleaseRelayChunks(info.key,info.size);
-  return Response.json({ok:true,chunks,total:info.count},{headers:jsonHeaders});
+  const [chunks,object]=await Promise.all([
+   listReleaseRelayChunks(info.key,info.size),
+   assertR2ObjectAccess(info.key).catch(()=>null)
+  ]);
+  const complete=Boolean(object?.ContentLength===info.size&&object?.ContentType===info.contentType);
+  return Response.json({ok:true,chunks,total:info.count,complete},{headers:jsonHeaders});
  }catch(error){return responseError(error);}
 }
 function responseError(cause:unknown){
