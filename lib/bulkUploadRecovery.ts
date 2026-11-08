@@ -9,7 +9,7 @@ export type SavedBulkUpload={
  draftId:string;fileName:string;fileSize:number;fileModified:number;
  fingerprint:string;title:string;artist:string;number:number;
  collection:string;defaultArtist:string;credits:string;genre:string;
- releaseDate:string;coverExpected:boolean;coverName:string;coverSize:number;
+ releaseDate:string;coverExpected:boolean;coverName:string;coverSize:number;coverType:string;
  audioDone:boolean;coverDone:boolean;updatedAt:number;
 };
 export function readBulkUploadRecovery():SavedBulkUpload[]{
