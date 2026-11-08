@@ -27,7 +27,7 @@ test("artwork replacement keeps the same release and previous R2 object",()=>{
  assert.match(action,/finalizeReleaseObject\(uploadKey,finalKey\)/);
  assert.match(action,/update\(\{cover_key:finalKey\}\)/);
  assert.doesNotMatch(action,/\.delete\(/);
- assert.match(ui,/directUpload\(/);
+ assert.match(ui,/uploadAdminCoverWithFallback/);
 });
 test("admin releases list offers metadata, cover, existing audio, and search",()=>{
  const page=source("app/admin/(control)/releases/page.tsx");
