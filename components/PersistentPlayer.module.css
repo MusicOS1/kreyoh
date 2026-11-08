@@ -404,6 +404,16 @@
     width:min(420px,calc(100vw - 16px));
     max-height:40dvh;
   }
+  /* An offline play-count notice must never enlarge the dock over mobile navigation. */
+  .dock :global(.track-ballot-notice) {
+    position:absolute!important;
+    left:8px;right:8px;
+    bottom:calc(100% + 8px);
+    width:auto;max-height:70px;overflow:hidden;
+    margin:0!important;padding:8px 11px;
+    background:#28201a;border:1px solid #ff6a0066;border-radius:8px;
+    pointer-events:none!important;z-index:1;
+  }
   .dock :global(.resume-listening) {top:auto;bottom:calc(100% + 8px);}
 }
 @media (max-width:355px) {
