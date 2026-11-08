@@ -18,7 +18,7 @@ export async function createProfessionalClaim(fd:FormData){
   if(releaseId){
     if(!uuidPattern.test(releaseId))throw new Error("Invalid catalogue release.");
     const{data:release,error:releaseError}=await admin.from("music_releases")
-      .select("id,title,artist_name,status,release_at,source_project_id")
+      .select("id,title,artist_name,status,release_at")
       .eq("id",releaseId).eq("status","published").lte("release_at",new Date().toISOString()).maybeSingle();
     if(releaseError||!release)throw new Error("The recording is not currently published.");
     const{count,error:dailyError}=await admin.from("professional_credit_claims")
@@ -30,7 +30,7 @@ export async function createProfessionalClaim(fd:FormData){
       .ilike("contribution_role",role).neq("verification_status","withdrawn").limit(1);
     if(duplicate?.length)throw new Error("You already have an open credit claim for this role on this recording.");
     workTitle=release.title;primaryArtist=release.artist_name;
-    projectId=release.source_project_id||null;sourceUrl='/billboard/'+releaseId;
+    projectId=null;sourceUrl='/billboard/'+releaseId;
   }
   if(!workTitle)throw new Error("Work title is required.");
   const{error}=await admin.from("professional_credit_claims").insert({
