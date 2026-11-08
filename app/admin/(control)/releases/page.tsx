@@ -7,6 +7,7 @@ import AdminReleaseAudioReplacement from "../../../../components/AdminReleaseAud
 import AdminReleaseDetailsEditor from "../../../../components/AdminReleaseDetailsEditor";
 import AdminReleaseCoverReplacement from "../../../../components/AdminReleaseCoverReplacement";
 import AdminReleaseViewToggle from "../../../../components/AdminReleaseViewToggle";
+import AdminDraftReview from "../../../../components/AdminDraftReview";
 import "./release-editor.css";
 export default async function Releases({searchParams}:{searchParams:Promise<{page?:string;q?:string}>}){
  await requireControlRoomPermission("music");
@@ -26,7 +27,7 @@ export default async function Releases({searchParams}:{searchParams:Promise<{pag
  return <main className="community-page">
   <div className="community-actions"><Link href="/admin/releases/bulk">+ Add new songs (bulk or singles)</Link><Link href="/admin/catalogue">Review artist credit & ownership</Link><Link href="/admin/discovery">Edit fan heroes</Link><Link href="/billboard">Open Billboard →</Link></div>
   <h1>Release management</h1>
-  <p>Manage existing releases without charging artists for small corrections. Edit a title, description, credits or release date, replace cover artwork or upload an approved new recording without resetting plays, likes, comments or song links. Release visibility follows the scheduled Kenya date.</p>
+  <p>Approve, reject or remove unpublished releases below. Edit cover artwork, credits and recordings without resetting song plays, likes, comments or links. Scheduled releases remain hidden until their release dates.</p>
   <form method="get" action="/admin/releases" className="fm-release-search"><label htmlFor="release-q">Find a release</label><input id="release-q" name="q" defaultValue={q} placeholder="Song title or artist name"/><button type="submit">Search</button>{q&&<Link href="/admin/releases">Clear</Link>}</form>
   <BulkReleaseApproval count={pendingCount||0}/>
   {!releases?.length&&<p>No releases on this page.</p>}
@@ -41,7 +42,7 @@ export default async function Releases({searchParams}:{searchParams:Promise<{pag
      </span>
      <span className={"fm-release-status fm-release-status-"+release.status}>{release.status}</span>
      <span className="fm-release-row-date">{new Date(release.release_at).toLocaleDateString("en-KE",{timeZone:"Africa/Nairobi",day:"numeric",month:"short",year:"numeric"})}</span>
-     <span className="fm-release-row-manage">Manage <span aria-hidden="true">⌄</span></span>
+     <span className="fm-release-row-manage">{["draft","pending","rejected"].includes(release.status)?"Review / Actions":"Manage"} <span aria-hidden="true">⌄</span></span>
     </summary>
     <div className="fm-release-detail-body">
      <div className="fm-release-detail-head">
@@ -59,7 +60,7 @@ export default async function Releases({searchParams}:{searchParams:Promise<{pag
      </div>
      <p>Rights confirmed: {release.rights_confirmed_at?new Date(release.rights_confirmed_at).toLocaleString("en-KE"):"No"}</p>
      {release.review_note&&<p>{release.review_note}</p>}
-     {release.source_track_id?<Link href={"/releases/"+release.id}>Review linked release · {release.workflow_state} →</Link>:<ReleaseManagement id={release.id} status={release.status}/>}
+     {release.source_track_id?<Link href={"/releases/"+release.id}>Review linked release · {release.workflow_state} →</Link>:["draft","pending","rejected"].includes(release.status)?<AdminDraftReview id={release.id} status={release.status as "draft"|"pending"|"rejected"}/>:<ReleaseManagement id={release.id} status={release.status}/>}
      <p className="community-muted">Uploading and performing are different roles. Verify the artist and master ownership in <Link href="/admin/catalogue">Catalogue attribution</Link>.</p>
      <AdminReleaseDetailsEditor release={release}/>
      <AdminReleaseCoverReplacement releaseId={release.id} linked={Boolean(release.source_track_id)}/>

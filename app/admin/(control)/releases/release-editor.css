@@ -128,3 +128,45 @@
  .fm-release-toolbar p span{display:none}
 }
 @media(prefers-reduced-motion:reduce){.fm-release-row-manage span{transition:none}}
+
+
+/* Release moderation: visible actions for Draft, Pending and Rejected entries.
+   Scoped: no player, fan UI or artwork upload changes. */
+.control-room .community-page .fm-release-draft-review{
+ display:grid;gap:13px;padding:19px;background:#171717;color:#fff;
+ border:1px solid #ff6a004d;border-radius:13px;min-width:0
+}
+.control-room .community-page .fm-release-draft-review h3{
+ color:#fff;margin:0;font:850 18px/1.2 "Gotham","DM Sans",sans-serif
+}
+.control-room .community-page .fm-release-draft-review>p{
+ color:#c7c7cd;margin:0;font:500 12px/1.6 "DM Sans",sans-serif
+}
+.control-room .community-page .fm-release-draft-review label{
+ display:grid;gap:8px;color:#f4f4f5;font:750 12px "DM Sans",sans-serif
+}
+.control-room .community-page .fm-release-draft-review textarea{
+ background:#242424!important;color:#fff!important;-webkit-text-fill-color:#fff!important;
+ border:1px solid #777!important;border-radius:8px;box-sizing:border-box;
+ min-height:75px;width:100%;max-width:100%;padding:11px 12px;
+ font:500 13px "DM Sans",sans-serif;caret-color:#ff6a00
+}
+.control-room .community-page .fm-release-draft-actions{display:flex;gap:10px;flex-wrap:wrap}
+.control-room .community-page .fm-release-draft-actions button{
+ min-height:44px;border:1px solid #6e6e6e;border-radius:9px;background:#272727!important;
+ color:#fff!important;font:850 12px "DM Sans",sans-serif;padding:10px 17px!important;cursor:pointer
+}
+.control-room .community-page .fm-release-draft-actions button[value="approve"]{
+ background:#ff6a00!important;border-color:#ff6a00;color:#111!important
+}
+.control-room .community-page .fm-release-draft-actions button[value="delete"]{
+ border-color:#ba5555!important;color:#ffb0b0!important
+}
+.control-room .community-page .fm-release-draft-actions button:disabled{opacity:.55;cursor:wait}
+.control-room .community-page .fm-release-draft-actions button:focus-visible{
+ outline:2px solid #ff6a00;outline-offset:3px
+}
+@media(max-width:760px){
+ .fm-release-summary .fm-release-row-manage{display:inline-flex;grid-column:2/-1;justify-self:end}
+ .control-room .community-page .fm-release-draft-actions button{flex:1 1 140px}
+}
