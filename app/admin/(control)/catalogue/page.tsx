@@ -28,7 +28,7 @@ export default async function CatalogueAttribution({searchParams}:{searchParams:
  const registered=recordedResult.data||[];
  const schemaReady=!recordedResult.error;
  return <main className="community-page fm-catalogue-attribution">
-  <div className="community-actions"><Link href="/admin/releases">← Releases</Link><Link href="/tracks">Project demos</Link><Link href="/production">Production workspace</Link></div>
+  <div className="community-actions"><Link href="/admin/catalogue/claims">Review artist claims</Link><Link href="/admin/releases">← Releases</Link><Link href="/tracks">Project demos</Link><Link href="/production">Production workspace</Link></div>
   <span className="eyebrow">FACKTS MUSIC · CATALOGUE GOVERNANCE</span>
   <h1>Catalogue attribution</h1>
   <p>Identify the uploader, credited artist and rights holder for an existing demo or release. These are different responsibilities.</p>
