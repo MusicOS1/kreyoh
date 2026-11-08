@@ -18,6 +18,7 @@ test("mobile player stays at the bottom above navigation and does not open as an
  assert.match(css,/position:fixed/);
  assert.match(css,/@media \(max-width:900px\)/);
  assert.match(css,/bottom:calc\(72px \+ env\(safe-area-inset-bottom\)\)/);
+ assert.match(css,/nav\[aria-label="Mobile primary navigation"\]/);
  assert.match(css,/\.dock :global\(\.track-chart-player\)/);
  assert.match(css,/grid-template-rows:45px 7px/);
  assert.match(stream,/bottom:calc\(72px \+ env\(safe-area-inset-bottom\)\)!important/);
