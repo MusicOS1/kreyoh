@@ -18,7 +18,7 @@ import {moveQueueTrack} from '../lib/playerQueue';
 import {backgroundInteraction} from '../lib/backgroundInteraction';
 type Release={attributed_artist_profile_id?:string;explicit_artist_link?:boolean;featured_artist_ids?:string[];id:string;title:string;artist_id:string;artist_name:string;collection:string;description?:string;has_cover:boolean;release_at:string;votes:number;genre?:string};
 type Item={kind:string;item_id:string;label:string;track_ids:string[];updated_at:string};
-export default function ListenerExperience({releases,userId,name,initialTab='For You',initialLibrary=[],votedIds=[],unread=0,editorial=[],loadWarning,heroSettings,artistsDirectory=[],showFanNav=true}:{releases:Release[];userId?:string;name?:string;initialTab?:string;initialLibrary?:Item[];votedIds?:string[];unread?:number;editorial?:DiscoveryItem[];loadWarning?:string;heroSettings?:Record<FanHeroArea,FanHeroConfig>;artistsDirectory?:MusicArtist[];showFanNav?:boolean}){
+export default function ListenerExperience({releases,userId,name,initialTab='For You',initialLibrary=[],votedIds=[],unread=0,editorial=[],loadWarning,heroSettings,artistsDirectory=[],featuredArtistId="",showFanNav=true}:{releases:Release[];userId?:string;name?:string;initialTab?:string;initialLibrary?:Item[];votedIds?:string[];unread?:number;editorial?:DiscoveryItem[];loadWarning?:string;heroSettings?:Record<FanHeroArea,FanHeroConfig>;artistsDirectory?:MusicArtist[];featuredArtistId?:string;showFanNav?:boolean}){
  const[tab,setTab]=useState(initialTab),[artistFocusId,setArtistFocusId]=useState<string|null>(null),[query,setQuery]=useState(''),[library,setLibrary]=useState(initialLibrary),[notice,setNotice]=useState(''),[pendingItems,setPendingItems]=useState<Set<string>>(()=>new Set()),[playlistName,setPlaylistName]=useState(''),[playlistId,setPlaylistId]=useState('');
  const [visibleCount,setVisibleCount]=useState(20);
  const [creatingPlaylist,setCreatingPlaylist]=useState(false),[itemNotices,setItemNotices]=useState<Record<string,string>>({});
@@ -42,7 +42,9 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
  const has=(kind:string,id:string)=>library.some(x=>x.kind===kind&&x.item_id===id);
  const artistHighlights=artistsDirectory.slice(0,8);
  // Show a real, published artist before any generic promotional artwork.
- const spotlightArtist=useMemo(()=>artistsDirectory.find(artist=>(artist.hero||artist.avatar)&&releases.some(release=>releaseHasArtist(release,artist.id,artist.name)))||artistsDirectory.find(artist=>artist.hero||artist.avatar)||null,[artistsDirectory,releases]);
+ const spotlightArtist=useMemo(()=>artistsDirectory.find(artist=>artist.id===featuredArtistId)||
+  artistsDirectory.find(artist=>(artist.hero||artist.avatar)&&releases.some(release=>releaseHasArtist(release,artist.id,artist.name)))||
+  artistsDirectory.find(artist=>artist.hero||artist.avatar)||null,[artistsDirectory,releases,featuredArtistId]);
  const publicArtistById=useMemo(()=>new Map(artistsDirectory.map(artist=>[artist.id,artist])),[artistsDirectory]);
  const publicArtistIds=new Set(publicArtistById.keys());
  const isVerifiedArtistRelease=(release:Release)=>{const artist=publicArtistById.get(release.attributed_artist_profile_id||release.artist_id);return Boolean(artist&&releaseHasArtist(release,artist.id,artist.name));};

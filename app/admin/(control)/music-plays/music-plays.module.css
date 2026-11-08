@@ -1,0 +1,43 @@
+.page{width:100%;max-width:1550px;min-width:0;margin:0 auto;color:#241e17}
+.intro{display:flex;justify-content:space-between;gap:25px;align-items:end;margin:0 0 25px}
+.eyebrow{display:block;margin:0 0 9px;color:#b35205;font-size:11px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}
+.intro h1{margin:0;color:#17130e;font-size:clamp(34px,4vw,53px);letter-spacing:-.055em;line-height:1.1}
+.intro p{max-width:730px;margin:12px 0 0;color:#5e554b;font-size:14px;line-height:1.65}
+.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.actions a{white-space:nowrap;padding:11px 15px;border:1px solid #d7c7b3;border-radius:10px;background:#fffcf5;color:#3b2b1f;font-size:12px;font-weight:800;text-decoration:none}
+.actions a:hover,.song a:hover{color:#ad4f04}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin:0 0 23px}
+.stat{display:flex;flex-direction:column;gap:9px;min-width:0;padding:21px;border-radius:16px;background:#fffbf4;border:1px solid #dccbb8;box-shadow:0 12px 25px #26190807}
+.stat span{color:#62584f;font-size:12px;font-weight:750}
+.stat strong{font-size:clamp(25px,3.3vw,40px);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.045em;color:#19120d;overflow-wrap:anywhere}
+.stat small{font-size:11px;color:#776b60}
+.panel{border:1px solid #ddcdb9;background:#fffcf6;border-radius:18px;padding:clamp(16px,2.3vw,28px);box-shadow:0 12px 45px #26190808;min-width:0}
+.toolbar{display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap}
+.toolbar h2{margin:0 0 5px;font-size:23px;letter-spacing:-.035em;color:#23180e}
+.toolbar p{margin:0;color:#6e6358;font-size:12px}
+.periods{display:flex;gap:6px;flex-wrap:wrap}
+.period,.current{display:inline-block;padding:9px 13px;border:1px solid #d6c4ad;border-radius:9px;background:#fff8ed;color:#4f4031;font-size:12px;font-weight:850;text-decoration:none}
+.current{color:#fff;background:#302017;border-color:#302017}
+.filter{display:grid;gap:8px;margin:25px 0 17px;max-width:570px}
+.filter label{font-size:12px;font-weight:800;color:#4e4236}
+.filter>div{display:flex;gap:8px;align-items:stretch}
+.filter input{flex:1;min-width:0;min-height:43px;padding:9px 13px!important;background:#fff!important;color:#17130d!important;-webkit-text-fill-color:#17130d!important;border:1px solid #c6b39e!important;border-radius:10px;font-size:13px!important}
+.filter button{border:none;border-radius:10px;padding:10px 19px;background:#ff6a00;color:#1b0d06;font-size:12px;font-weight:900;cursor:pointer}
+.tableWrap{max-width:100%;overflow-x:auto;border:1px solid #e0d1c1;border-radius:13px}
+.table{width:100%;min-width:810px;border-collapse:collapse;text-align:left;background:#fffdfa;font-size:13px}
+.table th{position:sticky;top:0;padding:15px 13px;background:#f0e7dc;color:#4f4034;font-size:11px;font-weight:900;letter-spacing:.025em;white-space:nowrap}
+.table td{padding:14px 13px;border-top:1px solid #e9ddd0;vertical-align:middle;color:#29221b}
+.table tbody tr:hover{background:#fff5e6}
+.table .number{text-align:right;font-variant-numeric:tabular-nums;font-weight:900;white-space:nowrap;color:#1d1610}
+.song{min-width:220px;max-width:380px;overflow-wrap:anywhere}
+.song a{display:block;font-weight:900;color:#21160e;text-decoration:none;line-height:1.4}
+.song span{display:block;margin-top:3px;color:#75675a;font-size:11px;font-weight:600;line-height:1.45}
+.last{font-size:12px;white-space:nowrap;color:#6d6052}
+.note{max-width:1050px;margin:20px 1px 0;font-size:12px;line-height:1.75;color:#736659}
+.empty{padding:35px 16px;text-align:center;color:#6c5c51;font-size:13px}
+.error{padding:25px;border:1px solid #caa79d;background:#fff4ed;border-radius:15px}
+.error h2{margin:0 0 10px;font-size:20px}.error p{font-size:14px;line-height:1.6}
+.error a{color:#984100;font-weight:850}
+@media(max-width:1100px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:680px){.intro{align-items:start;flex-direction:column}.actions{justify-content:flex-start}.stats{gap:9px}.stat{padding:16px}.stat strong{font-size:29px}.panel{padding:15px}.filter>div{display:flex}.periods{width:100%}.period,.current{flex:1;text-align:center}}
+@media(max-width:370px){.stats{grid-template-columns:1fr}}

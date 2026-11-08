@@ -2,6 +2,8 @@
 import {useActionState,useState} from "react";
 import Link from "next/link";
 import AdminEditorialImageUpload from "./AdminEditorialImageUpload";
+import FeaturedArtistAdmin from "./FeaturedArtistAdmin";
+import type {MusicArtist} from "../lib/musicArtistsTypes";
 import {backgroundFormAction} from "../lib/backgroundInteraction";
 import {fanHeroAreas,type FanHeroArea,type FanHeroConfig} from "../lib/fanHeroConfig";
 
@@ -61,11 +63,12 @@ function SingleHeroEditor({area,config,artwork}:{area:FanHeroArea;config:FanHero
   </aside>
  </form>;
 }
-export default function HeroAdminPanel({configs,artwork}:{configs:Record<FanHeroArea,FanHeroConfig>;artwork:Artwork[]}){
+export default function HeroAdminPanel({configs,artwork,artists,featuredArtistId}:{configs:Record<FanHeroArea,FanHeroConfig>;artwork:Artwork[];artists:MusicArtist[];featuredArtistId:string}){
  const [selected,setSelected]=useState<FanHeroArea>("for-you");
  return <section className="hero-admin-panel">
    <header><span className="eyebrow">FACKTS MUSIC / EDITORIAL SYSTEM</span><h2>Hero studio</h2><p>Control every listening hero. Pick the actual artwork, edit the copy and CTA, and choose how the image blends into the layout. To publish a custom hero, enable “Publish custom hero” and save. Otherwise, the page keeps its automatic design.</p></header>
    <div className="hero-admin-tabs" role="group" aria-label="Hero locations">{fanHeroAreas.map(item=><button type="button" key={item.id} aria-pressed={selected===item.id} onClick={()=>setSelected(item.id)}>{item.label}{configs[item.id].enabled&&<span aria-label="Customised">●</span>}</button>)}</div>
+   {selected==="for-you"&&<FeaturedArtistAdmin artists={artists} selectedArtistId={featuredArtistId} customForYouEnabled={configs["for-you"].enabled}/>}
    <SingleHeroEditor key={selected} area={selected} config={configs[selected]} artwork={artwork}/>
  </section>;
 }
