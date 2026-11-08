@@ -18,6 +18,15 @@ export default async function Release({params}:{params:Promise<{releaseId:string
  const{data:vote}=user?await admin.from('music_votes').select('release_id').eq('release_id',r.id).eq('user_id',user.id).eq('week_start',currentChartWeek()).maybeSingle():{data:null};
  const {data:featured=[]}=r.featured_artist_ids?.length?await admin.from('profiles').select('id,stage_name,full_name').in('id',r.featured_artist_ids).eq('profile_visibility','public').eq('account_status','active'):{data:[]};
  const {data:library=[]}=user?await admin.from('fan_music_library').select('kind,item_id,label,track_ids').eq('user_id',user.id):{data:[]};
+ const {data:verifiedCredits=[]}=await admin.from('professional_credit_claims')
+  .select('claimant_id,contribution_role').eq('release_id',r.id)
+  .eq('verification_status','fackts_verified').limit(100);
+ const creditedIds=[...new Set((verifiedCredits||[]).map((item:any)=>item.claimant_id))];
+ const {data:creditedProfiles=[]}=creditedIds.length?await admin.from('profiles')
+  .select('id,stage_name,full_name,public_slug').in('id',creditedIds)
+  .eq('profile_visibility','public').eq('account_status','active'):{data:[]};
+ const creditPeople=new Map((creditedProfiles||[]).map((person:any)=>[person.id,person]));
+
  return <><PublicNavigation/><main className="community-page fm-chart-detail-page"><Link href="/billboard">← FACKTS Billboard</Link><header className="billboard-hero fm-billboard-photo-hero"><img className="fm-billboard-hero-art" src={r.has_cover?`/api/releases/${r.id}/media?kind=cover`:"/branding/fackts-creator-sky.jpg"} alt=""/><span className="eyebrow">{r.debut?'FIRST RELEASE ON FACKTS':'FACKTS MUSIC RELEASE'}</span><h1>{r.title}</h1><p>{r.artist_name}{r.explicit?' · Explicit':''}</p>{r.collection&&<Link href={`/billboard?collection=${encodeURIComponent(r.collection)}${r.is_platform_managed?"":"&artist="+r.artist_id}`}>{projectInfo?"Project: ":""}{r.collection} · Track {r.track_number}</Link>}
  {projectInfo&&(projectInfo.releaseContext||projectInfo.recordingQuality)&&<div className="fm-project-disclosure" aria-label="Recording disclosure">
   {projectInfo.releaseContext&&<span>{projectInfo.releaseContext}</span>}
@@ -34,6 +43,12 @@ export default async function Release({params}:{params:Promise<{releaseId:string
  {projectInfo&&(projectInfo.releaseContext||projectInfo.recordingQuality)&&<p className="fm-project-disclosure-note">Recording labels supplied by the uploader describe this version; they do not represent a FACKTS mastering or sound-quality certification.</p>}
  <p>{r.genre} · Released {new Date(r.release_at).toLocaleDateString('en-KE',{timeZone:'Africa/Nairobi'})}</p>
  <h3>Credits</h3><p className="preserve-lines">{r.credits||'Credits pending artist verification.'}</p>
+ {(verifiedCredits||[]).filter((credit:any)=>creditPeople.has(credit.claimant_id)).map((credit:any,index:number)=>{
+  const person:any=creditPeople.get(credit.claimant_id);
+  return <p key={credit.claimant_id+"-"+credit.contribution_role+"-"+index}>
+    <strong>{credit.contribution_role}</strong> · <Link href={"/creators/"+(person.public_slug||person.id)}>{person.stage_name||person.full_name||"Verified contributor"}</Link> · FACKTS verified
+  </p>;
+ })}
  <div className="community-actions"><Link href={user?`/professional-record?release=${r.id}`:`/login?next=${encodeURIComponent('/professional-record?release='+r.id)}`}>Worked on this recording? Claim your credit →</Link></div>
  <p className="community-muted">A claim requires evidence and review. Verified contributor credit does not automatically transfer ownership, royalty splits or administration.</p></section>
  </main><PublicFooter/></>;
