@@ -32,7 +32,7 @@ export async function reviewAdminDraft(
   if(operation==="delete"&&!["draft","pending","rejected"].includes(release.status))
    throw Error("Only unpublished releases may be discarded here.");
   let nextAudio=release.audio_key,nextCover=release.cover_key;
-  if(operation==="approve"&&release.status==="draft"){
+  if(operation==="approve"){
    if(!release.rights_confirmed_at)
     throw Error("The artist has not confirmed rights. Approval is blocked.");
    if(!release.audio_key?.startsWith(`releases/${release.artist_id}/${id}/`))
@@ -52,14 +52,16 @@ export async function reviewAdminDraft(
        !["image/jpeg","image/png","image/webp"].includes(cover.ContentType||""))
      throw Error("Cover artwork cannot be verified. Replace or repair the artwork first.");
    }
-   // Finalize the original staging objects into immutable versioned keys.
-   // An interrupted approval leaves originals in place and can be retried.
-   const revision=crypto.randomUUID();
-   nextAudio=`releases/${release.artist_id}/${id}/${revision}-approved-audio`;
-   await finalizeReleaseObject(release.audio_key,nextAudio);
-   if(release.cover_key){
-    nextCover=`releases/${release.artist_id}/${id}/${revision}-approved-cover`;
-    await finalizeReleaseObject(release.cover_key,nextCover);
+   if(release.status==="draft"){
+    // Uploaded drafts still use staging keys. Keep the original R2 objects intact.
+    // Pending releases already have final keys; don't copy them a second time.
+    const revision=crypto.randomUUID();
+    nextAudio=`releases/${release.artist_id}/${id}/${revision}-approved-audio`;
+    await finalizeReleaseObject(release.audio_key,nextAudio);
+    if(release.cover_key){
+     nextCover=`releases/${release.artist_id}/${id}/${revision}-approved-cover`;
+     await finalizeReleaseObject(release.cover_key,nextCover);
+    }
    }
   }
   const {error:auditError}=await admin.from("platform_events").insert({
@@ -80,11 +82,13 @@ export async function reviewAdminDraft(
    changes.cover_key=nextCover;
    changes.submitted_at=release.submitted_at||now;
   }
-  const {data:changed,error:saveError}=await admin.from("music_releases")
+  let update=admin.from("music_releases")
    .update(changes).eq("id",id).eq("status",release.status)
-   .eq("audio_key",release.audio_key).select("id").maybeSingle();
+   .eq("audio_key",release.audio_key);
+  update=release.cover_key?update.eq("cover_key",release.cover_key):update.is("cover_key",null);
+  const {data:changed,error:saveError}=await update.select("id").maybeSingle();
   if(saveError||!changed)
-   throw Error("The draft changed while you were reviewing it. Reload and try again.");
+   throw Error("The release changed while you were reviewing it. Reload and try again.");
   const {error:completionError}=await admin.from("platform_events").insert({
    user_id:actor.id,event_name:operation==="approve"?"release_draft_approved":
     operation==="reject"?"release_draft_rejected":"release_draft_discarded",
