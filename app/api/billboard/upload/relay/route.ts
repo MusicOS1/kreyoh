@@ -2,7 +2,7 @@ import {assertProductionOrigin} from '../../../../../lib/productionAccess';
 import {communityAccount,uuidPattern} from '../../../../../lib/community';
 import {
   RELEASE_RELAY_CHUNK_BYTES, uploadReleaseRelayChunk,
-  uploadReleaseRelayPart, finishReleaseRelay, startR2Multipart
+  uploadReleaseRelayPart, finishReleaseRelay, startR2Multipart, listReleaseRelayChunks
 } from '../../../../../lib/r2';
 
 export const runtime = 'nodejs';
@@ -37,6 +37,29 @@ async function resolveUpload(request:Request):Promise<ReleaseUpload>{
   if(!key)throw new Error('Artwork is not required for this draft.');
   return {id,key,kind,contentType,size,count:Math.ceil(size/RELEASE_RELAY_CHUNK_BYTES)};
 }
+
+/** Durable upload telemetry: two success events per session and exceptions only.
+ * Monitoring can aggregate these without inspecting private song or user data.
+ */
+async function recordRelayEvent(info:ReleaseUpload,name:string,detail?:string){
+ try{
+  const {admin,user}=await communityAccount();
+  const {error}=await admin.from('platform_events').insert({
+   user_id:user.id,entity_type:'music_release',entity_id:info.id,
+   category:'music_upload',event_name:name,
+   metadata:{kind:info.kind,bytes:info.size,detail:(detail||'').slice(0,180)}
+  });
+  if(error)console.warn('release-relay-monitoring-write-failed',error.code);
+ }catch{console.warn('release-relay-monitoring-unavailable');}
+}
+
+export async function GET(request:Request){
+ try{
+  const info=await resolveUpload(request);
+  const chunks=await listReleaseRelayChunks(info.key,info.size);
+  return Response.json({ok:true,chunks,total:info.count},{headers:jsonHeaders});
+ }catch(error){return responseError(error);}
+}
 function responseError(cause:unknown){
   const message=cause instanceof Error?cause.message:'Upload unavailable.';
   console.error('release-relay',{message});
@@ -44,8 +67,9 @@ function responseError(cause:unknown){
   return Response.json({error:safe?message:'Could not transfer this file. Retry using the same draft.'},{status:400,headers:jsonHeaders});
 }
 export async function PUT(request:Request){
-  try{
-    const info=await resolveUpload(request);
+ let info:ReleaseUpload|undefined;
+ try{
+    info=await resolveUpload(request);
     const index=Number(new URL(request.url).searchParams.get('index'));
     if(!Number.isSafeInteger(index)||index<0||index>=info.count)throw Error('Invalid release upload request.');
     const expected=Math.min(RELEASE_RELAY_CHUNK_BYTES,info.size-index*RELEASE_RELAY_CHUNK_BYTES);
@@ -55,15 +79,20 @@ export async function PUT(request:Request){
     if(bytes.byteLength!==expected)throw Error('Upload chunk size does not match the file.');
     await uploadReleaseRelayChunk(info.key,index,bytes);
     return Response.json({ok:true,index},{headers:jsonHeaders});
-  }catch(error){return responseError(error);}
+  }catch(error){
+   if(info)await recordRelayEvent(info,'release_relay_chunk_failed',error instanceof Error?error.message:'unknown');
+   return responseError(error);
+  }
 }
 export async function POST(request:Request){
-  try{
-    const info=await resolveUpload(request);
+ let info:ReleaseUpload|undefined;
+ try{
+    info=await resolveUpload(request);
     const url=new URL(request.url);
     const action=url.searchParams.get('action');
     if(action==='start'){
       const uploadId=await startR2Multipart(info.key,info.contentType);
+      await recordRelayEvent(info,'release_relay_started');
       return Response.json({ok:true,uploadId},{headers:jsonHeaders});
     }
     const body=await request.json().catch(()=>null);
@@ -83,8 +112,12 @@ export async function POST(request:Request){
         throw Error('Invalid release upload request.');
       }
       await finishReleaseRelay(info.key,body.uploadId,parts,info.size,info.contentType,info.count);
+      await recordRelayEvent(info,'release_relay_completed');
       return Response.json({ok:true,complete:true},{headers:jsonHeaders});
     }
     throw Error('Invalid release upload request.');
-  }catch(error){return responseError(error);}
+  }catch(error){
+   if(info)await recordRelayEvent(info,'release_relay_failed',error instanceof Error?error.message:'unknown');
+   return responseError(error);
+  }
 }
