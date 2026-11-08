@@ -3,7 +3,7 @@ import {useRef,useState} from "react";
 import {useRouter} from "next/navigation";
 import {prepareReleaseResult,finishReleaseResult,refreshReleaseUploadResult} from "../app/billboard/actions";
 
-import {directUpload} from "../lib/directUpload";
+import {uploadReleaseFile} from "../lib/releaseRelayUpload";
 import {formatBulkProjectDescription,RELEASE_CONTEXT_OPTIONS,RECORDING_QUALITY_OPTIONS} from "../lib/bulkReleaseProject";
 type Row={id:string;file:File;title:string;artist:string;number:number;status:"ready"|"preparing"|"uploading"|"cover"|"submitting"|"done"|"failed";detail:string;};
 const accepted=new Set(["mp3","wav","m4a","flac"]);
@@ -63,12 +63,12 @@ export default function BulkReleaseImporter(){
   }
   update(row.id,{status:"uploading",detail:"Uploading audio to storage…"});
   if(!draft.audioDone){
-   await directUpload(draft.uploadUrl,row.file,filenameType,percent=>update(row.id,{detail:`Uploading audio: ${percent}%`}));
+   await uploadReleaseFile(draft.id,"audio",draft.uploadUrl,row.file,filenameType,"audio",message=>update(row.id,{detail:message}));
    draft.audioDone=true;
   }
   if(cover&&draft.coverUploadUrl&&!draft.coverDone){
    update(row.id,{status:"cover",detail:"Uploading shared artwork…"});
-   await directUpload(draft.coverUploadUrl,cover,cover.type,()=>{});
+   await uploadReleaseFile(draft.id,"cover",draft.coverUploadUrl,cover,cover.type,"shared cover",message=>update(row.id,{detail:message}));
    draft.coverDone=true;
   }
   update(row.id,{status:"submitting",detail:"Submitting for review…"});
