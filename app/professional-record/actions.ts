@@ -5,24 +5,48 @@ import { getWorkspace } from "../../lib/workspace";
 import { isSuperAdmin } from "../../lib/controlRoom";
 
 const read=(fd:FormData,key:string)=>String(fd.get(key)||"").trim();
+const uuidPattern=/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 
 export async function createProfessionalClaim(fd:FormData){
   const{admin,user,project}=await getWorkspace();
-  const workTitle=read(fd,"work_title"),role=read(fd,"contribution_role");
-  if(!workTitle||!role)throw new Error("Work title and contribution are required.");
-
+  const releaseId=read(fd,"release_id");
+  const role=read(fd,"contribution_role").slice(0,80);
+  let workTitle=read(fd,"work_title").slice(0,180);
+  let primaryArtist=read(fd,"primary_artist").slice(0,130);
+  let projectId=project?.id||null,sourceUrl=read(fd,"source_url")||null;
+  if(!role)throw new Error("Describe your contribution.");
+  if(releaseId){
+    if(!uuidPattern.test(releaseId))throw new Error("Invalid catalogue release.");
+    const{data:release,error:releaseError}=await admin.from("music_releases")
+      .select("id,title,artist_name,status,release_at")
+      .eq("id",releaseId).eq("status","published").lte("release_at",new Date().toISOString()).maybeSingle();
+    if(releaseError||!release)throw new Error("The recording is not currently published.");
+    const{count,error:dailyError}=await admin.from("professional_credit_claims")
+      .select("id",{head:true,count:"exact"}).eq("claimant_id",user.id)
+      .gte("created_at",new Date(Date.now()-86400000).toISOString());
+    if(dailyError||((count||0)>=12))throw new Error("Credit claim limit reached. Please review your open claims.");
+    const{data:duplicate}=await admin.from("professional_credit_claims")
+      .select("id").eq("claimant_id",user.id).eq("release_id",releaseId)
+      .ilike("contribution_role",role).neq("verification_status","withdrawn").limit(1);
+    if(duplicate?.length)throw new Error("You already have an open credit claim for this role on this recording.");
+    workTitle=release.title;primaryArtist=release.artist_name;
+    projectId=null;sourceUrl='/billboard/'+releaseId;
+  }
+  if(!workTitle)throw new Error("Work title is required.");
   const{error}=await admin.from("professional_credit_claims").insert({
     claimant_id:user.id,
-    project_id:project?.id||null,
+    project_id:projectId,
+    release_id:releaseId||null,
     work_title:workTitle,
-    primary_artist:read(fd,"primary_artist")||null,
+    primary_artist:primaryArtist||null,
     contribution_role:role,
     source_type:"external",
-    source_url:read(fd,"source_url")||null,
+    source_url:sourceUrl,
     verification_status:"self_claimed",
   });
   if(error)throw new Error(error.message);
   revalidatePath("/professional-record");
+  if(releaseId)revalidatePath("/admin/catalogue/claims");
 }
 
 export async function addClaimEvidence(fd:FormData){
@@ -48,12 +72,26 @@ export async function addClaimEvidence(fd:FormData){
 
 export async function requestClaimConfirmation(fd:FormData){
   const{admin,user}=await getWorkspace();
-  const claimId=read(fd,"claim_id"),confirmerId=read(fd,"confirmer_id");
+  const claimId=read(fd,"claim_id"),handle=read(fd,"confirmer_handle").toLowerCase();
+  let confirmerId=read(fd,"confirmer_id");
+  if(!confirmerId&&handle){
+    const lookup=handle.includes("@")
+      ?admin.from("profiles").select("id").eq("email",handle).eq("account_status","active").maybeSingle()
+      :admin.from("profiles").select("id").eq("public_slug",handle).eq("account_status","active").maybeSingle();
+    const {data:person}=await lookup;
+    confirmerId=person?.id||"";
+  }
   if(!confirmerId||confirmerId===user.id)throw new Error("Choose another FACKTS creator to confirm the credit.");
 
   const{data:claim}=await admin.from("professional_credit_claims").select("id,claimant_id,work_title,contribution_role").eq("id",claimId).eq("claimant_id",user.id).maybeSingle();
   if(!claim)throw new Error("Claim not found.");
 
+  const {count:confirmationCount}=await admin.from("professional_credit_confirmations")
+    .select("id",{count:"exact",head:true}).eq("claim_id",claimId);
+  const {data:existingConfirmation}=await admin.from("professional_credit_confirmations")
+    .select("id").eq("claim_id",claimId).eq("confirmer_id",confirmerId).maybeSingle();
+  if(existingConfirmation)throw new Error("You have already requested confirmation from this contributor.");
+  if((confirmationCount||0)>=3)throw new Error("Maximum three independent confirmation requests per claim.");
   const{error}=await admin.from("professional_credit_confirmations").upsert({
     claim_id:claimId,
     confirmer_id:confirmerId,
@@ -117,13 +155,14 @@ export async function verifyProfessionalClaim(fd:FormData){
 
   const claimId=read(fd,"claim_id");
   const[{data:claim},{count:evidenceCount},{count:confirmedCount},{count:disputedCount}]=await Promise.all([
-    admin.from("professional_credit_claims").select("id,verification_status").eq("id",claimId).maybeSingle(),
+    admin.from("professional_credit_claims").select("id,claimant_id,work_title,release_id,verification_status").eq("id",claimId).maybeSingle(),
     admin.from("professional_credit_evidence").select("id",{count:"exact",head:true}).eq("claim_id",claimId),
     admin.from("professional_credit_confirmations").select("id",{count:"exact",head:true}).eq("claim_id",claimId).eq("response","confirmed"),
     admin.from("professional_credit_confirmations").select("id",{count:"exact",head:true}).eq("claim_id",claimId).eq("response","disputed"),
   ]);
 
   if(!claim)throw new Error("Claim not found.");
+  if(["rejected","withdrawn","fackts_verified"].includes(claim.verification_status))throw new Error("This claim is no longer eligible for verification.");
   if((evidenceCount||0)<1)throw new Error("Attach evidence before FACKTS verification.");
   if((confirmedCount||0)<1)throw new Error("At least one relevant FACKTS creator must confirm this external credit first.");
   if((disputedCount||0)>0||claim.verification_status==="disputed")throw new Error("Resolve the dispute before verification.");
@@ -134,8 +173,19 @@ export async function verifyProfessionalClaim(fd:FormData){
     verified_by:user.id,
     verified_at:new Date().toISOString(),
     updated_at:new Date().toISOString(),
-  }).eq("id",claimId);
+  }).eq("id",claimId).in("verification_status",["self_claimed","evidence_attached","contributor_confirmed"]).select("id").maybeSingle();
   if(error)throw new Error(error.message);
 
+  if(claim.release_id){
+    await admin.from("notifications").insert({
+      user_id:claim.claimant_id,project_id:null,type:"credit_claim_verified",
+      title:"Your FACKTS Music credit is verified",
+      body:`${claim.work_title}: your verified contribution can now be shown on your public creator profile. Rights and payment arrangements remain separate.`,
+      entity_type:"professional_credit_claim",entity_id:claim.id
+    });
+    for(const path of ["/creators","/fan","/listen","/billboard","/admin/catalogue/claims"])revalidatePath(path);
+    revalidatePath("/billboard/"+claim.release_id);
+    revalidatePath("/creators/"+claim.claimant_id);
+  }
   revalidatePath("/professional-record");
 }

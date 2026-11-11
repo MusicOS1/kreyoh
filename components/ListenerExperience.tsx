@@ -19,7 +19,7 @@ import StreamTrackRow from './streaming/StreamTrackRow';
 import ArtistDiscovery from './ArtistDiscovery';
 import {moveQueueTrack} from '../lib/playerQueue';
 import {backgroundInteraction} from '../lib/backgroundInteraction';
-type Release={attributed_artist_profile_id?:string;explicit_artist_link?:boolean;featured_artist_ids?:string[];id:string;title:string;artist_id:string;artist_name:string;collection:string;description?:string;has_cover:boolean;release_at:string;votes:number;genre?:string};
+type Release={is_platform_managed?:boolean;verified_artist_ids?:string[];attributed_artist_profile_id?:string;explicit_artist_link?:boolean;featured_artist_ids?:string[];id:string;title:string;artist_id:string;artist_name:string;collection:string;description?:string;has_cover:boolean;release_at:string;votes:number;genre?:string};
 type Item={kind:string;item_id:string;label:string;track_ids:string[];updated_at:string};
 export default function ListenerExperience({releases,userId,name,initialTab='For You',initialLibrary=[],votedIds=[],unread=0,editorial=[],loadWarning,heroSettings,artistsDirectory=[],featuredArtistId="",showFanNav=true}:{releases:Release[];userId?:string;name?:string;initialTab?:string;initialLibrary?:Item[];votedIds?:string[];unread?:number;editorial?:DiscoveryItem[];loadWarning?:string;heroSettings?:Record<FanHeroArea,FanHeroConfig>;artistsDirectory?:MusicArtist[];featuredArtistId?:string;showFanNav?:boolean}){
  const[tab,setTab]=useState(initialTab),[artistFocusId,setArtistFocusId]=useState<string|null>(null),[query,setQuery]=useState(''),[library,setLibrary]=useState(initialLibrary),[notice,setNotice]=useState(''),[pendingItems,setPendingItems]=useState<Set<string>>(()=>new Set()),[playlistName,setPlaylistName]=useState(''),[playlistId,setPlaylistId]=useState('');
@@ -50,7 +50,8 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
   artistsDirectory.find(artist=>artist.hero||artist.avatar)||null,[artistsDirectory,releases,featuredArtistId]);
  const publicArtistById=useMemo(()=>new Map(artistsDirectory.map(artist=>[artist.id,artist])),[artistsDirectory]);
  const publicArtistIds=new Set(publicArtistById.keys());
- const isVerifiedArtistRelease=(release:Release)=>{const artist=publicArtistById.get(release.attributed_artist_profile_id||release.artist_id);return Boolean(artist&&releaseHasArtist(release,artist.id,artist.name));};
+ const creditedArtistId=(release:Release)=>release.attributed_artist_profile_id||release.verified_artist_ids?.find(id=>publicArtistById.has(id))||(release.is_platform_managed?undefined:release.artist_id);
+  const isVerifiedArtistRelease=(release:Release)=>{const id=creditedArtistId(release),artist=id?publicArtistById.get(id):undefined;return Boolean(artist&&releaseHasArtist(release,artist.id,artist.name));};
  function openArtist(id:string){if(!publicArtistIds.has(id))return;setArtistFocusId(id);setTab('Artists');setQuery('');}
  const lists=library.filter(x=>x.kind==='playlist');
  const collections=useMemo(()=>Array.from(new Map(releases.filter(r=>r.collection).map(r=>[`${r.artist_id}:${r.collection}`,{id:`${r.artist_id}:${r.collection}`,name:r.collection,artist:r.artist_name,songs:releases.filter(x=>x.artist_id===r.artist_id&&x.collection===r.collection)}])).values()),[releases]);
@@ -58,7 +59,7 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
  const rows=useMemo(()=>{
   let source=[...releases];
   if(tab==='My Library')source=playlistId?source.filter(r=>library.find(x=>x.item_id===playlistId&&x.kind==='playlist')?.track_ids.includes(r.id)):source.filter(r=>library.some(x=>x.kind==='saved'&&x.item_id===r.id));
-  if(tab==='Following')source=source.filter(r=>library.some(x=>x.kind==='following'&&x.item_id===(r.attributed_artist_profile_id||r.artist_id))&&isVerifiedArtistRelease(r));
+  if(tab==='Following')source=source.filter(r=>library.some(x=>x.kind==='following'&&x.item_id===creditedArtistId(r))&&isVerifiedArtistRelease(r));
   if(tab==='Recently played')source=source.filter(r=>library.some(x=>x.kind==='recent'&&x.item_id===r.id)).sort((a,b)=>(library.find(x=>x.kind==='recent'&&x.item_id===b.id)?.updated_at||'').localeCompare(library.find(x=>x.kind==='recent'&&x.item_id===a.id)?.updated_at||''));
   if(tab==='My Library'&&playlistId){const ids=library.find(x=>x.kind==='playlist'&&x.item_id===playlistId)?.track_ids||[];source.sort((a,b)=>ids.indexOf(a.id)-ids.indexOf(b.id));}
   if(tab==='Artists')source=[];
@@ -139,7 +140,7 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
     likePending={itemPending("saved",release.id)}
     onLike={()=>void change("saved",release.id,!has("saved",release.id))}
     onPlay={()=>play(release)}
-    onArtist={isVerifiedArtistRelease(release)?()=>openArtist(release.artist_id):undefined}
+    onArtist={isVerifiedArtistRelease(release)&&creditedArtistId(release)?()=>openArtist(creditedArtistId(release)!):undefined}
     onSeek={time=>seek(release.id,time)} position={progress.position} duration={progress.duration}
     playlists={lists} playlistPending={id=>itemPending("playlist",id)}
     onAddPlaylist={id=>{const list=lists.find(l=>l.item_id===id);if(list)void change("playlist",id,true,list.label,[...new Set([...list.track_ids,release.id])]);}}

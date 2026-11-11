@@ -26,6 +26,7 @@ export async function prepareRelease(form:FormData){
  // a full catalogue (up to 1000 preparations in a rolling 24-hour period).
  const catalogAdmin=await hasControlRoomPermission(user.id,'music');
  const dailyLimit=catalogAdmin?1000:10;
+ const managedCatalogue=catalogAdmin&&form.get('catalogue_managed')==='on';
  if((count||0)>=dailyLimit)throw new Error(catalogAdmin
    ?'This admin account reached 1000 release preparations in 24 hours. Try again when the oldest preparation expires.'
    :'Public submissions are limited to 10 songs per 24 hours. Music admins can import catalogues from the Control Room.');
@@ -34,8 +35,16 @@ export async function prepareRelease(form:FormData){
 
  const uploadUrl=await createR2PresignedUrl('PUT',audioKey,900,audioType);
  const coverUploadUrl=coverKey?await createR2PresignedUrl('PUT',coverKey,900,coverType):null;
- const{error}=await admin.from('music_releases').insert({id,artist_id:user.id,title,artist_name:artist,collection,track_number:number,genre,description,credits,explicit:form.get('explicit')==='on',debut:form.get('debut')==='on',release_at:date.toISOString(),audio_key:audioKey,audio_type:audioType,cover_key:coverKey,rights_confirmed_at:new Date().toISOString()});
+ const{error}=await admin.from('music_releases').insert({id,artist_id:user.id,uploaded_by_profile_id:user.id,is_platform_managed:managedCatalogue,title,artist_name:artist,collection,track_number:number,genre,description,credits,explicit:form.get('explicit')==='on',debut:form.get('debut')==='on',release_at:date.toISOString(),audio_key:audioKey,audio_type:audioType,cover_key:coverKey,rights_confirmed_at:new Date().toISOString()});
  if(error)throw new Error('Could not prepare your release. Please try again.');
+ if(managedCatalogue){
+  const{error:attributionError}=await admin.from('music_catalogue_attributions').insert({
+   release_id:id,upload_origin:'admin_upload',uploaded_by_profile_id:user.id,
+   ownership_kind:'unverified',verification_state:'needs_review',
+   attribution_note:'Admin-managed FACKTS catalogue. Performing artist credit and master rights await evidence.'
+  });
+  if(attributionError)throw new Error('Release draft prepared, but its catalogue register is unavailable. Contact the music administrator before continuing.');
+ }
  return{id,uploadUrl,coverUploadUrl};
 }
 export async function finishRelease(id:string){

@@ -19,19 +19,29 @@ export async function chart(){
  if(!releases.length)return releases;
  // Explicit, independently verified performer links. No ownership data is exposed to fans.
  // Old schemas without this table still show the legacy catalogue safely.
- const [attributions,counts]=await Promise.all([
+ const [attributions,verifiedClaims,counts]=await Promise.all([
   admin.from("music_catalogue_attributions")
    .select("release_id,credited_artist_profile_id").in("release_id",releases.map(r=>r.id))
    .eq("credit_verified",true).not("credited_artist_profile_id","is",null),
+  admin.from("professional_credit_claims")
+   .select("release_id,claimant_id,contribution_role").in("release_id",releases.map(r=>r.id))
+   .eq("verification_status","fackts_verified"),
   admin.rpc("public_release_play_counts",{p_release_ids:releases.map(r=>r.id)})
  ]);
  if(counts.error)console.error("Public play counts unavailable",counts.error);
  const linked=new Map((attributions.error?[]:attributions.data||[]).map(l=>[l.release_id,l.credited_artist_profile_id]));
+ const performers=new Map<string,Set<string>>();
+ for(const claim of verifiedClaims.error?[]:verifiedClaims.data||[]){
+  if(!claim.release_id||!["artist","primary artist","recording artist","lead artist","featured artist","featured","feature","performer","vocalist","rapper"].includes(String(claim.contribution_role).trim().toLowerCase().replaceAll("_"," ")))continue;
+  if(!performers.has(claim.release_id))performers.set(claim.release_id,new Set());
+  performers.get(claim.release_id)!.add(claim.claimant_id);
+ }
  const playCounts=new Map((counts.error?[]:counts.data||[]).map((row:{release_id:string;plays:number|string})=>[row.release_id,Number(row.plays)]));
  // A missing RPC never becomes an invented zero; a release without sessions genuinely has 0 plays.
  const enriched=releases.map(release=>({...release,
   plays:counts.error?null:playCounts.get(release.id)||0,
-  attributed_artist_profile_id:linked.get(release.id)||undefined}));
+  attributed_artist_profile_id:linked.get(release.id)||undefined,
+  verified_artist_ids:[...(performers.get(release.id)||new Set<string>())]}));
  // Listening is the primary FACKTS chart signal; weekly votes break ties.
  return counts.error?enriched:enriched.sort((a,b)=>(b.plays||0)-(a.plays||0)||
   b.votes-a.votes||b.release_at.localeCompare(a.release_at));

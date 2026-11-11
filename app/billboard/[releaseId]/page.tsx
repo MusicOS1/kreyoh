@@ -18,21 +18,38 @@ export default async function Release({params}:{params:Promise<{releaseId:string
  const{data:vote}=user?await admin.from('music_votes').select('release_id').eq('release_id',r.id).eq('user_id',user.id).eq('week_start',currentChartWeek()).maybeSingle():{data:null};
  const {data:featured=[]}=r.featured_artist_ids?.length?await admin.from('profiles').select('id,stage_name,full_name').in('id',r.featured_artist_ids).eq('profile_visibility','public').eq('account_status','active'):{data:[]};
  const {data:library=[]}=user?await admin.from('fan_music_library').select('kind,item_id,label,track_ids').eq('user_id',user.id):{data:[]};
- return <><PublicNavigation/><main className="community-page fm-chart-detail-page"><Link href="/billboard">← FACKTS Billboard</Link><header className="billboard-hero fm-billboard-photo-hero"><img className="fm-billboard-hero-art" src={r.has_cover?`/api/releases/${r.id}/media?kind=cover`:"/branding/fackts-creator-sky.jpg"} alt=""/><span className="eyebrow">{r.debut?'FIRST RELEASE ON FACKTS':'FACKTS MUSIC RELEASE'}</span><h1>{r.title}</h1><p>{r.artist_name}{r.explicit?' · Explicit':''}</p>{r.collection&&<Link href={`/billboard?collection=${encodeURIComponent(r.collection)}&artist=${r.artist_id}`}>{projectInfo?"Project: ":""}{r.collection} · Track {r.track_number}</Link>}
+ const {data:verifiedCredits=[]}=await admin.from('professional_credit_claims')
+  .select('claimant_id,contribution_role').eq('release_id',r.id)
+  .eq('verification_status','fackts_verified').limit(100);
+ const creditedIds=[...new Set((verifiedCredits||[]).map((item:any)=>item.claimant_id))];
+ const {data:creditedProfiles=[]}=creditedIds.length?await admin.from('profiles')
+  .select('id,stage_name,full_name,public_slug').in('id',creditedIds)
+  .eq('profile_visibility','public').eq('account_status','active'):{data:[]};
+ const creditPeople=new Map((creditedProfiles||[]).map((person:any)=>[person.id,person]));
+
+ return <><PublicNavigation/><main className="community-page fm-chart-detail-page"><Link href="/billboard">← FACKTS Billboard</Link><header className="billboard-hero fm-billboard-photo-hero"><img className="fm-billboard-hero-art" src={r.has_cover?`/api/releases/${r.id}/media?kind=cover`:"/branding/fackts-creator-sky.jpg"} alt=""/><span className="eyebrow">{r.debut?'FIRST RELEASE ON FACKTS':'FACKTS MUSIC RELEASE'}</span><h1>{r.title}</h1><p>{r.artist_name}{r.explicit?' · Explicit':''}</p>{r.collection&&<Link href={`/billboard?collection=${encodeURIComponent(r.collection)}${r.is_platform_managed?"":"&artist="+r.artist_id}`}>{projectInfo?"Project: ":""}{r.collection} · Track {r.track_number}</Link>}
  {projectInfo&&(projectInfo.releaseContext||projectInfo.recordingQuality)&&<div className="fm-project-disclosure" aria-label="Recording disclosure">
   {projectInfo.releaseContext&&<span>{projectInfo.releaseContext}</span>}
   {projectInfo.recordingQuality&&<span>{projectInfo.recordingQuality}</span>}
  </div>}</header>
- <ReleaseAudienceActions releaseId={r.id} artistId={r.artist_id} userId={user?.id} saved={Boolean(library?.some((x:any)=>x.kind==='saved'&&x.item_id===r.id))} following={Boolean(library?.some((x:any)=>x.kind==='following'&&x.item_id===r.artist_id))} playlists={(library||[]).filter((x:any)=>x.kind==='playlist')}/>
- <Link href={'/creators/'+r.artist_id}>Artist profile →</Link>{featured?.map((person:any)=><Link key={person.id} href={'/creators/'+person.id}>Featuring {person.stage_name||person.full_name}</Link>)}
+ <ReleaseAudienceActions releaseId={r.id} artistId={r.is_platform_managed?undefined:r.artist_id} userId={user?.id} saved={Boolean(library?.some((x:any)=>x.kind==='saved'&&x.item_id===r.id))} following={Boolean(library?.some((x:any)=>x.kind==='following'&&x.item_id===r.artist_id))} playlists={(library||[]).filter((x:any)=>x.kind==='playlist')}/>
+ {r.is_platform_managed?<p className="community-muted">FACKTS Music administers this catalogue. Performing-artist credits are issued after verification, not assigned to the uploader. <Link href="/catalogue/fackts-music">View the FACKTS Music catalogue →</Link></p>:<Link href={'/creators/'+r.artist_id}>Artist profile →</Link>}{featured?.map((person:any)=><Link key={person.id} href={'/creators/'+person.id}>Featuring {person.stage_name||person.full_name}</Link>)}
 
- <section className="community-card"><h2><MusicPlayCount id={r.id} count={r.plays}/> · <ReleaseVoteCount id={r.id} count={r.votes}/> this week</h2><p className="fc-voting-note">Voting resets Mondays at 00:00 EAT.</p><div className="community-actions">{user?<VoteButton id={r.id} voted={Boolean(vote)} own={r.artist_id===user.id}/>:<Link href={`/login?next=/billboard/${r.id}`}>Sign in to vote</Link>}<ShareRelease id={r.id} title={r.title}/><Link href={`/messages/${r.artist_id}`}>Message the artist</Link></div></section>
+ <section className="community-card"><h2><MusicPlayCount id={r.id} count={r.plays}/> · <ReleaseVoteCount id={r.id} count={r.votes}/> this week</h2><p className="fc-voting-note">Voting resets Mondays at 00:00 EAT.</p><div className="community-actions">{user?<VoteButton id={r.id} voted={Boolean(vote)} own={r.artist_id===user.id}/>:<Link href={`/login?next=/billboard/${r.id}`}>Sign in to vote</Link>}<ShareRelease id={r.id} title={r.title}/>{!r.is_platform_managed&&<Link href={`/messages/${r.artist_id}`}>Message the artist</Link>}</div></section>
  <section className="community-card"><ReleaseComments releaseId={r.id} viewerId={user?.id} initialOpen/></section>
  <section className="community-card"><h2>{projectInfo?"About the project":"About the release"}</h2>
  {projectInfo&&r.collection&&<h3>{r.collection}</h3>}
  <p className="preserve-lines">{projectInfo?(projectInfo.about||"Project background has not been added."):r.description||'The artist has not added a description yet.'}</p>
  {projectInfo&&(projectInfo.releaseContext||projectInfo.recordingQuality)&&<p className="fm-project-disclosure-note">Recording labels supplied by the uploader describe this version; they do not represent a FACKTS mastering or sound-quality certification.</p>}
  <p>{r.genre} · Released {new Date(r.release_at).toLocaleDateString('en-KE',{timeZone:'Africa/Nairobi'})}</p>
- <h3>Credits</h3><p className="preserve-lines">{r.credits||'Credits pending artist verification.'}</p></section>
+ <h3>Credits</h3><p className="preserve-lines">{r.credits||'Credits pending artist verification.'}</p>
+ {(verifiedCredits||[]).filter((credit:any)=>creditPeople.has(credit.claimant_id)).map((credit:any,index:number)=>{
+  const person:any=creditPeople.get(credit.claimant_id);
+  return <p key={credit.claimant_id+"-"+credit.contribution_role+"-"+index}>
+    <strong>{credit.contribution_role}</strong> · <Link href={"/creators/"+(person.public_slug||person.id)}>{person.stage_name||person.full_name||"Verified contributor"}</Link> · FACKTS verified
+  </p>;
+ })}
+ <div className="community-actions"><Link href={user?`/professional-record?release=${r.id}`:`/login?next=${encodeURIComponent('/professional-record?release='+r.id)}`}>Worked on this recording? Claim your credit →</Link></div>
+ <p className="community-muted">A claim requires evidence and review. Verified contributor credit does not automatically transfer ownership, royalty splits or administration.</p></section>
  </main><PublicFooter/></>;
 }

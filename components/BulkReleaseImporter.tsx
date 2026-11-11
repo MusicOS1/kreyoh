@@ -89,6 +89,8 @@ export default function BulkReleaseImporter(){
   if(!row.title.trim()||!(row.artist||artist).trim())throw Error("Add a song title and artist.");
   if(!filenameType||row.file.size>150*1024*1024)throw Error("Invalid audio or size over 150 MB.");
   const form=new FormData();
+   // Admin catalogue uploads must never silently make the uploader the performing artist.
+   form.set('catalogue_managed','on');
   form.set("title",row.title.trim());form.set("artist_name",(row.artist||artist).trim());
   form.set("collection",collection);form.set("track_number",String(row.number));
   form.set("genre",genre);form.set("credits",credits.trim());form.set("release_at",releaseDate);

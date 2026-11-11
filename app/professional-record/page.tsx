@@ -27,9 +27,14 @@ const statusLabel=(status:string)=>{
   return labels[status]||String(status).replaceAll("_"," ").toUpperCase();
 };
 
-export default async function ProfessionalRecordPage(){
+export default async function ProfessionalRecordPage({searchParams}:{searchParams:Promise<{release?:string}>}){
   const{admin,user,project,activeProjects}=await getWorkspace();
   const superAdmin=await isSuperAdmin(user.id);
+  const requestedRelease=(await searchParams).release||"";
+  const {data:claimRelease}= /^[0-9a-f-]{36}$/i.test(requestedRelease)
+    ?await admin.from("music_releases").select("id,title,artist_name,collection")
+      .eq("id",requestedRelease).eq("status","published").lte("release_at",new Date().toISOString()).maybeSingle()
+    :{data:null};
 
   const[internalR,sessionR,claimsR,requestsR,membersR]=await Promise.all([
     admin.from("track_contributors").select("id,contribution_role,approved,tracks(id,working_title,track_code,project_id,projects(name,code))").eq("user_id",user.id),
@@ -59,6 +64,22 @@ export default async function ProfessionalRecordPage(){
   `}</style><div className="content operations-page">
     <div className="heading"><div><span className="eyebrow">CREATOR RECORD / TRUST LAYER</span><h1>My Professional Record</h1><p><a href="/professional-onboarding">Professional identity &amp; verification →</a></p><p>Build a credible record of what you actually produced, wrote, performed or engineered. Claims are never treated as verified facts just because you typed them.</p></div></div>
 
+    {claimRelease&&<section className="panel">
+      <span className="eyebrow">FACKTS MUSIC / CLAIM AN EXISTING CREDIT</span>
+      <h2>Worked on {claimRelease.title}?</h2>
+      <p>{claimRelease.collection||"Single"} · Managed by FACKTS Music. Submit the part you actually contributed; your claim remains private until verified. A credit is not a claim to master ownership or royalties.</p>
+      <form action={createProfessionalClaim} className="operations-form">
+        <input type="hidden" name="release_id" value={claimRelease.id}/>
+        <label>Your contribution
+          <select name="contribution_role" required defaultValue="">
+            <option value="" disabled>Choose your role</option>
+            {["Primary Artist","Featured Artist","Performer","Rapper","Producer","Beatmaker","Songwriter","Composer","Mix Engineer","Mastering Engineer","Recording Engineer","Session Musician","Videographer","Other Creative"].map(role=><option key={role} value={role}>{role}</option>)}
+          </select>
+        </label>
+        <button type="submit">Submit credit claim</button>
+      </form>
+      <p>After submitting, attach a credible evidence link or note and request a collaborator confirmation from the claim record below. FACKTS will review before publishing credit.</p>
+    </section>}
     <section className="record-stats">
       <article><span>FACKTS internal verified</span><strong>{verifiedInternal}</strong></article>
       <article><span>External FACKTS verified</span><strong>{verifiedExternal}</strong></article>
@@ -114,13 +135,13 @@ export default async function ProfessionalRecordPage(){
         const evidence=claim.professional_credit_evidence||[],confirmations=claim.professional_credit_confirmations||[];
         const confirmed=confirmations.filter((x:any)=>x.response==="confirmed").length,disputed=confirmations.filter((x:any)=>x.response==="disputed").length;
         return<article className="project-operating-card claim-card" key={claim.id}>
-          <div className="claim-head"><div><span>{statusLabel(claim.verification_status)}</span><h3>{claim.work_title}</h3><p>{claim.primary_artist||"Artist not listed"} · {claim.contribution_role}</p></div>{claim.verification_status==="fackts_verified"&&<b>✓ FACKTS VERIFIED</b>}</div>
+          <div className="claim-head"><div><span>{statusLabel(claim.verification_status)}</span><h3>{claim.work_title}</h3><p>{claim.primary_artist||"Artist not listed"} · {claim.contribution_role}</p>{claim.release_id&&<p><Link href={"/billboard/"+claim.release_id}>Open FACKTS Music recording →</Link></p>}</div>{claim.verification_status==="fackts_verified"&&<b>✓ FACKTS VERIFIED</b>}</div>
           {claim.source_url&&<a href={claim.source_url} target="_blank" rel="noreferrer">Open source ↗</a>}
           <small>{evidence.length} evidence item{evidence.length===1?"":"s"} · {confirmed} confirmer{confirmed===1?"":"s"} · {disputed} dispute{disputed===1?"":"s"}</small>
 
           <details className="session-inline-tool"><summary>Add evidence +</summary><form action={addClaimEvidence} className="operations-form"><input type="hidden" name="claim_id" value={claim.id}/><select name="evidence_type" defaultValue="release_link"><option value="release_link">Release link</option><option value="isrc_upc">ISRC / UPC</option><option value="credits_page">Credits page</option><option value="agreement">Agreement</option><option value="split_sheet">Split sheet</option><option value="session_evidence">Session evidence</option><option value="project_file">Project file</option><option value="distributor_record">Distributor record</option><option value="other">Other</option></select><input name="evidence_url" type="url" placeholder="Evidence link"/><textarea name="notes" placeholder="Explain what this proves"/><button>Add evidence</button></form></details>
 
-          {members.filter((m:any)=>m.user_id!==user.id).length>0&&<details className="session-inline-tool"><summary>Ask another creator to confirm +</summary><form action={requestClaimConfirmation} className="operations-form"><input type="hidden" name="claim_id" value={claim.id}/><select name="confirmer_id" required defaultValue=""><option value="" disabled>Choose relevant FACKTS creator</option>{members.filter((m:any)=>m.user_id!==user.id).map((m:any)=><option key={m.user_id} value={m.user_id}>{creatorDisplayName(first(m.profiles))}</option>)}</select><button>Request confirmation</button></form></details>}
+          {<details className="session-inline-tool"><summary>Ask another creator to confirm +</summary><form action={requestClaimConfirmation} className="operations-form"><input type="hidden" name="claim_id" value={claim.id}/><select name="confirmer_id" defaultValue=""><option value="" disabled>Choose relevant FACKTS creator</option>{members.filter((m:any)=>m.user_id!==user.id).map((m:any)=><option key={m.user_id} value={m.user_id}>{creatorDisplayName(first(m.profiles))}</option>)}</select><label>Or enter a public username or registered email<input name="confirmer_handle" placeholder="Creator username or email"/></label><button>Request confirmation</button></form></details>}
 
           {confirmations.map((c:any)=><div key={c.id}><small>{creatorDisplayName(first(c.profiles))} · {String(c.response).replaceAll("_"," ")}</small>{c.note&&<p>{c.note}</p>}</div>)}
 
