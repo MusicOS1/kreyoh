@@ -36,7 +36,7 @@ create table if not exists public.project_payment_receipts (
   id uuid primary key default gen_random_uuid(),
   invoice_id uuid not null unique references public.project_payment_invoices(id) on delete restrict,
   attempt_id uuid not null unique references public.project_payment_attempts(id) on delete restrict,
-  revenue_record_id uuid not null unique references public.revenue_records(id) on delete restrict,
+  revenue_record_id uuid unique references public.revenue_records(id) on delete restrict,
   reference text not null unique,
   provider_transaction_id text,
   payer_email text not null,
@@ -91,15 +91,18 @@ begin
     return jsonb_build_object('state','invoice_already_paid','invoice_id',v_invoice.id);
   end if;
 
-  insert into public.revenue_records (
-    project_id, revenue_source, amount, currency, received_date, payment_status, notes, created_by
-  ) values (
-    v_invoice.project_id,
-    'Paystack · ' || replace(v_invoice.purpose,'_',' '),
-    v_invoice.amount_kes, 'KES', current_date, 'paid',
-    'Verified Paystack '||p_mode||' payment. Invoice: '||v_invoice.id::text||'. Reference: '||v_attempt.reference||'.',
-    v_invoice.created_by
-  ) returning id into v_revenue_id;
+  -- Sandbox receipts are retained for QA, but NEVER increase actual finance income.
+  if p_mode='live' then
+    insert into public.revenue_records (
+      project_id, revenue_source, amount, currency, received_date, payment_status, notes, created_by
+    ) values (
+      v_invoice.project_id,
+      'Paystack · ' || replace(v_invoice.purpose,'_',' '),
+      v_invoice.amount_kes, 'KES', current_date, 'paid',
+      'Verified Paystack LIVE payment. Invoice: '||v_invoice.id::text||'. Reference: '||v_attempt.reference||'.',
+      v_invoice.created_by
+    ) returning id into v_revenue_id;
+  end if;
 
   insert into public.project_payment_receipts (
     invoice_id,attempt_id,revenue_record_id,reference,provider_transaction_id,payer_email,amount_kes,mode
