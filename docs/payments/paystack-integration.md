@@ -86,3 +86,25 @@ Only server-side Supabase service role may read/write these tables. `project_pay
 - [ ] Finance administrator verifies genuine payout/settlement before concluding the first live transaction.
 
 **No changes to musician credits, ownership, royalties or payout rules.** Those require their own provider/legal workflow.
+
+## Protected preview webhook delivery (temporary only)
+
+The FACKTS Music preview has Vercel Authentication enabled. Paystack cannot authenticate interactively. A dedicated **Protection Bypass for Automation** secret has been created in Vercel for Paystack testing. **Never paste it into chat, source code, logs or screenshots.**
+
+1. In **Vercel → kreyoh → Settings → Deployment Protection → Protection Bypass for Automation**, copy the secret named **Paystack test webhook integration — FACKTS Music staging**.
+2. In **Paystack Test Mode → Developers → API configuration → Test Webhook URL**, set the branch alias as the webhook destination with the bypass query parameter appended:
+
+```text
+https://kreyoh-git-feature-paystac-515c43-fackts-africa-groups-projects.vercel.app/api/payments/paystack/webhook?x-vercel-protection-bypass=<SECRET_FROM_VERCEL>
+```
+
+Replace the bracketed placeholder *in the Paystack dashboard only*, not in any committed file. Use a stable branch alias, not a deployment-specific URL. Keep **Live Webhook URL** unchanged.
+
+3. Trigger a new KES 10 Paystack **test** payment and close the return page before it can run browser verification. Allow the signed webhook to post the payment. Verify exactly one receipt and zero live-income records through the database.
+4. Keep Vercel preview protection enabled. The bypass credential grants access to project deployments, not just this route, so **revoke this dedicated bypass after testing**. Once the payment code is approved for production, migrate to a public **production webhook endpoint**, protected by cryptographic signature verification and provider reconciliation, and remove the bypass query parameter from the Paystack setting.
+
+When Paystack sends `Paystack-Signature`, the server validates timestamped HMAC SHA-512 signed with the `whsec_` secret. When it sends the older `x-paystack-signature` instead, server validates the legacy HMAC with the API key. An invalid modern signature cannot fall back to legacy.
+
+Official references:
+- https://paystack.com/docs/payments/webhooks/
+- https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection/protection-bypass-automation
