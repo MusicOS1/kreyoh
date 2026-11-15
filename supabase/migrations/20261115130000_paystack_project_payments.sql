@@ -24,7 +24,7 @@ create table if not exists public.project_payment_attempts (
   reference text not null unique check (char_length(reference) between 15 and 100),
   payer_email text not null,
   mode text not null check (mode in ('test','live')),
-  status text not null default 'created' check (status in ('created','initialized','initialization_failed','pending','failed','succeeded')),
+  status text not null default 'created' check (status in ('created','initialized','initialization_failed','pending','failed','succeeded','requires_review')),
   provider_status text,
   checkout_url text,
   created_at timestamptz not null default now(),
@@ -88,6 +88,9 @@ begin
     return jsonb_build_object('state','already_recorded','invoice_id',v_invoice.id);
   end if;
   if v_invoice.status='paid' then
+    -- A second verified charge for the same invoice must be reviewed/refunded.
+    update public.project_payment_attempts set status='requires_review',
+      provider_status='success_duplicate',updated_at=now() where id=v_attempt.id;
     return jsonb_build_object('state','invoice_already_paid','invoice_id',v_invoice.id);
   end if;
 
