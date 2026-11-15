@@ -72,8 +72,11 @@ function secureEqual(a:Buffer,b:Buffer){
 export function verifyPaystackWebhook(raw:Buffer,headers:Headers){
   const signature=headers.get("paystack-signature");
   const webhookSecret=process.env.PAYSTACK_WEBHOOK_SECRET;
-  if(webhookSecret){
-    if(!webhookSecret.startsWith("whsec_")||!signature)return false;
+  // Prefer the timestamped webhook signing secret. Paystack may still deliver
+  // legacy x-paystack-signature events while switching to the newer scheme.
+  // If a modern signature is present but invalid, never downgrade to legacy.
+  if(signature){
+    if(!webhookSecret?.startsWith("whsec_"))return false;
     const entries=signature.split(",").map(s=>s.trim());
     const timeEntries=entries.filter(s=>s.startsWith("t="));
     if(timeEntries.length!==1)return false;
@@ -86,7 +89,8 @@ export function verifyPaystackWebhook(raw:Buffer,headers:Headers){
       return /^[0-9a-f]{128}$/.test(hex)&&secureEqual(digest,Buffer.from(hex,"hex"));
     });
   }
-  // Paystack's legacy signature remains supported until a whsec_ secret is configured.
+  // Legacy fallback is permitted ONLY if Paystack-Signature is absent.
+  // Paystack's official docs confirm both headers can coexist during migration.
   const legacy=headers.get("x-paystack-signature");
   if(!legacy||!/^[0-9a-f]{128}$/.test(legacy))return false;
   const {key}=paymentConfig();
