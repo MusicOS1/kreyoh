@@ -80,7 +80,7 @@ export default function EcosystemFrame({
         searchParams.get('tab') === 'For You')
     );
   };
-  const navigationLinks = canManageFinance && !config.links.some(link => link.href === '/finance') ? [...config.links, {label: 'Finance', href: '/finance'}] : config.links;
+  const navigationLinks = canManageFinance ? [...config.links, ...(!config.links.some(link => link.href === '/finance') ? [{label: 'Finance', href: '/finance'}] : []), {label: 'Payments', href: '/payments'}] : config.links;
   const nav = (
     <>
       <div className={styles.context}>
