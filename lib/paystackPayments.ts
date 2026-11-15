@@ -21,7 +21,11 @@ export function paymentConfig(){
 }
 
 export function paystackSiteUrl(){
-  const value=process.env.PAYSTACK_SITE_URL||process.env.NEXT_PUBLIC_SITE_URL;
+  // A preview must return to its own deployment, not the production website.
+  const previewHost=process.env.VERCEL_ENV==="preview"&&process.env.VERCEL_URL
+    ? "https://"+process.env.VERCEL_URL
+    : null;
+  const value=process.env.PAYSTACK_SITE_URL||previewHost||process.env.NEXT_PUBLIC_SITE_URL;
   if(!value)throw new Error("Site callback URL is not configured.");
   const parsed=new URL(value);
   if((parsed.protocol!=="https:" && !(parsed.protocol==="http:"&&parsed.hostname==="localhost"))
