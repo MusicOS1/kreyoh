@@ -108,3 +108,25 @@ When Paystack sends `Paystack-Signature`, the server validates timestamped HMAC 
 Official references:
 - https://paystack.com/docs/payments/webhooks/
 - https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection/protection-bypass-automation
+
+## Paystack Kenya Starter account: live launch boundaries (16 November 2026)
+
+The merchant dashboard shows **Pre-approved**. Paystack documents that Pre-approved merchants may collect real payments while the provider continues its compliance review. This status is **not** a blanket authorization for every type of business. Kenya Starter Business collection has a KES 600,000 lifetime limit and **does not support Paystack Transfers**.
+
+Paystack lists **online music streaming in Kenya**, **marketplaces**, **crowdfunding**, **wallets** and **escrow** among activities requiring a Registered Business account. For this phase, enable live checkout **only for FACKTS's own recording sessions and production services**, after confirming the merchant's submitted industry and service description accurately cover them. `lib/paystackPaymentPolicy.ts` enforces this at both invoice creation and checkout initiation. Other purposes remain test-only; never disguise them as service invoices to circumvent provider policy.
+
+**Live setup** (only after merchant activity scope is confirmed):
+
+1. Leave Production checkout OFF: `PAYSTACK_PAYMENTS_ENABLED=false`, `PAYSTACK_LIVE_ENABLED=false`.
+2. In Paystack **Live Mode → Developers → API configuration**, get the live `sk_live_...` secret and live `whsec_...` webhook signing secret. Store directly in **Vercel → kreyoh → Settings → Environment Variables → Production** as `PAYSTACK_LIVE_SECRET_KEY` and `PAYSTACK_WEBHOOK_SECRET`. Do not paste any secrets into chat, source control or screenshots.
+3. After review, merge PR into `main`, confirm successful production deployment and the disabled checkout state. Set Production `PAYSTACK_MODE=live` (distinct from Preview Test Mode), while the two enable flags remain false.
+4. Paystack Live Webhook URL: `https://music.facktsafrica.co.ke/api/payments/paystack/webhook`. **No Vercel automation bypass token or query parameter on production.** Live transaction return URL is assigned by server on initialization.
+5. Confirm public POST route doesn't redirect to login; verify invalid or unsigned webhook returns `401`. Check webhook signing secret is the **Live** secret, not Test. Ensure old bypass credentials exposed in screenshots are revoked.
+6. After provider activity approval and a rollback plan, explicitly authorize Production `PAYSTACK_PAYMENTS_ENABLED=true` and `PAYSTACK_LIVE_ENABLED=true` for a controlled **real** transaction. Reconcile Paystack success, one Supabase receipt and one live revenue entry, then check payout settlement.
+7. If merchant status becomes Needs Attention, provider restricts payments, or any verification/reconciliation fails, switch Production `PAYSTACK_PAYMENTS_ENABLED=false` and investigate without marking invoices paid manually.
+
+Official references:
+- https://support.paystack.com/en/articles/6543554
+- https://support.paystack.com/en/articles/2128898
+- https://support.paystack.com/en/articles/2129730
+
