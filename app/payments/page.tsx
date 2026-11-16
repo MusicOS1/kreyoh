@@ -2,6 +2,7 @@ import Link from "next/link";
 import AppShell from "../../components/AppShell";
 import {getWorkspace} from "../../lib/workspace";
 import {canEditProjectFinance} from "../../lib/financeAccess";
+import {isPurposeAllowedForPaymentMode} from "../../lib/paystackPaymentPolicy";
 import {createPaymentInvoice} from "./actions";
 import PaymentLinkCopy from "./PaymentLinkCopy";
 import styles from "./payments.module.css";
@@ -39,7 +40,7 @@ export default async function ProjectPayments({searchParams}:{searchParams:Promi
     <section className={styles.panel}><h2>Create a payment request</h2>
       <p>Only administrators create invoices. Payers cannot alter the amount, project or purpose.</p>
       <form action={createPaymentInvoice} className={styles.form}>
-        <label>Payment type<select name="purpose" required>{choices.map(([id,title])=><option value={id} key={id}>{title}</option>)}</select></label>
+        <label>Payment type<select name="purpose" required>{choices.filter(([id])=>isPurposeAllowedForPaymentMode(id,mode)).map(([id,title])=><option value={id} key={id}>{title}</option>)}</select></label>
         <label>Description<input name="description" required minLength={3} maxLength={240} placeholder="Studio recording · 2 hours"/></label>
         <label>Amount in KES<input name="amount_kes" required type="number" min={3} max={150000} step={1} placeholder="1500"/></label>
         <label>Payer email (optional)<input name="payer_email" type="email" placeholder="Leave blank for a shareable payment link"/></label>
