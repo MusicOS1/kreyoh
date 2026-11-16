@@ -1,4 +1,5 @@
 import {createAdminClient} from "../../../../lib/supabase/admin";
+import {isPurposeAllowedForPaymentMode} from "../../../../lib/paystackPaymentPolicy";
 import {initializePaystack,paymentConfig,sameOrigin,validPayerEmail} from "../../../../lib/paystackPayments";
 
 export async function POST(request:Request){
@@ -16,6 +17,8 @@ export async function POST(request:Request){
       .eq("public_token",token).maybeSingle();
     if(error||!invoice||invoice.status!=="open")
       return Response.json({error:"This payment request is unavailable."},{status:404});
+    if(!isPurposeAllowedForPaymentMode(invoice.purpose,mode))
+      return Response.json({error:"This payment purpose is not enabled for live collections."},{status:403});
     if(invoice.payer_email&&invoice.payer_email.toLowerCase()!==email)
       return Response.json({error:"Use the email assigned to this invoice."},{status:403});
     const cutoff=new Date(Date.now()-10*60*1000).toISOString();
