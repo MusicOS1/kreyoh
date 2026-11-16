@@ -3,6 +3,7 @@
 import {redirect} from "next/navigation";
 import {getWorkspace} from "../../lib/workspace";
 import {canEditProjectFinance} from "../../lib/financeAccess";
+import {isPurposeAllowedForPaymentMode} from "../../lib/paystackPaymentPolicy";
 
 const purposes=["recording_session","project_contribution","camera_hire","set_design","production_service"];
 const uuid=/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
@@ -15,6 +16,9 @@ export async function createPaymentInvoice(formData:FormData){
   const amount=Number(formData.get("amount_kes"));
   const payerEmail=String(formData.get("payer_email")||"").trim().toLowerCase();
   const sessionId=String(formData.get("session_id")||"").trim();
+  const mode = process.env.PAYSTACK_MODE==="live"?"live":"test";
+  if(!isPurposeAllowedForPaymentMode(purpose,mode))
+    throw new Error("This payment purpose is not available for live Starter checkout.");
   if(!purposes.includes(purpose)||description.length<3||description.length>240)
     throw new Error("Enter the payment purpose and a clear description.");
   if(!Number.isSafeInteger(amount)||amount<3||amount>150000)
