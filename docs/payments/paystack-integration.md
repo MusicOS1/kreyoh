@@ -1,0 +1,132 @@
+# FACKTS Music — Paystack project checkout
+
+**Branch:** `feature/paystack-project-payments`  
+**Scope:** Project invoices for recording sessions, studio set design, camera hire, contributions and production services; Paystack hosted M-PESA checkout; verified receipts and project finance integration.
+
+## Safety defaults
+
+- Code is disabled unless `PAYSTACK_PAYMENTS_ENABLED=true`.
+- Default `PAYSTACK_MODE=test`; live mode additionally requires `PAYSTACK_LIVE_ENABLED=true`.
+- No API or webhook secrets are stored in source code or exposed to browsers.
+- Do not deploy to production until the database migration, credentials, user acceptance and real settlement arrangements are validated.
+- The webhook validates Paystack's current `Paystack-Signature` with `whsec_`, and supports `x-paystack-signature` with the secret API key as a legacy fallback **only when the signing secret is absent**.
+- Sandbox receipts do not feed real project finance balances; only verified **live** payments create `revenue_records`.
+
+## 1. Paystack dashboard actions
+
+1. Sign in at https://dashboard.paystack.com/ and check that the account is correctly classified as a Kenya individual/Starter merchant and that account activation/KYC is approved.
+2. Under Preferences, enable **Mobile Money** (M-PESA) if available.
+3. Under Developers → API configuration, find test and live secret API keys. **Do not share them in chat or GitHub.**
+4. Obtain a **webhook signing secret** (`whsec_`) from the Paystack dashboard if supported for the selected mode; the integration also supports Paystack's legacy signed webhook until configured.
+5. Set your test webhook URL to `https://YOUR_PREVIEW_OR_STAGING_DOMAIN/api/payments/paystack/webhook`. Use a separate live webhook URL for the production domain when approved.
+6. Ensure the business's payout account in Paystack is correct. Customer money settles to Paystack's approved merchant settlement account; this implementation has **no artist wallet or auto-payout**.
+
+Official developer docs:
+- https://paystack.com/docs/payments/accept-payments/
+- https://paystack.com/docs/api/transaction/
+- https://paystack.com/docs/payments/webhooks/
+- https://paystack.com/docs/payments/payment-channels/
+
+## 2. Vercel environment variables
+
+Set the following **in the server-side environment variables UI** for the relevant FACKTS Music Vercel deployment (never `NEXT_PUBLIC_` and never commit actual values):
+
+```dotenv
+# Test rollout
+PAYSTACK_PAYMENTS_ENABLED=false
+PAYSTACK_MODE=test
+PAYSTACK_TEST_SECRET_KEY=
+PAYSTACK_WEBHOOK_SECRET=
+PAYSTACK_SITE_URL=https://YOUR_PREVIEW_OR_STAGING_DOMAIN
+
+# Later, only after live activation and separate approval:
+# PAYSTACK_MODE=live
+# PAYSTACK_LIVE_SECRET_KEY=
+# PAYSTACK_LIVE_ENABLED=true
+```
+
+During testing switch `PAYSTACK_PAYMENTS_ENABLED=true` only on the intended preview or staging environment. Ensure `PAYSTACK_SITE_URL` matches that deployment and is HTTPS. Keep production flags off.
+
+## 3. Database
+
+Apply migration `supabase/migrations/20261115130000_paystack_project_payments.sql` to **staging first**, verify table RLS and function grants, then plan an additive production rollout.
+
+New tables:
+- `project_payment_invoices` — immutable billed amount, project, optional studio session, description and shareable random token.
+- `project_payment_attempts` — unique provider reference, mode, payer email, status.
+- `project_payment_receipts` — idempotent verified receipt; references project finance revenue record for live payments only.
+
+Only server-side Supabase service role may read/write these tables. `project_paystack_confirm` is restricted to the service role and performs atomic confirmation, preventing repeated callback ledger credits.
+
+## 4. User experience
+
+1. Project finance administrator opens `/payments`, chooses purpose, description and fixed KES amount, optionally selects a recording session and/or designated payer email.
+2. Administrator copies shareable `/payments/pay/<token>` URL. The guest enters an email and clicks **Pay with M-PESA**.
+3. FACKTS server validates invoice amount and mode and initializes **Paystack Checkout**, restricted to `mobile_money`.
+4. User completes the phone prompt on Paystack. Paystack redirects to `/payments/complete?reference=...`.
+5. Completion page asks the server to **verify with Paystack**; a signed `charge.success` webhook also verifies from Paystack.
+6. When all fields match, the atomic RPC posts the receipt once, closes the invoice, and — in **live mode only** — adds a paid `revenue_records` entry to the existing project finance dashboard.
+7. Failed, cancelled, mismatched or pending payments never count as income.
+
+## 5. Acceptance checklist
+
+- [ ] Existing platform compiles on Next.js 16 and TypeScript.
+- [ ] Staging migration applied; no older project revenue or membership rows modified.
+- [ ] Unauthorized user cannot create an invoice.
+- [ ] Wrong project session rejected.
+- [ ] Guest checkout accepts only issued token, valid email and fixed amount.
+- [ ] Disabled checkout fails closed.
+- [ ] Only trusted Paystack hosted checkout URL accepted.
+- [ ] Test successful payment marked paid, with **no real-income revenue record**.
+- [ ] Failed/abandoned/pending payment does not credit finance.
+- [ ] Duplicate and delayed callbacks create a single receipt and at most one revenue posting.
+- [ ] Signature tampering and stale timestamp rejected.
+- [ ] Wrong currency, amount, mode, payer, channel or reference rejected.
+- [ ] Live-only smoke test after activation confirms settlement and reconciliation.
+- [ ] Finance administrator verifies genuine payout/settlement before concluding the first live transaction.
+
+**No changes to musician credits, ownership, royalties or payout rules.** Those require their own provider/legal workflow.
+
+## Protected preview webhook delivery (temporary only)
+
+The FACKTS Music preview has Vercel Authentication enabled. Paystack cannot authenticate interactively. A dedicated **Protection Bypass for Automation** secret has been created in Vercel for Paystack testing. **Never paste it into chat, source code, logs or screenshots.**
+
+1. In **Vercel → kreyoh → Settings → Deployment Protection → Protection Bypass for Automation**, copy the secret named **Paystack test webhook integration — FACKTS Music staging**.
+2. In **Paystack Test Mode → Developers → API configuration → Test Webhook URL**, set the branch alias as the webhook destination with the bypass query parameter appended:
+
+```text
+https://kreyoh-git-feature-paystac-515c43-fackts-africa-groups-projects.vercel.app/api/payments/paystack/webhook?x-vercel-protection-bypass=<SECRET_FROM_VERCEL>
+```
+
+Replace the bracketed placeholder *in the Paystack dashboard only*, not in any committed file. Use a stable branch alias, not a deployment-specific URL. Keep **Live Webhook URL** unchanged.
+
+3. Trigger a new KES 10 Paystack **test** payment and close the return page before it can run browser verification. Allow the signed webhook to post the payment. Verify exactly one receipt and zero live-income records through the database.
+4. Keep Vercel preview protection enabled. The bypass credential grants access to project deployments, not just this route, so **revoke this dedicated bypass after testing**. Once the payment code is approved for production, migrate to a public **production webhook endpoint**, protected by cryptographic signature verification and provider reconciliation, and remove the bypass query parameter from the Paystack setting.
+
+When Paystack sends `Paystack-Signature`, the server validates timestamped HMAC SHA-512 signed with the `whsec_` secret. When it sends the older `x-paystack-signature` instead, server validates the legacy HMAC with the API key. An invalid modern signature cannot fall back to legacy.
+
+Official references:
+- https://paystack.com/docs/payments/webhooks/
+- https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection/protection-bypass-automation
+
+## Paystack Kenya Starter account: live launch boundaries (16 November 2026)
+
+The merchant dashboard shows **Pre-approved**. Paystack documents that Pre-approved merchants may collect real payments while the provider continues its compliance review. This status is **not** a blanket authorization for every type of business. Kenya Starter Business collection has a KES 600,000 lifetime limit and **does not support Paystack Transfers**.
+
+Paystack lists **online music streaming in Kenya**, **marketplaces**, **crowdfunding**, **wallets** and **escrow** among activities requiring a Registered Business account. For this phase, enable live checkout **only for FACKTS's own recording sessions and production services**, after confirming the merchant's submitted industry and service description accurately cover them. `lib/paystackPaymentPolicy.ts` enforces this at both invoice creation and checkout initiation. Other purposes remain test-only; never disguise them as service invoices to circumvent provider policy.
+
+**Live setup** (only after merchant activity scope is confirmed):
+
+1. Leave Production checkout OFF: `PAYSTACK_PAYMENTS_ENABLED=false`, `PAYSTACK_LIVE_ENABLED=false`.
+2. In Paystack **Live Mode → Developers → API configuration**, get the live `sk_live_...` secret and live `whsec_...` webhook signing secret. Store directly in **Vercel → kreyoh → Settings → Environment Variables → Production** as `PAYSTACK_LIVE_SECRET_KEY` and `PAYSTACK_WEBHOOK_SECRET`. Do not paste any secrets into chat, source control or screenshots.
+3. After review, merge PR into `main`, confirm successful production deployment and the disabled checkout state. Set Production `PAYSTACK_MODE=live` (distinct from Preview Test Mode), while the two enable flags remain false.
+4. Paystack Live Webhook URL: `https://music.facktsafrica.co.ke/api/payments/paystack/webhook`. **No Vercel automation bypass token or query parameter on production.** Live transaction return URL is assigned by server on initialization.
+5. Confirm public POST route doesn't redirect to login; verify invalid or unsigned webhook returns `401`. Check webhook signing secret is the **Live** secret, not Test. Ensure old bypass credentials exposed in screenshots are revoked.
+6. After provider activity approval and a rollback plan, explicitly authorize Production `PAYSTACK_PAYMENTS_ENABLED=true` and `PAYSTACK_LIVE_ENABLED=true` for a controlled **real** transaction. Reconcile Paystack success, one Supabase receipt and one live revenue entry, then check payout settlement.
+7. If merchant status becomes Needs Attention, provider restricts payments, or any verification/reconciliation fails, switch Production `PAYSTACK_PAYMENTS_ENABLED=false` and investigate without marking invoices paid manually.
+
+Official references:
+- https://support.paystack.com/en/articles/6543554
+- https://support.paystack.com/en/articles/2128898
+- https://support.paystack.com/en/articles/2129730
+

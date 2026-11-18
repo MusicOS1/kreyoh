@@ -25,6 +25,12 @@ const PUBLIC_ROUTES = [
   "/api/session/status",
   "/api/signup/name-availability",
   "/api/auth/recovery-telemetry",
+  // Anonymous, untrusted endpoints: each route independently validates its
+  // signed Paystack payload or issued invoice token and server-side payment state.
+  "/api/payments/paystack/webhook",
+  "/api/payments/checkout",
+  "/api/payments/verify",
+  "/payments/complete",
   "/api/listening",
   "/admin/login",
   "/admin/access-unavailable",
@@ -39,7 +45,8 @@ function isPublicRoute(
     /^\/billboard\/[0-9a-f-]{36}$/i.test(pathname) ||
     /^\/api\/releases\/[0-9a-f-]{36}\/media$/i.test(pathname) ||
     pathname === "/creators" ||
-    pathname.startsWith("/creators/")
+    pathname.startsWith("/creators/") ||
+    /^\/payments\/pay\/[0-9a-f-]{36}$/i.test(pathname)
   );
 }
 
@@ -56,6 +63,16 @@ export async function updateSession(
 
   const pathname =
     request.nextUrl.pathname;
+
+  // Paystack must be able to POST from its servers without a browser session.
+  // The route handler separately verifies the cryptographic signature against
+  // the raw body and independently verifies the transaction with Paystack.
+  // Do not pass the token-bearing webhook URL into x-fackts-path or auth logs.
+  if (pathname === "/api/payments/paystack/webhook") {
+    const response = NextResponse.next();
+    response.headers.set("Cache-Control", "no-store");
+    return response;
+  }
 
   if (
     !supabaseUrl ||
