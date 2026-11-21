@@ -1,3 +1,4 @@
+import ProjectNavigation from "../../components/ProjectNavigation";
 import Link from "next/link";
 import SessionParticipantsDropdown from "../../components/SessionParticipantsDropdown";
 import SearchableSessionTrack from "../../components/SearchableSessionTrack";
@@ -28,6 +29,7 @@ export default async function SessionsPage() {
   const canManage = hasAnyRole(roles, ["Super Admin", "Admin", "Project Lead", "A&R", "Manager", "Project Coordinator", "Engineer"]);
   const memberOptions = (members || []).map((member: any) => ({ id: member.user_id, name: creatorDisplayName(first(member.profiles)) }));
   return <AppShell><div className="content studio-history-page">
+    <ProjectNavigation projectId={project.id} active="Sessions" />
     <div className="heading"><div><span className="eyebrow">{project.code} / STUDIO MEMORY</span><h1>Studio Sessions</h1><p>{project.name} · {sessions.length} accessible sessions, including historical records.</p></div></div>
     {canManage && <section className="session-quick-booking" id="schedule-session" aria-labelledby="schedule-title">
       <div className="session-booking-heading">

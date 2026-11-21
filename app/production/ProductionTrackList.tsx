@@ -1,12 +1,20 @@
 'use client';
 
 import {Children, useEffect, useState, type ReactNode} from 'react';
+import TrackPlaylist, {type PlaylistTrack} from '../../components/TrackPlaylist';
 import styles from './Production.module.css';
 
-type Track = {id: string; title: string; code: string; state: string};
+type Track = {id: string; title: string; code: string; latestAudioId?: string; state: string};
 const PAGE_SIZE = 8;
 
-export default function ProductionTrackList({tracks, children}: {tracks: Track[]; children: ReactNode}) {
+export default function ProductionTrackList({tracks, audio, persistenceKey, children}: {
+ tracks: Track[];
+ audio: PlaylistTrack[];
+ persistenceKey: string;
+ children: ReactNode;
+}) {
+ const [playRequest, setPlayRequest] = useState<{id: string; nonce: number}>();
+ const [playing, setPlaying] = useState<string | null>(null);
  const [query, setQuery] = useState('');
  const [status, setStatus] = useState('all');
  const [page, setPage] = useState(0);
@@ -45,8 +53,28 @@ export default function ProductionTrackList({tracks, children}: {tracks: Track[]
    <label>Readiness<select aria-label="Readiness" value={status} onChange={event => {setStatus(event.target.value); setPage(0);}}><option value="all">All tracks</option><option value="attention">Needs attention</option><option value="ready">Ready</option></select></label>
    <span className={styles.meta} role="status">{matching.length} of {tracks.length} tracks</span>
   </div>
-  <div className={styles.trackRows}>{rows.map((row, index) => <div key={tracks[index].id} hidden={!visible.has(index)}>{row}</div>)}</div>
+  <div className={styles.trackRows}>{rows.map((row, index) => {
+   const track = tracks[index];
+   const versionId = track.latestAudioId;
+   const isPlaying = versionId && playing === versionId;
+   return <div key={track.id} hidden={!visible.has(index)} className={styles.musicRow}>
+    {versionId && <button type="button" className={styles.playVersion}
+     aria-label={`${isPlaying ? 'Pause' : 'Play'} latest version of ${track.title}`}
+     onClick={() => setPlayRequest(previous => ({id: versionId, nonce: (previous?.nonce ?? 0) + 1}))}>
+      {isPlaying ? 'Pause' : 'Play'}
+    </button>}
+    {row}
+   </div>;
+  })}</div>
   {!matching.length && <p>No tracks match. <button type="button" onClick={() => {setQuery(''); setStatus('all'); setPage(0);}}>Clear filters</button></p>}
   {pages > 1 && <nav className={styles.pagination} aria-label="Track pages"><button type="button" disabled={current === 0} onClick={() => setPage(current - 1)}>Previous</button><span>Page {current + 1} of {pages}</span><button type="button" disabled={current + 1 === pages} onClick={() => setPage(current + 1)}>Next</button></nav>}
+  {audio.length > 0 && <details className={styles.overviewItem}>
+   <summary>Player &amp; all versions <span>{audio.length}</span></summary>
+   <div className={styles.overviewBody}>
+    <TrackPlaylist tracks={audio} enableRanking={false} persistenceKey={persistenceKey}
+     playRequest={playRequest} onPlaybackChange={(id, active) =>
+      setPlaying(current => active ? id : current === id ? null : current)}/>
+   </div>
+  </details>}
  </div>;
 }

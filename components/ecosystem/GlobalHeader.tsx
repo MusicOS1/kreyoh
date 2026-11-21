@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { BellIcon, MenuIcon } from '../Icons';
+import { BellIcon, MenuIcon, MessageCircleIcon } from '../Icons';
 import { FacktsMusicLogo } from '../Branding';
 import { useMusicIdentity } from '../SessionExperience';
 import { switchWorkspace } from '../../app/workspaces/actions';
@@ -126,6 +126,11 @@ export default function GlobalHeader({
                 {creatorWorkspace.kind === 'artist' ? 'Artist workspace' : 'My workspace'}
               </Link>
             )}
+            <Link href="/messages" className={styles.messages} aria-label="Messages" title="Messages"
+              aria-current={pathname.startsWith('/messages') ? 'page' : undefined}>
+              <MessageCircleIcon size={19} />
+              <span>Messages</span>
+            </Link>
             <Link
               href="/inbox"
               className={styles.inbox}
