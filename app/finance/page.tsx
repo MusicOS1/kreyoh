@@ -76,6 +76,7 @@ export default async function FinancePage({
         <span className="eyebrow">{project.code} / PROJECT ACCESS</span>
         <h2>Finance reporting is not available for your project role</h2>
         <p>Financial reporting is limited to project administrators and core music/project roles such as Artists, Producers, Engineers, A&R, Managers and Studio Owners.</p>
+        <Link className="secondary-button-inline" href="/payments">Open payments →</Link>
         <Link className="secondary-button-inline" href="/member-dashboard">Return to Dashboard →</Link>
       </div>
     </AppShell>;
@@ -99,7 +100,7 @@ export default async function FinancePage({
     admin.from("project_members").select("user_id,profiles(full_name,stage_name,nickname,email)").eq("project_id",project.id).eq("status","active").order("joined_at",{ascending:true}),
   ]);
 
-  if([budgetR,expensesR,revenueR,tracksR,oppsR,accountsR,transactionsR,membersR].some(r=>r.error))return <AppShell><div className="content"><h1>Project finance</h1><p role="alert">Financial records could not be loaded. No balance can be relied on. Please retry.</p></div></AppShell>;
+  if([budgetR,expensesR,revenueR,tracksR,oppsR,accountsR,transactionsR,membersR].some(r=>r.error))return <AppShell><div className="content"><h1>Project finance</h1><Link className="secondary-button-inline" href="/payments">Open payments →</Link><p role="alert">Financial records could not be loaded. No balance can be relied on. Please retry.</p></div></AppShell>;
   const budget=budgetR.data;
   const expenses=expensesR.data||[];
   const revenue=revenueR.data||[];
@@ -204,7 +205,7 @@ export default async function FinancePage({
 
   if(params.view==='summary'){
     const history=[...transactions.map((t:any)=>({id:`member-${t.id}`,title:t.transaction_code||'Member payment',date:t.transaction_date,status:t.status,amount:Number(t.amount),currency:t.currency,kind:'Income',detail:'Membership payment',href:`/finance/transactions/${t.id}`})),...revenue.map((r:any)=>({id:`income-${r.id}`,title:r.revenue_source||'Income record',date:r.received_date||r.expected_date||r.created_at,status:r.payment_status,amount:Number(r.amount),currency:r.currency,kind:'Income',detail:r.notes||'',href:''})),...expenses.map((e:any)=>({id:`expense-${e.id}`,title:String(e.notes||'').split('\n')[0]||e.category||'Uncategorised expense',date:e.expense_date,status:e.payment_status,amount:Number(e.amount),currency:e.currency,kind:'Expense',detail:e.notes||'',href:''}))].sort((a,b)=>String(b.date).localeCompare(String(a.date)));
-    return <AppShell><div className={`content ${styles.root}`}><header><span className="eyebrow">{project.code} / PROJECT FINANCE</span><h1>Financial tracker</h1><p>{project.name} · Actual receipts and payments in KES. Expected income is excluded from available cash.</p></header><section className={styles.totals}>{[['Money received',totalCashIn],['Money spent',paidSpend],['Available balance',cashAvailable],['Outstanding commitments',committedSpend]].map(([label,value])=><article key={String(label)}><span>{label}</span><strong>KES {Number(value).toLocaleString('en-KE')}</strong></article>)}</section>
+    return <AppShell><div className={`content ${styles.root}`}><header><span className="eyebrow">{project.code} / PROJECT FINANCE</span><h1>Financial tracker</h1><p>{project.name} · Actual receipts and payments in KES. Expected income is excluded from available cash.</p><Link className="secondary-button-inline" href="/payments">Open payments →</Link></header><section className={styles.totals}>{[['Money received',totalCashIn],['Money spent',paidSpend],['Available balance',cashAvailable],['Outstanding commitments',committedSpend]].map(([label,value])=><article key={String(label)}><span>{label}</span><strong>KES {Number(value).toLocaleString('en-KE')}</strong></article>)}</section>
     {isProjectAdmin&&<details><summary>Record income or expense</summary><p>Record money actually received or paid. Use the membership tools below for KES 2,000 member payments.</p><SimpleFinanceForm tracks={tracks.map((t:any)=>({id:t.id,name:t.working_title}))} members={members.map((m:any)=>({id:m.user_id,name:creatorDisplayName(first(m.profiles))}))}/></details>}
     <section><h2>Transaction history</h2><p>All currencies and statuses remain visible. Reversed, cancelled and unpaid entries do not contribute to available cash.</p><RecordBrowser label="transactions" items={history.map(r=>({id:r.id,title:r.title,code:r.detail,status:r.status,date:r.date}))}>{history.map(r=><details key={r.id} id={r.id} className={styles.row}><summary><span><strong>{r.href?<Link href={r.href}>{r.title}</Link>:r.title}</strong><small>{r.kind} · {String(r.date||'').slice(0,10)} · {r.status}</small></span><strong>{r.currency} {r.amount.toLocaleString('en-KE')}</strong></summary><div>{r.detail||'No additional notes recorded.'}</div></details>)}</RecordBrowser></section>
     <div className="panel"><h2>Membership payments and ledger</h2><p>See current member dues, enter a payment and view full payment references.</p><Link href="/finance">Open membership finance →</Link></div></div></AppShell>;
@@ -342,6 +343,7 @@ export default async function FinancePage({
           <div>
             <span className="eyebrow">{project.code} / TRANSPARENCY REPORT</span>
             <h1>Financial Report</h1>
+            <Link className="secondary-button-inline" href="/payments">Open payments →</Link>
             <p>Read-only project economics. Membership collections are actual payment transactions; the current membership rule is KES 2,000 per active member per month.</p>
           </div>
           <span className="report-mode-pill">READ ONLY · NO EDITING</span>
@@ -458,6 +460,7 @@ export default async function FinancePage({
         <div>
           <span className="eyebrow">{project.code} / MEMBERSHIP & PROJECT ECONOMICS</span>
           <h1>Project Finance</h1>
+          <Link className="secondary-button-inline" href="/payments">Open payments →</Link>
           <p>Membership payments, member balances, expenses and project income. All financial activity stays within this project.</p>
           <Link className="secondary-button-inline" href="/finance?view=summary">Switch to simplified summary →</Link>
         </div>

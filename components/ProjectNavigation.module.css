@@ -1,0 +1,19 @@
+.sections {
+  display: flex;
+  margin-block: 4px 12px;
+  border-bottom: 1px solid var(--line-subtle);
+}
+.sections a {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  padding-inline: clamp(12px, 4vw, 22px);
+  font-weight: 600;
+  color: var(--ink-secondary);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+}
+.sections a[aria-current="page"] {
+  color: var(--ink-primary, white);
+  border-color: var(--accent-orange, #ff6a00);
+}

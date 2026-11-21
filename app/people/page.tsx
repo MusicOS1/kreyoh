@@ -1,3 +1,4 @@
+import ProjectNavigation from "../../components/ProjectNavigation";
 import React from "react";
 import AppShell from "../../components/AppShell";
 import Link from "next/link";
@@ -43,7 +44,7 @@ const AVAILABLE_ROLES = [
 export default async function PeoplePage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const params = await searchParams;
   const search = String(params.q || "").trim().toLowerCase();
-  const { supabase, admin, project, membership, roles } = await getWorkspace();
+  const { supabase, admin, project, membership, roles, user } = await getWorkspace();
 
   if (!project || !membership) {
     return (
@@ -131,13 +132,13 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
   return (
     <AppShell>
       <div className="content">
-        {/* Page Heading */}
+        <ProjectNavigation projectId={project.id} active="People" />
         <div className="heading enter">
           <div>
-            <span className="eyebrow">PROJECT 001 / DIRECTORY</span>
+            <span className="eyebrow">{project.name} / DIRECTORY</span>
             <h1>Project People</h1>
             <p>
-              The people shaping the sound, story, and next chapter of Project 001.
+              Open a collaborator’s profile or message them privately.
             </p>
           </div>
 
@@ -145,6 +146,91 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
             <span>{totalCount} TOTAL CONTRIBUTORS</span>
           </div>
         </div>
+
+        {/* Member Cards Grid */}
+        <section className="people-grid-cards enter d3">
+          {roster.length === 0 ? (
+            <article className="panel empty-state" style={{ gridColumn: "1 / -1" }}>
+              <h2>No contributors found</h2>
+              <p>No matching collaborators in {project.name}.</p>
+            </article>
+          ) : (
+            roster.map((member: any) => {
+              const profile = first(member.profiles);
+              const rolesList =
+                member.member_roles
+                  ?.map((row: any) => first(row.roles)?.name)
+                  .filter(Boolean) ?? [];
+
+              const displayName = creatorDisplayName(profile);
+              const isPending = member.status === "pending" || member.status === "invited";
+              
+              const initials = displayName
+                .split(" ")
+                .map((p: string) => p[0])
+                .filter(Boolean)
+                .join("")
+                .slice(0, 2)
+                .toUpperCase() || "K";
+
+              return (
+                <article className="person-card" key={member.id}>
+                  {/* Person Card Head */}
+                  <div className="person-card-head">
+                    <div className="person-avatar-ring">
+                        {profile?.avatar_url ? (
+                          <img src={profile.avatar_url} alt={`${displayName} profile`} />
+                        ) : (
+                          <span>{initials}</span>
+                        )}
+                      <span
+                        className={`person-status-indicator ${isPending ? "pending" : ""}`}
+                        title={`Status: ${member.status || "active"}`}
+                      />
+                    </div>
+
+                    <div className="person-identity"><Link className="person-profile-link" href={`/people/${profile?.id}`}><span className="person-full-name">{displayName}</span><span className="person-stage-name">View creator profile →</span></Link></div>
+                  </div>
+
+                  {/* Multi-Role Badges */}
+                  <div className="person-roles-wrap">
+                    {rolesList.length > 0 ? (
+                      rolesList.map((r: string, idx: number) => (
+                        <span key={idx} className={`role-chip ${getRoleClass(r)}`}>
+                          {r}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="role-chip">Project Member</span>
+                    )}
+                  </div>
+
+                  {/* Status & Contact Footer */}
+                  <div className="person-meta-footer">
+                    {member.status === "active" && profile?.id && profile.id !== user.id && (
+                      <Link href={`/messages/${profile.id}`} prefetch={false} aria-label={`Message ${displayName}`}>Message</Link>
+                    )}
+                    <span className="person-joined-badge">
+                      <ClockIcon size={11} />
+                      {isPending
+                        ? "Pending"
+                        : `Joined ${new Date(member.joined_at).toLocaleDateString("en-KE", {
+                            month: "short",
+                            year: "numeric",
+                          })}`}
+                    </span>
+                  </div>
+                  {canAddPeople && member.status !== "removed" && (
+                    <form action={removeContributor} className="member-remove-form">
+                      <input type="hidden" name="member_id" value={member.id} />
+                      <button type="submit" className="member-remove-button">Remove from project</button>
+                    </form>
+                  )}
+                </article>
+              );
+            })
+          )}
+        </section>
 
         {/* Role Breakdown Header Pills */}
         <div className="beats-stats-header enter d1">
@@ -202,7 +288,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
                   required
                   className="dark-input"
                 />
-                <span className="settings-readonly-note">Every contributor receives a Project 001 invitation. Access starts only after they accept it.</span>
+                <span className="settings-readonly-note">Every contributor receives an invitation to {project.name}. Access starts only after they accept it.</span>
               </label>
 
               <label className="form-label-group">
@@ -231,7 +317,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
               </label>
 
               <button className="submit-beat-btn" type="submit" style={{ gridColumn: "1 / -1" }}>
-                + Invite Contributor to Project 001
+                Invite contributor
               </button>
             </form>
           </article>
@@ -239,88 +325,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
 
         {canAddPeople && <article className="panel join-review-panel enter d2"><div className="panel-header-row"><div className="panel-title-group"><span className="eyebrow">ACCESS REQUESTS</span><h2>Creators asking to join</h2></div><span className="phase-pill-subtle">{joinRequests?.length || 0} pending</span></div>{!joinRequests?.length?<div className="empty-state"><p>No pending requests for this project.</p></div>:<div className="join-review-list">{joinRequests.map((request:any)=>{const profile=first(request.profiles);return <div className="join-review-row" key={request.id}><div><strong>{profile?.stage_name||profile?.full_name||profile?.email}</strong><span>{request.message||"No message supplied."}</span></div><form action={reviewJoinRequest}><input type="hidden" name="request_id" value={request.id}/><select name="role_name" defaultValue="Artist"><option>Artist</option><option>Producer</option><option>Engineer</option><option>A&R</option></select><button name="decision" value="approved">Approve</button><button name="decision" value="declined" className="member-remove-button">Decline</button></form></div>})}</div>}</article>}
 
-        {/* Member Cards Grid */}
-        <section className="people-grid-cards enter d3">
-          {roster.length === 0 ? (
-            <article className="panel empty-state" style={{ gridColumn: "1 / -1" }}>
-              <h2>No contributors found</h2>
-              <p>Onboard the first verified contributor to Project 001 above.</p>
-            </article>
-          ) : (
-            roster.map((member: any) => {
-              const profile = first(member.profiles);
-              const rolesList =
-                member.member_roles
-                  ?.map((row: any) => first(row.roles)?.name)
-                  .filter(Boolean) ?? [];
 
-              const displayName = creatorDisplayName(profile);
-              const isPending = member.status === "pending" || member.status === "invited";
-              
-              const initials = displayName
-                .split(" ")
-                .map((p: string) => p[0])
-                .filter(Boolean)
-                .join("")
-                .slice(0, 2)
-                .toUpperCase() || "K";
-
-              return (
-                <article className="person-card" key={member.id}>
-                  {/* Person Card Head */}
-                  <div className="person-card-head">
-                    <div className="person-avatar-ring">
-                        {profile?.avatar_url ? (
-                          <img src={profile.avatar_url} alt={`${displayName} profile`} />
-                        ) : (
-                          <span>{initials}</span>
-                        )}
-                      <span
-                        className={`person-status-indicator ${isPending ? "pending" : ""}`}
-                        title={`Status: ${member.status || "active"}`}
-                      />
-                    </div>
-
-                    <div className="person-identity"><Link className="person-profile-link" href={`/people/${profile?.id}`}><span className="person-full-name">{displayName}</span><span className="person-stage-name">View creator profile →</span></Link></div>
-                  </div>
-
-                  {/* Multi-Role Badges */}
-                  <div className="person-roles-wrap">
-                    {rolesList.length > 0 ? (
-                      rolesList.map((r: string, idx: number) => (
-                        <span key={idx} className={`role-chip ${getRoleClass(r)}`}>
-                          {r}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="role-chip">Project Member</span>
-                    )}
-                  </div>
-
-                  {/* Status & Contact Footer */}
-                  <div className="person-meta-footer">
-                    <span className="person-email-text">FACKTS Music creator</span>
-                    <span className="person-joined-badge">
-                      <ClockIcon size={11} />
-                      {isPending
-                        ? "Pending"
-                        : `Joined ${new Date(member.joined_at).toLocaleDateString("en-KE", {
-                            month: "short",
-                            year: "numeric",
-                          })}`}
-                    </span>
-                  </div>
-                  {canAddPeople && member.status !== "removed" && (
-                    <form action={removeContributor} className="member-remove-form">
-                      <input type="hidden" name="member_id" value={member.id} />
-                      <button type="submit" className="member-remove-button">Remove from project</button>
-                    </form>
-                  )}
-                </article>
-              );
-            })
-          )}
-        </section>
       </div>
     </AppShell>
   );

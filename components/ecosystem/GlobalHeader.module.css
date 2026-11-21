@@ -340,3 +340,24 @@
 .header .navigation a[aria-current="page"]{color:var(--gold)}
 .header .panel .personal a,.header .panel .secondary a{color:#ede9ef;font-size:13px;font-weight:600}
 .header .panel .workspaces small{color:#c5beca}
+
+.messages {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  min-width: 40px;
+  color: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.messages:hover, .messages[aria-current="page"] {color: var(--gold)}
+@media (max-width: 900px) {
+  .messages span {display: none}
+}
+@media (max-width: 380px) {
+  .header {gap: 4px; padding-inline: 6px}
+  .workspaceShortcut {max-width: 56px}
+}
