@@ -63,7 +63,7 @@ export async function createProject(formData: FormData) {
   await admin.from("activity_log").insert({ project_id: project.id, user_id: user.id, action: `Created ${name}`, entity_type: "project", entity_id: project.id });
   (await cookies()).set("fackts_project_id", project.id, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 60 * 60 * 24 * 365 });
   revalidatePath("/", "layout");
-  redirect("/tracks?upload=1#upload-track");
+  redirect("/production");
 }
 
 export async function inviteExistingUser(formData: FormData) {

@@ -84,7 +84,7 @@ export default function EcosystemFrame({
     );
   };
   const navigationLinks = active === 'artist'
-    ? config.links.filter(link => canCreateTrack || link.label !== 'Upload music')
+    ? config.links.filter(link => canCreateTrack || link.label !== 'Upload to project')
     : canManageFinance ? [...config.links, ...(!config.links.some(link => link.href === '/finance') ? [{label: 'Finance', href: '/finance'}] : []), {label: 'Payments', href: '/payments'}] : config.links;
   const nav = (
     <>
@@ -133,7 +133,7 @@ export default function EcosystemFrame({
             <Link href="/beats">Beats</Link>
             <Link href="/people">Collaborators</Link>
             <Link href="/splits">Credits & splits</Link>
-            <Link href="/billboard/submit">Releases</Link>
+            <Link href="/releases">Prepare project release</Link>
             <Link href="/professional-record">Professional record</Link>
             <Link href="/opportunities">Opportunities</Link>
             <Link href="/messages">Messages</Link>
@@ -166,9 +166,9 @@ export default function EcosystemFrame({
     : active === 'artist' ? [
         { label: 'Home', href: '/workspaces/artist' },
         { label: 'Projects', href: '/projects' },
-        ...(canCreateTrack ? [{ label: 'Upload', href: '/tracks?upload=1#upload-track' }] : []),
+        ...(canCreateTrack ? [{ label: 'Project upload', href: '/tracks?upload=1#upload-track' }] : [{ label: 'Tracks', href: '/tracks' }]),
         { label: 'Sessions', href: '/studio-sessions' },
-        { label: 'Music', href: '/tracks' },
+        { label: 'Releases', href: '/billboard/submit' },
       ] : [
         { label: 'Overview', href: config.href },
         { label: 'Projects', href: '/projects' },

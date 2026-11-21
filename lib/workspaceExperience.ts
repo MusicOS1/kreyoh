@@ -71,9 +71,9 @@ export const WORKSPACES: WorkspaceConfig[] = [
     links: tools([
       ['Artist home', '/workspaces/artist'],
       ['Projects', '/projects'],
-      ['Upload music', '/tracks?upload=1#upload-track'],
+      ['Upload to project', '/tracks?upload=1#upload-track'],
       ['Sessions', '/studio-sessions'],
-      ['My music', '/tracks'],
+      ['Public releases', '/billboard/submit'],
     ]),
   },
   {
@@ -305,6 +305,7 @@ export const managementRoles = ['Super Admin', 'Admin', 'Project Lead'];
 export const workspaceConfig = (kind: string) => {
   const config=WORKSPACES.find((item) => item.kind === kind);
   if (!config || ['listener','admin'].includes(kind)) return config;
+  if (kind === 'artist') return config; // Project production is reached through Projects / Continue project.
   return {...config,links:[...config.links,{label:'Production room',href:'/production'}]};
 };
 export function workspaceOptions(

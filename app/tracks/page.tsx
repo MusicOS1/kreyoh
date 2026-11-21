@@ -214,9 +214,9 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
       <div data-native-catalogue className="content fackts-tracks-page">
         <div className="heading">
           <div>
-            <span className="eyebrow">PROJECT 001 / DEVELOPMENT</span>
-            <h1>Tracks in motion</h1>
-            <p>The connected record from original beat to contributors, versions, sessions and release readiness.</p>
+            <span className="eyebrow">{project.code || project.name} / PROJECT AUDIO</span>
+            <h1>Project recordings</h1>
+            <p>Audio added here stays within your project workflow; it is not a public release. <Link href="/billboard/submit">Publish finished music on FACKTS →</Link></p>
           </div>
           <div className="date"><span>{tracks.length} TRACKS</span></div>
         </div>
@@ -228,7 +228,7 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
               <h2>{displayVotingStats ? "Project Track Chart" : "Top 3 Selection Room"}</h2>
               <p>Listen to at least 60%, then rank your three strongest eligible tracks. #1 earns 5 points, #2 earns 3 and #3 earns 1. Live results stay private to reduce influence.</p>
             </div>
-            <span>`${tracks.length} TRACKS · ${playlist.length} PLAYABLE VERSIONS`</span>
+            <span>{tracks.length} TRACKS · {playlist.length} PLAYABLE VERSIONS</span>
           </div>
           {canViewPrivateVotingStats && !resultsVisible && votingRound && <div className="track-private-stats-note">PRIVATE ADMIN STATISTICS · Members still see hidden results</div>}
           {canManageVoting && votingRound && (
@@ -248,9 +248,9 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
         {canCreate && (
           <details className="beat-intake-disclosure track-intake-disclosure" id="upload-track" open={params.upload === "1"}>
             <summary className="beat-intake-summary">
-              <span>TRACK INTAKE</span>
-              <strong>Upload a track</strong>
-              <small>Three steps: audio, optional details, then required contributor credits.</small>
+              <span>PROJECT RECORDING · NOT PUBLIC</span>
+              <strong>Upload to this project</strong>
+              <small>Audio, optional recording details and required credits. Listeners cannot see it as a public release.</small>
               <b>Open +</b>
             </summary>
             <TrackIntakeForm beats={availableBeats} members={projectMembers} scope={`${user.id}:${project.id}`} />

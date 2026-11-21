@@ -13,3 +13,8 @@
 .optionalFields .check{display:flex;gap:10px;align-items:center;min-height:44px}
 .optionalFields .check input{width:18px;height:18px;accent-color:#FF6A00}
 @media(max-width:760px){.create{grid-template-columns:minmax(0,1fr);padding:18px!important;gap:14px}.form{grid-template-columns:minmax(0,1fr)}.form > input,.form > button{grid-column:1}.form > button{width:100%}.create input,.create select,.create textarea{font-size:16px!important}}
+
+/* Existing projects are the priority; creation stays discoverable without dominating. */
+.createAnother{margin:18px 0 28px;min-width:0;border:1px solid #ffffff25;border-radius:12px;background:#111}
+.createAnother>summary{min-height:48px;display:flex;align-items:center;padding:12px 18px;cursor:pointer;color:#FF6A00;font-size:13px;font-weight:700}
+.createAnother .create{border:0!important;border-top:1px solid #ffffff20!important;border-radius:0;margin:0!important;background:#141414!important;box-shadow:none!important}

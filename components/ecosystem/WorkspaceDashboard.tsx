@@ -13,12 +13,12 @@ export default async function WorkspaceDashboard({
 }: {
   kind: WorkspaceKind;
 }) {
-  const { config, identity, projectIds, sections, metrics, projects, profile,trackRows,tracksUnavailable,canCreateTrack,canScheduleSession } =
+  const { config, identity, projectIds, sections, metrics, projects, profile,trackRows,tracksUnavailable,canCreateTrack,canScheduleSession,hasProjects } =
     await loadWorkspaceDashboard(kind);
   // An artist arrives at a short task list, not a second project command centre.
   // Permission-sensitive actions remain protected by their original server actions.
   if (kind === 'artist') {
-    const selectedProject = projects[0];
+    const selectedProject = projects.find((item) => item.id === projectIds[0]) || null;
     return (
       <EcosystemShell active={kind}>
         <main className={`${styles.dashboard} ${styles.artistHome}`}>
@@ -28,38 +28,44 @@ export default async function WorkspaceDashboard({
             <p>What would you like to make today? Start with one action.</p>
           </header>
           <nav className={styles.artistActions} aria-label="Start creating">
-            <Link href="/projects#start-project">
-              <span>01 · START</span>
-              <strong>Create project</strong>
-              <small>Give your next single, EP or album a home.</small>
+            <Link href={selectedProject ? '/production' : hasProjects ? '/projects' : '/projects?new=1#start-project'}>
+              <span>01 · {selectedProject ? 'CONTINUE' : 'START'}</span>
+              <strong>{selectedProject ? 'Continue project' : hasProjects ? 'Choose a project' : 'Create your first project'}</strong>
+              <small>{selectedProject ? 'Open your current project, music and next steps.' : hasProjects ? 'Pick an existing project to work on.' : 'Make a space for your first song, EP or album.'}</small>
               <b aria-hidden="true">↗</b>
             </Link>
             <Link href={projectIds.length && canScheduleSession ? '/studio-sessions#schedule-session' : '/projects'}>
               <span>02 · PLAN</span>
-              <strong>Schedule session</strong>
+              <strong>Book a session</strong>
               <small>{projectIds.length && canScheduleSession ? 'Set the time now. Add people and notes if needed.' : 'Open a project with session scheduling access first.'}</small>
               <b aria-hidden="true">↗</b>
             </Link>
-            <Link href={projectIds.length && canCreateTrack ? '/tracks?upload=1#upload-track' : '/projects#start-project'}>
+            <Link href={projectIds.length && canCreateTrack ? '/tracks?upload=1#upload-track' : '/projects'}>
               <span>03 · RECORD</span>
-              <strong>Upload music</strong>
-              <small>{projectIds.length && canCreateTrack ? 'Add audio, choose its context and credit the contributors.' : 'Create or open a project you can lead to upload.'}</small>
+              <strong>Upload to project</strong>
+              <small>{projectIds.length && canCreateTrack ? 'Add a recording to your private project. This does not publish it.' : 'Open a project where you can add recordings.'}</small>
+              <b aria-hidden="true">↗</b>
+            </Link>
+            <Link href="/billboard/submit">
+              <span>04 · SHARE</span>
+              <strong>Publish on FACKTS</strong>
+              <small>Submit finished music for public release after review. Not Spotify distribution.</small>
               <b aria-hidden="true">↗</b>
             </Link>
           </nav>
           <section className={styles.artistProject}>
             <div>
               <span className={styles.eyebrow}>CURRENT PROJECT</span>
-              <h2>{selectedProject?.name || 'No project selected'}</h2>
-              <p>{selectedProject ? (selectedProject.next_action || 'Keep your next recording moving.') : 'Choose an existing project or start a new one to get going.'}</p>
+              <h2>{selectedProject?.name || (hasProjects ? 'Choose a project' : 'No project yet')}</h2>
+              <p>{selectedProject ? (selectedProject.next_action || 'Keep your next recording moving.') : hasProjects ? 'Open one of your projects to continue working.' : 'Create your first project to start recording.'}</p>
             </div>
-            <Link href="/projects">View my projects ↗</Link>
+            <Link href={selectedProject ? '/production' : '/projects'}>{selectedProject ? 'Open project ↗' : 'View my projects ↗'}</Link>
           </section>
           <section className={styles.artistRecent}>
             <header><div><h2>Recent music</h2><p>Your actual recordings in the selected project.</p></div><Link href="/tracks">All music ↗</Link></header>
             {tracksUnavailable ? <p role="alert">Music records could not be loaded. Try again.</p> :
               trackRows.length ? <div className={styles.artistRecentList}>{trackRows.slice(0,4).map(row=><Link key={row.id} href={row.href}><span className={styles.artistTrackArtwork}><img src={row.artwork || selectedProject?.artwork_url || '/images/project-001-default-cover.png'} alt="" loading="lazy"/></span><span className={styles.artistTrackCopy}><strong>{row.title}</strong><small>{row.detail}</small><em>{row.status || 'In progress'}</em></span><span className={styles.artistTrackArrow} aria-hidden="true">↗</span></Link>)}</div>
-                : <p>No recordings here yet. Use Upload music to begin when you have project permission.</p>}
+                : <p>No recordings here yet. Use Upload to project when you have project permission.</p>}
           </section>
         </main>
       </EcosystemShell>
