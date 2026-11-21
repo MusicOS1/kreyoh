@@ -31,10 +31,17 @@ export default async function EcosystemShell({
   const allowedRequest = identity.workspaces.find(
     (item) => item.kind === requested && item.kind !== 'admin',
   );
+  const preferred = preferredWorkspace(identity.workspaces, choice);
+  // Project tools must keep a creator workspace shell even when the user
+  // last visited the listener view; otherwise its project selector disappears.
+  const projectToolPath = /^\/(projects|releases|tracks|track-records|beats|studio-sessions|finance|payments|production|member-dashboard|workspace)(\/|$)/.test(path.split('?')[0]);
+  const fallback = projectToolPath && preferred.kind === 'listener'
+    ? preferredWorkspace(identity.workspaces, null)
+    : preferred;
   const selected =
     active ||
     allowedRequest?.kind ||
-    preferredWorkspace(identity.workspaces, choice).kind;
+    fallback.kind;
   return (
     <EcosystemFrame
       identity={identity}
