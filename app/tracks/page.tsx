@@ -223,7 +223,7 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
               <h2>{displayVotingStats ? "Project Track Chart" : "Top 3 Selection Room"}</h2>
               <p>Listen to at least 60%, then rank your three strongest eligible tracks. #1 earns 5 points, #2 earns 3 and #3 earns 1. Live results stay private to reduce influence.</p>
             </div>
-            <span>{votingRound?.status === "closed" ? "ROUND CLOSED" : `${tracks.length} TRACKS · ${playlist.length} PLAYABLE VERSIONS`}</span>
+            <span>`${tracks.length} TRACKS · ${playlist.length} PLAYABLE VERSIONS`</span>
           </div>
           {canViewPrivateVotingStats && !resultsVisible && votingRound && <div className="track-private-stats-note">PRIVATE ADMIN STATISTICS · Members still see hidden results</div>}
           {canManageVoting && votingRound && (
