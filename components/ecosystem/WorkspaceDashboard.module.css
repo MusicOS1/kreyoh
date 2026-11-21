@@ -595,15 +595,26 @@
 .artistProject {display:flex;align-items:center;justify-content:space-between;gap:24px;padding:24px 0;border-block:1px solid #ffffff1a}
 .artistProject h2 {font-size:22px;margin:6px 0}
 .artistProject p,.artistRecent > p,.artistRecent header p {font-size:13px;color:#A1A1AA;line-height:1.6}
-.artistProject > a,.artistRecent header a {color:#FF6A00;text-decoration:none;font-size:12px;font-weight:700;white-space:nowrap}
+.artistProjectLinks a,.artistRecent header a {color:#FF6A00;text-decoration:none;font-size:12px;font-weight:700;white-space:nowrap}
+.artistProjectLinks {display:flex;flex-wrap:wrap;gap:4px 20px}
+.artistProjectLinks a {display:inline-flex;align-items:center;min-height:44px}
 .artistRecent {margin-top:34px}
 .artistRecent > header {display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px}
 .artistRecent h2 {font-size:20px;margin:0}
 .artistRecentList {display:grid;gap:8px}
-.artistRecentList a {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px;padding:14px 16px;background:#171717;border:1px solid #ffffff14;border-radius:10px;text-decoration:none;color:#fff;min-height:44px}
-.artistRecentList strong {font-size:13px;overflow-wrap:anywhere}
-.artistRecentList small {grid-column:1;grid-row:2;font-size:11px;color:#A1A1AA}
-.artistRecentList span {grid-column:2;grid-row:1/3;align-self:center;color:#FF6A00;font-size:11px;text-align:right}
+.artistRecentList a {
+  display:grid;
+  grid-template-columns:54px minmax(0,1fr) auto;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+  padding:12px 16px;
+  background:#171717;
+  border:1px solid #ffffff14;
+  border-radius:10px;
+  color:#fff;
+  text-decoration:none;
+}
 @media(max-width:760px) {
   .artistHome {padding:18px 16px 100px;min-width:0}
   .artistActions {grid-template-columns:1fr;gap:10px;margin:22px 0}
@@ -611,19 +622,16 @@
   .artistActions strong {font-size:18px}
   .artistActions b {top:40px}
   .artistProject,.artistRecent > header {align-items:flex-start;flex-direction:column;gap:8px}
-  .artistRecentList a {grid-template-columns:minmax(0,1fr);min-width:0}
-  .artistRecentList span {grid-column:1;grid-row:auto;text-align:left}
+  .artistRecentList a {grid-template-columns:48px minmax(0,1fr) auto;gap:10px;padding:10px 12px}
 }
 
-.artistHome .artistRecentList a{display:grid;grid-template-columns:54px minmax(0,1fr) 24px;gap:12px;align-items:center;min-height:72px;box-sizing:border-box}
-.artistTrackArtwork{display:block;grid-column:1;width:54px;aspect-ratio:1;background:#222;border-radius:8px;overflow:hidden}
+.artistTrackArtwork{display:block;grid-column:1;width:100%;aspect-ratio:1;background:#222;border-radius:8px;overflow:hidden}
 .artistTrackArtwork img{display:block;width:100%;height:100%;object-fit:cover}
 .artistTrackCopy{grid-column:2;display:grid;gap:4px;min-width:0}
-.artistTrackCopy strong{font-size:13px;white-space:normal;overflow-wrap:break-word}
-.artistTrackCopy small{font-size:11px;color:#A1A1AA;white-space:normal;overflow-wrap:break-word}
+.artistTrackCopy strong{font-size:13px;white-space:normal;overflow-wrap:anywhere}
+.artistTrackCopy small{font-size:11px;color:#A1A1AA;white-space:normal;overflow-wrap:anywhere}
 .artistTrackCopy em{font-size:10px;font-style:normal;color:#FF6A00}
 .artistTrackArrow{grid-column:3;grid-row:1;align-self:center;justify-self:end;color:#FF6A00}
-@media(max-width:760px){.artistHome .artistRecentList a{grid-template-columns:50px minmax(0,1fr) 20px}.artistTrackArtwork{width:50px}.artistTrackCopy,.artistTrackArrow{grid-row:1}}
 
 /* Distinct creation and publication paths, without adding another overview. */
 .artistHome .artistActions{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}

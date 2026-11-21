@@ -59,7 +59,10 @@ export default async function WorkspaceDashboard({
               <h2>{selectedProject?.name || (hasProjects ? 'Choose a project' : 'No project yet')}</h2>
               <p>{selectedProject ? (selectedProject.next_action || 'Keep your next recording moving.') : hasProjects ? 'Open one of your projects to continue working.' : 'Create your first project to start recording.'}</p>
             </div>
-            <Link href={selectedProject ? '/production' : '/projects'}>{selectedProject ? 'Open project ↗' : 'View my projects ↗'}</Link>
+            <nav className={styles.artistProjectLinks} aria-label="Current project">
+              <Link href={selectedProject ? projectLink(selectedProject.id, '/production') : '/projects'}>{selectedProject ? 'Open project ↗' : 'View my projects ↗'}</Link>
+              {selectedProject && <Link href={projectLink(selectedProject.id, '/payments')}>Finance &amp; payments</Link>}
+            </nav>
           </section>
           <section className={styles.artistRecent}>
             <header><div><h2>Recent music</h2><p>Your actual recordings in the selected project.</p></div><Link href="/tracks">All music ↗</Link></header>

@@ -41,3 +41,6 @@
 .return{display:flex;flex-direction:column;gap:10px}
 .testBadge{border-top:1px solid #333;margin-top:28px;padding-top:18px;color:#ffb372!important;font-weight:750}
 @media(max-width:620px){.root{padding:24px 14px 45px}.panel{padding:17px}.invoiceRow{align-items:flex-start}.header{margin-bottom:20px}.tag{white-space:normal}.invoiceRow>div:last-child{min-width:120px}}
+
+
+.payLink{display:inline-flex;align-items:center;min-height:44px;flex-shrink:0;color:#ff8533;font-weight:700}

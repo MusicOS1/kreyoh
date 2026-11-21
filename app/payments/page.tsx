@@ -1,7 +1,7 @@
 import Link from "next/link";
 import AppShell from "../../components/AppShell";
 import {getWorkspace} from "../../lib/workspace";
-import {canEditProjectFinance} from "../../lib/financeAccess";
+import {canEditProjectFinance,canViewProjectFinanceReport} from "../../lib/financeAccess";
 import {isPurposeAllowedForPaymentMode} from "../../lib/paystackPaymentPolicy";
 import {createPaymentInvoice} from "./actions";
 import PaymentLinkCopy from "./PaymentLinkCopy";
@@ -16,9 +16,28 @@ const choices=[
 ];
 
 export default async function ProjectPayments({searchParams}:{searchParams:Promise<{created?:string}>}){
-  const {admin,project,roles,membership}=await getWorkspace();
-  if(!project||!membership||!canEditProjectFinance(roles))
-    return <AppShell><main className={styles.panel}><h1>Payments</h1><p>Project finance administrator access is required.</p></main></AppShell>;
+  const {admin,project,roles,membership,user}=await getWorkspace();
+  if(!project||!membership)
+    return <AppShell><main className={styles.panel}><h1>Payments</h1><p>Choose a project to see its payment requests.</p><Link href="/projects">My projects</Link></main></AppShell>;
+  if(!canEditProjectFinance(roles)){
+    const email=user.email_confirmed_at && user.email?.trim().toLowerCase();
+    const result=email ? await admin.from("project_payment_invoices")
+      .select("id,public_token,description,amount_kes")
+      .eq("project_id",project.id).eq("payer_email",email).eq("status","open")
+      .order("created_at",{ascending:false}) : null;
+    return <AppShell><main className={styles.root}>
+      <header><p className={styles.eyebrow}>{project.name}</p><h1>My payments</h1></header>
+      <section className={styles.panel}><h2>Invoices to pay</h2>
+        {!email ? <p>Verify your account email to see your invoices, or open the checkout link your project administrator shared.</p> :
+          result?.error ? <p role="alert">Your invoices could not be loaded. Please try again.</p> :
+          result?.data?.length ? result.data.map(invoice=><div className={styles.invoiceRow} key={invoice.id}>
+            <div><strong>{invoice.description}</strong><span>KES {Number(invoice.amount_kes).toLocaleString("en-KE")}</span></div>
+            <Link className={styles.payLink} href={'/payments/pay/'+invoice.public_token} aria-label={'Pay invoice for '+invoice.description}>Pay invoice</Link>
+          </div>) : <p>No open invoices for {email} in this project. If you expected one, ask your project administrator for the payment link.</p>}
+      </section>
+      {canViewProjectFinanceReport(roles)&&<Link href="/finance">Open project finance</Link>}
+    </main></AppShell>;
+  }
   const [invoiceResult,sessionResult]=await Promise.all([
     admin.from("project_payment_invoices").select("id,public_token,purpose,description,amount_kes,status,payer_email,created_at")
       .eq("project_id",project.id).order("created_at",{ascending:false}).limit(40),
