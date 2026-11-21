@@ -17,6 +17,7 @@ export default function EcosystemFrame({
   projects = [],
   projectId,
   canManageFinance = false,
+  canCreateTrack = false,
   children,
 }: {
   identity: HeaderIdentity | null;
@@ -24,6 +25,7 @@ export default function EcosystemFrame({
   projects?: { id: string; name?: string; code?: string }[];
   projectId?: string | null;
   canManageFinance?: boolean;
+  canCreateTrack?: boolean;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false),
@@ -74,13 +76,16 @@ export default function EcosystemFrame({
       [...url.searchParams].every(
         ([key, value]) => searchParams.get(key) === value,
       ) &&
+      (url.pathname !== '/tracks' || active !== 'artist' || url.searchParams.has('upload') || !searchParams.has('upload')) &&
       (url.pathname !== '/fan' ||
         url.searchParams.has('tab') ||
         !searchParams.get('tab') ||
         searchParams.get('tab') === 'For You')
     );
   };
-  const navigationLinks = canManageFinance ? [...config.links, ...(!config.links.some(link => link.href === '/finance') ? [{label: 'Finance', href: '/finance'}] : []), {label: 'Payments', href: '/payments'}] : config.links;
+  const navigationLinks = active === 'artist'
+    ? config.links.filter(link => canCreateTrack || link.label !== 'Upload music')
+    : canManageFinance ? [...config.links, ...(!config.links.some(link => link.href === '/finance') ? [{label: 'Finance', href: '/finance'}] : []), {label: 'Payments', href: '/payments'}] : config.links;
   const nav = (
     <>
       <div className={styles.context}>
@@ -122,13 +127,29 @@ export default function EcosystemFrame({
         </form>
       )}
       <div className={styles.secondary}>
-        <Link href="/messages">Messages</Link>
-        <Link href="/inbox">
-          Notifications{identity?.unread ? ` · ${identity.unread}` : ''}
-        </Link>
-        <Link href="/professional-record">My professional record</Link>
-        <Link href="/professional-onboarding">Professional onboarding</Link>
-        <Link href="/help">Help & guidance</Link>
+        {active === 'artist' ? (
+          <details className={styles.moreTools}>
+            <summary>More artist tools</summary>
+            <Link href="/beats">Beats</Link>
+            <Link href="/people">Collaborators</Link>
+            <Link href="/splits">Credits & splits</Link>
+            <Link href="/billboard/submit">Releases</Link>
+            <Link href="/professional-record">Professional record</Link>
+            <Link href="/opportunities">Opportunities</Link>
+            <Link href="/messages">Messages</Link>
+            <Link href="/inbox">Notifications{identity?.unread ? ` · ${identity.unread}` : ''}</Link>
+            <Link href="/professional-onboarding">Verification</Link>
+            <Link href="/help">Help</Link>
+          </details>
+        ) : (
+          <>
+            <Link href="/messages">Messages</Link>
+            <Link href="/inbox">Notifications{identity?.unread ? ` · ${identity.unread}` : ''}</Link>
+            <Link href="/professional-record">My professional record</Link>
+            <Link href="/professional-onboarding">Professional onboarding</Link>
+            <Link href="/help">Help & guidance</Link>
+          </>
+        )}
       </div>
       <Link href="/fan" className={styles.listen}>
         ♫ Back to listening <span>↗</span>
@@ -142,7 +163,13 @@ export default function EcosystemFrame({
         { label: 'Library', href: '/fan?tab=My%20Library' },
         { label: 'Messages', href: '/messages' },
       ]
-    : [
+    : active === 'artist' ? [
+        { label: 'Home', href: '/workspaces/artist' },
+        { label: 'Projects', href: '/projects' },
+        ...(canCreateTrack ? [{ label: 'Upload', href: '/tracks?upload=1#upload-track' }] : []),
+        { label: 'Sessions', href: '/studio-sessions' },
+        { label: 'Music', href: '/tracks' },
+      ] : [
         { label: 'Overview', href: config.href },
         { label: 'Projects', href: '/projects' },
         { label: 'My actions', href: '/my-actions' },
