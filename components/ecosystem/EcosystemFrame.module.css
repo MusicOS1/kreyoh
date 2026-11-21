@@ -376,3 +376,47 @@
   border-color: transparent;
   color: #b4a9bf;
 }
+
+/* Focused artist usability rules; other workspaces retain their existing presentation. */
+.frame[data-fm-workspace='artist'] {
+  --fm-bg: #0B0B0B;
+  --fm-panel: #141414;
+  --fm-raised: #1d1d1d;
+  --fm-text: #FFFFFF;
+  --fm-muted: #A1A1AA;
+  --fm-gold: #FF6A00;
+  font-family: 'DM Sans', Arial, sans-serif;
+}
+.frame[data-fm-workspace='artist'] h1,
+.frame[data-fm-workspace='artist'] h2,
+.frame[data-fm-workspace='artist'] h3 {
+  font-family: 'Gotham', 'DM Sans', Arial, sans-serif;
+}
+.frame[data-fm-workspace='artist'] .links a[aria-current],
+.frame[data-fm-workspace='artist'] .links a:hover {
+  background: #ff6a0018;
+  border-color: #ff6a0030;
+  color: #FF6A00;
+}
+.frame[data-fm-workspace='artist'] .project button,
+.frame[data-fm-workspace='artist'] .frame :focus-visible {
+  color: #FF6A00;
+}
+.moreTools summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--fm-text);
+}
+.moreTools[open] { display: grid; gap: 14px; }
+.moreTools a { min-height: 36px; display: flex; align-items: center; }
+.frame[data-fm-workspace='artist'] .bottom a[aria-current] { color: #FF6A00; }
+@media(max-width:760px){
+  .frame[data-fm-workspace='artist'] .canvas { overflow-x: clip; }
+  .frame[data-fm-workspace='artist'] .canvas :global(.operations-form) { min-width:0; max-width:100%; }
+  .frame[data-fm-workspace='artist'] .canvas :global(.operations-form) input,
+  .frame[data-fm-workspace='artist'] .canvas :global(.operations-form) select,
+  .frame[data-fm-workspace='artist'] .canvas :global(.operations-form) textarea { min-width:0; max-width:100%; width:100%; box-sizing:border-box; }
+}
