@@ -62,7 +62,7 @@ export default function ProfileMediaGallery({ userId, currentPhotos = [], curren
     finally { setBusy(false); }
   }
 
-  return <section className="profile-media-uploader">
+  return <section id="artist-profile-photos" className="profile-media-uploader">
     <div className="profile-media-heading"><div><span className="settings-label">Best five photos</span><p>Build a curated press-ready catalogue, then choose any uploaded photo as your profile hero.</p></div><button type="button" className="secondary-button-inline" disabled={busy || photos.length >= MAX_PHOTOS} onClick={() => inputRef.current?.click()}>{busy ? "Uploading…" : "+ Add photos"}</button></div>
     <input ref={inputRef} hidden type="file" multiple accept="image/png,image/jpeg,image/webp" onChange={choosePhotos} />
     <div className="profile-media-grid">{photos.map((photo, index) => <figure className={hero === photo ? "is-hero" : ""} key={photo}><img src={photo} alt={`Creator catalogue ${index + 1}`} /><div><button type="button" onClick={() => chooseHero(photo)} disabled={busy || hero === photo}>{hero === photo ? "Hero image" : "Use as hero"}</button><button type="button" onClick={() => removePhoto(index)} disabled={busy}>Remove</button></div></figure>)}{!photos.length && <p className="profile-media-empty">No catalogue photos yet.</p>}</div>
