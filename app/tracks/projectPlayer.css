@@ -1,0 +1,32 @@
+/* Project listening room only: retain TrackPlaylist's audio, queue, votes, and buttons. */
+.fackts-tracks-page .track-billboard-section{min-width:0;max-width:100%;overflow:hidden;border-color:#ffffff1b;background:#111}
+.fackts-tracks-page .spotify-room{min-width:0;max-width:100%;background:#0B0B0B;border-color:#ffffff1b}
+.fackts-tracks-page .spotify-room .track-chart-player{min-width:0;background:#141414}
+.fackts-tracks-page .track-player-art{background:#222;aspect-ratio:1}
+.fackts-tracks-page .track-player-art img,.fackts-tracks-page .track-row-art img{display:block;width:100%;height:100%;object-fit:cover}
+.fackts-tracks-page .track-player-copy{min-width:0}
+.fackts-tracks-page .track-player-copy h3{overflow-wrap:break-word;word-break:normal}
+.fackts-tracks-page .track-chart-list,.fackts-tracks-page .track-chart-list article{min-width:0;max-width:100%}
+.fackts-tracks-page .track-chart-select{min-width:0}
+.fackts-tracks-page .track-chart-select span:last-child{overflow:hidden;min-width:0}
+.fackts-tracks-page .queue-library{min-width:0;max-width:100%;box-sizing:border-box}
+@media(max-width:760px){
+ .fackts-tracks-page .track-billboard-section{padding:12px}
+ .fackts-tracks-page .spotify-room{grid-template-columns:minmax(0,1fr)}
+ .fackts-tracks-page .spotify-room .track-chart-player{padding:16px;min-height:0}
+ .fackts-tracks-page .track-player-art{width:min(52vw,180px);max-width:180px;margin:0 auto 8px;border-radius:12px}
+ .fackts-tracks-page .track-player-copy h3{font-size:21px;line-height:1.2}
+ .fackts-tracks-page .track-player-copy p{font-size:12px;line-height:1.5;overflow-wrap:break-word}
+ .fackts-tracks-page .refined-player .track-playlist-transport{gap:6px;justify-content:space-between}
+ .fackts-tracks-page .refined-player .track-playlist-transport button{min-width:42px;min-height:42px}
+ .fackts-tracks-page .refined-player .track-playlist-transport .main{width:52px;height:52px}
+ .fackts-tracks-page .track-chart-list>header{display:none}
+ .fackts-tracks-page .spotify-room .track-chart-list article{display:grid;grid-template-columns:minmax(0,1fr);gap:5px;padding:8px}
+ .fackts-tracks-page .track-chart-select{width:100%;grid-template-columns:24px 42px minmax(0,1fr);gap:9px;min-height:60px}
+ .fackts-tracks-page .track-row-art{width:42px;height:42px}
+ .fackts-tracks-page .track-rank-buttons{grid-column:1;grid-row:auto;justify-content:start;margin-left:12px}
+ .fackts-tracks-page .track-result-score{display:none}
+ .fackts-tracks-page .queue-row-actions{grid-column:1;grid-row:auto;justify-content:start;padding:4px 10px}
+ .fackts-tracks-page .library-toolbar{display:flex;gap:8px;flex-wrap:wrap}
+ .fackts-tracks-page .library-toolbar select{max-width:100%;width:100%}
+}

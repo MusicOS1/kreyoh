@@ -1,4 +1,5 @@
 import SplitPanel from "../../components/SplitPanel";
+import "./splitsResponsive.css";
 import Link from "next/link";
 import AppShell from "../../components/AppShell";
 import SplitPlanEditor, { SplitAction } from "../../components/SplitPlanEditor";
@@ -31,7 +32,7 @@ export default async function SplitsPage({ searchParams }: { searchParams: Promi
   const canManage = hasAnyRole(roles,["Super Admin","Admin","Project Lead","Project Admin"]);
   const members = (membersR.data || []).map((member:any)=>({id:member.user_id,name:creatorDisplayName(first(member.profiles))}));
   const filtered = tracks.filter((track:any)=>`${track.working_title} ${track.track_code}`.toLowerCase().includes((params.q || "").toLowerCase()));
-  return <AppShell><div className="content splits-page">
+  return <AppShell><div className="content splits-page fm-splits-v2">
     <div className="heading"><div><span className="eyebrow">{project.name}</span><h1>Credits & Splits</h1><p>Credits record who did the work. Splits record the agreed percentages.</p></div><Link href="/splits?view=mine">My pending approvals →</Link></div>
     {params.track && !selected ? <div className="panel"><h2>Song not found in this project</h2><Link href="/splits">View this project’s songs →</Link></div> : !selected ? <>
       <form method="get" className="split-search"><label>Find a song<input type="search" name="q" defaultValue={params.q || ""} placeholder="Song title or code"/></label><button>Search</button></form>

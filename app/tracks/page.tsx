@@ -1,4 +1,6 @@
 import TrackNotes from "../../components/TrackNotes";
+import "./artistUpload.css";
+import "./projectPlayer.css";
 import Link from "next/link";
 import AppShell from "../../components/AppShell";
 import BeatAudioPlayer from "../../components/BeatAudioPlayer";
@@ -14,10 +16,10 @@ import { creatorDisplayName } from "../../lib/profileIdentity";
 import { resolveArtworkUrl } from "../../lib/artwork";
 
 const trackFileRoles = ["Super Admin", "Project Lead", "A&R", "Producer", "Engineer"];
-const trackCreateRoles = ["Super Admin", "Project Lead", "A&R"];
+const trackCreateRoles = ["Super Admin", "Admin", "Project Lead", "A&R"];
 const DEFAULT_PROJECT_COVER = "/images/project-001-default-cover.png";
 
-export default async function TracksPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+export default async function TracksPage({ searchParams }: { searchParams: Promise<{ q?: string; upload?: string }> }) {
   const params = await searchParams;
   const search = String(params.q || "").trim().replace(/[,%()]/g, " ");
   const { project, membership, roles, user } = await getWorkspace();
@@ -129,6 +131,10 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
     };
   });
 
+  // Use the selected project's real cover when a track has no individual artwork.
+  // No asset records are created or modified by this fallback.
+  const projectCover = await resolveArtworkUrl((project as any).artwork_storage_key, (project as any).artwork_url).catch(() => null);
+  const coverFallback = projectCover || DEFAULT_PROJECT_COVER;
   const assetAudioUrls: Record<string, string> = {};
   const artworkUrls: Record<string, string> = {};
   if (isR2Configured()) {
@@ -147,9 +153,9 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
       ...tracks.map(async (track: any) => {
         try {
           const artwork = await resolveArtworkUrl(track.artwork_storage_key, track.artwork_url);
-          artworkUrls[track.id] = artwork || DEFAULT_PROJECT_COVER;
+          artworkUrls[track.id] = artwork || coverFallback;
         } catch (cause) {
-          artworkUrls[track.id] = DEFAULT_PROJECT_COVER;
+          artworkUrls[track.id] = coverFallback;
           console.error(
             `FACKTS MUSIC TRACK ARTWORK ERROR (${track.id}):`,
             cause instanceof Error ? cause.message : cause,
@@ -159,8 +165,8 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
     ]);
   } else {
     await Promise.all(tracks.map(async (track: any) => {
-      try { const artwork = await resolveArtworkUrl(track.artwork_storage_key, track.artwork_url); artworkUrls[track.id] = artwork || DEFAULT_PROJECT_COVER; }
-      catch { artworkUrls[track.id] = DEFAULT_PROJECT_COVER; }
+      try { const artwork = await resolveArtworkUrl(track.artwork_storage_key, track.artwork_url); artworkUrls[track.id] = artwork || coverFallback; }
+      catch { artworkUrls[track.id] = coverFallback; }
     }));
   }
 
@@ -208,9 +214,9 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
       <div data-native-catalogue className="content fackts-tracks-page">
         <div className="heading">
           <div>
-            <span className="eyebrow">PROJECT 001 / DEVELOPMENT</span>
-            <h1>Tracks in motion</h1>
-            <p>The connected record from original beat to contributors, versions, sessions and release readiness.</p>
+            <span className="eyebrow">{project.code || project.name} / PROJECT AUDIO</span>
+            <h1>Project recordings</h1>
+            <p>Audio added here stays within your project workflow; it is not a public release. <Link href="/billboard/submit">Publish finished music on FACKTS →</Link></p>
           </div>
           <div className="date"><span>{tracks.length} TRACKS</span></div>
         </div>
@@ -222,7 +228,7 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
               <h2>{displayVotingStats ? "Project Track Chart" : "Top 3 Selection Room"}</h2>
               <p>Listen to at least 60%, then rank your three strongest eligible tracks. #1 earns 5 points, #2 earns 3 and #3 earns 1. Live results stay private to reduce influence.</p>
             </div>
-            <span>{votingRound?.status === "closed" ? "ROUND CLOSED" : `${playlist.length} PLAYABLE`}</span>
+            <span>{tracks.length} TRACKS · {playlist.length} PLAYABLE VERSIONS</span>
           </div>
           {canViewPrivateVotingStats && !resultsVisible && votingRound && <div className="track-private-stats-note">PRIVATE ADMIN STATISTICS · Members still see hidden results</div>}
           {canManageVoting && votingRound && (
@@ -236,15 +242,15 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
             </form>
           )}
           {canManageVoting && !votingRound && <form action={updateTrackVotingRound} className="track-round-controls"><span>No voting round</span><button className="primary" name="intent" value="start_new">Start voting round</button></form>}
-          <TrackPlaylist storageKey={`fackts-project-playlists:${user.id}:${project.id}`} tracks={playlist as any} votingOpen={votingRound?.status === "open"} resultsVisible={displayVotingStats} showDetailedStats={canViewPrivateVotingStats} />
+          <TrackPlaylist storageKey={`fackts-project-playlists:${user.id}:${project.id}`} tracks={playlist as any} itemLabel="audio versions" votingOpen={votingRound?.status === "open"} resultsVisible={displayVotingStats} showDetailedStats={canViewPrivateVotingStats} />
         </section>
 
         {canCreate && (
-          <details className="beat-intake-disclosure track-intake-disclosure">
+          <details className="beat-intake-disclosure track-intake-disclosure" id="upload-track" open={params.upload === "1"}>
             <summary className="beat-intake-summary">
-              <span>TRACK INTAKE</span>
-              <strong>Upload a track</strong>
-              <small>Choose its source beat, audio and complete project credits.</small>
+              <span>PROJECT RECORDING · NOT PUBLIC</span>
+              <strong>Upload to this project</strong>
+              <small>Audio, optional recording details and required credits. Listeners cannot see it as a public release.</small>
               <b>Open +</b>
             </summary>
             <TrackIntakeForm beats={availableBeats} members={projectMembers} scope={`${user.id}:${project.id}`} />

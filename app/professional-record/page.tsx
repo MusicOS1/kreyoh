@@ -54,9 +54,23 @@ export default async function ProfessionalRecordPage(){
     .verification-ladder{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
     .verification-ladder div{padding:12px;border:1px solid rgba(255,255,255,.07);border-radius:12px}
     .claim-card{display:grid;gap:12px}.claim-head{display:flex;justify-content:space-between;gap:14px}
+    .professional-record-page{min-width:0;max-width:1100px}
+    .professional-record-page .platform-home-split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;min-width:0}
+    .professional-record-page .platform-home-split>.panel{min-width:0;overflow:hidden}
+    .professional-record-page .professional-credit-entry{display:grid!important;grid-template-columns:minmax(0,1fr) 26px;grid-template-rows:auto 1fr;align-items:start!important;gap:4px 12px;width:100%;min-width:0;max-width:100%;box-sizing:border-box;text-decoration:none;padding:15px!important;color:#fff}
+    .professional-record-page .professional-credit-code{grid-column:1;grid-row:1;display:inline-block;justify-self:start;max-width:100%;white-space:normal;overflow-wrap:break-word;word-break:normal;color:#A1A1AA;font:700 10px ui-monospace,monospace;letter-spacing:.03em}
+    .professional-record-page .professional-credit-copy{grid-column:1;grid-row:2;display:grid;gap:5px;min-width:0;max-width:100%;overflow:hidden}
+    .professional-record-page .professional-credit-copy strong{display:block;font-size:14px;white-space:normal;line-height:1.45;overflow-wrap:break-word;word-break:normal}
+    .professional-record-page .professional-credit-copy small{font-size:12px;line-height:1.5;color:#A1A1AA;overflow-wrap:break-word;word-break:normal;white-space:normal}
+    .professional-record-page .professional-credit-copy em{font-size:11px;font-style:normal;color:#FF6A00;line-height:1.45}
+    .professional-record-page .professional-credit-arrow{grid-column:2;grid-row:1/3;justify-self:end;color:#FF6A00;flex-shrink:0;font-size:18px}
+    .professional-record-page .home-list>div{min-width:0;max-width:100%;display:grid;grid-template-columns:minmax(0,1fr);gap:6px;overflow-wrap:break-word}
+    .professional-record-page .home-list span{min-width:0}
+    .professional-record-page .home-list small{overflow-wrap:break-word}
+    @media(max-width:1000px){.professional-record-page .platform-home-split{grid-template-columns:minmax(0,1fr)}}
     @media(max-width:800px){.record-stats,.verification-ladder{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:560px){.record-stats,.verification-ladder{grid-template-columns:1fr}}
-  `}</style><div className="content operations-page">
+  `}</style><div className="content operations-page professional-record-page">
     <div className="heading"><div><span className="eyebrow">CREATOR RECORD / TRUST LAYER</span><h1>My Professional Record</h1><p><a href="/professional-onboarding">Professional identity &amp; verification →</a></p><p>Build a credible record of what you actually produced, wrote, performed or engineered. Claims are never treated as verified facts just because you typed them.</p></div></div>
 
     <section className="record-stats">
@@ -81,7 +95,7 @@ export default async function ProfessionalRecordPage(){
       <article className="panel">
         <span className="eyebrow">INTERNAL FACKTS CREDITS</span><h2>Credits created inside projects</h2>
         {!internal.length&&<p>No internal track credits yet.</p>}
-        <RecordBrowser label="credited tracks" items={internal.map((c:any)=>({id:`credit-${c.id}`,title:first(c.tracks)?.working_title||"Untitled track",code:first(c.tracks)?.track_code,status:c.approved?"Verified":"Awaiting verification"}))}>{internal.map((credit:any)=>{const track=first(credit.tracks),proj=first(track?.projects);return<Link id={`credit-${credit.id}`} key={credit.id} href={track?projectLink(track.project_id,`/track-records/${track.id}`):"/tracks"}><time>{track?.track_code||"TRACK"}</time><span><strong>{track?.working_title||"Untitled track"}</strong><small>{String(credit.contribution_role).replaceAll("_"," ")} · {proj?.name||proj?.code||"FACKTS project"} · {credit.approved?"✓ FACKTS Verified":"Recorded — awaiting project verification"}</small></span></Link>})}</RecordBrowser>
+        <RecordBrowser label="credited tracks" items={internal.map((c:any)=>({id:`credit-${c.id}`,title:first(c.tracks)?.working_title||"Untitled track",code:first(c.tracks)?.track_code,status:c.approved?"Verified":"Awaiting verification"}))}>{internal.map((credit:any)=>{const track=first(credit.tracks),proj=first(track?.projects);return<Link className="professional-credit-entry" id={`credit-${credit.id}`} key={credit.id} href={track?projectLink(track.project_id,`/track-records/${track.id}`):"/tracks"}><time className="professional-credit-code">{track?.track_code||"TRACK"}</time><span className="professional-credit-copy"><strong>{track?.working_title||"Untitled track"}</strong><small>{String(credit.contribution_role).replaceAll("_"," ")} · {proj?.name||proj?.code||"FACKTS project"}</small><em>{credit.approved?"✓ FACKTS verified":"Awaiting project verification"}</em></span><span className="professional-credit-arrow" aria-hidden="true">↗</span></Link>})}</RecordBrowser>
       </article>
 
       <article className="panel">

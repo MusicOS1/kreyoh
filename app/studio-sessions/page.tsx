@@ -1,5 +1,6 @@
 import Link from "next/link";
 import SessionParticipantsDropdown from "../../components/SessionParticipantsDropdown";
+import SearchableSessionTrack from "../../components/SearchableSessionTrack";
 import "../../components/session-participants.css";
 import {readAllRows} from "../../lib/recordReads";
 import RecordBrowser from "../../components/RecordBrowser";
@@ -28,7 +29,38 @@ export default async function SessionsPage() {
   const memberOptions = (members || []).map((member: any) => ({ id: member.user_id, name: creatorDisplayName(first(member.profiles)) }));
   return <AppShell><div className="content studio-history-page">
     <div className="heading"><div><span className="eyebrow">{project.code} / STUDIO MEMORY</span><h1>Studio Sessions</h1><p>{project.name} · {sessions.length} accessible sessions, including historical records.</p></div></div>
-    {canManage && <details className="beat-intake-disclosure"><summary className="beat-intake-summary"><span>SESSION CONTROL</span><strong>Schedule or record a session</strong><small>Use Past session for your media-backed backlog.</small><b>Open +</b></summary><form action={createSession} className="panel operations-form"><label>Session type<select name="is_backlog" defaultValue="false"><option value="false">Upcoming / live session</option><option value="true">Past session / backlog</option></select></label><label>Start<input type="datetime-local" name="starts_at" required /></label><label>End<input type="datetime-local" name="ends_at" /></label><label>Location<input name="location" placeholder="Studio / room" /></label><label>Track<select name="track_id" defaultValue=""><option value="">Project-wide session</option>{(tracks ?? []).map((track: any) => <option key={track.id} value={track.id}>{track.working_title}</option>)}</select></label><SessionParticipantsDropdown key={project.id} options={memberOptions}/><label>Engineer<select name="engineer_id"><option value="">Not assigned</option>{memberOptions.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}</select></label><label>Producer<select name="producer_id"><option value="">Not assigned</option>{memberOptions.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}</select></label><label className="full">Focus / memory notes<textarea name="notes" placeholder="What was planned or what do you remember happening?" /></label><label className="full">Outcome<textarea name="outcomes" placeholder="What came out of the session?" /></label><label className="full">Drive / Dropbox media folder<input type="url" name="media_source_url" placeholder="Paste the folder link containing photos, videos or session audio" /></label><label className="full">Media clues<textarea name="media_notes" placeholder="Who appears, filenames, clips, or anything that helps date and reconstruct the session" /></label><button>Create session record</button></form></details>}
+    {canManage && <section className="session-quick-booking" id="schedule-session" aria-labelledby="schedule-title">
+      <div className="session-booking-heading">
+        <span className="eyebrow">QUICK BOOKING</span>
+        <h2 id="schedule-title">Schedule a session</h2>
+        <p>Start with the date and place. Add production details only when you need them.</p>
+      </div>
+      <form action={createSession} className="panel operations-form session-booking-form">
+        <label>Session start <span aria-hidden="true">*</span><input type="datetime-local" name="starts_at" required /></label>
+        <label>Location (optional)<input name="location" placeholder="Studio / room" /></label>
+        <button className="session-book-submit" type="submit">Schedule session ↗</button>
+        <details className="session-booking-optional">
+          <summary>Add track, people, notes or past-session details (optional)</summary>
+          <div className="session-optional-grid">
+            <label>Session type
+              <select name="is_backlog" defaultValue="false">
+                <option value="false">Upcoming / live session</option>
+                <option value="true">Past session / backlog</option>
+              </select>
+            </label>
+            <label>End time<input type="datetime-local" name="ends_at" /></label>
+            <SearchableSessionTrack options={(tracks??[]).map((track:any)=>({id:track.id,title:track.working_title||'Untitled track'}))}/>
+            <SessionParticipantsDropdown key={project.id} options={memberOptions}/>
+            <label>Engineer (optional)<select name="engineer_id" defaultValue=""><option value="">Not assigned</option>{memberOptions.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}</select></label>
+            <label>Producer (optional)<select name="producer_id" defaultValue=""><option value="">Not assigned</option>{memberOptions.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}</select></label>
+            <label>Focus / session notes<textarea name="notes" placeholder="What are you planning?" /></label>
+            <label>Outcome<textarea name="outcomes" placeholder="For completed sessions" /></label>
+            <label>Media folder link<input type="url" name="media_source_url" placeholder="Drive or Dropbox URL" /></label>
+            <label>Media notes<textarea name="media_notes" placeholder="Clips, filenames or details" /></label>
+          </div>
+        </details>
+      </form>
+    </section>}
     <RecordBrowser label="sessions" timeFilter items={sessions.map((s:any)=>({id:`session-${s.id}`,title:first(s.tracks)?.working_title||"Project-wide session",code:s.location||"",status:s.status,date:s.starts_at}))}>{(sessions ?? []).map((session: any) => { const linkedTrack = first(session.tracks); return <details className="session-history-card" key={session.id} id={`session-${session.id}`}>
       <summary><strong>{linkedTrack?.working_title||"Project-wide session"}</strong> · {new Date(session.starts_at).toLocaleString("en-KE")} · {session.status.replaceAll("_"," ")}</summary><Link href={`/studio-sessions#session-${session.id}`}>Link to this session →</Link><header><div><span className="eyebrow">{session.is_backlog ? "HISTORICAL RECORD" : "STUDIO SESSION"}</span><h2>{linkedTrack?.working_title || "Project-wide session"}</h2><p>{new Date(session.starts_at).toLocaleString("en-KE")} · {session.location || "Location pending"}</p></div><span className={`status-pill ${session.status}`}>{session.status.replaceAll("_", " ")}</span></header>
       <p>{session.notes || "No session notes yet."}</p>{session.media_notes&&<p>{session.media_notes}</p>}

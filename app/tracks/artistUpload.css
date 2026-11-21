@@ -1,0 +1,37 @@
+/* Artist track intake only. No player, storage, permission or business-rule changes. */
+.artist-track-wizard{display:block!important;min-width:0;max-width:100%;padding:22px!important;background:#141414!important;color:#fff!important;border:1px solid #ffffff24!important}
+.artist-track-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:25px}
+.artist-track-steps span{padding:11px 8px;border-bottom:2px solid #444;text-align:center;font-size:11px;font-weight:700;color:#A1A1AA}
+.artist-track-steps span[aria-current='step']{color:#FF6A00;border-color:#FF6A00}
+.artist-wizard-pane{min-width:0}
+.artist-wizard-pane h3{font-family:'Gotham','DM Sans',sans-serif;font-size:21px;color:#fff;margin:5px 0 8px}
+.artist-wizard-pane p{color:#A1A1AA;font-size:13px;line-height:1.6;margin-bottom:18px}
+.artist-track-wizard .track-intake-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;min-width:0;margin-bottom:20px}
+.artist-track-wizard .track-intake-grid label{display:grid;gap:6px;min-width:0;font-size:12px;color:#fff}
+.artist-track-wizard input,.artist-track-wizard select,.artist-track-wizard textarea{min-width:0;max-width:100%;box-sizing:border-box;background:#0B0B0B;color:#fff;border:1px solid #ffffff35;border-radius:8px;min-height:44px;padding:10px;font:inherit}
+.artist-track-wizard input[type='file']{width:100%;min-height:52px}
+.artist-track-wizard label small{color:#A1A1AA;font-size:11px;line-height:1.5}
+.artist-track-wizard .track-credit-editor{min-width:0}
+.artist-track-wizard .track-credit-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.artist-track-wizard .track-credit-rows{display:grid;gap:12px}
+.artist-track-wizard .track-credit-row{display:grid;grid-template-columns:28px minmax(0,1fr) minmax(0,1fr) auto;gap:10px;align-items:end;min-width:0}
+.artist-track-wizard .track-credit-row > label{display:grid;gap:6px;min-width:0;font-size:12px;color:#fff}
+.artist-track-wizard .track-credit-row > span{align-self:center;color:#A1A1AA}
+.artist-track-wizard .track-credit-row > button,.artist-track-wizard .track-credit-add{min-height:44px;padding:8px 10px;background:#232323;border:1px solid #ffffff25;border-radius:8px;color:#fff;cursor:pointer}
+.artist-track-wizard .artist-external-credit-hint{margin:20px 0 4px}
+.artist-track-wizard .artist-external-credit-hint a{color:#FF6A00}
+.artist-wizard-controls{display:flex;justify-content:flex-end;gap:12px;margin-top:20px}
+.artist-wizard-controls button{min-height:46px;padding:10px 20px;border:1px solid #ffffff30;border-radius:9px;color:#fff;background:#282828;font-weight:700;cursor:pointer}
+.artist-wizard-controls button:last-child{background:#FF6A00;color:#0B0B0B;border-color:#FF6A00}
+.artist-wizard-controls button:disabled{opacity:.5;cursor:wait}
+@media(max-width:760px){
+ .artist-track-wizard{padding:16px!important}
+ .artist-track-wizard .track-intake-grid{grid-template-columns:minmax(0,1fr)}
+ .artist-track-wizard .track-credit-row{grid-template-columns:minmax(0,1fr);gap:8px;padding:12px;border:1px solid #ffffff20;border-radius:9px}
+ .artist-track-wizard .track-credit-row > span{font-size:10px}
+ .artist-track-wizard .track-credit-row > label,.artist-track-wizard .track-credit-row > button{width:100%}
+ .artist-track-wizard input,.artist-track-wizard select,.artist-track-wizard textarea{font-size:16px!important}
+ .artist-wizard-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .artist-wizard-controls button:only-child{grid-column:1/-1}
+ .artist-wizard-controls button{width:100%}
+}

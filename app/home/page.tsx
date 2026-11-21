@@ -8,5 +8,7 @@ export default async function PlatformHomePage(){
  const preference=cookieStore.get('fm_workspace')?.value;
  const selected=preferredWorkspace(identity.workspaces,preference?.startsWith(`${identity.id}:`)?preference.slice(identity.id.length+1):null);
  if(selected.kind==='listener')redirect('/fan');
+ // Artists have one canonical home, rather than identical /home and /workspaces/artist views.
+ if(selected.kind==='artist')redirect('/workspaces/artist');
  return <WorkspaceDashboard kind={selected.kind}/>;
 }

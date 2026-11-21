@@ -26,6 +26,8 @@ function newCredit():CreditRow {
 export default function TrackIntakeForm({beats,members,scope}:{beats:BeatOption[];members:MemberOption[];scope:string}) {
   const router=useRouter();
   const prepared=useRef<{signature:string;trackId:string;uploadId?:string}|null>(null);
+  const formRef=useRef<HTMLFormElement>(null);
+  const [step,setStep]=useState(1);
   const [progress,setProgress]=useState(0);
   const [pendingTrack,setPendingTrack]=useState("");
   const [credits,setCredits]=useState<CreditRow[]>([newCredit()]);
@@ -97,6 +99,8 @@ export default function TrackIntakeForm({beats,members,scope}:{beats:BeatOption[
       localStorage.removeItem(key);localStorage.removeItem(intakeKey);prepared.current=null;setPendingTrack("");
 
       setCredits([newCredit()]);
+      formRef.current?.reset();
+      setStep(1);
       setMessage("Track added. The source beat stays in the pool and can be used for another song.");
       setBusy(false);
       router.refresh();
@@ -107,57 +111,94 @@ export default function TrackIntakeForm({beats,members,scope}:{beats:BeatOption[
     }
   }
 
-  return <form onSubmit={submit} className="panel track-intake-form">
-    <div className="track-intake-grid">
-      <label>Track title *<input name="working_title" required placeholder="Working or final title"/></label>
-      <label>Track code<input name="track_code" placeholder="Generated if blank"/></label>
-      <label>Source beat
-        <select name="beat_id" defaultValue="">
-          <option value="">Original track / no library beat</option>
-          {beatOptions.map(beat=><option key={beat.id} value={beat.id}>{beat.beat_code||"BEAT"} — {beat.title||"Untitled beat"}{beat.producer_name?` · ${beat.producer_name}`:""}</option>)}
-        </select>
-        <small>Beats stay in the library after being used. The same beat can create multiple songs or versions.</small>
-      </label>
-      <label>Starting stage
-        <select name="development_status" defaultValue="in_development">
-          <option value="in_development">In Development</option><option value="revision">Revision</option>
-          <option value="in_studio">In Studio</option><option value="mixing">Mixing</option>
-          <option value="mastering">Mastering</option>
-        </select>
-      </label>
-      <label>File type
-        <select name="asset_kind" defaultValue="demo">
-          <option value="demo">Demo</option><option value="rough_mix">Rough mix</option>
-          <option value="mix">Mix</option><option value="master">Master</option><option value="reference">Reference</option>
-        </select>
-      </label>
-      <label>Track audio *<input name="track_file" type="file" accept="audio/*" required/></label>
-      <label>First-version note<input name="version_note" maxLength={280} placeholder="Demo context, changes needed, or recording note"/></label>
-    </div>
+  function nextStep(){
+    const form=formRef.current;
+    if(!form)return;
+    if(step===1){
+      const fields=new FormData(form);
+      const title=String(fields.get("working_title")||"").trim();
+      const file=fields.get("track_file");
+      if(!title){setError("Give your track a title first.");return;}
+      if(!(file instanceof File)||!file.size){setError("Choose the audio file before continuing.");return;}
+    }
+    setError("");
+    setStep(current=>Math.min(3,current+1));
+  }
 
-    <section className="track-credit-editor">
-      <div className="track-credit-heading">
-        <div><span className="eyebrow">TRACK CREDITS</span><h3>Who contributed?</h3></div>
-        <button type="button" className="track-credit-add" onClick={()=>setCredits(c=>[...c,newCredit()])}>+ Add credit</button>
+  return <form ref={formRef} onSubmit={submit} className="panel track-intake-form artist-track-wizard" aria-label="Upload a project track">
+    <div className="artist-track-steps" aria-label="Upload progress">
+      <span aria-current={step===1?"step":undefined}>1. Audio</span>
+      <span aria-current={step===2?"step":undefined}>2. Details</span>
+      <span aria-current={step===3?"step":undefined}>3. Credits</span>
+    </div>
+    <div className="artist-wizard-pane" style={{display:step===1?"block":"none"}} aria-hidden={step!==1}>
+      <h3>Start with the music</h3>
+      <p>Upload the track and give it a working title. You can fine-tune the other details next.</p>
+      <div className="track-intake-grid">
+        <label>Track title *<input name="working_title" required placeholder="Working or final title" /></label>
+        <label>Audio file *<input name="track_file" type="file" accept="audio/*" required /></label>
       </div>
+    </div>
+    <div className="artist-wizard-pane" style={{display:step===2?"block":"none"}} aria-hidden={step!==2}>
+      <h3>Track details</h3>
+      <p>All of these are optional. Existing defaults are kept unless you change them.</p>
+      <div className="track-intake-grid">
+        <label>Source beat
+          <select name="beat_id" defaultValue="">
+            <option value="">Original track / no library beat</option>
+            {beatOptions.map(beat=><option key={beat.id} value={beat.id}>{beat.beat_code||"BEAT"} — {beat.title||"Untitled beat"}{beat.producer_name?` · ${beat.producer_name}`:""}</option>)}
+          </select>
+          <small>A beat stays in the library and can be used on more than one song.</small>
+        </label>
+        <label>Starting stage
+          <select name="development_status" defaultValue="in_development">
+            <option value="in_development">In Development</option><option value="revision">Revision</option>
+            <option value="in_studio">In Studio</option><option value="mixing">Mixing</option>
+            <option value="mastering">Mastering</option>
+          </select>
+        </label>
+        <label>Audio version type
+          <select name="asset_kind" defaultValue="demo">
+            <option value="demo">Demo</option><option value="rough_mix">Rough mix</option>
+            <option value="mix">Mix</option><option value="master">Master</option><option value="reference">Reference</option>
+          </select>
+        </label>
+        <label>Track code <input name="track_code" placeholder="Generated if left blank" /></label>
+        <label>First-version note <input name="version_note" maxLength={280} placeholder="Demo context or changes needed" /></label>
+      </div>
+    </div>
+    <section className="track-credit-editor artist-wizard-pane" style={{display:step===3?"block":"none"}} aria-hidden={step!==3}>
+      <div className="track-credit-heading">
+        <div><span className="eyebrow">REQUIRED · BEFORE UPLOAD</span><h3>Who worked on this recording?</h3></div>
+        <button type="button" className="track-credit-add" disabled={busy} onClick={()=>setCredits(c=>[...c,newCredit()])}>+ Add contributor</button>
+      </div>
+      <p>Select at least one project member and their contribution role. These are track credits, not ownership or royalty agreements.</p>
       <div className="track-credit-rows">
         {credits.map((credit,index)=><div className="track-credit-row" key={credit.key}>
           <span>{String(index+1).padStart(2,"0")}</span>
-          <select aria-label={`Contributor ${index+1}`} value={credit.userId} onChange={e=>updateCredit(credit.key,{userId:e.target.value})}>
-            <option value="">Choose project member</option>{members.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}
-          </select>
-          <select aria-label={`Credit role ${index+1}`} value={credit.role} onChange={e=>updateCredit(credit.key,{role:e.target.value})}>
-            {creditRoles.map(([value,label])=><option key={value} value={value}>{label}</option>)}
-          </select>
-          <button type="button" disabled={credits.length===1} onClick={()=>setCredits(c=>c.filter(item=>item.key!==credit.key))}>Remove</button>
+          <label>Contributor
+            <select aria-label={`Contributor ${index+1}`} value={credit.userId} onChange={e=>updateCredit(credit.key,{userId:e.target.value})}>
+              <option value="">Choose project member</option>{members.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}
+            </select>
+          </label>
+          <label>Role
+            <select aria-label={`Credit role ${index+1}`} value={credit.role} onChange={e=>updateCredit(credit.key,{role:e.target.value})}>
+              {creditRoles.map(([value,label])=><option key={value} value={value}>{label}</option>)}
+            </select>
+          </label>
+          <button type="button" disabled={credits.length===1||busy} onClick={()=>setCredits(c=>c.filter(item=>item.key!==credit.key))}>Remove</button>
         </div>)}
       </div>
+      <p className="artist-external-credit-hint">Featured artist not yet registered? You can type their name in the <a href="/billboard/submit">release credits editor</a>. Project track credits still require an active project member.</p>
     </section>
-
     {busy&&<progress value={progress} max={100} aria-label="Initial track upload progress"/>}
     {pendingTrack&&<p><a href={`/production#track-${pendingTrack}`}>Registered track: continue or resume in Production →</a></p>}
     {error&&<div className="form-error-alert" role="alert">{error}</div>}
     {message&&<div className="form-success-alert" role="status">{message}</div>}
-    <button className="track-intake-submit" disabled={busy}>{busy?"Uploading track…":"Add track to project"}</button>
+    <div className="artist-wizard-controls">
+      {step>1&&<button type="button" disabled={busy} onClick={()=>{setError("");setStep(current=>current-1);}}>Back</button>}
+      {step<3?<button type="button" disabled={busy} onClick={nextStep}>Continue ↗</button>:
+        <button type="submit" className="track-intake-submit" disabled={busy}>{busy?"Uploading track…":"Upload track"}</button>}
+    </div>
   </form>;
 }

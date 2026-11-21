@@ -134,3 +134,27 @@
 .studio-history-page .beat-intake-disclosure .operations-form{overflow:visible!important}
 .studio-history-page .session-participants-field{align-self:stretch}
 @media(max-width:580px){.session-participants-options{max-height:215px}}
+
+/* Lightweight session booking: the same form fields and server action are retained. */
+.session-quick-booking{margin:20px 0 28px;max-width:100%;min-width:0}
+.session-booking-heading h2{font-family:'Gotham','DM Sans',sans-serif;font-size:22px;margin:7px 0;color:#fff}
+.session-booking-heading p{color:#A1A1AA;font-size:13px;line-height:1.6}
+.session-booking-form{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr)) auto;align-items:end;gap:12px!important;padding:20px!important;min-width:0}
+.session-booking-form > label{min-width:0;display:grid;gap:7px;font-size:12px}
+.session-booking-form > label > input{min-height:46px;width:100%;min-width:0;box-sizing:border-box}
+.session-book-submit{min-height:46px;background:#FF6A00!important;border:0!important;color:#0B0B0B!important;font-weight:700;white-space:nowrap;cursor:pointer}
+.session-booking-optional{grid-column:1/-1;min-width:0}
+.session-booking-optional summary{display:flex;align-items:center;min-height:44px;cursor:pointer;color:#A1A1AA;font-size:12px}
+.session-optional-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;border-top:1px solid #ffffff18;padding-top:16px;min-width:0}
+.session-optional-grid > label,.session-optional-grid .session-track-picker,.session-optional-grid .session-participants-field{min-width:0}
+.session-optional-grid input,.session-optional-grid select,.session-optional-grid textarea{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
+.session-track-picker{position:relative;display:grid;gap:6px}
+.session-track-picker > label{font-size:12px}
+.session-track-search{display:flex;align-items:center;gap:7px}
+.session-track-search input{flex:1;min-height:44px}
+.session-track-search button{min-height:44px;padding:0 9px;background:#222;border:1px solid #ffffff20;border-radius:7px;color:#fff}
+.session-track-options{position:absolute;z-index:25;left:0;right:0;top:100%;max-height:220px;overflow-y:auto;border:1px solid #ffffff30;background:#181818;border-radius:9px;box-shadow:0 10px 35px #0009}
+.session-track-options button{display:block;text-align:left;width:100%;min-height:44px;padding:10px 12px;background:transparent;border:0;color:#fff;cursor:pointer}
+.session-track-options button:hover,.session-track-options button:focus-visible{background:#ff6a0020}
+.session-track-options p{padding:12px;color:#A1A1AA;font-size:12px}
+@media(max-width:760px){.session-booking-form{grid-template-columns:minmax(0,1fr)!important;padding:16px!important}.session-booking-optional{grid-column:1}.session-optional-grid{grid-template-columns:minmax(0,1fr)}.session-booking-form input,.session-booking-form select,.session-booking-form textarea{font-size:16px!important}.session-book-submit{width:100%}}
