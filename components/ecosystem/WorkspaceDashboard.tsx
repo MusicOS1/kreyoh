@@ -13,8 +13,58 @@ export default async function WorkspaceDashboard({
 }: {
   kind: WorkspaceKind;
 }) {
-  const { config, identity, projectIds, sections, metrics, projects, profile,trackRows,tracksUnavailable } =
+  const { config, identity, projectIds, sections, metrics, projects, profile,trackRows,tracksUnavailable,canCreateTrack,canScheduleSession } =
     await loadWorkspaceDashboard(kind);
+  // An artist arrives at a short task list, not a second project command centre.
+  // Permission-sensitive actions remain protected by their original server actions.
+  if (kind === 'artist') {
+    const selectedProject = projects[0];
+    return (
+      <EcosystemShell active={kind}>
+        <main className={`${styles.dashboard} ${styles.artistHome}`}>
+          <header className={styles.artistWelcome}>
+            <span className={styles.eyebrow}>FACKTS MUSIC / ARTIST</span>
+            <h1>Artist home</h1>
+            <p>What would you like to make today? Start with one action.</p>
+          </header>
+          <nav className={styles.artistActions} aria-label="Start creating">
+            <Link href="/projects#start-project">
+              <span>01 · START</span>
+              <strong>Create project</strong>
+              <small>Give your next single, EP or album a home.</small>
+              <b aria-hidden="true">↗</b>
+            </Link>
+            <Link href={projectIds.length && canScheduleSession ? '/studio-sessions#schedule-session' : '/projects'}>
+              <span>02 · PLAN</span>
+              <strong>Schedule session</strong>
+              <small>{projectIds.length && canScheduleSession ? 'Set the time now. Add people and notes if needed.' : 'Open a project with session scheduling access first.'}</small>
+              <b aria-hidden="true">↗</b>
+            </Link>
+            <Link href={projectIds.length && canCreateTrack ? '/tracks?upload=1#upload-track' : '/projects#start-project'}>
+              <span>03 · RECORD</span>
+              <strong>Upload music</strong>
+              <small>{projectIds.length && canCreateTrack ? 'Add audio, choose its context and credit the contributors.' : 'Create or open a project you can lead to upload.'}</small>
+              <b aria-hidden="true">↗</b>
+            </Link>
+          </nav>
+          <section className={styles.artistProject}>
+            <div>
+              <span className={styles.eyebrow}>CURRENT PROJECT</span>
+              <h2>{selectedProject?.name || 'No project selected'}</h2>
+              <p>{selectedProject ? (selectedProject.next_action || 'Keep your next recording moving.') : 'Choose an existing project or start a new one to get going.'}</p>
+            </div>
+            <Link href="/projects">View my projects ↗</Link>
+          </section>
+          <section className={styles.artistRecent}>
+            <header><div><h2>Recent music</h2><p>Your actual recordings in the selected project.</p></div><Link href="/tracks">All music ↗</Link></header>
+            {tracksUnavailable ? <p role="alert">Music records could not be loaded. Try again.</p> :
+              trackRows.length ? <div className={styles.artistRecentList}>{trackRows.slice(0,4).map(row=><Link key={row.id} href={row.href}><strong>{row.title}</strong><small>{row.detail}</small><span>{row.status || 'In progress'} ↗</span></Link>)}</div>
+                : <p>No recordings here yet. Use Upload music to begin when you have project permission.</p>}
+          </section>
+        </main>
+      </EcosystemShell>
+    );
+  }
   return (
     <EcosystemShell active={kind}>
       <main className={styles.dashboard}>
