@@ -602,8 +602,8 @@
 .artistRecentList {display:grid;gap:8px}
 .artistRecentList a {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px;padding:14px 16px;background:#171717;border:1px solid #ffffff14;border-radius:10px;text-decoration:none;color:#fff;min-height:44px}
 .artistRecentList strong {font-size:13px;overflow-wrap:anywhere}
-.artistRecentList small {grid-column:1;grid-row:2;font-size:11px;color:#A1A1AA}
-.artistRecentList span {grid-column:2;grid-row:1/3;align-self:center;color:#FF6A00;font-size:11px;text-align:right}
+/* Child placement is owned by the named artwork, copy and arrow classes below.
+   Do not style all nested spans here: that sends the song title to the far right. */
 @media(max-width:760px) {
   .artistHome {padding:18px 16px 100px;min-width:0}
   .artistActions {grid-template-columns:1fr;gap:10px;margin:22px 0}
@@ -611,8 +611,7 @@
   .artistActions strong {font-size:18px}
   .artistActions b {top:40px}
   .artistProject,.artistRecent > header {align-items:flex-start;flex-direction:column;gap:8px}
-  .artistRecentList a {grid-template-columns:minmax(0,1fr);min-width:0}
-  .artistRecentList span {grid-column:1;grid-row:auto;text-align:left}
+  .artistRecentList a {min-width:0}
 }
 
 .artistHome .artistRecentList a{display:grid;grid-template-columns:54px minmax(0,1fr) 24px;gap:12px;align-items:center;min-height:72px;box-sizing:border-box}
