@@ -1,0 +1,15 @@
+.create{display:grid;grid-template-columns:minmax(210px,1fr) minmax(0,1.35fr);align-items:start;gap:24px;background:#151515!important;border:1px solid #ffffff24!important;padding:24px!important;margin-bottom:28px}
+.create h2{font-family:'Gotham','DM Sans',Arial,sans-serif;font-size:24px;color:#fff;margin:7px 0}
+.create p{color:#A1A1AA;font-size:13px;line-height:1.6;max-width:330px}
+.form{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px;min-width:0}
+.form > label{grid-column:1/-1;color:#fff;font-size:12px;font-weight:700}
+.form > input{grid-column:1;min-width:0;width:100%;min-height:46px;box-sizing:border-box;padding:12px;background:#0B0B0B;color:#fff;border:1px solid #ffffff40;border-radius:9px;font:inherit}
+.form > button{grid-column:2;min-height:46px;border:0;border-radius:9px;background:#FF6A00;color:#0B0B0B;font:inherit;font-weight:750;padding:0 16px;cursor:pointer}
+.optional{grid-column:1/-1;margin-top:5px;min-width:0}
+.optional summary{font-size:12px;cursor:pointer;color:#A1A1AA;min-height:44px;display:flex;align-items:center}
+.optionalFields{display:grid;gap:12px;padding:8px 0}
+.optionalFields label{font-size:12px;color:#ddd;display:grid;gap:6px;min-width:0}
+.optionalFields input:not([type='checkbox']),.optionalFields select,.optionalFields textarea{width:100%;min-width:0;max-width:100%;box-sizing:border-box;padding:11px;min-height:44px;border:1px solid #ffffff2b;border-radius:8px;background:#0B0B0B;color:#fff;font:inherit}
+.optionalFields .check{display:flex;gap:10px;align-items:center;min-height:44px}
+.optionalFields .check input{width:18px;height:18px;accent-color:#FF6A00}
+@media(max-width:760px){.create{grid-template-columns:minmax(0,1fr);padding:18px!important;gap:14px}.form{grid-template-columns:minmax(0,1fr)}.form > input,.form > button{grid-column:1}.form > button{width:100%}.create input,.create select,.create textarea{font-size:16px!important}}
