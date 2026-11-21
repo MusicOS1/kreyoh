@@ -1,4 +1,5 @@
 import TrackNotes from "../../components/TrackNotes";
+import "./artistUpload.css";
 import Link from "next/link";
 import AppShell from "../../components/AppShell";
 import BeatAudioPlayer from "../../components/BeatAudioPlayer";
@@ -14,10 +15,10 @@ import { creatorDisplayName } from "../../lib/profileIdentity";
 import { resolveArtworkUrl } from "../../lib/artwork";
 
 const trackFileRoles = ["Super Admin", "Project Lead", "A&R", "Producer", "Engineer"];
-const trackCreateRoles = ["Super Admin", "Project Lead", "A&R"];
+const trackCreateRoles = ["Super Admin", "Admin", "Project Lead", "A&R"];
 const DEFAULT_PROJECT_COVER = "/images/project-001-default-cover.png";
 
-export default async function TracksPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+export default async function TracksPage({ searchParams }: { searchParams: Promise<{ q?: string; upload?: string }> }) {
   const params = await searchParams;
   const search = String(params.q || "").trim().replace(/[,%()]/g, " ");
   const { project, membership, roles, user } = await getWorkspace();
@@ -222,7 +223,7 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
               <h2>{displayVotingStats ? "Project Track Chart" : "Top 3 Selection Room"}</h2>
               <p>Listen to at least 60%, then rank your three strongest eligible tracks. #1 earns 5 points, #2 earns 3 and #3 earns 1. Live results stay private to reduce influence.</p>
             </div>
-            <span>{votingRound?.status === "closed" ? "ROUND CLOSED" : `${playlist.length} PLAYABLE`}</span>
+            <span>{votingRound?.status === "closed" ? "ROUND CLOSED" : `${tracks.length} TRACKS · ${playlist.length} PLAYABLE VERSIONS`}</span>
           </div>
           {canViewPrivateVotingStats && !resultsVisible && votingRound && <div className="track-private-stats-note">PRIVATE ADMIN STATISTICS · Members still see hidden results</div>}
           {canManageVoting && votingRound && (
@@ -236,15 +237,15 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
             </form>
           )}
           {canManageVoting && !votingRound && <form action={updateTrackVotingRound} className="track-round-controls"><span>No voting round</span><button className="primary" name="intent" value="start_new">Start voting round</button></form>}
-          <TrackPlaylist storageKey={`fackts-project-playlists:${user.id}:${project.id}`} tracks={playlist as any} votingOpen={votingRound?.status === "open"} resultsVisible={displayVotingStats} showDetailedStats={canViewPrivateVotingStats} />
+          <TrackPlaylist storageKey={`fackts-project-playlists:${user.id}:${project.id}`} tracks={playlist as any} itemLabel="audio versions" votingOpen={votingRound?.status === "open"} resultsVisible={displayVotingStats} showDetailedStats={canViewPrivateVotingStats} />
         </section>
 
         {canCreate && (
-          <details className="beat-intake-disclosure track-intake-disclosure">
+          <details className="beat-intake-disclosure track-intake-disclosure" id="upload-track" open={params.upload === "1"}>
             <summary className="beat-intake-summary">
               <span>TRACK INTAKE</span>
               <strong>Upload a track</strong>
-              <small>Choose its source beat, audio and complete project credits.</small>
+              <small>Three steps: audio, optional details, then required contributor credits.</small>
               <b>Open +</b>
             </summary>
             <TrackIntakeForm beats={availableBeats} members={projectMembers} scope={`${user.id}:${project.id}`} />
