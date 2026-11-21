@@ -1,0 +1,290 @@
+/* FACKTS Music / aligned creator forms.
+   Geometry is scoped to creator form patterns; no global button or input reset. */
+
+/* Form labels are above their fields, never attached to the left edge. */
+.beat-registration-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 20px;
+  align-items: start;
+  min-width: 0;
+  padding: clamp(16px, 2vw, 24px);
+}
+.beat-registration-form > label,
+.operations-form:not([role="search"]) > label,
+.beat-metadata-editor form > label,
+.session-inline-tool form > label,
+.control-catalog-metadata > label {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.45;
+  overflow-wrap: break-word;
+}
+.beat-registration-form > label {
+  color: #f4f4f5;
+}
+.beat-registration-form > label > :is(input, select, textarea),
+.operations-form > label > :is(input, select, textarea),
+.beat-metadata-editor form > label > :is(input, select, textarea),
+.session-inline-tool form > label > :is(input, select, textarea),
+.control-catalog-metadata > label > :is(input, select, textarea) {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 10px 13px;
+  font: inherit;
+  font-weight: 450;
+  line-height: 1.4;
+}
+.beat-registration-form > label > :is(select, input[type="file"]) {
+  padding-right: 12px;
+}
+.beat-registration-form > label > textarea {
+  min-height: 94px;
+  padding-top: 12px;
+  resize: vertical;
+}
+.beat-registration-form > .wide,
+.beat-registration-form > .full {
+  grid-column: 1 / -1;
+}
+.beat-registration-form > .submit-beat-btn {
+  grid-column: 1 / -1;
+  justify-self: start;
+  width: min(100%, 300px);
+  min-height: 46px;
+  padding: 11px 18px;
+  font-size: 13px;
+  text-align: center;
+  cursor: pointer;
+}
+.beat-registration-form > :is(.form-error-alert,.form-success-alert) {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+/* Creator search: searchable field and reasonably sized action side-by-side. */
+.operations-form[role="search"] {
+  display: flex;
+  align-items: end;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  min-width: 0;
+  margin: 16px 0 22px;
+  padding: 14px 16px;
+}
+.operations-form[role="search"] > label {
+  display: grid;
+  flex: 1 1 250px;
+  max-width: 600px;
+  min-width: 0;
+  gap: 8px;
+  color: #f4f4f5;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+.operations-form[role="search"] > label > :is(input,select) {
+  width: 100%;
+  min-height: 46px;
+  font-size: 14px;
+}
+.operations-form[role="search"] > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  grid-column: auto;
+  min-height: 46px;
+  width: auto;
+  margin: 0;
+  padding: 10px 20px;
+  background: #FF6A00;
+  color: #0B0B0B;
+  border: 0;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.operations-form[role="search"] > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 10px;
+  color: #FF6A00;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Intakes: clear title/description/toggle placement on phone and desktop. */
+.fackts-beats-page .beat-intake-summary,
+.fackts-tracks-page .beat-intake-summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  column-gap: 16px;
+  row-gap: 6px;
+  align-items: center;
+  min-width: 0;
+  padding: 16px 18px;
+}
+.fackts-beats-page .beat-intake-summary > span,
+.fackts-tracks-page .beat-intake-summary > span { grid-column: 1; grid-row: 1 / 3; }
+.fackts-beats-page .beat-intake-summary > strong,
+.fackts-tracks-page .beat-intake-summary > strong { grid-column: 2; grid-row: 1; min-width: 0; }
+.fackts-beats-page .beat-intake-summary > small,
+.fackts-tracks-page .beat-intake-summary > small { grid-column: 2; grid-row: 2; min-width: 0; line-height: 1.5; }
+.fackts-beats-page .beat-intake-summary > b,
+.fackts-tracks-page .beat-intake-summary > b { grid-column: 3; grid-row: 1 / 3; align-self: center; justify-self: end; white-space: nowrap; }
+
+/* Playlist selection and actions live in the same predictable toolbar. */
+.queue-library,
+.queue-library .playlist-editor,
+.queue-library .playlist-editor-columns,
+.queue-library .queue-track-picker {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.queue-library .library-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+  min-width: 0;
+}
+.queue-library .library-toolbar > div {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+.queue-library .library-toolbar small {
+  color: #A1A1AA;
+  font-size: 11px;
+  letter-spacing: .08em;
+}
+.queue-library .library-toolbar select {
+  display: block;
+  width: min(100%, 430px);
+  max-width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  margin: 0 !important;
+  padding: 9px 34px 9px 13px !important;
+  border: 1px solid #ffffff36 !important;
+  border-radius: 10px !important;
+  background: #171717 !important;
+  color: #fff;
+  font-size: 14px !important;
+  line-height: 1.4;
+}
+.queue-library .library-toolbar > button {
+  margin: 0;
+  min-height: 46px;
+  padding: 9px 17px;
+  white-space: nowrap;
+}
+.queue-library .playlist-editor > label,
+.queue-library .playlist-editor-columns > div > label {
+  display: grid;
+  align-items: stretch;
+  gap: 8px;
+  min-width: 0;
+  color: #f4f4f5;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.queue-library .playlist-editor > label > input,
+.queue-library .playlist-editor-columns > div > label > input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 10px 12px;
+}
+.queue-library .playlist-editor-columns {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.queue-library .playlist-edit-row {
+  gap: 8px;
+  min-width: 0;
+}
+.queue-library .playlist-edit-row > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.queue-library .playlist-edit-row > button {
+  flex-shrink: 0;
+  margin: 0;
+  min-width: 36px;
+  min-height: 40px;
+}
+.queue-library .queue-track-picker label {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 0;
+  min-width: 0;
+}
+.queue-library .queue-track-picker label > span {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+/* Preserve comfortable touch targets and prevent side scrolling on mobile. */
+@media (max-width: 760px) {
+  .beat-registration-form {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 15px;
+    padding: 16px;
+  }
+  .beat-registration-form > :is(.wide,.full,.submit-beat-btn) { grid-column: 1; }
+  .beat-registration-form > .submit-beat-btn { width: 100%; max-width: none; }
+  .beat-registration-form > label > :is(input,select,textarea),
+  .operations-form[role="search"] > label > :is(input,select),
+  .queue-library .library-toolbar select,
+  .queue-library .playlist-editor input {
+    font-size: 16px !important;
+  }
+  .operations-form[role="search"] {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px;
+  }
+  .operations-form[role="search"] > label {
+    flex: 0 1 auto;
+    max-width: none;
+    width: 100%;
+  }
+  .operations-form[role="search"] > button { width: 100%; }
+  .operations-form[role="search"] > a { justify-content: center; }
+  .queue-library .library-toolbar { grid-template-columns: minmax(0, 1fr); }
+  .queue-library .library-toolbar select { width: 100%; }
+  .queue-library .library-toolbar > button { width: 100%; }
+  .queue-library .playlist-editor-columns { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .fackts-beats-page .beat-intake-summary,
+  .fackts-tracks-page .beat-intake-summary {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 13px 14px;
+    column-gap: 12px;
+  }
+  .fackts-beats-page .beat-intake-summary > span,
+  .fackts-tracks-page .beat-intake-summary > span { grid-column: 1; grid-row: 1; }
+  .fackts-beats-page .beat-intake-summary > strong,
+  .fackts-tracks-page .beat-intake-summary > strong { grid-column: 1; grid-row: 2; }
+  .fackts-beats-page .beat-intake-summary > small,
+  .fackts-tracks-page .beat-intake-summary > small { grid-column: 1; grid-row: 3; }
+  .fackts-beats-page .beat-intake-summary > b,
+  .fackts-tracks-page .beat-intake-summary > b { grid-column: 2; grid-row: 1 / 4; }
+}

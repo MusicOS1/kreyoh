@@ -17,6 +17,7 @@ import "./shows-experience.css";
 import "./music-ecosystem.css";
 import "./legal.css";
 import "./mixtape-ui.css";
+import "./form-control-alignment.css";
 import ClientDiagnosticReporter from "../components/ClientDiagnosticReporter";
 import SessionExperience from "../components/SessionExperience";
 import ListeningProvider from "../components/ListeningProvider";
