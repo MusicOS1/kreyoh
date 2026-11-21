@@ -446,6 +446,8 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
   return {
     config,
     identity,
+    canCreateTrack: workspace.roles.some(role => ['Super Admin','Admin','Project Lead','A&R'].includes(role)),
+    canScheduleSession: workspace.roles.some(role => ['Super Admin','Admin','Project Lead','A&R','Manager','Project Coordinator','Engineer'].includes(role)),
     projectIds,
     sections,
     metrics,
