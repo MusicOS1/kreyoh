@@ -30,3 +30,99 @@
  .fackts-tracks-page .library-toolbar{display:flex;gap:8px;flex-wrap:wrap}
  .fackts-tracks-page .library-toolbar select{max-width:100%;width:100%}
 }
+
+
+/* CLOSED PROJECT VOTING: separate listening-queue controls from final scores.
+   This only applies when results are visible; the open voting UI is unchanged. */
+.fackts-tracks-page .spotify-room.is-final-results .track-chart-list > header {
+  grid-template-columns:30px minmax(0,1fr) minmax(130px,152px) 76px;
+  gap:8px;
+  padding:12px 14px;
+}
+.fackts-tracks-page .spotify-room.is-final-results .track-chart-list > header span:nth-child(3) {
+  grid-column:4;
+  justify-self:center;
+  text-align:center;
+  line-height:1.3;
+}
+.fackts-tracks-page .spotify-room.is-final-results .track-chart-list article {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(130px,152px) 76px;
+  grid-template-areas:"song actions score";
+  grid-template-rows:minmax(72px,auto);
+  gap:8px;
+  align-items:center;
+  padding:8px 12px;
+  box-sizing:border-box;
+  min-width:0;
+}
+.fackts-tracks-page .spotify-room.is-final-results .track-chart-list article > .track-chart-select {
+  grid-area:song;
+  min-width:0;
+  width:100%;
+}
+.fackts-tracks-page .spotify-room.is-final-results .queue-row-actions {
+  grid-area:actions;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  flex-wrap:nowrap;
+  min-width:0;
+  padding:0;
+  margin:0;
+  gap:5px;
+}
+.fackts-tracks-page .spotify-room.is-final-results .queue-row-actions button {
+  flex:0 0 auto;
+  margin:0!important;
+  white-space:nowrap;
+  min-height:36px;
+}
+.fackts-tracks-page .spotify-room.is-final-results .track-result-score {
+  grid-area:score;
+  display:flex;
+  align-self:stretch;
+  justify-self:stretch;
+  align-items:center;
+  justify-content:center;
+  gap:3px;
+  min-width:0;
+  border-left:1px solid #ffffff16;
+  padding:0 4px;
+  text-align:center;
+}
+.fackts-tracks-page .spotify-room.is-final-results .track-result-score strong {
+  color:#fff;
+  font-size:19px;
+  line-height:1.1;
+}
+.fackts-tracks-page .spotify-room.is-final-results .track-result-score small {
+  font-size:9px;
+  letter-spacing:.04em;
+  color:#A1A1AA;
+}
+@media(max-width:760px) {
+  /* Keep scores visible on phones, below the existing compact player. */
+  .fackts-tracks-page .spotify-room.is-final-results .track-chart-list article {
+    grid-template-columns:minmax(0,1fr) 58px;
+    grid-template-rows:auto auto;
+    grid-template-areas:"song score" "actions actions";
+    gap:6px 8px;
+    padding:10px 8px;
+  }
+  .fackts-tracks-page .spotify-room.is-final-results .track-chart-list article > .track-chart-select {
+    grid-area:song;
+    padding:4px 0;
+  }
+  .fackts-tracks-page .spotify-room.is-final-results .track-result-score {
+    grid-area:score;
+    display:flex;
+    padding:0 2px;
+  }
+  .fackts-tracks-page .spotify-room.is-final-results .queue-row-actions {
+    grid-area:actions;
+    justify-content:flex-start;
+    padding:6px 0 0;
+    border-top:1px solid #ffffff0d;
+  }
+}
