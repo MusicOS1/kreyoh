@@ -109,23 +109,22 @@ export default function EcosystemFrame({
         ))}
       </nav>
       {projects.length > 0 && (
-        <form action={selectProject} className={styles.project}>
-          <input type="hidden" name="next" value={active === 'artist' ? '/workspaces/artist' : pathname} />
-          <label htmlFor="fm-project-select">PROJECT CONTEXT</label>
-          <select
-            name="project_id"
-            id="fm-project-select"
-            key={projectId}
-            defaultValue={projectId || projects[0].id}
-          >
-            {projects.map((project) => (
-              <option key={project.id} value={project.id}>
-                {project.name || project.code}
-              </option>
-            ))}
-          </select>
-          <button>Open project ↗</button>
-        </form>
+        <section className={styles.projectCurrent} aria-label="Selected project">
+          <small>CURRENT PROJECT</small>
+          <strong>{projects.find(item=>item.id===projectId)?.name || projects[0].name || projects[0].code || 'Project'}</strong>
+          {projects.length > 1 && <details className={styles.projectChanger}>
+            <summary>Change project</summary>
+            <form action={selectProject} className={styles.project}>
+              <input type="hidden" name="next" value={active === 'artist' ? '/workspaces/artist' : pathname} />
+              <label>Choose a project
+                <select name="project_id" key={projectId} defaultValue={projectId || projects[0].id}>
+                  {projects.map(item=><option key={item.id} value={item.id}>{item.name || item.code}</option>)}
+                </select>
+              </label>
+              <button type="submit">Open selected project</button>
+            </form>
+          </details>}
+        </section>
       )}
       <div className={styles.secondary}>
         {active === 'artist' ? (

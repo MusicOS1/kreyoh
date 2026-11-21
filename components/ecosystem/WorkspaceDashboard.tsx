@@ -58,7 +58,7 @@ export default async function WorkspaceDashboard({
           <section className={styles.artistRecent}>
             <header><div><h2>Recent music</h2><p>Your actual recordings in the selected project.</p></div><Link href="/tracks">All music ↗</Link></header>
             {tracksUnavailable ? <p role="alert">Music records could not be loaded. Try again.</p> :
-              trackRows.length ? <div className={styles.artistRecentList}>{trackRows.slice(0,4).map(row=><Link key={row.id} href={row.href}><strong>{row.title}</strong><small>{row.detail}</small><span>{row.status || 'In progress'} ↗</span></Link>)}</div>
+              trackRows.length ? <div className={styles.artistRecentList}>{trackRows.slice(0,4).map(row=><Link key={row.id} href={row.href}><span className={styles.artistTrackArtwork}><img src={row.artwork || selectedProject?.artwork_url || '/images/project-001-default-cover.png'} alt="" loading="lazy"/></span><span className={styles.artistTrackCopy}><strong>{row.title}</strong><small>{row.detail}</small><em>{row.status || 'In progress'}</em></span><span className={styles.artistTrackArrow} aria-hidden="true">↗</span></Link>)}</div>
                 : <p>No recordings here yet. Use Upload music to begin when you have project permission.</p>}
           </section>
         </main>

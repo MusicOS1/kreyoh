@@ -614,3 +614,13 @@
   .artistRecentList a {grid-template-columns:minmax(0,1fr);min-width:0}
   .artistRecentList span {grid-column:1;grid-row:auto;text-align:left}
 }
+
+.artistHome .artistRecentList a{display:grid;grid-template-columns:54px minmax(0,1fr) 24px;gap:12px;align-items:center;min-height:72px;box-sizing:border-box}
+.artistTrackArtwork{display:block;grid-column:1;width:54px;aspect-ratio:1;background:#222;border-radius:8px;overflow:hidden}
+.artistTrackArtwork img{display:block;width:100%;height:100%;object-fit:cover}
+.artistTrackCopy{grid-column:2;display:grid;gap:4px;min-width:0}
+.artistTrackCopy strong{font-size:13px;white-space:normal;overflow-wrap:break-word}
+.artistTrackCopy small{font-size:11px;color:#A1A1AA;white-space:normal;overflow-wrap:break-word}
+.artistTrackCopy em{font-size:10px;font-style:normal;color:#FF6A00}
+.artistTrackArrow{grid-column:3;grid-row:1;align-self:center;justify-self:end;color:#FF6A00}
+@media(max-width:760px){.artistHome .artistRecentList a{grid-template-columns:50px minmax(0,1fr) 20px}.artistTrackArtwork{width:50px}.artistTrackCopy,.artistTrackArrow{grid-row:1}}

@@ -1,4 +1,5 @@
 import {loadProjectSessions} from "./sessionAccess";
+import {resolveArtworkUrl} from './artwork';
 import {readAllRows} from "./recordReads";
 import { getWorkspace } from './workspace';
 import { getExperienceIdentity } from './experienceIdentity';
@@ -17,6 +18,7 @@ export type DashboardRow = {
   status?: string;
   href: string;
   date?: string;
+  artwork?: string;
 };
 export type DashboardSection = {
   title: string;
@@ -69,7 +71,7 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
     opportunities,
     followers,
   ] = await Promise.all([
-    projectIds.length?readAllRows(()=>admin.from('tracks').select('id,project_id,working_title,track_code,development_status,status,updated_at').in('project_id',projectIds).order('created_at',{ascending:false}).order('id')):empty(),
+    projectIds.length?readAllRows(()=>admin.from('tracks').select('id,project_id,working_title,track_code,development_status,status,updated_at,artwork_url,artwork_storage_key').in('project_id',projectIds).order('created_at',{ascending:false}).order('id')):empty(),
     projectIds.length
       ? admin
           .from('project_tasks')
@@ -195,7 +197,20 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
     );
   const link = (id: string, path: string) =>
     projectLink(id, workspaceHref(path, kind));
+  const recentTrackArtwork = new Map<string,string>();
+  if (kind === 'artist') {
+    await Promise.all((tracks.data || []).slice(0,4).map(async (row:any) => {
+      const projectCover=(workspace.activeProjects as any[]).find(item=>item?.id===row.project_id)?.artwork_url || null;
+      try {
+        const url=await resolveArtworkUrl(row.artwork_storage_key,row.artwork_url || projectCover);
+        recentTrackArtwork.set(row.id,url || projectCover || '/images/project-001-default-cover.png');
+      } catch {
+        recentTrackArtwork.set(row.id,projectCover || '/images/project-001-default-cover.png');
+      }
+    }));
+  }
   const trackRows: DashboardRow[] = (tracks.data || []).map((row: any) => ({
+    artwork: recentTrackArtwork.get(row.id),
     id: row.id,
     title: row.working_title,
     detail: `${row.track_code||''} · ${projectName(row.project_id)}`,

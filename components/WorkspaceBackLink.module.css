@@ -1,0 +1,5 @@
+.back{max-width:1400px;margin:0 auto;padding:12px clamp(16px,3vw,44px) 0;min-width:0;box-sizing:border-box}
+.back a{min-height:44px;display:inline-flex;align-items:center;gap:8px;color:#A1A1AA;text-decoration:none;font:600 12px 'DM Sans',Arial,sans-serif}
+.back a:hover,.back a:focus-visible{color:#FF6A00}
+.back a>span{font-size:19px}
+@media(max-width:760px){.back{padding:10px 16px 0}}

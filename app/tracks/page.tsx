@@ -1,5 +1,6 @@
 import TrackNotes from "../../components/TrackNotes";
 import "./artistUpload.css";
+import "./projectPlayer.css";
 import Link from "next/link";
 import AppShell from "../../components/AppShell";
 import BeatAudioPlayer from "../../components/BeatAudioPlayer";
@@ -130,6 +131,10 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
     };
   });
 
+  // Use the selected project's real cover when a track has no individual artwork.
+  // No asset records are created or modified by this fallback.
+  const projectCover = await resolveArtworkUrl((project as any).artwork_storage_key, (project as any).artwork_url).catch(() => null);
+  const coverFallback = projectCover || DEFAULT_PROJECT_COVER;
   const assetAudioUrls: Record<string, string> = {};
   const artworkUrls: Record<string, string> = {};
   if (isR2Configured()) {
@@ -148,9 +153,9 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
       ...tracks.map(async (track: any) => {
         try {
           const artwork = await resolveArtworkUrl(track.artwork_storage_key, track.artwork_url);
-          artworkUrls[track.id] = artwork || DEFAULT_PROJECT_COVER;
+          artworkUrls[track.id] = artwork || coverFallback;
         } catch (cause) {
-          artworkUrls[track.id] = DEFAULT_PROJECT_COVER;
+          artworkUrls[track.id] = coverFallback;
           console.error(
             `FACKTS MUSIC TRACK ARTWORK ERROR (${track.id}):`,
             cause instanceof Error ? cause.message : cause,
@@ -160,8 +165,8 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
     ]);
   } else {
     await Promise.all(tracks.map(async (track: any) => {
-      try { const artwork = await resolveArtworkUrl(track.artwork_storage_key, track.artwork_url); artworkUrls[track.id] = artwork || DEFAULT_PROJECT_COVER; }
-      catch { artworkUrls[track.id] = DEFAULT_PROJECT_COVER; }
+      try { const artwork = await resolveArtworkUrl(track.artwork_storage_key, track.artwork_url); artworkUrls[track.id] = artwork || coverFallback; }
+      catch { artworkUrls[track.id] = coverFallback; }
     }));
   }
 

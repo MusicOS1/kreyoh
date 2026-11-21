@@ -420,3 +420,14 @@
   .frame[data-fm-workspace='artist'] .canvas :global(.operations-form) select,
   .frame[data-fm-workspace='artist'] .canvas :global(.operations-form) textarea { min-width:0; max-width:100%; width:100%; box-sizing:border-box; }
 }
+
+/* Show project context without making every artist confront another dropdown. */
+.projectCurrent{min-width:0;border-top:1px solid #ffffff15;margin:20px 8px 0;padding:18px 4px 0;display:grid;gap:7px}
+.projectCurrent>small{font-size:10px;letter-spacing:.1em;color:#A1A1AA;font-weight:700}
+.projectCurrent>strong{font-size:13px;line-height:1.5;overflow-wrap:break-word;color:#fff}
+.projectChanger{min-width:0}
+.projectChanger>summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-size:12px;font-weight:700;color:#FF6A00}
+.projectChanger .project{margin:4px 0 12px;padding-top:10px;gap:8px}
+.projectChanger .project label{display:grid;gap:7px;color:#A1A1AA;font-size:12px}
+.projectChanger .project select{width:100%;max-width:100%;box-sizing:border-box;min-height:44px;font-size:14px}
+.projectChanger .project button{min-height:44px;border-color:#FF6A0040;color:#FF6A00}
