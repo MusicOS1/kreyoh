@@ -13,7 +13,7 @@ export default async function WorkspaceDashboard({
 }: {
   kind: WorkspaceKind;
 }) {
-  const { config, identity, projectIds, sections, metrics, projects, profile,trackRows,tracksUnavailable,canCreateTrack,canScheduleSession,hasProjects } =
+  const { config, identity, projectIds, sections, metrics, projects, profile,trackRows,tracksUnavailable,canCreateTrack,canScheduleSession,canUploadBeat,hasProjects } =
     await loadWorkspaceDashboard(kind);
   // An artist arrives at a short task list, not a second project command centre.
   // Permission-sensitive actions remain protected by their original server actions.
@@ -53,6 +53,17 @@ export default async function WorkspaceDashboard({
               <b aria-hidden="true">↗</b>
             </Link>
           </nav>
+          <section className={styles.artistBeatShortcut} aria-label="Beat Library">
+            <div>
+              <span className={styles.eyebrow}>BEAT LIBRARY</span>
+              <h2>Beats and instrumentals</h2>
+              <p>{canUploadBeat ? 'Upload a beat for your current project, or browse existing beats.' : 'Listen to available beats, discover producers and explore project instrumentals.'}</p>
+            </div>
+            <div className={styles.artistBeatLinks}>
+              <Link href="/beats">Browse beats ↗</Link>
+              {canUploadBeat && <Link href="/beats?upload=1#upload-beat">Upload a beat ↗</Link>}
+            </div>
+          </section>
           <section className={styles.artistProject}>
             <div>
               <span className={styles.eyebrow}>CURRENT PROJECT</span>

@@ -628,3 +628,13 @@
 .artistHome .artistActions{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .artistHome .artistActions a{min-height:144px}
 @media(max-width:760px){.artistHome .artistActions{grid-template-columns:minmax(0,1fr)}.artistHome .artistActions a{min-height:100px}}
+
+/* A compact Beat Library shortcut, separate from recording and public release flows. */
+.artistBeatShortcut{display:flex;justify-content:space-between;align-items:center;gap:20px;min-width:0;margin:-14px 0 34px;padding:17px 20px;border:1px solid #ffffff1f;border-radius:12px;background:#141414}
+.artistBeatShortcut>div:first-child{min-width:0;flex:1}
+.artistBeatShortcut h2{font-family:'Gotham','DM Sans',Arial,sans-serif;font-size:17px;margin:4px 0 6px}
+.artistBeatShortcut p{font-size:12px;line-height:1.55;color:#A1A1AA;margin:0}
+.artistBeatLinks{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.artistBeatLinks a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 14px;border:1px solid #ff6a0055;border-radius:8px;color:#FF6A00;text-decoration:none;font-weight:700;font-size:12px;white-space:nowrap}
+.artistBeatLinks a:last-child:not(:first-child){background:#FF6A00;color:#0B0B0B}
+@media(max-width:760px){.artistBeatShortcut{flex-direction:column;align-items:stretch;padding:16px;gap:12px;margin:-4px 0 24px}.artistBeatLinks{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}.artistBeatLinks a{width:100%;box-sizing:border-box}}

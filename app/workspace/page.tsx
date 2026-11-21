@@ -169,7 +169,6 @@ export default async function WorkspacePage() {
     activityResult,
     pipelineResult,
     featuredTracksResult,
-    featuredTrackAssetsResult,
     beatArtworkKeysResult,
     trackArtworkKeysResult,
     peoplePreviewResult,
@@ -384,18 +383,6 @@ export default async function WorkspacePage() {
       .order("created_at", { ascending: false })
       .limit(4),
 
-    /*
-     * RECENT TRACK AUDIO / VERSIONS
-     */
-    admin
-      .from("project_assets")
-      .select("id,entity_id,bucket_id,storage_path,file_name,mime_type,asset_kind,created_at")
-      .eq("project_id", project.id)
-      .eq("entity_type", "track")
-      .or(`visibility.in.(project,public),uploaded_by.eq.${user.id}`)
-      .order("created_at", { ascending: false })
-      .limit(24),
-
     /* Optional private artwork fields added by the catalogue migration. */
     admin
       .from("beats")
@@ -556,57 +543,6 @@ export default async function WorkspacePage() {
     ? await admin.from("profiles").select("id,full_name,stage_name,nickname").in("id", featuredProducerIds)
     : { data: [] as any[] };
   const featuredProducers = new Map((featuredProducerProfiles ?? []).map((profile: any) => [profile.id, profile]));
-
-  const featuredTrackAssets =
-    featuredTrackAssetsResult.data ?? [];
-
-  const featuredTrackAudio: Record<
-    string,
-    { assetId: string; src: string }
-  > = {};
-
-  await Promise.all(
-    featuredTracks.map(async (track: any) => {
-      const audioAsset = featuredTrackAssets.find(
-        (asset: any) =>
-          asset.entity_id === track.id &&
-          asset.mime_type?.startsWith("audio/")
-      );
-
-      if (!audioAsset?.storage_path || !audioAsset.bucket_id) {
-        return;
-      }
-
-      try {
-        if (audioAsset.bucket_id === "r2" && isR2Configured()) {
-          featuredTrackAudio[track.id] = {
-            assetId: audioAsset.id,
-            src: await createR2PresignedUrl(
-              "GET",
-              audioAsset.storage_path,
-              3600
-            ),
-          };
-        } else if (audioAsset.bucket_id !== "r2") {
-          const { data } = await admin.storage
-            .from(audioAsset.bucket_id)
-            .createSignedUrl(audioAsset.storage_path, 3600);
-
-          if (data?.signedUrl) {
-            featuredTrackAudio[track.id] = {
-              assetId: audioAsset.id,
-              src: data.signedUrl,
-            };
-          }
-        }
-      } catch (cause) {
-        console.error(
-          `FACKTS MUSIC FEATURED TRACK AUDIO ERROR (${track.id}):`,
-          cause instanceof Error ? cause.message : cause
-        );
-      }
-    })
-  );
 
   const peoplePreview =
     peoplePreviewResult.data ?? [];
@@ -1163,7 +1099,6 @@ export default async function WorkspacePage() {
               {featuredTracks.map((track: any, index: number) => {
                 const beat = first(track.beats);
                 const contributors = track.track_contributors ?? [];
-                const audio = featuredTrackAudio[track.id];
 
                 return (
                   <article
@@ -1249,24 +1184,11 @@ export default async function WorkspacePage() {
                         )}
                       </div>
 
-                      {audio ? (
-                        <BeatAudioPlayer
-                          beatId={audio.assetId}
-                          src={audio.src}
-                          eventName="track_file_played"
-                          entityType="asset"
-                        />
-                      ) : (
-                        <span className="creative-muted-link">
-                          Audio version not attached
-                        </span>
-                      )}
-
                       <Link
                         href={`/tracks#track-${track.id}`}
                         className="workspace-card-open"
                       >
-                        View track details
+                        Open in project listening room
                         <ArrowUpRight size={12} />
                       </Link>
                     </div>

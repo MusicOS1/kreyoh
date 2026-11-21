@@ -71,6 +71,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     links: tools([
       ['Artist home', '/workspaces/artist'],
       ['Projects', '/projects'],
+      ['Beat Library', '/beats'],
       ['Upload to project', '/tracks?upload=1#upload-track'],
       ['Sessions', '/studio-sessions'],
       ['Public releases', '/billboard/submit'],

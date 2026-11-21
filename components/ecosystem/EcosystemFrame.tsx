@@ -130,7 +130,6 @@ export default function EcosystemFrame({
         {active === 'artist' ? (
           <details className={styles.moreTools}>
             <summary>More artist tools</summary>
-            <Link href="/beats">Beats</Link>
             <Link href="/people">Collaborators</Link>
             <Link href="/splits">Credits & splits</Link>
             <Link href="/releases">Prepare project release</Link>
