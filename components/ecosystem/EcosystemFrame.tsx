@@ -110,6 +110,7 @@ export default function EcosystemFrame({
       </nav>
       {projects.length > 0 && (
         <form action={selectProject} className={styles.project}>
+          <input type="hidden" name="next" value={active === 'artist' ? '/workspaces/artist' : pathname} />
           <label htmlFor="fm-project-select">PROJECT CONTEXT</label>
           <select
             name="project_id"
