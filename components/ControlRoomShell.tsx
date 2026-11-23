@@ -24,6 +24,7 @@ const navigation = [
   { label: "Projects", href: "/admin/projects", group: "Management", permission: "projects" },
   { label: "Music operations", href: "/admin/operations", group: "Operations", permission: "music" },
   { label: "Enquiries", href: "/admin/enquiries", group: "Operations", permission: "enquiries" },
+  { label: "Live support", href: "/admin/support", group: "Operations", permission: "enquiries" },
   { label: "Suggestions", href: "/admin/suggestions", group: "Operations", permission: "projects" },
   { label: "Voting intelligence", href: "/admin/voting", group: "Intelligence", permission: "intelligence" },
   { label: "Activity", href: "/admin/activity", group: "Intelligence", permission: "intelligence" },

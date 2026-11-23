@@ -24,6 +24,8 @@ export default function PublicFooter() {
           <Link href="/about">About</Link>
           <Link href="/partner">Partner</Link>
           <Link href="/contact">Contact</Link>
+          <Link href="/download">Get the app</Link>
+          <Link href="/support">Customer support</Link>
         </div>
         <div>
           <span>Legal & trust</span>

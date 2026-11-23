@@ -132,6 +132,7 @@ export default async function PublicHomePage() {
             <Link href="/listen" className="fm-v3-btn fm-v3-btn-primary">Explore the music <ArrowUpRight size={16} /></Link>
             <Link href="/creators" className="fm-v3-btn fm-v3-btn-ghost">Meet the creators <ArrowUpRight size={16} /></Link>
           </div>
+          <Link href="/download" className="fm-v3-text-link" style={{display:"inline-flex",alignItems:"center",gap:6,marginTop:18,fontSize:13}}>Get FACKTS Music for your device <ArrowUpRight size={14}/></Link>
           <div className="fm-v3-hero-foot">
             <span>Built in Nairobi</span>
             <span>Creators first</span>

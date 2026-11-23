@@ -22,6 +22,7 @@ import ClientDiagnosticReporter from "../components/ClientDiagnosticReporter";
 import SessionExperience from "../components/SessionExperience";
 import ListeningProvider from "../components/ListeningProvider";
 import PwaRegister from "../components/PwaRegister";
+import SupportLauncher from "../components/SupportLauncher";
 import GlobalVideoPlayer from "../components/GlobalVideoPlayer";
 import type { Metadata } from "next";
 
@@ -54,6 +55,7 @@ export default function RootLayout({children}:Readonly<{children:React.ReactNode
       <SessionExperience><ListeningProvider>{children}</ListeningProvider></SessionExperience>
       <GlobalVideoPlayer/>
       <PwaRegister/>
+      <SupportLauncher/>
     </body>
   </html>;
 }
