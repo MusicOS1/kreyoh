@@ -53,7 +53,7 @@ export default function DownloadFacktsMusic() {
             <small>iPhone: open in Safari, then Share → Add to Home Screen. Desktop: use your browser’s install option where available.</small>
           </article>
         </div>
-        <p className="fm-download-support">Need help installing? <Link href="/support">Contact FACKTS Music support</Link>.</p>
+        <p className="fm-download-support">Need help installing? <Link href="/contact">Contact FACKTS Music support</Link>.</p>
       </section>
       <PublicFooter />
       <style>{`
@@ -75,6 +75,11 @@ export default function DownloadFacktsMusic() {
         .fm-download-support{margin-top:28px;color:#aaa}
         .fm-download-support a{color:#ff934d}
         .fm-download-page .public-install-wrap{max-width:100%}
+        @keyframes fmDownloadEnter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        .fm-download-heading{animation:fmDownloadEnter .42s ease-out both}
+        .fm-download-card{animation:fmDownloadEnter .48s ease-out both}
+        .fm-download-card:nth-child(2){animation-delay:.1s}
+        @media(prefers-reduced-motion:reduce){.fm-download-heading,.fm-download-card{animation:none}}
         @media(max-width:680px){.fm-download-grid{grid-template-columns:1fr}.fm-download-content{padding-top:40px}.fm-download-card{min-height:0}}
       `}</style>
     </main>
