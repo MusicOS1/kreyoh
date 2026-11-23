@@ -49,7 +49,7 @@ export default function SupportConversation({
       {messages.map(item => {
         const mine = agent ? item.sender_role === "agent" : item.sender_role === "customer";
         return <article key={item.id} className={`fm-support-message ${mine ? "mine" : "theirs"}`}>
-          <small>{item.sender_role === "agent" ? "FACKTS Music Support" : "You"}</small>
+          <small>{item.sender_role === "agent" ? "FACKTS Music Support" : agent ? "Customer" : "You"}</small>
           <p>{item.body}</p>
           <time dateTime={item.created_at}>{new Date(item.created_at).toLocaleTimeString("en-KE", { timeZone: "Africa/Nairobi", hour: "2-digit", minute: "2-digit" })}</time>
         </article>;
