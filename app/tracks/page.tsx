@@ -15,8 +15,8 @@ import { commentOnTrack, deleteTrackNote, saveTrackArScore, updateTrack, updateT
 import { creatorDisplayName } from "../../lib/profileIdentity";
 import { resolveArtworkUrl } from "../../lib/artwork";
 
-const trackFileRoles = ["Super Admin", "Project Lead", "A&R", "Producer", "Engineer"];
-const trackCreateRoles = ["Super Admin", "Admin", "Project Lead", "A&R"];
+const trackFileRoles = ["Super Admin", "Project Lead", "A&R", "Artist", "Producer", "Engineer"];
+const trackCreateRoles = ["Super Admin", "Admin", "Project Lead", "A&R", "Artist"];
 const DEFAULT_PROJECT_COVER = "/images/project-001-default-cover.png";
 
 export default async function TracksPage({ searchParams }: { searchParams: Promise<{ q?: string; upload?: string }> }) {

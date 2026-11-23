@@ -91,7 +91,17 @@ export default function TrackIntakeForm({beats,members,scope}:{beats:BeatOption[
       if(!prepared.current){try{prepared.current=JSON.parse(localStorage.getItem(intakeKey)||'null');}catch{}}
       if(prepared.current)setPendingTrack(prepared.current.trackId);
       if(prepared.current&&prepared.current.signature!==signature)throw new Error("Finish the pending track in Production before registering different work.");
-      if(!prepared.current){const signed=await prepareReusableTrackIntake(prep);prepared.current={signature,trackId:signed.trackId};setPendingTrack(signed.trackId);localStorage.setItem(intakeKey,JSON.stringify(prepared.current));}
+      if(!prepared.current){
+        prepared.current={signature,trackId:crypto.randomUUID()};
+        localStorage.setItem(intakeKey,JSON.stringify(prepared.current));
+      }
+      // Persist the track identity before the server call. A lost response can be retried.
+      if(!prepared.current.uploadId){
+        prep.set("track_id",prepared.current.trackId);
+        const signed=await prepareReusableTrackIntake(prep);
+        if(signed.trackId!==prepared.current.trackId)throw new Error("Track registration did not match this retry.");
+        setPendingTrack(signed.trackId);
+      }
       createdTrackId=prepared.current.trackId;
       const key='fackts-production-transfer-v1:'+createdTrackId;
       if(!prepared.current.uploadId){const result=await productionUploadRequest({action:'start',trackId:createdTrackId,name:file.name,type:file.type,size:file.size,kind:formData.get('asset_kind'),note:formData.get('version_note')});prepared.current.uploadId=result.id!;localStorage.setItem(intakeKey,JSON.stringify(prepared.current));localStorage.setItem(key,JSON.stringify({id:result.id,signature:JSON.stringify([file.name,file.size,file.lastModified,String(formData.get('asset_kind')),String(formData.get('version_note')||'')])}));}
@@ -101,7 +111,7 @@ export default function TrackIntakeForm({beats,members,scope}:{beats:BeatOption[
       setCredits([newCredit()]);
       formRef.current?.reset();
       setStep(1);
-      setMessage("Track added. The source beat stays in the pool and can be used for another song.");
+      setMessage("Your song is saved privately. Only authorised project members can hear it. When ready, submit a release for approval.");
       setBusy(false);
       router.refresh();
     }catch(cause){
@@ -133,10 +143,10 @@ export default function TrackIntakeForm({beats,members,scope}:{beats:BeatOption[
     </div>
     <div className="artist-wizard-pane" style={{display:step===1?"block":"none"}} aria-hidden={step!==1}>
       <h3>Start with the music</h3>
-      <p>Upload the track and give it a working title. You can fine-tune the other details next.</p>
+      <p>Choose your recording and title. It stays private in this project until you deliberately submit it for release approval.</p>
       <div className="track-intake-grid">
-        <label>Track title *<input name="working_title" required placeholder="Working or final title" /></label>
-        <label>Audio file *<input name="track_file" type="file" accept="audio/*" required /></label>
+        <label>Track title *<input name="working_title" required={step===1} placeholder="Working or final title" /></label>
+        <label>Audio file *<input name="track_file" type="file" accept="audio/*" required={step===1} /></label>
       </div>
     </div>
     <div className="artist-wizard-pane" style={{display:step===2?"block":"none"}} aria-hidden={step!==2}>
@@ -172,7 +182,7 @@ export default function TrackIntakeForm({beats,members,scope}:{beats:BeatOption[
         <div><span className="eyebrow">REQUIRED · BEFORE UPLOAD</span><h3>Who worked on this recording?</h3></div>
         <button type="button" className="track-credit-add" disabled={busy} onClick={()=>setCredits(c=>[...c,newCredit()])}>+ Add contributor</button>
       </div>
-      <p>Select at least one project member and their contribution role. These are track credits, not ownership or royalty agreements.</p>
+      <p>Select at least one project member and their contribution role. Saving does not publish the track. Credits are not ownership or royalty agreements.</p>
       <div className="track-credit-rows">
         {credits.map((credit,index)=><div className="track-credit-row" key={credit.key}>
           <span>{String(index+1).padStart(2,"0")}</span>

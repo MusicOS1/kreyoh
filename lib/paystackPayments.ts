@@ -25,7 +25,7 @@ export function paystackSiteUrl(){
   const previewHost=process.env.VERCEL_ENV==="preview"&&process.env.VERCEL_URL
     ? "https://"+process.env.VERCEL_URL
     : null;
-  const value=process.env.PAYSTACK_SITE_URL||previewHost||process.env.NEXT_PUBLIC_SITE_URL;
+  const value=previewHost||process.env.PAYSTACK_SITE_URL||process.env.NEXT_PUBLIC_SITE_URL;
   if(!value)throw new Error("Site callback URL is not configured.");
   const parsed=new URL(value);
   if((parsed.protocol!=="https:" && !(parsed.protocol==="http:"&&parsed.hostname==="localhost"))

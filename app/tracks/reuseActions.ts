@@ -13,7 +13,7 @@ import {
 const read = (formData: FormData, key: string) =>
   String(formData.get(key) || "").trim();
 
-const createRoles = ["Super Admin", "Admin", "Project Lead", "A&R"];
+const createRoles = ["Super Admin", "Admin", "Project Lead", "A&R", "Artist"];
 const creditRoles = new Set([
   "artist",
   "featured_artist",
@@ -57,7 +57,7 @@ async function requireCreateAccess() {
 
   if (!hasAnyRole(workspace.roles, createRoles)) {
     throw new Error(
-      "Only project leadership can register or replace a track.",
+      "Only an active project artist or authorised production staff member can register a track.",
     );
   }
 
@@ -269,7 +269,11 @@ export async function prepareReusableTrackIntake(
 
   if(!productionFlow) await assertR2BucketAccess();
 
-  const trackId = crypto.randomUUID();
+  // Stable client ID lets lost-response retries reuse a single private track.
+  const retryId=read(formData,"track_id");
+  if(retryId&&!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(retryId))
+    throw new Error("Invalid track retry reference.");
+  const trackId = retryId || crypto.randomUUID();
   const safeName = fileName.replace(
     /[^a-zA-Z0-9._-]/g,
     "-",
@@ -312,6 +316,14 @@ export async function prepareReusableTrackIntake(
       created_by: user.id,
     });
 
+  if(trackError?.code==="23505"&&retryId){
+    const {data:existing,error:lookupError}=await admin.from("tracks")
+      .select("id,project_id,created_by,working_title,beat_id")
+      .eq("id",trackId).eq("project_id",project.id).maybeSingle();
+    if(!lookupError&&existing&&existing.created_by===user.id&&
+       existing.working_title===workingTitle&&(existing.beat_id||null)===beatId)
+      return {trackId,storageKey,uploadUrl};
+  }
   if (trackError) {
     throw new Error(trackError.message);
   }
