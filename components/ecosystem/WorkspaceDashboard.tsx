@@ -10,9 +10,10 @@ import EcosystemShell from './EcosystemShell';
 import ArtistHomePremium from './ArtistHomePremium';
 import styles from './WorkspaceDashboard.module.css';
 export default async function WorkspaceDashboard({
-  kind,
+  kind, insightDays=30,
 }: {
   kind: WorkspaceKind;
+  insightDays?:7|30|90;
 }) {
   const { config, identity, projectIds, sections, metrics, projects, profile,trackRows,tracksUnavailable,canCreateTrack,canScheduleSession,canUploadBeat,hasProjects } =
     await loadWorkspaceDashboard(kind);
@@ -21,6 +22,7 @@ export default async function WorkspaceDashboard({
     const selectedProject=projects.find(item=>item.id===projectIds[0])||null;
     return <EcosystemShell active={kind}>
       <ArtistHomePremium
+        insightDays={insightDays}
         identity={identity}
         profile={profile}
         project={selectedProject}
