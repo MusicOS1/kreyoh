@@ -55,7 +55,7 @@ export default async function EcosystemShell({
       }
       projectId={(workspace.project as any)?.id}
       canManageFinance={canEditProjectFinance(workspace.roles)}
-      canCreateTrack={workspace.roles.some(role => ['Super Admin','Admin','Project Lead','A&R'].includes(role))}
+      canCreateTrack={workspace.roles.some(role => ['Super Admin','Admin','Project Lead','A&R','Artist'].includes(role))}
     >
       {children}
     </EcosystemFrame>

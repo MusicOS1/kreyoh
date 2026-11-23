@@ -472,6 +472,7 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
     projects: (workspace.activeProjects as any[]).filter((project) =>
       projectIds.includes(project?.id),
     ),
+    availableProjects:(workspace.activeProjects as any[]).filter(item=>permittedIds.includes(item?.id)),
     profile: workspace.profile,
   };
 }

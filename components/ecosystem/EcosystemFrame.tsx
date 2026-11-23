@@ -113,7 +113,7 @@ export default function EcosystemFrame({
           <small>CURRENT PROJECT</small>
           <strong>{projects.find(item=>item.id===projectId)?.name || projects[0].name || projects[0].code || 'Project'}</strong>
           {projects.length > 1 && <details className={styles.projectChanger}>
-            <summary>Change project</summary>
+            <summary>Change project &amp; tracks</summary>
             <form action={selectProject} className={styles.project}>
               <input type="hidden" name="next" value={active === 'artist' ? '/workspaces/artist' : pathname} />
               <label>Choose a project
@@ -165,7 +165,7 @@ export default function EcosystemFrame({
     : active === 'artist' ? [
         { label: 'Home', href: '/workspaces/artist' },
         { label: 'Projects', href: '/projects' },
-        ...(canCreateTrack ? [{ label: 'Project upload', href: '/tracks?upload=1#upload-track' }] : [{ label: 'Tracks', href: '/tracks' }]),
+        { label: 'Tracks', href: '/tracks#project-player' },
         { label: 'Sessions', href: '/studio-sessions' },
         { label: 'Releases', href: '/billboard/submit' },
       ] : [

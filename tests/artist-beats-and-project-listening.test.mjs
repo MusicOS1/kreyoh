@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 const read=(path)=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const nav=read('lib/workspaceExperience.ts');
 const dashboard=read('components/ecosystem/WorkspaceDashboard.tsx');
+const home=read('components/ecosystem/ArtistHomePremium.tsx');
 const dashboardData=read('lib/workspaceDashboard.ts');
 const beats=read('app/beats/page.tsx');
 const production=read('app/production/page.tsx');
@@ -12,8 +13,8 @@ const tracks=read('app/tracks/page.tsx');
 
 test('artist has visible Beat Library while beat upload remains role gated',()=>{
   assert.match(nav,/\['Beat Library', '\/beats'\]/);
-  assert.match(dashboard,/href="\/beats"/);
-  assert.match(dashboard,/canUploadBeat && <Link href="\/beats\?upload=1#upload-beat"/);
+  assert.match(home,/Beat Library/);
+  assert.match(home,/canUploadBeat\?"\/beats\?upload=1#upload-beat"/);
   assert.match(dashboardData,/canUploadBeat: Boolean\(projectIds.length\).*\['Super Admin','Project Lead','A&R','Producer'\]/);
   assert.match(beats,/id="upload-beat".*open=\{params.upload === "1"\}/);
   assert.match(beats,/canUpload && <details/);

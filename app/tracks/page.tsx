@@ -8,6 +8,7 @@ import TrackIntakeForm from "../../components/TrackIntakeForm";
 import TrackUploadForm from "../../components/TrackUploadForm";
 import TrackCatalogPages from "../../components/TrackCatalogPages";
 import TrackPlaylist from "../../components/MusicQueue";
+import ProjectTracksNavigator from "../../components/ProjectTracksNavigator";
 import { createAdminClient } from "../../lib/supabase/admin";
 import { createR2PresignedUrl, isR2Configured } from "../../lib/r2";
 import { getWorkspace, hasAnyRole } from "../../lib/workspace";
@@ -22,7 +23,7 @@ const DEFAULT_PROJECT_COVER = "/images/project-001-default-cover.png";
 export default async function TracksPage({ searchParams }: { searchParams: Promise<{ q?: string; upload?: string }> }) {
   const params = await searchParams;
   const search = String(params.q || "").trim().replace(/[,%()]/g, " ");
-  const { project, membership, roles, user } = await getWorkspace();
+  const { project, membership, roles, user, activeProjects } = await getWorkspace();
   if (!project || !membership) {
     return (
       <AppShell>
@@ -212,21 +213,22 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
   return (
     <AppShell>
       <div data-native-catalogue className="content fackts-tracks-page">
+        <ProjectTracksNavigator projects={activeProjects as {id:string;name?:string;code?:string}[]} currentProjectId={project.id}/>
         <div className="heading">
           <div>
             <span className="eyebrow">{project.code || project.name} / PROJECT AUDIO</span>
-            <h1>Project recordings</h1>
+            <h1>{project.name} — tracks</h1>
             <p>Audio added here stays within your project workflow; it is not a public release. <Link href="/billboard/submit">Publish finished music on FACKTS →</Link></p>
           </div>
           <div className="date"><span>{tracks.length} TRACKS</span></div>
         </div>
 
-        <section className="panel track-billboard-section">
+        <section id="project-player" className="panel track-billboard-section" aria-label="Current project audio player">
           <div className="track-billboard-heading">
             <div>
               <span className="eyebrow">PROJECT LISTENING ROOM</span>
-              <h2>{displayVotingStats ? "Project Track Chart" : "Top 3 Selection Room"}</h2>
-              <p>Listen to at least 60%, then rank your three strongest eligible tracks. #1 earns 5 points, #2 earns 3 and #3 earns 1. Live results stay private to reduce influence.</p>
+              <h2>Listen to {project.name}</h2>
+              <p>Listen to recordings from this project only. Playback, playlists and eligible voting are available below. Open a track further down to manage its files and credits.</p>
             </div>
             <span>{tracks.length} TRACKS · {playlist.length} PLAYABLE VERSIONS</span>
           </div>
@@ -242,7 +244,9 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
             </form>
           )}
           {canManageVoting && !votingRound && <form action={updateTrackVotingRound} className="track-round-controls"><span>No voting round</span><button className="primary" name="intent" value="start_new">Start voting round</button></form>}
-          <TrackPlaylist storageKey={`fackts-project-playlists:${user.id}:${project.id}`} tracks={playlist as any} itemLabel="audio versions" votingOpen={votingRound?.status === "open"} resultsVisible={displayVotingStats} showDetailedStats={canViewPrivateVotingStats} />
+          {tracksError||assetsResult.error?<p role="alert">Project audio is temporarily unavailable. Your recordings remain saved; please retry.</p>:
+          playlist.length?<TrackPlaylist storageKey={`fackts-project-playlists:${user.id}:${project.id}`} persistenceKey={`fackts-project-player:${user.id}:${project.id}`} tracks={playlist as any} itemLabel="audio versions" votingOpen={votingRound?.status === "open"} resultsVisible={displayVotingStats} showDetailedStats={canViewPrivateVotingStats} />:
+          <div className="project-listening-empty" role="status"><strong>No playable recordings in {project.name} yet.</strong><p>{search?"No audio matches this search. Clear it to see all project tracks.":tracks.length?"Tracks exist, but no playable audio versions are currently available. Check the files on each track below.":"This project has no tracks yet. Music from other projects will not appear here."}</p>{canCreate&&!search&&<Link href="/tracks?upload=1#upload-track">Add a private recording →</Link>}</div>}
         </section>
 
         {canCreate && (
@@ -257,12 +261,13 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
           </details>
         )}
 
-        <form method="get" action="/tracks" className="operations-form" role="search"><label>Search tracks<input type="search" name="q" defaultValue={search} placeholder="Title or code"/></label><button>Search tracks</button>{search && <Link href="/tracks">Clear search</Link>}</form>
+        <div id="project-tracks" className="project-tracks-directory" aria-label="Selected project track directory"><div className="project-directory-heading"><h2>All tracks in {project.name}</h2><p>Find your song by title or code, then open its files and notes.</p></div>
+        <form method="get" action="/tracks#project-tracks" className="operations-form" role="search"><label>Search tracks<input type="search" name="q" defaultValue={search} placeholder="Title or code"/></label><button>Search tracks</button>{search && <Link href="/tracks">Clear search</Link>}</form>
     <div className="operations-list track-operations-list">
           {!tracks.length && (
             <div className="empty-state">
-              <h2>No tracks in development</h2>
-              <p>Project Lead or A&amp;R can start one from a claimed beat.</p>
+              <h2>{search?"No tracks match your search":"No tracks in this project yet"}</h2>
+              <p>{search?"Try a different title or clear the search.":canCreate?"Start by uploading a private recording.":"Ask an authorised project member to add a recording."}</p>
             </div>
           )}
 
@@ -403,6 +408,7 @@ export default async function TracksPage({ searchParams }: { searchParams: Promi
               </details>
             );
           })}</TrackCatalogPages>
+        </div>
         </div>
       </div>
     </AppShell>

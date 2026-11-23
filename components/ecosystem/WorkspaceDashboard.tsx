@@ -15,7 +15,7 @@ export default async function WorkspaceDashboard({
   kind: WorkspaceKind;
   insightDays?:7|30|90;
 }) {
-  const { config, identity, projectIds, sections, metrics, projects, profile,trackRows,tracksUnavailable,canCreateTrack,canScheduleSession,canUploadBeat,hasProjects } =
+  const { config, identity, projectIds, sections, metrics, projects, profile,trackRows,tracksUnavailable,canCreateTrack,canScheduleSession,canUploadBeat,hasProjects,availableProjects } =
     await loadWorkspaceDashboard(kind);
   // Artist Home is a single entry point. Only real, artist-owned data is shown.
   if (kind === 'artist') {
@@ -26,6 +26,7 @@ export default async function WorkspaceDashboard({
         identity={identity}
         profile={profile}
         project={selectedProject}
+        availableProjects={availableProjects}
         hasProjects={hasProjects}
         canCreateTrack={canCreateTrack}
         canScheduleSession={canScheduleSession}

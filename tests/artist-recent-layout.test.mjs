@@ -1,24 +1,18 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-
-const css=readFileSync(new URL('../components/ecosystem/WorkspaceDashboard.module.css',import.meta.url),'utf8');
-const artist=readFileSync(new URL('../components/ecosystem/WorkspaceDashboard.tsx',import.meta.url),'utf8');
-
-test('recent music grid uses named artwork, copy and arrow rather than blanket span placement',()=>{
-  assert.doesNotMatch(css,/\.artistRecentList\s+span\s*\{[^}]*grid-/s);
-  assert.doesNotMatch(css,/\.artistRecentList\s+small\s*\{[^}]*grid-/s);
-  assert.match(css,/\.artistTrackArtwork\s*\{[^}]*grid-column:1/s);
-  assert.match(css,/\.artistTrackCopy\s*\{[^}]*grid-column:2/s);
-  assert.match(css,/\.artistTrackArrow\s*\{[^}]*grid-column:3/s);
-  for(const name of ['artistTrackArtwork','artistTrackCopy','artistTrackArrow']) {
-    assert.match(artist,new RegExp('styles\\.'+name));
-  }
+const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
+const css=read('components/ecosystem/ArtistHomePremium.module.css');
+const home=read('components/ecosystem/ArtistHomePremium.tsx');
+test('single artist home retains recent artwork, copy and arrow',()=>{
+ for(const name of ['recentArtwork','recentCopy','rowArrow'])assert.match(home,new RegExp('styles\\.'+name));
+ assert.match(css,/\.recentRow\{[^}]*grid-template-columns:48px minmax\(0,1fr\) 20px/);
+ assert.match(css,/\.recentCopy\{[^}]*min-width:0/);
 });
-
-test('recent music retains safe phone columns and min-width containment',()=>{
-  assert.match(css,/\.artistHome\s+\.artistRecentList\s+a\s*\{[^}]*grid-template-columns:54px minmax\(0,1fr\) 24px/s);
-  assert.match(css,/@media\(max-width:760px\)\s*\{[^}]*\.artistHome\s+\.artistRecentList\s+a\s*\{[^}]*grid-template-columns:50px minmax\(0,1fr\) 20px/s);
-  assert.match(css,/\.artistTrackCopy\s*\{[^}]*min-width:0/s);
-  assert.match(css,/\.artistTrackArtwork\s*\{[^}]*overflow:hidden/s);
+test('recent project music is scoped to selected project and mobile layout',()=>{
+ const source=read('lib/workspaceDashboard.ts');
+ assert.match(source,/const projectIds = selectedId && permittedIds.includes\(selectedId\) \? \[selectedId\] : \[\]/);
+ assert.match(home,/hasCurrentProject&&<section className=\{styles\.recent\}/);
+ assert.match(home,/No project tracks yet/);
+ assert.match(css,/@media\(max-width:850px\).*recentGrid\{grid-template-columns:minmax\(0,1fr\)/);
 });

@@ -2,12 +2,14 @@ import Link from "../ProjectNavigationLink";
 import {loadArtistInsights} from "../../lib/artistInsights";
 import type {DashboardRow} from "../../lib/workspaceDashboard";
 import ArtistHeroGallery from "./ArtistHeroGallery";
+import ProjectTracksNavigator from "../ProjectTracksNavigator";
 import styles from "./ArtistHomePremium.module.css";
 
 type Props={
  identity:{id:string;name:string;avatar?:string|null};
  profile:any;
  project:any|null;
+ availableProjects:{id:string;name?:string;code?:string}[];
  hasProjects:boolean;
  canCreateTrack:boolean;
  canScheduleSession:boolean;
@@ -24,13 +26,13 @@ function validImages(profile:any,avatar?:string|null):string[]{
    try{return new URL(url).protocol==="https:";}catch{return false;}
  }))].slice(0,5);
 }
-export default async function ArtistHomePremium({identity,profile,project,hasProjects,canCreateTrack,canScheduleSession,canUploadBeat,recent,recentUnavailable,insightDays=30}:Props){
+export default async function ArtistHomePremium({identity,profile,project,availableProjects,hasProjects,canCreateTrack,canScheduleSession,canUploadBeat,recent,recentUnavailable,insightDays=30}:Props){
  const insights=await loadArtistInsights(insightDays);
  const artistName=profile?.stage_name||profile?.nickname||profile?.full_name||identity.name||"Artist";
  const hasCurrentProject=Boolean(project);
  const projectName=project?.name||(hasProjects?"Choose a project":"Your music starts here");
  const projectSummary=project?.next_action||(project?"Your music, collaborators and production progress.":hasProjects?"Select a project to continue creating.":"Add your photos, start a project and make your first recording.");
- const projectHref=project?"/production":hasProjects?"/projects":"/projects?new=1#start-project";
+ const projectHref=project?"/tracks#project-player":hasProjects?"/projects":"/projects?new=1#start-project";
  const hasPublished=Boolean(insights.releases&&insights.releases>0);
  const hasPlays=Boolean(insights.plays&&insights.plays>0);
  const metricCards=[
@@ -53,6 +55,7 @@ export default async function ArtistHomePremium({identity,profile,project,hasPro
      <p>{hasProjects?"Pick up where you left off.":"Start your music journey on FACKTS."}</p>
    </header>
    <ArtistHeroGallery name={artistName} projectName={projectName} projectSummary={projectSummary} projectHref={projectHref} hasProject={hasCurrentProject} hasProjects={hasProjects} photos={validImages(profile,identity.avatar)}/>
+   <ProjectTracksNavigator projects={availableProjects} currentProjectId={project?.id}/>
    <section className={styles.insights} aria-label="Your artist insights">
      <header className={styles.sectionHeading}>
        <div><h2>Your insights</h2><p>Real performance and audience activity on FACKTS Music.</p></div>
@@ -104,6 +107,7 @@ export default async function ArtistHomePremium({identity,profile,project,hasPro
    <section className={styles.actions} aria-label="Quick artist actions">
      <div className={styles.sectionHeading}><div><h2>Quick actions</h2><p>Everything you need to keep making music.</p></div></div>
      <div className={styles.actionGrid}>
+       <Link href={hasCurrentProject?"/tracks#project-player":projectHref} className={styles.action}><span aria-hidden="true">▶</span><div><strong>My project tracks</strong><small>Find recordings and listen in {projectName}.</small></div><b aria-hidden="true">↗</b></Link>
        <Link href={hasCurrentProject&&canCreateTrack?"/tracks?upload=1#upload-track":projectHref} className={styles.action}>
          <span aria-hidden="true">♫</span><div><strong>{hasCurrentProject?"Upload to project":"Start a project"}</strong><small>{hasCurrentProject?"Add private recordings and drafts.":"Make a home for your first recording."}</small></div><b aria-hidden="true">↗</b>
        </Link>
@@ -118,9 +122,10 @@ export default async function ArtistHomePremium({identity,profile,project,hasPro
        </Link>
      </div>
    </section>
-   {(recent.length>0||recentUnavailable)&&<section className={styles.recent} aria-label="Recent project recordings">
+   {hasCurrentProject&&<section className={styles.recent} aria-label="Recent project recordings">
      <div className={styles.sectionHeading}><div><h2>Recent recordings</h2><p>Work in progress stays private until released.</p></div><Link href="/tracks">All project music ↗</Link></div>
      {recentUnavailable?<p role="status">Recent recordings are temporarily unavailable.</p>:
+       !recent.length?<div className={styles.emptyPanel}><strong>No project tracks yet</strong><p>{projectName} has no registered tracks. Recordings from other projects stay separate.</p><Link href={canCreateTrack?"/tracks?upload=1#upload-track":"/tracks"}>{canCreateTrack?"Add a private recording":"Open project tracks"} ↗</Link></div>:
        <div className={styles.recentGrid}>{recent.slice(0,4).map(row=><Link href={row.href} key={row.id} className={styles.recentRow}>
          <span className={styles.recentArtwork}><img src={row.artwork||"/images/project-001-default-cover.png"} alt="" loading="lazy"/></span>
          <span className={styles.recentCopy}><strong>{row.title}</strong><small>{row.detail}</small><em>{row.status||"In progress"}</em></span>

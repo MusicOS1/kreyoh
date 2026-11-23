@@ -24,7 +24,7 @@ export default function ArtistHeroGallery({name,projectName,projectSummary,proje
      <span className={styles.kicker}>{hasProject?"CURRENT PROJECT":hasProjects?"YOUR WORKSPACE":"WELCOME TO FACKTS MUSIC"}</span>
      <h2>{projectName}</h2>
      <p>{projectSummary}</p>
-     <Link href={projectHref} className={styles.primaryAction}>{hasProject?"Continue project":hasProjects?"Choose a project":"Create your first project"} <span aria-hidden="true">↗</span></Link>
+     <Link href={projectHref} className={styles.primaryAction}>{hasProject?"Open tracks & player":hasProjects?"Choose a project":"Create your first project"} <span aria-hidden="true">↗</span></Link>
    </div>
    <div className={styles.heroIdentity}>
      <strong>{name}</strong>

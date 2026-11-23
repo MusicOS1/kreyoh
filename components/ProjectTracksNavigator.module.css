@@ -1,0 +1,14 @@
+.root{box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,.93fr);gap:18px;align-items:center;padding:20px;border:1px solid #ffffff28;border-radius:16px;background:#141414;color:#fff;margin:0 0 20px;min-width:0;font-family:"DM Sans",Arial,sans-serif}
+.root *{box-sizing:border-box}.intro,.actions{min-width:0}
+.kicker{display:block;color:#FF6A00;font-weight:800;letter-spacing:.1em;font-size:10px}
+.intro h2{font-family:"Gotham","DM Sans",sans-serif;font-size:clamp(21px,2.4vw,28px);margin:6px 0 8px;line-height:1.2;overflow-wrap:anywhere}
+.intro p{margin:0;color:#A1A1AA;line-height:1.55;font-size:12px}
+.actions{display:grid;gap:10px}
+.form{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:8px}
+.form label{grid-column:1/-1;font-size:12px;color:#fff;font-weight:700}
+.form select{min-width:0;width:100%;height:46px;padding:9px 12px;border-radius:9px;border:1px solid #ffffff50;background:#0B0B0B;color:#fff;font:inherit;font-size:14px}
+.form button,.create{min-height:46px;padding:10px 14px;border-radius:9px;background:#FF6A00;color:#0B0B0B;border:1px solid #FF6A00;font:inherit;font-size:12px;font-weight:800;text-align:center;cursor:pointer}
+.links{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.links a{color:#FFB077;font-size:12px;text-decoration:underline;text-underline-offset:3px;min-height:34px;display:inline-flex;align-items:center}
+.root :is(a,button,select):focus-visible{outline:2px solid #FF6A00;outline-offset:3px}
+@media(max-width:760px){.root{grid-template-columns:minmax(0,1fr);padding:16px;gap:12px;margin-bottom:16px}.form{grid-template-columns:minmax(0,1fr)}.form button{width:100%}.form select{font-size:16px}.links{gap:8px 14px}}
