@@ -1,0 +1,28 @@
+.fm-support-page{min-height:100vh;background:#0b0b0b;color:#fff}
+.fm-support-layout{width:min(100% - 32px,820px);margin:0 auto;padding:clamp(40px,6vw,70px) 0 100px}
+.fm-support-heading span{font-size:11px;letter-spacing:.15em;font-weight:700;color:#ff8c45}
+.fm-support-heading h1{font-size:clamp(38px,5vw,62px);letter-spacing:-.05em;line-height:1.1;margin:14px 0}
+.fm-support-heading p{max-width:650px;color:#b1b1b9;line-height:1.6}
+.fm-support-window,.fm-support-login{margin-top:28px;background:#121212;border:1px solid #303030;border-radius:18px;overflow:hidden}
+.fm-support-status{display:flex;align-items:center;gap:10px;border-bottom:1px solid #303030;padding:13px 18px;color:#c3c3c7;font-size:12px;line-height:1.5}
+.fm-support-presence{width:8px;height:8px;border-radius:50%;background:#ff6a00;flex:none}
+.fm-support-timeline{min-height:230px;max-height:52vh;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:20px}
+.fm-support-empty{margin:auto;text-align:center;color:#b3b3b7;max-width:380px;line-height:1.7}
+.fm-support-message{max-width:min(82%,500px);border-radius:15px;padding:11px 14px;background:#242424;align-self:flex-start;animation:fmSupportArrive .2s ease-out both}
+.fm-support-message.mine{align-self:flex-end;background:#4a240d;border:1px solid #864419}
+.fm-support-message small{display:block;color:#ffa46b;font-size:11px;font-weight:700}
+.fm-support-message p{margin:5px 0;color:#f4f4f5;line-height:1.55;overflow-wrap:anywhere;white-space:pre-wrap}
+.fm-support-message time{display:block;color:#bbb;font-size:10px;text-align:right}
+.fm-support-composer{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:14px;border-top:1px solid #303030}
+.fm-support-composer textarea{color:#fff;background:#1d1d1d;border:1px solid #4b4b4b;border-radius:12px;resize:vertical;min-height:48px;padding:12px;line-height:1.5;font:inherit}
+.fm-support-composer button,.fm-support-login-cta{align-self:end;display:inline-block;background:#ff6a00;color:#100c08!important;border:0;border-radius:10px;padding:14px 18px;text-decoration:none;font-weight:750;cursor:pointer}
+.fm-support-composer button:disabled{opacity:.6;cursor:wait}
+.fm-support-error{grid-column:1/-1;color:#ff9e9e;margin:0;font-size:13px}
+.fm-support-sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.fm-support-login{padding:30px}
+.fm-support-login p{color:#b5b5b5;line-height:1.65}
+.fm-support-login-cta{margin-top:8px}
+.fm-support-login a:not(.fm-support-login-cta){color:#ff9d59}
+@keyframes fmSupportArrive{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:600px){.fm-support-composer{grid-template-columns:1fr}.fm-support-composer button{justify-self:end}.fm-support-timeline{max-height:48vh;padding:12px}.fm-support-message{max-width:92%}}
+@media(prefers-reduced-motion:reduce){.fm-support-message{animation:none}}
