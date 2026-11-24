@@ -28,7 +28,7 @@ export default async function OperatingBook({params,searchParams}:{
  return <main className={styles.root}>
   <header className={styles.head}><span className={styles.kicker}>FINANCE BACK OFFICE / OPERATING ACCOUNT</span>
    <h1>{def.name}</h1><p>{def.caption}. This is a separate manual operating ledger and is not a wallet, bank account or artist payout account.</p>
-   <div className={styles.actions}><Link className={styles.secondary} href="/admin/finance">All finance accounts</Link></div>
+   <div className={styles.actions}><Link className={styles.secondary} href="/finance-office">All finance accounts</Link></div>
   </header>
   {!available?<div className={styles.callout} role="status">This operating book has not been activated in the database. The reviewed finance migration creates the FACKTS Music and Third Culture books. No account balance or financial data has been assumed.</div>:
    entryR.error?<div className={styles.callout} role="alert">Operating entries could not be loaded. Totals are withheld. Try again.</div>:<>

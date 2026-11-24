@@ -36,3 +36,12 @@
 .empty{background:#141414;border:1px dashed #ffffff45;border-radius:12px;padding:18px;color:#a1a1aa;font-size:13px}
 .root :is(a,button,input,select,textarea):focus-visible{outline:2px solid #ff6a00;outline-offset:2px}
 @media(max-width:760px){.root{padding:10px 3px 90px}.head{padding:17px}.grid{grid-template-columns:minmax(0,1fr)}.card{padding:15px}.form{grid-template-columns:minmax(0,1fr)}.form :is(input,select,textarea){font-size:16px}.money strong{font-size:18px}}
+
+/* Finance-only readable contrast: never grey text on grey backgrounds. */
+.root p,.sectionHead p{color:#e4e4e8}
+.card p,.card small,.meta{color:#dddde1}
+.table th,.table td small{color:#e5e5e9}
+.table td{color:#f4f4f6}
+.callout{color:#f5f5f8;border-color:#797979;background:#1d1d1d}
+.empty{color:#f4f4f6}
+.actions a.secondary{color:#ffbd8d}

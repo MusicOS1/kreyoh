@@ -22,7 +22,7 @@ const navigation = [
   { label: "Platform administrators", href: "/admin/administrators", group: "Management", permission: "people" },
   { label: "Professional applications", href: "/admin/professional-applications", group: "Management", permission: "people" },
   { label: "Projects", href: "/admin/projects", group: "Management", permission: "projects" },
-  { label: "Finance Back Office", href: "/admin/finance", group: "Management", permission: "finance" },
+  { label: "Finance Office", href: "/finance-office", group: "Management", permission: "finance" },
   { label: "Sales & Partnerships", href: "/admin/sales", group: "Management", permission: "commercial" },
   { label: "Music operations", href: "/admin/operations", group: "Operations", permission: "music" },
   { label: "Enquiries", href: "/admin/enquiries", group: "Operations", permission: "enquiries" },
@@ -109,7 +109,7 @@ export default function ControlRoomShell({
       <nav className="control-mobile-bottom-nav" aria-label="Control Room primary navigation">
         <Link className={isActive("/admin") ? "active" : ""} href="/admin">Overview</Link>
         {can("people") && <Link className={isActive("/admin/users") ? "active" : ""} href="/admin/users">People</Link>}
-        {can("finance") && <Link className={isActive("/admin/finance") ? "active" : ""} href="/admin/finance">Finance</Link>}
+        {can("finance") && <Link className={isActive("/finance-office") ? "active" : ""} href="/finance-office">Finance</Link>}
         {can("commercial") && <Link className={isActive("/admin/sales") ? "active" : ""} href="/admin/sales">Sales</Link>}
         {can("music") && <Link className={isActive("/admin/operations") ? "active" : ""} href="/admin/operations">Operations</Link>}
         <button type="button" onClick={() => setMobileOpen(true)}>More</button>

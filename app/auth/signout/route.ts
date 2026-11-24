@@ -5,7 +5,8 @@ import { createAdminClient } from "../../../lib/supabase/admin";
 export const dynamic = "force-dynamic";
 
 function safeDestination(request: NextRequest) {
-  return request.nextUrl.searchParams.get("next") === "/admin/login" ? "/admin/login" : "/login";
+  const next=request.nextUrl.searchParams.get("next");
+  return next === "/admin/login" || next === "/finance-office/login" ? next : "/login";
 }
 
 async function completeSignOut(request: NextRequest) {
@@ -34,7 +35,7 @@ async function completeSignOut(request: NextRequest) {
         admin.from("auth_events").insert({
           user_id: user.id,
           event_name: "logout_completed",
-          metadata: { surface: destination === "/admin/login" ? "control_room" : "main" },
+          metadata: { surface: destination === "/finance-office/login" ? "finance_office" : destination === "/admin/login" ? "control_room" : "main" },
         }),
         admin.from("user_presence").update({ status: "offline", updated_at: now }).eq("user_id", user.id),
       ]);
@@ -51,7 +52,8 @@ async function completeSignOut(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   // A link prefetch or external navigation must never terminate a valid session.
-  const action=safeDestination(request)==="/admin/login"?"/auth/signout?next=/admin/login":"/auth/signout";
+  const destination=safeDestination(request);
+  const action=destination!=="/login"?"/auth/signout?next="+encodeURIComponent(destination):"/auth/signout";
   return new NextResponse(`<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sign out | FACKTS Music</title><body style="background:#080809;color:white;font:18px system-ui;padding:24px"><h1>Sign out of FACKTS Music?</h1><form action="${action}" method="post"><button style="font:inherit;min-height:48px">Sign out</button></form><p><a style="color:#ffad63" href="/home">Keep listening and working</a></p></body></html>`,{headers:{"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store"}});
 }
 

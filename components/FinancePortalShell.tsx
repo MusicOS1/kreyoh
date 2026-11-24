@@ -1,0 +1,37 @@
+import Link from "next/link";
+import styles from "../app/finance-office/portal.module.css";
+
+export default function FinancePortalShell({children,email,superAdmin}:{
+ children:React.ReactNode;email:string;superAdmin:boolean;
+}){
+ const nav=[
+  {title:"Overview",href:"/finance-office"},
+  {title:"FACKTS Music account",href:"/finance-office/books/fackts_music_platform"},
+  {title:"Third Culture account",href:"/finance-office/books/third_culture"},
+  {title:"Music projects",href:"/finance-office#projects"},
+ ];
+ return <div className={styles.shell}>
+  <aside className={styles.sidebar} aria-label="Finance portal sidebar">
+   <Link href="/finance-office" className={styles.brand}>FACKTS <span>MUSIC</span><small>Finance Office</small></Link>
+   <nav className={styles.links} aria-label="Finance portal navigation">
+    {nav.map(item=><Link key={item.href} href={item.href}>{item.title}</Link>)}
+   </nav>
+   <div className={styles.foot}><span>Signed in as {email}</span>
+    {superAdmin&&<Link href="/admin">Open Super Admin Control Room</Link>}
+    <form action="/auth/signout?next=/finance-office/login" method="post"><button type="submit">Sign out</button></form>
+   </div>
+  </aside>
+  <div className={styles.main}>
+   <header className={styles.top}><div><strong>FACKTS Music · Finance</strong><p>Accounts, payments and project records</p></div>
+    {superAdmin?<Link href="/admin">Super Admin</Link>:<span aria-label="Current role">Finance team</span>}
+   </header>
+   <div className={styles.body}>{children}</div>
+   <nav className={styles.mobileNav} aria-label="Finance portal mobile navigation">
+    <Link href="/finance-office">Overview</Link>
+    <Link href="/finance-office/books/fackts_music_platform">Platform</Link>
+    <Link href="/finance-office/books/third_culture">Culture</Link>
+    <Link href="/finance-office#projects">Projects</Link>
+   </nav>
+  </div>
+ </div>;
+}

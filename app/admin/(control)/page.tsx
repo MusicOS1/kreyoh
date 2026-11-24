@@ -1,3 +1,5 @@
+import {redirect} from "next/navigation";
+import {requireControlRoomAdmin,getControlRoomPermissions} from "../../../lib/controlRoom";
 import Link from "next/link";
 import {createAdminClient} from "../../../lib/supabase/admin";
 
@@ -6,6 +8,9 @@ const first=(value:any)=>Array.isArray(value)?value[0]:value;
 const nice=(value:string)=>value.replaceAll("_"," ").replace(/\b\w/g,c=>c.toUpperCase());
 
 export default async function ControlRoomOverview(){
+  const user=await requireControlRoomAdmin();
+  const permissions=await getControlRoomPermissions(user.id);
+  if(permissions.length===1&&permissions[0]==="finance")redirect("/finance-office");
   const admin=createAdminClient();
   const now=new Date();
   const [users,newUsers,projects,beats,claims,sessions,online,activeToday,activeWeek,events]=await Promise.all([

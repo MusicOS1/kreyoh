@@ -43,9 +43,9 @@ export async function recordFinanceBookEntry(formData:FormData){
   user_id:actor.id,event_name:"finance_book_draft_created",category:"finance",entity_type:"finance_book_entry",entity_id:entry.id,
   metadata:{book_slug:slug,amount_kes:amount,entry_type:type}});
  if(auditError)console.error("finance-entry-audit-failure",auditError.code);
- revalidatePath("/admin/finance");
- revalidatePath("/admin/finance/books/"+slug);
- redirect("/admin/finance/books/"+slug+"?created=1");
+ revalidatePath("/finance-office");
+ revalidatePath("/finance-office/books/"+slug);
+ redirect("/finance-office/books/"+slug+"?created=1");
 }
 export async function postFinanceBookEntry(formData:FormData){
  const actor=await requireControlRoomPermission("finance");
@@ -63,7 +63,7 @@ export async function postFinanceBookEntry(formData:FormData){
   user_id:actor.id,event_name:"finance_book_entry_posted",category:"finance",entity_type:"finance_book_entry",entity_id:entryId,
   metadata:{book_slug:slug}});
  if(auditError)console.error("finance-post-audit-failure",auditError.code);
- revalidatePath("/admin/finance");revalidatePath("/admin/finance/books/"+slug);
+ revalidatePath("/finance-office");revalidatePath("/finance-office/books/"+slug);
 }
 export async function createCentralServiceInvoice(formData:FormData){
  const actor=await requireControlRoomPermission("finance");
@@ -90,6 +90,6 @@ export async function createCentralServiceInvoice(formData:FormData){
   user_id:actor.id,project_id:projectId,event_name:"central_service_invoice_created",
   category:"finance",metadata:{purpose,amount_kes:amount}});
  if(auditError)console.error("central-service-invoice-audit-failure",auditError.code);
- revalidatePath("/admin/finance/projects/"+projectId);
- redirect("/admin/finance/projects/"+projectId+"?created="+invoice.public_token);
+ revalidatePath("/finance-office/projects/"+projectId);
+ redirect("/finance-office/projects/"+projectId+"?created="+invoice.public_token);
 }
