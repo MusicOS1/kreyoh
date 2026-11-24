@@ -31,10 +31,10 @@ export default async function FinanceBackOffice(){
  const bookTotals=recordedBookTotals(entriesR.data||[]);
  const ready=!booksR.error&&!entriesR.error&&books.length===2;
  return <main className={styles.root}>
-  <header className={styles.head}><span className={styles.kicker}>FACKTS MUSIC / CONTROL ROOM / FINANCE</span>
+  <header className={styles.head}><span className={styles.kicker}>FACKTS MUSIC / FINANCE OFFICE</span>
    <h1>Finance Back Office</h1>
    <p>One simple workspace for the finance leader. Platform operations, Third Culture, and independently owned music projects stay in separate accounts. Access requires an explicit Control Room Finance grant from the Super Admin.</p>
-   <div className={styles.actions}><Link className={styles.secondary} href="/admin/administrators">Super Admin: assign Finance, Sales or Operations roles</Link></div>
+   <p>Finance access is assigned by Super Admin; this office does not manage platform team permissions.</p>
   </header>
   <div className={styles.callout}><strong>Account boundaries:</strong> FACKTS Music is the platform. Third Culture is a separate organisation managing TUKO WATU WENGI. Other projects keep their individual owners and independent project finance records. Figures here are recorded project movements, not bank balances, profit, or artist payouts.</div>
   <section className={styles.section} aria-label="Platform and organisation accounts">
@@ -47,11 +47,11 @@ export default async function FinanceBackOffice(){
       <h3>{def.name}</h3><p>{def.caption}. {def.slug==="third_culture"?"TUKO WATU WENGI project accounts remain separately itemised below.":"Not an artist project, royalty pool or merchant settlement account."}</p>
       {ready&&book?<div className={styles.money}><div><span>Recorded money in</span><strong>{fmt(sums?.income||0)}</strong></div><div><span>Recorded money out</span><strong>{fmt(sums?.expense||0)}</strong></div></div>:
       <p role="status">Account ledger awaits the reviewed finance migration. No opening balance or transactions are assumed.</p>}
-      <div className={styles.actions}><Link href={"/admin/finance/books/"+def.slug}>{ready?"Open account":"View account setup"}</Link></div>
+      <div className={styles.actions}><Link href={"/finance-office/books/"+def.slug}>{ready?"Open account":"View account setup"}</Link></div>
     </article>;
    })}</div>
   </section>
-  <section className={styles.section} aria-label="Individual music project finances">
+  <section className={styles.section} id="projects" aria-label="Individual music project finances">
    <div className={styles.sectionHead}><div><h2>Music project accounts</h2><p>Each project's original financial ledger stays intact. No cross-project sharing or blended balances.</p></div><strong>{fail?"—":projects.length+" accounts"}</strong></div>
    {fail||owners.error?<div className={styles.empty} role="alert">Project finance data is temporarily unavailable. Totals are withheld rather than estimated.</div>:
    <div className={styles.tableWrap}><table className={styles.table}>
@@ -64,7 +64,7 @@ export default async function FinanceBackOffice(){
        <td><strong>{p.name}</strong><small>{p.code||"Project"} · {p.status}</small></td>
        <td>{name}{p.id===TUKO_PROJECT_ID?<small>Designated finance organisation; original owner field not changed</small>:null}</td>
        <td>{fmt(sums.received)}</td><td>{fmt(sums.spent)}</td>
-       <td><Link href={"/admin/finance/projects/"+p.id}>Open finance →</Link></td>
+       <td><Link href={"/finance-office/projects/"+p.id}>Open finance →</Link></td>
       </tr>;
     })}</tbody>
    </table></div>}

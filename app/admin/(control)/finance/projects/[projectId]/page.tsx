@@ -45,7 +45,7 @@ export default async function ProjectFinanceDetail({params,searchParams}:{
  return <main className={styles.root}>
   <header className={styles.head}><span className={styles.kicker}>FINANCE BACK OFFICE / PROJECT ACCOUNT</span><h1>{project.name}</h1>
    <p>Independent project ledger. Finance contact: <strong>{owner}</strong>. {projectId===TUKO_PROJECT_ID?"The Third Culture operating book stays separate from the TUKO project ledger.":""}</p>
-   <div className={styles.actions}><Link className={styles.secondary} href="/admin/finance">All finance accounts</Link></div>
+   <div className={styles.actions}><Link className={styles.secondary} href="/finance-office">All finance accounts</Link></div>
   </header>
   {fail?<div className={styles.callout} role="alert">The financial records for this project could not be verified. Totals are withheld.</div>:<>
    <div className={styles.grid}>
