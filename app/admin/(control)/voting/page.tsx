@@ -1,9 +1,11 @@
+import {requireControlRoomPermission} from "../../../../lib/controlRoom";
 import { createAdminClient } from "../../../../lib/supabase/admin";
 import { creatorDisplayName } from "../../../../lib/profileIdentity";
 
 const first = (value: any) => Array.isArray(value) ? value[0] : value;
 
 export default async function VotingIntelligencePage() {
+  await requireControlRoomPermission("intelligence");
   const admin = createAdminClient();
   const [projectsResult, roundsResult, membersResult, rankedResult, versionResult, tracksResult] = await Promise.all([
     admin.from("projects").select("id,code,name,status").order("created_at", { ascending: true }),

@@ -1,8 +1,10 @@
+import {requireControlRoomPermission} from "../../../../lib/controlRoom";
 import Link from "next/link";
 import { createAdminClient } from "../../../../lib/supabase/admin";
 import { updateSystemSetting } from "../actions";
 
 export default async function AdminSystem() {
+  await requireControlRoomPermission("system");
   const admin = createAdminClient();
   const [{ data: settings }, { data: incidents }] = await Promise.all([
     admin.from("system_settings").select("*").order("setting_key"),
