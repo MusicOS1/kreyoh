@@ -20,9 +20,10 @@ export default async function FinanceBills({searchParams}:{
  const write=financeWritesEnabled();
  return <main className={styles.root}>
   <header className={styles.head}><div><span className={styles.eyebrow}>FINANCE OFFICE / EXPENSES</span>
-   <h1>Bills & expenses</h1><p>Keep upcoming bills separate from money already paid. Record a bill first, then confirm it after checking payment evidence.</p></div>
+   <h1>Project bills & expenses</h1><p>These are bills for separately owned or managed music projects. FACKTS Music's own operating expenses belong in its business account.</p></div>
    <Link className={styles.buttonSecondary} href="/finance-office/transactions">All transactions</Link>
   </header>
+  <div className={styles.note}><strong>Looking for FACKTS Music expenses?</strong> Go to <Link href="/finance-office/platform#expenses">FACKTS business expenses</Link>. The bills below belong to specific projects, including partner work, and are not automatically FACKTS operating costs.</div>
   <div className={styles.grid4}>
    <div className={styles.stat}><small>Bills awaiting payment</small><strong>{outstanding.length}</strong><span>Commitments, not money spent</span></div>
    <div className={styles.stat}><small>Total outstanding</small><strong>{fmtKES(outstanding.filter((b:any)=>b.currency==="KES").reduce((s:number,b:any)=>s+Number(b.amount),0))}</strong><span>Not deducted from recorded cashflow</span></div>

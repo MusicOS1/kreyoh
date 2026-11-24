@@ -27,8 +27,8 @@ export default async function OperatingBook({params,searchParams}:{
  const {created}=await searchParams;
  return <main className={styles.root}>
   <header className={styles.head}><span className={styles.kicker}>FINANCE BACK OFFICE / OPERATING ACCOUNT</span>
-   <h1>{def.name}</h1><p>{def.caption}. This is a separate manual operating ledger and is not a wallet, bank account or artist payout account.</p>
-   <div className={styles.actions}><Link className={styles.secondary} href="/finance-office">All finance accounts</Link></div>
+   <h1>{def.name}</h1><p>{def.caption}. This is a separate manual operating ledger, not a wallet, bank account or artist payout account.</p>
+   <div className={styles.actions}><Link className={styles.secondary} href="/finance-office/accounts">All finance accounts</Link>{slug==="fackts_music_platform"&&<Link href="/finance-office/platform">FACKTS business money in & out</Link>}{slug==="third_culture"&&<Link href="/finance-office/partners/third-culture">Partner overview</Link>}</div>
   </header>
   {!available?<div className={styles.callout} role="status">This operating ledger has not yet been created in the database. Finance will be able to record income and costs here only after the reviewed finance migration is approved. This does not mean the organisation has no money or that any Paystack payments failed.</div>:
    entryR.error?<div className={styles.callout} role="alert">Operating entries could not be loaded. Totals are withheld. Try again.</div>:<>

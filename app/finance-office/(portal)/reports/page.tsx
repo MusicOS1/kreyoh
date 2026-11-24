@@ -12,8 +12,8 @@ export default async function FinanceReports({searchParams}:{
  const totalIn=all.filter(r=>r.kind==="income").reduce((s,r)=>s+r.amount,0);
  const totalOut=all.filter(r=>r.kind==="expense").reduce((s,r)=>s+r.amount,0);
  return <main className={styles.root}>
-   <header className={styles.head}><div><span className={styles.eyebrow}>FINANCE OFFICE / REPORTS</span><h1>Finance reports</h1>
-    <p>Understand what was actually recorded, compare projects, and export a spreadsheet-ready CSV.</p></div>
+   <header className={styles.head}><div><span className={styles.eyebrow}>FINANCE OFFICE / REPORTS</span><h1>Managed-project reports</h1>
+    <p>Compare separate artist and partner project financial movements. This is not FACKTS Music's company report.</p></div>
     <Link className={styles.button} href={"/finance-office/reports/export?period="+period}>Download CSV</Link></header>
    <nav className={styles.pills} aria-label="Report period">{[["30","30 days"],["90","90 days"],["365","1 year"],["all","All time"]].map(([v,label])=>
     <Link key={v} className={styles.pill+" "+(period===v?styles.pillActive:"")} href={"/finance-office/reports?period="+v}>{label}</Link>)}</nav>
@@ -23,8 +23,9 @@ export default async function FinanceReports({searchParams}:{
     <div className={styles.stat}><small>Net recorded movement</small><strong>{fmtKES(totalIn-totalOut)}</strong><span>Not bank balance or profit</span></div>
     <div className={styles.stat}><small>Records included</small><strong>{all.length}</strong><span>Excludes unverified transactions</span></div>
    </div>
+   <div className={styles.note}><strong>FACKTS Music company reporting is separate.</strong> Open <Link href="/finance-office/platform">FACKTS business finance</Link> to see operating income, expenses, drafts and its CSV export. Project reports below include the Third Culture partner project and other independently owned projects.</div>
    <div className={styles.note}>The CSV includes each project's recorded income and expenses for the selected period. FACKTS Music and Third Culture operating books are separate and not counted as artist project earnings. Member reimbursements, royalty liabilities and actual settlement amounts are not calculated without verified source records.</div>
-   <section className={styles.panel}><div className={styles.panelTop}><h2>Platform and Third Culture operating books</h2><Link href="/finance-office/accounts">Open accounts</Link></div>
+   <section className={styles.panel}><div className={styles.panelTop}><h2>Other separately held operating books</h2><Link href="/finance-office/accounts">Open accounts</Link></div>
     <p>These are separate books and are not included in the project totals above.</p>
     <div className={styles.items}>{data.financeBooks.map(b=>{
      const book=data.books.find((item:any)=>item.slug===b.slug);

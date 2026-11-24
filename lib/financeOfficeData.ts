@@ -71,7 +71,7 @@ export async function loadFinanceOfficeData(){
  const bookList=books.error?[]:books.data||[];
  const bookIds=bookList.map((b:any)=>b.id);
  const entries=bookIds.length?await readAllRows(()=>db.from("finance_book_entries")
-  .select("id,book_id,entry_type,amount_kes,status,entry_date,description,created_at").in("book_id",bookIds).order("id")):
+  .select("id,book_id,entry_type,amount_kes,status,entry_date,description,category,reference,created_at").in("book_id",bookIds).order("id")):
   {data:[],error:books.error,count:0};
  const bookReady=!books.error&&!entries.error&&bookList.length===FINANCE_BOOKS.length;
  const ownerIds=[...new Set(list.map((p:any)=>p.owner_id).filter(Boolean))] as string[];

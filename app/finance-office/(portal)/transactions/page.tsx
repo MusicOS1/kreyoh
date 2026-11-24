@@ -17,8 +17,9 @@ export default async function AllTransactions({searchParams}:{
   (!q||row.description.toLowerCase().includes(q)||data.projects.find((p:any)=>p.id===row.project_id)?.name.toLowerCase().includes(q))
  );
  return <main className={styles.root}>
-  <header className={styles.head}><div><span className={styles.eyebrow}>FINANCE OFFICE / TRANSACTIONS</span><h1>Money in & money out</h1><p>Search real project income, member contributions and expenses. Pending records remain clearly separate.</p></div>
+  <header className={styles.head}><div><span className={styles.eyebrow}>FINANCE OFFICE / TRANSACTIONS</span><h1>Managed-project money in & out</h1><p>Search income, contributions and expenses in separate artist/partner project books. FACKTS Music business transactions have their own page.</p></div>
    <Link className={styles.buttonSecondary} href="/finance-office/reports">Export report</Link></header>
+  <div className={styles.note}><strong>Separate finances:</strong> these movements are not FACKTS Music business income or operating costs. <Link href="/finance-office/platform#fackts-business-activity">Open FACKTS business transactions</Link>.</div>
   <section className={styles.panel}><form method="get" className={styles.searchForm}>
    <label>Search<input type="search" name="q" defaultValue={params.q||""} placeholder="Project or transaction"/></label>
    <label>Type<select name="type" defaultValue={type}><option value="all">All records</option><option value="income">Money in</option><option value="expense">Money out</option><option value="unverified">Unverified</option></select></label>

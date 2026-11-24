@@ -34,7 +34,7 @@ export default async function FacktsPlatformFinance({searchParams}:{
   {!ready?<div className={styles.note} role="status"><strong>Business ledger setup pending.</strong> The FACKTS Music operating-book migration has not been approved in the current database. This does not mean FACKTS has no money. The forms below show exactly how Finance will work once the book is installed; they cannot save in this preview.</div>:
    <div className={styles.note}>These are FACKTS Music's own operating-book entries. Third Culture member contributions, its TUKO project money, and independent artists' project receipts are <strong>not included</strong>. Entries are financial records, not bank reconciliation.</div>}
   {params.created==="1"&&<div className={styles.note} role="status">Draft saved. Check it in the activity list before confirming.</div>}
-  <section className={styles.panel}>
+  <section className={styles.panel} id="record">
    <div className={styles.panelTop}><div><h2>Record money in or money out</h2><p>Pick the direction, enter the amount and explain it. Save as a draft before confirmation.</p></div><Link href="/finance-office/reports" className={styles.smallLink}>Project reports are separate</Link></div>
    <div className={styles.grid2}>
     <article className={styles.stat}><small>Money in</small><strong>Business income</strong><span>Recording/production service fees retained by FACKTS, platform subscriptions when approved, sponsorship, distribution income and other verified income</span></article>
@@ -53,7 +53,7 @@ export default async function FacktsPlatformFinance({searchParams}:{
    </form>
   </section>
   <div className={styles.grid2}>
-   <section className={styles.panel}><div className={styles.panelTop}><h2>Expenses and bills</h2><Link href="#fackts-business-activity" className={styles.smallLink}>View activity</Link></div>
+   <section className={styles.panel} id="expenses"><div className={styles.panelTop}><h2>Expenses and bills</h2><Link href="#fackts-business-activity" className={styles.smallLink}>View activity</Link></div>
     <p>Operating costs must stay in FACKTS Music's ledger. A draft expense is <strong>not yet money paid</strong>; confirm it only after reviewing the supplier bill or payment evidence.</p>
     <div className={styles.items}>
      <div className={styles.item}><div><strong>Draft expenses to check</strong><small>Not yet counted as paid</small></div><b>{ready?drafts.filter((e:any)=>e.entry_type==="expense").length:"—"}</b></div>
@@ -68,7 +68,7 @@ export default async function FacktsPlatformFinance({searchParams}:{
      <Link href="/finance-office/partners/third-culture">Third Culture partner ledger</Link>
      <Link href="/finance-office/accounts">Independent music projects</Link>
      <Link href="/finance-office/fan-payments">Fan payments (separate)</Link>
-     <Link href="/finance-office/platform/export">Export business records (CSV)</Link>
+     {ready?<Link href="/finance-office/platform/export">Export business records (CSV)</Link>:<span className={styles.status}>Business CSV available after ledger setup</span>}
     </div>
    </section>
   </div>
