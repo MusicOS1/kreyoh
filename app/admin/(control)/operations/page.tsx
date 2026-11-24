@@ -1,3 +1,4 @@
+import {requireControlRoomPermission} from "../../../../lib/controlRoom";
 import Link from "next/link";
 import AdminMusicCatalogManager from "../../../../components/AdminMusicCatalogManager";
 import { createAdminClient } from "../../../../lib/supabase/admin";
@@ -23,6 +24,7 @@ export default async function AdminOperations({
     q?: string;
   }>;
 }) {
+  await requireControlRoomPermission("music");
   const params = await searchParams;
   const beatPage = Math.max(1, Number(params.beatPage) || 1);
   const trackPage = Math.max(1, Number(params.trackPage) || 1);

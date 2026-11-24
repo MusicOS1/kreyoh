@@ -1,7 +1,9 @@
+import {requireControlRoomPermission} from "../../../../lib/controlRoom";
 import { createAdminClient } from "../../../../lib/supabase/admin";
 import { updateEnquiryStatus } from "../actions";
 
 export default async function AdminEnquiries({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
+  await requireControlRoomPermission("enquiries");
   const { status } = await searchParams;
   const admin = createAdminClient();
   let query = admin.from("public_enquiries").select("*").order("created_at", { ascending: false }).limit(100);
