@@ -23,7 +23,7 @@ export default async function ThirdCultureMembers({searchParams}:{
   <div className={styles.note}><strong>Missing finance record</strong> means the member is already active but their personal contribution ledger has not yet been created. It is not an unpaid bill or a blocked login. A monthly fee setting does <strong>not</strong> establish debt.</div>
   <section className={styles.panel}><div className={styles.panelTop}><h2>People and payments</h2><span>{visible.length} people</span></div>
    <form className={styles.searchForm} method="get"><label>Find a member<input name="q" type="search" defaultValue={q} placeholder="Name, email or account code"/></label><button>Search</button></form>
-   {visible.length===0?<div className={styles.empty}>No members match this search.</div>:
+   {visible.length===0?<div className={styles.empty}>No members match this search.</div>:<>
     <div className={styles.mobileMemberList} aria-label="Members and finance details on mobile">{visible.map(m=><article className={styles.mobileMemberCard} key={m.userId}>
       <div className={styles.mobileMemberTop}><div><strong>{m.name}</strong><small>{m.email||"No email on file"}</small></div>
        <span className={m.accountId?styles.status+" "+styles.statusGood:styles.status}>{m.accountId?"Ledger ready":"Record missing"}</span></div>
@@ -44,7 +44,7 @@ export default async function ThirdCultureMembers({searchParams}:{
      <td className={styles.moneyIn}>{fmtKES(m.received)}</td><td>{m.lastPayment?formatDate(m.lastPayment):"No posted payments"}</td>
      <td><Link href={"/finance-office/members/"+m.userId}>Open member →</Link></td>
     </tr>)}</tbody>
-   </table></div>}
+   </table></div></>}
   </section>
  </main>;
 }
