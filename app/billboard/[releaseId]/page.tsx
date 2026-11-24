@@ -27,6 +27,7 @@ export default async function Release({params}:{params:Promise<{releaseId:string
  <Link href={'/creators/'+r.artist_id}>Artist profile →</Link>{featured?.map((person:any)=><Link key={person.id} href={'/creators/'+person.id}>Featuring {person.stage_name||person.full_name}</Link>)}
 
  <section className="community-card"><h2><MusicPlayCount id={r.id} count={r.plays}/> · <ReleaseVoteCount id={r.id} count={r.votes}/> this week</h2><p className="fc-voting-note">Voting resets Mondays at 00:00 EAT.</p><div className="community-actions">{user?<VoteButton id={r.id} voted={Boolean(vote)} own={r.artist_id===user.id}/>:<Link href={`/login?next=/billboard/${r.id}`}>Sign in to vote</Link>}<ShareRelease id={r.id} title={r.title}/><Link href={`/messages/${r.artist_id}`}>Message the artist</Link></div></section>
+ <section className="community-card" aria-label="How to support this artist"><h2>Support {r.artist_name}</h2><p>Enjoy this song? Listening, following the artist, liking, commenting and sharing help other fans discover their work. Use the actions above to take part.</p><p><Link href={"/creators/"+r.artist_id}>Explore the artist profile and more releases →</Link></p><p>Direct paid artist support is not available for this release. No payment or donation is required to listen.</p></section>
  <section className="community-card"><ReleaseComments releaseId={r.id} viewerId={user?.id} initialOpen/></section>
  <section className="community-card"><h2>{projectInfo?"About the project":"About the release"}</h2>
  {projectInfo&&r.collection&&<h3>{r.collection}</h3>}

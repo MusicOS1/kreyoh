@@ -164,10 +164,10 @@ export default function EcosystemFrame({
       ]
     : active === 'artist' ? [
         { label: 'Home', href: '/workspaces/artist' },
-        { label: 'Projects', href: '/projects' },
         { label: 'Tracks', href: '/tracks#project-player' },
-        { label: 'Sessions', href: '/studio-sessions' },
         { label: 'Releases', href: '/billboard/submit' },
+        { label: 'Finance', href: '/finance' },
+        { label: 'Payments', href: '/payments' },
       ] : [
         { label: 'Overview', href: config.href },
         { label: 'Projects', href: '/projects' },

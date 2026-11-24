@@ -107,6 +107,8 @@ export default async function ArtistHomePremium({identity,profile,project,availa
    <section className={styles.actions} aria-label="Quick artist actions">
      <div className={styles.sectionHeading}><div><h2>Quick actions</h2><p>Everything you need to keep making music.</p></div></div>
      <div className={styles.actionGrid}>
+       <Link href={hasCurrentProject?"/finance":projectHref} className={styles.action}><span aria-hidden="true">◈</span><div><strong>Finance & earnings</strong><small>See project money and what's not yet allocated to you.</small></div><b aria-hidden="true">↗</b></Link>
+       <Link href={hasCurrentProject?"/payments":projectHref} className={styles.action}><span aria-hidden="true">↗</span><div><strong>Payments & links</strong><small>See how project payment requests are issued and confirmed.</small></div><b aria-hidden="true">↗</b></Link>
        <Link href={hasCurrentProject?"/tracks#project-player":projectHref} className={styles.action}><span aria-hidden="true">▶</span><div><strong>My project tracks</strong><small>Find recordings and listen in {projectName}.</small></div><b aria-hidden="true">↗</b></Link>
        <Link href={hasCurrentProject&&canCreateTrack?"/tracks?upload=1#upload-track":projectHref} className={styles.action}>
          <span aria-hidden="true">♫</span><div><strong>{hasCurrentProject?"Upload to project":"Start a project"}</strong><small>{hasCurrentProject?"Add private recordings and drafts.":"Make a home for your first recording."}</small></div><b aria-hidden="true">↗</b>
@@ -115,7 +117,7 @@ export default async function ArtistHomePremium({identity,profile,project,availa
          <span aria-hidden="true">▦</span><div><strong>Book a session</strong><small>Plan studio time and collaborators.</small></div><b aria-hidden="true">↗</b>
        </Link>
        <Link href={hasProjects?"/billboard/submit":projectHref} className={styles.action}>
-         <span aria-hidden="true">◉</span><div><strong>Publish on FACKTS</strong><small>Submit finished music for review.</small></div><b aria-hidden="true">↗</b>
+         <span aria-hidden="true">◉</span><div><strong>Release & fan support</strong><small>Submit music, share the public link and build your audience.</small></div><b aria-hidden="true">↗</b>
        </Link>
        <Link href={canUploadBeat?"/beats?upload=1#upload-beat":"/beats"} className={styles.action}>
          <span aria-hidden="true">♬</span><div><strong>Beat Library</strong><small>{canUploadBeat?"Explore or upload instrumentals.":"Discover beats and producers."}</small></div><b aria-hidden="true">↗</b>

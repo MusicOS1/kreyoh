@@ -41,3 +41,8 @@
 .return{display:flex;flex-direction:column;gap:10px}
 .testBadge{border-top:1px solid #333;margin-top:28px;padding-top:18px;color:#ffb372!important;font-weight:750}
 @media(max-width:620px){.root{padding:24px 14px 45px}.panel{padding:17px}.invoiceRow{align-items:flex-start}.header{margin-bottom:20px}.tag{white-space:normal}.invoiceRow>div:last-child{min-width:120px}}
+
+/* Payment destination links for both artists and project administrators. */
+.shortcuts{display:flex;gap:10px 16px;flex-wrap:wrap;align-items:center;margin-top:14px}
+.shortcuts a{display:inline-flex;align-items:center;min-height:42px;padding:9px 12px;border:1px solid #FF6A0066;border-radius:9px;color:#FFAB65;text-decoration:none;font-size:12px;font-weight:800}
+.shortcuts a:hover,.shortcuts a:focus-visible{background:#FF6A001f;outline-color:#FF6A00}
