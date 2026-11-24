@@ -7,58 +7,86 @@ import styles from "../../../finance-office/financeUi.module.css";
 export default async function FinanceBackOffice(){
  await requireControlRoomPermission("finance");
  const data=await loadFinanceOfficeData();
- const series=monthlyMovements(data.rows);
+ const business=data.books.find((b:any)=>b.slug==="fackts_music_platform");
+ const businessReady=Boolean(business&&data.bookDataAvailable);
+ const businessActivity=businessReady?data.bookEntries.filter((e:any)=>e.book_id===business!.id):[];
+ const posted=businessActivity.filter((e:any)=>e.status==="posted");
+ const bizIn=posted.filter((e:any)=>e.entry_type==="income").reduce((s:number,e:any)=>s+Number(e.amount_kes||0),0);
+ const bizOut=posted.filter((e:any)=>e.entry_type==="expense").reduce((s:number,e:any)=>s+Number(e.amount_kes||0),0);
+ const partnerProject=data.projects.find((p:any)=>p.id===data.TUKO_PROJECT_ID);
+ const partnerTotals=partnerProject?data.totals.get(partnerProject.id):null;
+ const independent=data.projects.filter((p:any)=>p.id!==data.TUKO_PROJECT_ID);
  const latest=data.rows.filter(row=>row.currency==="KES").slice(0,6);
+ const series=monthlyMovements(data.rows);
  return <main className={styles.root}>
   <header className={styles.head}><div><span className={styles.eyebrow}>FACKTS MUSIC / FINANCE OFFICE</span>
-   <h1>Finance overview</h1><p>One place to manage separate FACKTS Music, Third Culture and music-project accounts. All amounts come from actual records.</p>
-  </div><Link href="/finance-office/transactions" className={styles.button}>View transactions</Link></header>
-  <div className={styles.grid4}>
-   <article className={styles.stat}><small>Recorded money received</small><strong>{fmtKES(data.totalIn)}</strong><span>Paid project revenue and posted member contributions</span></article>
-   <article className={styles.stat}><small>Recorded money spent</small><strong>{fmtKES(data.totalOut)}</strong><span>Paid expenses in the project books</span></article>
-   <article className={styles.stat}><small>Net recorded movement</small><strong>{fmtKES(data.totalIn-data.totalOut)}</strong><span>Not an available bank balance or artist earnings</span></article>
-   <article className={styles.stat}><small>Music project accounts</small><strong>{data.projects.length}</strong><span>Each project has its own ledger and owner</span></article>
-  </div>
-  <div className={styles.note}>Figures represent recorded movements. They are <strong>not</strong> bank balances, cash available for withdrawal, payouts or consolidated company profit. Operating books are separate from each project's records.</div>
+   <h1>FACKTS Music Finance</h1>
+   <p>Your permanent music business first. Third Culture is a separate temporary partner project, and independently owned artist projects keep their own finances.</p>
+  </div><Link href="/finance-office/platform" className={styles.button}>Manage FACKTS finances</Link></header>
+  <section className={styles.panel} aria-label="Permanent FACKTS Music business finances">
+   <div className={styles.panelTop}><div><span className={styles.eyebrow}>PERMANENT BUSINESS · FACKTS MUSIC</span><h2>Our income, expenses and operating costs</h2><p>The FACKTS Music team and future artists continue independently of Third Culture.</p></div>
+    <Link href="/finance-office/platform" className={styles.button}>Open business finance</Link></div>
+   <div className={styles.grid4}>
+    <article className={styles.stat}><small>FACKTS money in</small><strong>{businessReady?fmtKES(bizIn):"Not recorded"}</strong><span>FACKTS business income only</span></article>
+    <article className={styles.stat}><small>FACKTS money out</small><strong>{businessReady?fmtKES(bizOut):"Not recorded"}</strong><span>Operating expenses only</span></article>
+    <article className={styles.stat}><small>FACKTS recorded movement</small><strong>{businessReady?fmtKES(bizIn-bizOut):"Not recorded"}</strong><span>Not a bank balance or company profit</span></article>
+    <article className={styles.stat}><small>Business ledger</small><strong>{businessReady?"Ready":"Setup pending"}</strong><span>{businessReady?"View income, expenses and drafts":"Operating-book migration not yet applied"}</span></article>
+   </div>
+   <div className={styles.quick}>
+    <Link href="/finance-office/platform#record">+ Record FACKTS money in</Link>
+    <Link href="/finance-office/platform#record">− Record FACKTS money out</Link>
+    <Link href="/finance-office/platform#expenses">Operating expenses & bills</Link>
+    <Link href="/finance-office/platform#fackts-business-activity">Business transactions</Link>
+   </div>
+   {!businessReady&&<div className={styles.note}><strong>Why amounts say “Not recorded”:</strong> the FACKTS operating ledger has not yet been created in the database. We are not borrowing Third Culture contributions or artist-owned project money to fill these business figures.</div>}
+  </section>
   <div className={styles.grid2}>
-   <section className={styles.panel}><div className={styles.panelTop}><h2>Money in vs. money out</h2><Link href="/finance-office/reports">Reports</Link></div><p>Last six calendar months · verified and posted project records</p><FinanceTrend data={series}/></section>
-   <section className={styles.panel}><div className={styles.panelTop}><h2>Account overview</h2><Link href="/finance-office/accounts">All accounts</Link></div>
-    <div className={styles.items}>{data.financeBooks.map(book=>{
-      const matched=data.books.find((b:any)=>b.slug===book.slug);
-      const totals=matched?data.bookTotals.get(matched.id):null;
-      return <Link key={book.slug} href={"/finance-office/books/"+book.slug} className={styles.item}>
-       <div><strong>{book.name}</strong><small>{book.slug==="third_culture"?"Organisation account":"Platform operating account"} · Separate book</small></div>
-       <b>{data.bookReady?fmtKES((totals?.income||0)-(totals?.expense||0)):"Setup pending"}</b>
-      </Link>})}
-     {data.projects.map((p:any)=>{
-      const total=data.totals.get(p.id);
-      return <Link href={"/finance-office/projects/"+p.id} className={styles.item} key={p.id}>
-       <div><strong>{p.name}</strong><small>{p.id===data.TUKO_PROJECT_ID?"Third Culture-managed project":data.ownerById.get(p.owner_id)||"Owner to confirm"} · Project ledger</small></div>
-       <b>{fmtKES(total?.net||0)}</b></Link>;
-     })}</div>
-   </section>
-  </div>
-  <div className={styles.grid2}>
-   <section className={styles.panel}><div className={styles.panelTop}><h2>Recent transactions</h2><Link href="/finance-office/transactions">See all</Link></div>
-    {latest.length===0?<p>No project transactions recorded yet.</p>:
-     <div className={styles.items}>{latest.map(row=><div className={styles.item} key={row.source+"-"+row.id}>
-       <div><strong>{row.description}</strong><small>{data.projects.find((p:any)=>p.id===row.project_id)?.name||"Project"} · {formatDate(row.date)} · {row.verified?"Recorded":row.status}</small></div>
-       <b className={row.kind==="income"?styles.moneyIn:styles.moneyOut}>{row.kind==="income"?"+":"−"}{fmtKES(row.amount)}</b>
-     </div>)}</div>}
-   </section>
-   <section className={styles.panel}><h2>Quick actions</h2>
-    <div className={styles.quick}>
-     <Link href="/finance-office/accounts">▣ Open an account</Link>
-     <Link href="/finance-office/members">♙ Third Culture members</Link>
-     <Link href="/finance-office/payments">↗ Payment links & status</Link>
-     <Link href="/finance-office/fan-payments">♡ Fan payment points</Link>
-     <Link href="/finance-office/transactions">⇄ Money in and out</Link>
-     <Link href="/finance-office/bills">▤ Bills & expenses</Link>
-     <Link href="/finance-office/reports">▥ Export finance report</Link>
-     <Link href="/finance-office/books/fackts_music_platform">＋ Record operating costs</Link>
+   <section className={styles.panel} aria-label="External Third Culture partnership">
+    <span className={styles.eyebrow}>TEMPORARY PARTNER · NOT FACKTS MUSIC</span>
+    <h2>Third Culture</h2>
+    <p>Our free partner engagement covering TUKO WATU WENGI. It ends when the agreed work is finished; no automatic renewal or new Third Culture project.</p>
+    <div className={styles.items}>
+     <div className={styles.item}><div><strong>TUKO project receipts</strong><small>Separate partner project ledger</small></div><b>{partnerProject?fmtKES(partnerTotals?.received||0):"Not linked"}</b></div>
+     <div className={styles.item}><div><strong>TUKO project expenses</strong><small>Not FACKTS Music business spending</small></div><b>{partnerProject?fmtKES(partnerTotals?.spent||0):"Not linked"}</b></div>
     </div>
-    <p>Finance records belong to their own accounts. Payment processing and new entries remain disabled in preview until approved.</p>
+    <Link className={styles.buttonSecondary} href="/finance-office/partners/third-culture">Manage partner account</Link>
+   </section>
+   <section className={styles.panel} aria-label="Independent artist projects">
+    <span className={styles.eyebrow}>INDEPENDENT ARTIST PROJECTS</span>
+    <h2>Artists we support</h2><p>Other projects remain owned by their creators. Services and commercial opportunities are separate from ownership, and Third Culture memberships do not become a FACKTS Music roster.</p>
+    <div className={styles.items}><div className={styles.item}><div><strong>Other project ledgers</strong><small>Shown separately for finance oversight</small></div><b>{independent.length}</b></div></div>
+    <div className={styles.quick}><Link href="/finance-office/accounts">View artist project accounts</Link><Link href="/finance-office/payments">Service payments</Link></div>
    </section>
   </div>
+  <section className={styles.panel} aria-label="Managed project activity kept separate from FACKTS business income">
+   <div className={styles.panelTop}><div><h2>Managed-project activity</h2>
+    <p>These are project accounts, including the external partner. They are not FACKTS Music business revenue or expenses.</p></div>
+    <Link href="/finance-office/transactions">Project transactions</Link></div>
+   <div className={styles.grid4}>
+    <article className={styles.stat}><small>Managed-project receipts</small><strong>{fmtKES(data.totalIn)}</strong><span>Not included in FACKTS business income</span></article>
+    <article className={styles.stat}><small>Managed-project spending</small><strong>{fmtKES(data.totalOut)}</strong><span>Not included in FACKTS business expenses</span></article>
+    <article className={styles.stat}><small>Project ledgers</small><strong>{data.projects.length}</strong><span>Includes Third Culture and independent projects</span></article>
+    <article className={styles.stat}><small>Fan payments</small><strong>Not active</strong><span>Separate from service invoices</span></article>
+   </div>
+   <div className={styles.grid2}>
+    <div><h3>Project money in and out</h3><p>Six-month trend of recorded project movements, not the FACKTS business ledger.</p><FinanceTrend data={series}/></div>
+    <div><div className={styles.panelTop}><h3>Recent project records</h3><Link href="/finance-office/transactions">See all</Link></div>
+     {latest.length?<div className={styles.items}>{latest.map(row=><div className={styles.item} key={row.source+"-"+row.id}>
+      <div><strong>{row.description}</strong><small>{data.projects.find((p:any)=>p.id===row.project_id)?.name||"Project"} · {formatDate(row.date)} · {row.verified?"Recorded":row.status}</small></div>
+      <b className={row.kind==="income"?styles.moneyIn:styles.moneyOut}>{row.kind==="income"?"+":"−"}{fmtKES(row.amount)}</b>
+     </div>)}</div>:<p>No project transactions recorded yet.</p>}
+    </div>
+   </div>
+  </section>
+  <section className={styles.panel}><div className={styles.panelTop}><h2>Other Finance tools</h2><p>All the existing tools remain available.</p></div>
+   <div className={styles.quick}>
+    <Link href="/finance-office/accounts">Accounts</Link>
+    <Link href="/finance-office/members">Third Culture member accounts</Link>
+    <Link href="/finance-office/bills">Project bills & expenses</Link>
+    <Link href="/finance-office/payments">Service payment links</Link>
+    <Link href="/finance-office/fan-payments">Fan payments</Link>
+    <Link href="/finance-office/reports">Project reports & CSV</Link>
+   </div>
+  </section>
  </main>;
 }

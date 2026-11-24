@@ -87,3 +87,14 @@
  .mobileMemberFacts strong{font-size:14px;color:#161616;overflow-wrap:anywhere}
  .mobileMemberCard>a{width:100%;white-space:normal;text-align:center}
 }
+
+/* Permanent FACKTS Music operating ledger: large, readable income/expense forms. */
+.financeForm{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.financeForm label{display:grid;min-width:0;gap:7px;font-size:13px;font-weight:800;color:#242424}
+.financeForm input,.financeForm select,.financeForm textarea{width:100%;min-height:46px;border:1px solid #929292;border-radius:9px;background:#fff;color:#111;font:inherit;font-size:14px;padding:11px;max-width:100%}
+.financeForm textarea{min-height:80px;resize:vertical}
+.financeForm .formWide{grid-column:1/-1}
+.financeForm button{grid-column:1/-1;min-height:47px;background:#ff6a00;border:1px solid #ff6a00;color:#0b0b0b;font-weight:900;border-radius:9px}
+.financeForm button:disabled{opacity:.55;cursor:not-allowed}
+.financeForm :is(input,select,textarea,button):focus-visible{outline:2px solid #ff6a00;outline-offset:2px}
+@media(max-width:740px){.financeForm{grid-template-columns:1fr}.financeForm .formWide{grid-column:auto}.financeForm input,.financeForm select,.financeForm textarea{font-size:16px}}

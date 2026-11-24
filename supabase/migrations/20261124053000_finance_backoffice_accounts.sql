@@ -1,4 +1,4 @@
--- FACKTS Music Finance Back Office: distinct platform and Third Culture books.
+-- FACKTS Music permanent company book and Third Culture external partner book are separate.
 -- This migration is versioned for review. Do not auto-run against production.
 -- Project ledgers, project.owner_id and music ownership are never rewritten.
 
@@ -51,7 +51,7 @@ revoke all on public.finance_books,public.finance_book_entries,public.finance_bo
 insert into public.finance_books (slug,name,book_kind,description)
  values
  ('fackts_music_platform','FACKTS Music platform','platform','FACKTS Music platform operations only; not Third Culture or creator finances'),
- ('third_culture','Third Culture','organisation','Third Culture operating account; project income remains in separate project ledgers')
+ ('third_culture','Third Culture','organisation','Temporary external partner finance; separate from FACKTS Music business. No automatic renewal; TUKO project income remains separately itemised')
 on conflict(slug) do nothing;
 
 -- Assign an operating-entity relationship for Project 001 only.

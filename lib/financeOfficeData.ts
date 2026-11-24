@@ -71,7 +71,7 @@ export async function loadFinanceOfficeData(){
  const bookList=books.error?[]:books.data||[];
  const bookIds=bookList.map((b:any)=>b.id);
  const entries=bookIds.length?await readAllRows(()=>db.from("finance_book_entries")
-  .select("id,book_id,entry_type,amount_kes,status,entry_date,description,created_at").in("book_id",bookIds).order("id")):
+  .select("id,book_id,entry_type,amount_kes,status,entry_date,description,category,reference,created_at").in("book_id",bookIds).order("id")):
   {data:[],error:books.error,count:0};
  const bookReady=!books.error&&!entries.error&&bookList.length===FINANCE_BOOKS.length;
  const ownerIds=[...new Set(list.map((p:any)=>p.owner_id).filter(Boolean))] as string[];
@@ -84,7 +84,7 @@ export async function loadFinanceOfficeData(){
  const posted=rows.filter(row=>row.verified&&row.currency==="KES");
  const totalIn=posted.filter(row=>row.kind==="income").reduce((acc,row)=>acc+row.amount,0);
  const totalOut=posted.filter(row=>row.kind==="expense").reduce((acc,row)=>acc+row.amount,0);
- return {projects:list,ownerById,rows,invoices:invoices.data||[],totals,books:bookList,bookReady,bookTotals,
+ return {projects:list,ownerById,rows,invoices:invoices.data||[],totals,books:bookList,bookReady,bookDataAvailable:!books.error&&!entries.error,bookTotals,
    financeBooks:FINANCE_BOOKS,TUKO_PROJECT_ID,totalIn,totalOut,
    memberTransactions:memberships.data||[],bookEntries:entries.data||[]};
 }
