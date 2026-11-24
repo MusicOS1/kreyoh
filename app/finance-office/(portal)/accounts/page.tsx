@@ -16,7 +16,7 @@ export default async function AccountsPage(){
   <header className={styles.head}><div><span className={styles.eyebrow}>FINANCE OFFICE / ACCOUNTS</span><h1>Separate finance accounts</h1>
    <p>FACKTS Music is the permanent business. Third Culture is a temporary partner. Artist projects retain their original ownership and separate books.</p></div>
    <Link className={styles.buttonSecondary} href="/finance-office">Overview</Link></header>
-  <div className={styles.note}>Finance accounts here are <strong>bookkeeping ledgers</strong>, not new bank accounts. Neither Third Culture receipts nor independent artists' collections automatically become FACKTS Music income.</div>
+  <div className={styles.note}>Finance accounts here are <strong>bookkeeping ledgers</strong>, not new bank accounts. <strong>Setup pending</strong> means the operating ledger has not been created in the database. This does not mean the organisation has no money. Neither Third Culture receipts nor independent artists' collections automatically become FACKTS Music income.</div>
   <section className={styles.panel} aria-label="FACKTS Music permanent business account">
    <div className={styles.panelTop}><div><span className={styles.eyebrow}>01 · OUR PERMANENT BUSINESS</span>
      <h2>FACKTS Music</h2><p>Platform operations, our own artist business, service income, expenses and team costs.</p></div>
