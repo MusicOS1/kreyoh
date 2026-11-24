@@ -14,7 +14,7 @@ export default async function FanPayments(){
    <div><span className={styles.eyebrow}>FINANCE OFFICE / FAN PAYMENTS</span>
     <h1>Fan payment points</h1>
     <p>Planned fan subscription and artist-support payments for the FACKTS Music platform, separate from studio and project-service invoices and the Third Culture partner engagement.</p></div>
-   <div className={styles.pills}><Link href="/finance-office/platform" className={styles.buttonSecondary}>FACKTS business finances</Link><Link href="/finance-office/payments" className={styles.buttonSecondary}>Service payment links</Link></div>
+   <div className={styles.pills}><Link href="/finance-office/platform" className={styles.buttonSecondary}>FACKTS business finances</Link><Link href="/finance-office/payment-requests" className={styles.button}>Payment request templates</Link><Link href="/finance-office/payments" className={styles.buttonSecondary}>Service payment links</Link></div>
   </header>
   <div className={styles.note} role="status"><strong>Not taking fan payments yet.</strong> No dedicated verified fan-payment ledger or subscriptions are active. Nothing on this page collects money or counts ordinary project-service receipts as fan support.</div>
   <div className={styles.grid4}>

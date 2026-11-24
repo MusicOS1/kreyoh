@@ -84,6 +84,7 @@ export default async function FinanceBackOffice(){
     <Link href="/finance-office/members">Third Culture member accounts</Link>
     <Link href="/finance-office/bills">Project bills & expenses</Link>
     <Link href="/finance-office/payments">Service payment links</Link>
+    <Link href="/finance-office/payment-requests">Create payment requests</Link>
     <Link href="/finance-office/fan-payments">Fan payments</Link>
     <Link href="/finance-office/reports">Project reports & CSV</Link>
    </div>

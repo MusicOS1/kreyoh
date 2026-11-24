@@ -12,7 +12,7 @@ export default async function CentralPayments({searchParams}:{
  const paid=data.invoices.filter((i:any)=>i.status==="paid");
  return <main className={styles.root}>
   <header className={styles.head}><div><span className={styles.eyebrow}>FINANCE / PAYMENTS</span><h1>Payment requests & links</h1>
-   <p>Manage approved one-time service requests across projects. Paystack status must be confirmed on the server.</p></div><div className={styles.pills}><Link className={styles.buttonSecondary} href="/finance-office/accounts">Choose a project</Link><Link className={styles.button} href="/finance-office/fan-payments">Fan payment points</Link></div></header>
+   <p>View existing approved service checkouts. Platform fees, artist service requests, fan support and recurring plans are managed separately as Finance payment requests.</p></div><div className={styles.pills}><Link className={styles.buttonSecondary} href="/finance-office/accounts">Choose a project</Link><Link className={styles.button} href="/finance-office/payment-requests">Create a payment request</Link><Link className={styles.buttonSecondary} href="/finance-office/fan-payments">Fan payment points</Link></div></header>
   <div className={styles.grid4}>
    <div className={styles.stat}><small>Paid invoices</small><strong>{paid.length}</strong><span>Marked paid after provider verification</span></div>
    <div className={styles.stat}><small>Recorded invoice face value</small><strong>{fmtKES(paid.reduce((sum:number,i:any)=>sum+Number(i.amount_kes||0),0))}</strong><span>Do not add again to project revenue</span></div>

@@ -13,6 +13,7 @@ const nav=[
  {title:"Transactions",href:"/finance-office/transactions"},
  {title:"Bills & expenses",href:"/finance-office/bills"},
  {title:"Payments & links",href:"/finance-office/payments"},
+ {title:"Create payment request",href:"/finance-office/payment-requests"},
  {title:"Fan payments",href:"/finance-office/fan-payments"},
  {title:"Reports",href:"/finance-office/reports"},
 ];
