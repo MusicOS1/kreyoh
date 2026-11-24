@@ -29,3 +29,14 @@
 .login a{color:#ffb881;font-size:13px}
 .error{padding:13px;border:1px solid #ff9b74;background:#402018;border-radius:9px;color:#fff;font-size:13px}
 @media(max-width:800px){.shell{display:block}.sidebar{display:none}.top{padding:16px;min-height:72px}.top strong{font-size:17px}.top p{font-size:11px}.body{padding:12px 12px 90px}.mobileNav{position:fixed;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));left:0;right:0;bottom:0;z-index:60;background:#0b0b0b;border-top:1px solid #777;padding:8px 5px max(8px,env(safe-area-inset-bottom));gap:4px}.mobileNav a{min-height:49px;display:grid;place-items:center;color:#fff;text-decoration:none;font-size:12px;font-weight:800;text-align:center;border-radius:7px}.mobileNav a:first-child{color:#ff9a4b;background:#23160e}}
+
+/* The Finance Office is a bright, readable workspace with a dark navigation rail. */
+.shell{background:#f6f6f6}.main{background:#f6f6f6}
+.body{color:#171717}
+.top{background:#fff;border-bottom:1px solid #d6d6d6;color:#151515}
+.top strong{color:#111}.top p{color:#454545}.top a{color:#a54100}
+.links a:first-child{background:#20150e;color:#ffb786}
+@media(max-width:800px){.top{background:#fff}.top strong{color:#141414}}
+
+.mobileLinks{display:none}
+@media(max-width:800px){.mobileLinks{display:flex;gap:8px;overflow-x:auto;white-space:nowrap;background:#fff;border-bottom:1px solid #ddd;padding:8px 13px;scrollbar-width:thin}.mobileLinks a{display:inline-flex;align-items:center;flex:none;min-height:38px;padding:9px 12px;border:1px solid #c7c7c7;border-radius:20px;color:#222;font-weight:800;font-size:12px;text-decoration:none}.mobileLinks a:first-child{background:#fff0e6;border-color:#ff6a00;color:#a64000}}
