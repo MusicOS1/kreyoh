@@ -12,14 +12,14 @@ export default async function CentralPayments({searchParams}:{
  const paid=data.invoices.filter((i:any)=>i.status==="paid");
  return <main className={styles.root}>
   <header className={styles.head}><div><span className={styles.eyebrow}>FINANCE / PAYMENTS</span><h1>Payment requests & links</h1>
-   <p>Manage approved one-time service requests across projects. Paystack status must be confirmed on the server.</p></div><Link className={styles.buttonSecondary} href="/finance-office/accounts">Choose a project</Link></header>
+   <p>Manage approved one-time service requests across projects. Paystack status must be confirmed on the server.</p></div><div className={styles.pills}><Link className={styles.buttonSecondary} href="/finance-office/accounts">Choose a project</Link><Link className={styles.button} href="/finance-office/fan-payments">Fan payment points</Link></div></header>
   <div className={styles.grid4}>
    <div className={styles.stat}><small>Paid invoices</small><strong>{paid.length}</strong><span>Marked paid after provider verification</span></div>
    <div className={styles.stat}><small>Recorded invoice face value</small><strong>{fmtKES(paid.reduce((sum:number,i:any)=>sum+Number(i.amount_kes||0),0))}</strong><span>Do not add again to project revenue</span></div>
    <div className={styles.stat}><small>Open requests</small><strong>{open}</strong><span>Not recorded as money received</span></div>
    <div className={styles.stat}><small>Projects</small><strong>{new Set(data.invoices.map((i:any)=>i.project_id)).size}</strong><span>With payment requests</span></div>
   </div>
-  <div className={styles.note}>Payment links belong to a specific project and approved service. Paid requests are closed. This is <strong>not</strong> a fan-donation link, wallet, settlement account or artist payout tool. New links are disabled in preview.</div>
+  <div className={styles.note}>Payment links belong to a specific project and approved service. Paid requests are closed. For fan support or subscriptions, open <Link href="/finance-office/fan-payments">Fan payment points</Link>. These service invoices are not artist donations or payouts. New links are disabled in preview.</div>
   <section className={styles.panel}><div className={styles.panelTop}><h2>Project payment requests</h2><span>{invoices.length} results</span></div>
    <nav className={styles.pills} aria-label="Filter payment requests">
     {["all","open","paid","cancelled"].map(s=><Link key={s} className={styles.pill+" "+(selected===s?styles.pillActive:"")} href={"/finance-office/payments?status="+s}>{s==="all"?"All":s[0].toUpperCase()+s.slice(1)}</Link>)}

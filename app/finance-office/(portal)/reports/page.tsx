@@ -31,7 +31,7 @@ export default async function FinanceReports({searchParams}:{
      const value=book?data.bookTotals.get(book.id):null;
      return <Link className={styles.item} href={"/finance-office/books/"+b.slug} key={b.slug}>
       <div><strong>{b.name}</strong><small>{data.bookReady?"Posted operating records":"Account setup not approved"}</small></div>
-      <b>{data.bookReady?fmtKES((value?.income||0)-(value?.expense||0)):"Not activated"}</b>
+      <b>{data.bookReady?fmtKES((value?.income||0)-(value?.expense||0)):"Setup pending"}</b>
      </Link>;
     })}</div>
    </section>

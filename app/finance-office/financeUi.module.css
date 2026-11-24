@@ -70,3 +70,20 @@
 
 .searchForm input[type=checkbox]{width:17px;height:17px;min-height:unset;accent-color:#ff6a00;margin-right:8px;vertical-align:middle}
 .searchForm button:disabled{opacity:.55;cursor:not-allowed}
+
+/* The member directory uses real stacked cards on a phone: no cut-off names or sideways table reading. */
+.mobileMemberList{display:none}.memberDesktopTable{display:block;max-width:100%}
+@media(max-width:740px){
+ .memberDesktopTable{display:none}
+ .mobileMemberList{display:grid;gap:12px;min-width:0}
+ .mobileMemberCard{min-width:0;display:grid;gap:13px;background:#fafafa;border:1px solid #d2d2d2;border-radius:12px;padding:16px}
+ .mobileMemberTop{min-width:0;display:flex;gap:10px;align-items:start;justify-content:space-between;flex-wrap:wrap}
+ .mobileMemberTop>div{min-width:0;flex:1 1 170px}
+ .mobileMemberTop strong{font-size:17px;display:block;color:#101010;overflow-wrap:anywhere}
+ .mobileMemberTop small,.mobileMemberCard>small{display:block;color:#505050;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+ .mobileMemberFacts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;border-top:1px solid #e0e0e0;border-bottom:1px solid #e0e0e0;padding:13px 0}
+ .mobileMemberFacts div{display:grid;gap:5px;min-width:0}
+ .mobileMemberFacts span{font-size:11px;color:#555}
+ .mobileMemberFacts strong{font-size:14px;color:#161616;overflow-wrap:anywhere}
+ .mobileMemberCard>a{width:100%;white-space:normal;text-align:center}
+}

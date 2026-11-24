@@ -35,8 +35,8 @@ test("non-admin payments screen provides project guidance, not arbitrary invoice
 test("public release support uses existing social actions and creates no unapproved charge",()=>{
  const release=read("app/billboard/[releaseId]/page.tsx");
  const submit=read("app/billboard/submit/page.tsx");
- assert.match(release,/Support \{r\.artist_name\}/);
- assert.match(release,/Direct paid artist support is not available/);
+ assert.ok(release.includes('<FanPaymentPoint artistName={r.artist_name} kind="release"/>'));
+ assert.match(read("components/FanPaymentPoint.tsx"),/Pay to support · not available yet/);
  assert.match(submit,/Paid fan support is not enabled/);
  assert.match(submit,/Open release & share/);
  assert.match(release,/<ReleaseAudienceActions/);

@@ -51,6 +51,7 @@ export default async function FinanceBackOffice(){
      <Link href="/finance-office/accounts">▣ Open an account</Link>
      <Link href="/finance-office/members">♙ Third Culture members</Link>
      <Link href="/finance-office/payments">↗ Payment links & status</Link>
+     <Link href="/finance-office/fan-payments">♡ Fan payment points</Link>
      <Link href="/finance-office/transactions">⇄ Money in and out</Link>
      <Link href="/finance-office/bills">▤ Bills & expenses</Link>
      <Link href="/finance-office/reports">▥ Export finance report</Link>
