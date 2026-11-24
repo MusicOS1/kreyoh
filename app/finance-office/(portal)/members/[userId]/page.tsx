@@ -3,7 +3,7 @@ import {notFound} from "next/navigation";
 import {getThirdCultureMemberFinance} from "../../../../../lib/thirdCultureFinance";
 import {fmtKES,formatDate} from "../../../../../lib/financeOfficeData";
 import {financeWritesEnabled} from "../../../../../lib/financeBackoffice";
-import {createThirdCultureMemberAccount} from "../../actions";
+import {createThirdCultureMemberAccount,recordMemberContribution} from "../../actions";
 import styles from "../../../financeUi.module.css";
 const uuid=/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 export default async function CultureMemberDetail({params}:{
@@ -30,6 +30,20 @@ export default async function CultureMemberDetail({params}:{
     </form>
    </section>}
   <div className={styles.note}>This is a **person-level membership ledger** within Third Culture's managed project. It is not the member's bank account, personal wallet, royalties statement or an authorisation to pay them out. Reimbursements and artist allocations require verified records and approval.</div>
+  <section className={styles.panel}><h2>Record a verified member contribution</h2>
+    <p>This records an actual contribution against the member's Third Culture project ledger. Check the payment evidence first; a manual entry does not verify bank settlement.</p>
+    {!financeWritesEnabled()&&<div className={styles.note}>Live contribution posting is locked in this preview. No real money or member records will change.</div>}
+    <form action={recordMemberContribution} className={styles.searchForm}>
+      <input type="hidden" name="user_id" value={userId}/>
+      <label>Amount KES<input type="number" name="amount_kes" min="0.01" step="0.01" max="10000000" required disabled={!financeWritesEnabled()||!member.accountId}/></label>
+      <label>Payment method<select name="payment_method" disabled={!financeWritesEnabled()||!member.accountId}><option>M-PESA</option><option>Bank transfer</option><option>Cash</option><option>Other</option></select></label>
+      <label>Payment date<input type="date" name="transaction_date" required disabled={!financeWritesEnabled()||!member.accountId}/></label>
+      <label>Fee period (optional)<input type="month" name="payment_period" disabled={!financeWritesEnabled()||!member.accountId}/></label>
+      <label>Receipt/reference<input name="payment_reference" required maxLength={110} disabled={!financeWritesEnabled()||!member.accountId} placeholder="M-PESA / bank receipt reference"/></label>
+      <label style={{minWidth:"100%",flexBasis:"100%"}}><span><input name="proof_checked" type="checkbox" value="confirmed" required disabled={!financeWritesEnabled()||!member.accountId}/> I checked the supporting receipt</span></label>
+      <button type="submit" disabled={!financeWritesEnabled()||!member.accountId}>Record contribution</button>
+    </form>
+   </section>
   <section className={styles.panel}><h2>Contribution history</h2>
    {!payments.length?<div className={styles.empty}>No contribution transactions recorded for this member.</div>:
     <div className={styles.tableWrap}><table className={styles.table}>

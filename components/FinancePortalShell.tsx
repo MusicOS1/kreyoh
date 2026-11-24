@@ -9,6 +9,7 @@ export default function FinancePortalShell({children,email,superAdmin}:{
   {title:"Accounts",href:"/finance-office/accounts"},
   {title:"Third Culture members",href:"/finance-office/members"},
   {title:"Transactions",href:"/finance-office/transactions"},
+  {title:"Bills & expenses",href:"/finance-office/bills"},
   {title:"Payments & links",href:"/finance-office/payments"},
   {title:"Reports",href:"/finance-office/reports"},
  ];
@@ -27,6 +28,7 @@ export default function FinancePortalShell({children,email,superAdmin}:{
    <header className={styles.top}><div><strong>FACKTS Music · Finance</strong><p>Accounts, payments and project records</p></div>
     {superAdmin?<Link href="/admin">Super Admin</Link>:<span aria-label="Current role">Finance team</span>}
    </header>
+   <nav className={styles.mobileLinks} aria-label="All Finance Office sections">{nav.map(item=><Link key={item.href} href={item.href}>{item.title}</Link>)}</nav>
    <div className={styles.body}>{children}</div>
    <nav className={styles.mobileNav} aria-label="Finance portal mobile navigation">
     <Link href="/finance-office">Overview</Link>

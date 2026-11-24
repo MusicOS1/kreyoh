@@ -52,6 +52,7 @@ export default async function FinanceBackOffice(){
      <Link href="/finance-office/members">♙ Third Culture members</Link>
      <Link href="/finance-office/payments">↗ Payment links & status</Link>
      <Link href="/finance-office/transactions">⇄ Money in and out</Link>
+     <Link href="/finance-office/bills">▤ Bills & expenses</Link>
      <Link href="/finance-office/reports">▥ Export finance report</Link>
      <Link href="/finance-office/books/fackts_music_platform">＋ Record operating costs</Link>
     </div>

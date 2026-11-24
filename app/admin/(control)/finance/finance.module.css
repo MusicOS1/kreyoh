@@ -45,3 +45,17 @@
 .callout{color:#f5f5f8;border-color:#797979;background:#1d1d1d}
 .empty{color:#f4f4f6}
 .actions a.secondary{color:#ffbd8d}
+
+/* The account detail pages share the Finance Office's light, accessible visual system. */
+.root{--ink:#141414;--muted:#454545;color:#141414}
+.head,.card,.tableWrap{background:#fff;border-color:#d1d1d1;color:#171717}
+.head h1,.card h3,.root h2,.root h3,.card strong,.money strong{color:#141414}
+.root p,.sectionHead p,.card p,.card small,.meta,.money span,.table td small{color:#464646}
+.table :is(th,td){border-color:#dadada;color:#191919}
+.table th{background:#f1f1f1;color:#2b2b2b}
+.table a{color:#ad4500}
+.form label{color:#161616}
+.form :is(input,select,textarea){color:#111;background:#fff;border:1px solid #898989}
+.callout{background:#fff2e8;color:#552509;border-color:#deb590}
+.empty{background:#fff;color:#292929;border-color:#a3a3a3}
+.actions a.secondary{color:#a34500;background:#fff7f0;border-color:#ddab83}
