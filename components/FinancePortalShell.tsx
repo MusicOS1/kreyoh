@@ -6,9 +6,11 @@ export default function FinancePortalShell({children,email,superAdmin}:{
 }){
  const nav=[
   {title:"Overview",href:"/finance-office"},
-  {title:"FACKTS Music account",href:"/finance-office/books/fackts_music_platform"},
-  {title:"Third Culture account",href:"/finance-office/books/third_culture"},
-  {title:"Music projects",href:"/finance-office#projects"},
+  {title:"Accounts",href:"/finance-office/accounts"},
+  {title:"Third Culture members",href:"/finance-office/members"},
+  {title:"Transactions",href:"/finance-office/transactions"},
+  {title:"Payments & links",href:"/finance-office/payments"},
+  {title:"Reports",href:"/finance-office/reports"},
  ];
  return <div className={styles.shell}>
   <aside className={styles.sidebar} aria-label="Finance portal sidebar">
@@ -28,9 +30,9 @@ export default function FinancePortalShell({children,email,superAdmin}:{
    <div className={styles.body}>{children}</div>
    <nav className={styles.mobileNav} aria-label="Finance portal mobile navigation">
     <Link href="/finance-office">Overview</Link>
-    <Link href="/finance-office/books/fackts_music_platform">Platform</Link>
-    <Link href="/finance-office/books/third_culture">Culture</Link>
-    <Link href="/finance-office#projects">Projects</Link>
+    <Link href="/finance-office/accounts">Accounts</Link>
+    <Link href="/finance-office/transactions">Activity</Link>
+    <Link href="/finance-office/members">Members</Link>
    </nav>
   </div>
  </div>;

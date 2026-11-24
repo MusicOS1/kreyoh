@@ -1,74 +1,62 @@
 import Link from "next/link";
-import {createAdminClient} from "../../../../lib/supabase/admin";
 import {requireControlRoomPermission} from "../../../../lib/controlRoom";
-import {readAllRows} from "../../../../lib/recordReads";
-import {FINANCE_BOOKS,TUKO_PROJECT_ID,summariseProjects,recordedBookTotals} from "../../../../lib/financeBackoffice";
-import styles from "./finance.module.css";
-
-const fmt=(n:number)=>"KES "+n.toLocaleString("en-KE",{maximumFractionDigits:2});
-const first=(x:any)=>Array.isArray(x)?x[0]:x;
+import {loadFinanceOfficeData,fmtKES,monthlyMovements,formatDate} from "../../../../lib/financeOfficeData";
+import FinanceTrend from "../../../../components/FinanceTrend";
+import styles from "../../../finance-office/financeUi.module.css";
 
 export default async function FinanceBackOffice(){
  await requireControlRoomPermission("finance");
- const admin=createAdminClient();
- // This is portfolio authority from an explicit platform grant, not a project Artist/Admin role.
- const [projectsR,revenuesR,membersR,expensesR,booksR]=await Promise.all([
-   readAllRows(()=>admin.from("projects").select("id,code,name,owner_id,status").order("name").order("id")),
-   readAllRows(()=>admin.from("revenue_records").select("id,project_id,amount,currency,payment_status,revenue_source").order("id")),
-   readAllRows(()=>admin.from("project_membership_transactions").select("id,project_id,amount,currency,status").order("id")),
-   readAllRows(()=>admin.from("project_expenses").select("id,project_id,amount,currency,payment_status").order("id")),
-   admin.from("finance_books").select("id,slug,name,description").in("slug",FINANCE_BOOKS.map(book=>book.slug))
- ]);
- const fail=Boolean(projectsR.error||revenuesR.error||membersR.error||expensesR.error);
- const projects=projectsR.data||[];
- const ownerIds=[...new Set(projects.map((p:any)=>p.owner_id).filter(Boolean))] as string[];
- const owners=ownerIds.length?await admin.from("profiles").select("id,full_name,stage_name,email").in("id",ownerIds):{data:[],error:null};
- const ownerById=new Map((owners.data||[]).map((p:any)=>[p.id,p]));
- const totals=fail?new Map():summariseProjects(projects as any[],revenuesR.data||[],membersR.data||[],expensesR.data||[]);
- const books=booksR.error?[]:booksR.data||[];
- const ids=books.map((book:any)=>book.id);
- const entriesR=ids.length?await readAllRows(()=>admin.from("finance_book_entries").select("id,book_id,entry_type,amount_kes,status").in("book_id",ids).order("id")):{data:[],error:booksR.error,count:0};
- const bookTotals=recordedBookTotals(entriesR.data||[]);
- const ready=!booksR.error&&!entriesR.error&&books.length===2;
+ const data=await loadFinanceOfficeData();
+ const series=monthlyMovements(data.rows);
+ const latest=data.rows.filter(row=>row.currency==="KES").slice(0,6);
  return <main className={styles.root}>
-  <header className={styles.head}><span className={styles.kicker}>FACKTS MUSIC / FINANCE OFFICE</span>
-   <h1>Finance Back Office</h1>
-   <p>One simple workspace for the finance leader. Platform operations, Third Culture, and independently owned music projects stay in separate accounts. Access requires an explicit Control Room Finance grant from the Super Admin.</p>
-   <p>Finance access is assigned by Super Admin; this office does not manage platform team permissions.</p>
-  </header>
-  <div className={styles.callout}><strong>Account boundaries:</strong> FACKTS Music is the platform. Third Culture is a separate organisation managing TUKO WATU WENGI. Other projects keep their individual owners and independent project finance records. Figures here are recorded project movements, not bank balances, profit, or artist payouts.</div>
-  <section className={styles.section} aria-label="Platform and organisation accounts">
-   <div className={styles.sectionHead}><div><h2>Platform & organisation</h2><p>Operating accounts separate from every music project's ledger.</p></div></div>
-   <div className={styles.grid}>{FINANCE_BOOKS.map(def=>{
-    const book=books.find((b:any)=>b.slug===def.slug);
-    const sums=book?bookTotals.get(book.id):null;
-    return <article key={def.slug} className={styles.card}>
-      <span className={styles.kicker}>{def.slug==="fackts_music_platform"?"PLATFORM":"MANAGED ORGANISATION"}</span>
-      <h3>{def.name}</h3><p>{def.caption}. {def.slug==="third_culture"?"TUKO WATU WENGI project accounts remain separately itemised below.":"Not an artist project, royalty pool or merchant settlement account."}</p>
-      {ready&&book?<div className={styles.money}><div><span>Recorded money in</span><strong>{fmt(sums?.income||0)}</strong></div><div><span>Recorded money out</span><strong>{fmt(sums?.expense||0)}</strong></div></div>:
-      <p role="status">Account ledger awaits the reviewed finance migration. No opening balance or transactions are assumed.</p>}
-      <div className={styles.actions}><Link href={"/finance-office/books/"+def.slug}>{ready?"Open account":"View account setup"}</Link></div>
-    </article>;
-   })}</div>
-  </section>
-  <section className={styles.section} id="projects" aria-label="Individual music project finances">
-   <div className={styles.sectionHead}><div><h2>Music project accounts</h2><p>Each project's original financial ledger stays intact. No cross-project sharing or blended balances.</p></div><strong>{fail?"—":projects.length+" accounts"}</strong></div>
-   {fail||owners.error?<div className={styles.empty} role="alert">Project finance data is temporarily unavailable. Totals are withheld rather than estimated.</div>:
-   <div className={styles.tableWrap}><table className={styles.table}>
-    <thead><tr><th>Project</th><th>Financial owner</th><th>Money received (recorded)</th><th>Money spent (recorded)</th><th>Next action</th></tr></thead>
-    <tbody>{projects.map((p:any)=>{
-      const owner=ownerById.get(p.owner_id);
-      const name=p.id===TUKO_PROJECT_ID?"Third Culture":owner?.stage_name||owner?.full_name||owner?.email||"Owner unassigned — review";
-      const sums=totals.get(p.id)||{received:0,spent:0};
-      return <tr key={p.id}>
-       <td><strong>{p.name}</strong><small>{p.code||"Project"} · {p.status}</small></td>
-       <td>{name}{p.id===TUKO_PROJECT_ID?<small>Designated finance organisation; original owner field not changed</small>:null}</td>
-       <td>{fmt(sums.received)}</td><td>{fmt(sums.spent)}</td>
-       <td><Link href={"/finance-office/projects/"+p.id}>Open finance →</Link></td>
-      </tr>;
-    })}</tbody>
-   </table></div>}
-   <p>Paid Paystack invoices are already included in posted revenue records. They are not added again as separate income. Unverified payments, expected revenue, and unconfirmed expenses are excluded from the totals.</p>
-  </section>
+  <header className={styles.head}><div><span className={styles.eyebrow}>FACKTS MUSIC / FINANCE OFFICE</span>
+   <h1>Finance overview</h1><p>One place to manage separate FACKTS Music, Third Culture and music-project accounts. All amounts come from actual records.</p>
+  </div><Link href="/finance-office/transactions" className={styles.button}>View transactions</Link></header>
+  <div className={styles.grid4}>
+   <article className={styles.stat}><small>Recorded money received</small><strong>{fmtKES(data.totalIn)}</strong><span>Paid project revenue and posted member contributions</span></article>
+   <article className={styles.stat}><small>Recorded money spent</small><strong>{fmtKES(data.totalOut)}</strong><span>Paid expenses in the project books</span></article>
+   <article className={styles.stat}><small>Net recorded movement</small><strong>{fmtKES(data.totalIn-data.totalOut)}</strong><span>Not an available bank balance or artist earnings</span></article>
+   <article className={styles.stat}><small>Music project accounts</small><strong>{data.projects.length}</strong><span>Each project has its own ledger and owner</span></article>
+  </div>
+  <div className={styles.note}>Figures represent recorded movements. They are <strong>not</strong> bank balances, cash available for withdrawal, payouts or consolidated company profit. Operating books are separate from each project's records.</div>
+  <div className={styles.grid2}>
+   <section className={styles.panel}><div className={styles.panelTop}><h2>Money in vs. money out</h2><Link href="/finance-office/reports">Reports</Link></div><p>Last six calendar months · verified and posted project records</p><FinanceTrend data={series}/></section>
+   <section className={styles.panel}><div className={styles.panelTop}><h2>Account overview</h2><Link href="/finance-office/accounts">All accounts</Link></div>
+    <div className={styles.items}>{data.financeBooks.map(book=>{
+      const matched=data.books.find((b:any)=>b.slug===book.slug);
+      const totals=matched?data.bookTotals.get(matched.id):null;
+      return <Link key={book.slug} href={"/finance-office/books/"+book.slug} className={styles.item}>
+       <div><strong>{book.name}</strong><small>{book.slug==="third_culture"?"Organisation account":"Platform operating account"} · Separate book</small></div>
+       <b>{data.bookReady?fmtKES((totals?.income||0)-(totals?.expense||0)):"Setup pending"}</b>
+      </Link>})}
+     {data.projects.map((p:any)=>{
+      const total=data.totals.get(p.id);
+      return <Link href={"/finance-office/projects/"+p.id} className={styles.item} key={p.id}>
+       <div><strong>{p.name}</strong><small>{p.id===data.TUKO_PROJECT_ID?"Third Culture-managed project":data.ownerById.get(p.owner_id)||"Owner to confirm"} · Project ledger</small></div>
+       <b>{fmtKES(total?.net||0)}</b></Link>;
+     })}</div>
+   </section>
+  </div>
+  <div className={styles.grid2}>
+   <section className={styles.panel}><div className={styles.panelTop}><h2>Recent transactions</h2><Link href="/finance-office/transactions">See all</Link></div>
+    {latest.length===0?<p>No project transactions recorded yet.</p>:
+     <div className={styles.items}>{latest.map(row=><div className={styles.item} key={row.source+"-"+row.id}>
+       <div><strong>{row.description}</strong><small>{data.projects.find((p:any)=>p.id===row.project_id)?.name||"Project"} · {formatDate(row.date)} · {row.verified?"Recorded":row.status}</small></div>
+       <b className={row.kind==="income"?styles.moneyIn:styles.moneyOut}>{row.kind==="income"?"+":"−"}{fmtKES(row.amount)}</b>
+     </div>)}</div>}
+   </section>
+   <section className={styles.panel}><h2>Quick actions</h2>
+    <div className={styles.quick}>
+     <Link href="/finance-office/accounts">▣ Open an account</Link>
+     <Link href="/finance-office/members">♙ Third Culture members</Link>
+     <Link href="/finance-office/payments">↗ Payment links & status</Link>
+     <Link href="/finance-office/transactions">⇄ Money in and out</Link>
+     <Link href="/finance-office/reports">▥ Export finance report</Link>
+     <Link href="/finance-office/books/fackts_music_platform">＋ Record operating costs</Link>
+    </div>
+    <p>Finance records belong to their own accounts. Payment processing and new entries remain disabled in preview until approved.</p>
+   </section>
+  </div>
  </main>;
 }
