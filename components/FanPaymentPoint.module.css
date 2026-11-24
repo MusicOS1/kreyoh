@@ -1,0 +1,13 @@
+.point{font-family:"DM Sans",Arial,sans-serif;color:#fff;background:#141414;border:1px solid #555;border-radius:15px;padding:clamp(17px,3vw,23px);display:grid;gap:12px;min-width:0;margin:16px 0}
+.heading{display:flex;justify-content:space-between;flex-wrap:wrap;align-items:center;gap:10px}
+.point h2{font-family:"Gotham","DM Sans",Arial,sans-serif;font-size:clamp(19px,4vw,24px);margin:5px 0 0;color:#fff}
+.label{color:#ff9b50;font-weight:900;font-size:11px;letter-spacing:.08em}
+.status{border:1px solid #ff6a00;background:#2b1a0f;border-radius:20px;padding:7px 10px;color:#ffbb86;font-weight:850;font-size:11px}
+.point p{font-size:14px;line-height:1.55;color:#e5e5e5;margin:0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.controls a,.disabledAction{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 14px;font-size:13px;font-weight:800;text-decoration:none;border-radius:10px}
+.controls a{color:#0b0b0b;background:#ff7b18}
+.controls a:hover{background:#ff9c51}
+.disabledAction{color:#ddd;border:1px solid #727272;background:#2e2e2e;cursor:not-allowed}
+.point small{color:#c3c3c3;line-height:1.5;font-size:11px}
+.point a:focus-visible{outline:3px solid #ff6a00;outline-offset:3px}
