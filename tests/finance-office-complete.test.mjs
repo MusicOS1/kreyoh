@@ -22,8 +22,8 @@ test("Finance Office reuses actual separate project ledgers, excludes unverified
  assert.match(loader,/r\.payment_status==="paid"/);
  assert.match(loader,/m\.status==="posted"/);
  assert.match(loader,/e\.payment_status==="paid"/);
- assert.match(route("reports"),/periodStart/);
- assert.doesNotMatch(route("reports"),/Math\.random\(/);
+ assert.match(file(route("reports")) ,/periodStart/);
+ assert.doesNotMatch(file(route("reports")) ,/Math\.random\(/);
 });
 test("Third Culture member accounts show posted amounts, not fabricated arrears",()=>{
  const helper=file("lib/thirdCultureFinance.ts");

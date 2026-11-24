@@ -29,7 +29,7 @@ export default async function CultureMemberDetail({params}:{
       <button className={styles.button} type="submit" disabled={!financeWritesEnabled()}>{financeWritesEnabled()?"Create member finance account":"Setup disabled in preview"}</button>
     </form>
    </section>}
-  <div className={styles.note}>This is a **person-level membership ledger** within Third Culture's managed project. It is not the member's bank account, personal wallet, royalties statement or an authorisation to pay them out. Reimbursements and artist allocations require verified records and approval.</div>
+  <div className={styles.note}>This is a personal membership record within Third Culture's managed project. It is not the member's bank account, personal wallet, royalties statement or an authorisation to pay them out. Reimbursements and artist allocations require verified records and approval.</div>
   <section className={styles.panel}><h2>Record a verified member contribution</h2>
     <p>This records an actual contribution against the member's Third Culture project ledger. Check the payment evidence first; a manual entry does not verify bank settlement.</p>
     {!financeWritesEnabled()&&<div className={styles.note}>Live contribution posting is locked in this preview. No real money or member records will change.</div>}

@@ -24,6 +24,17 @@ export default async function FinanceReports({searchParams}:{
     <div className={styles.stat}><small>Records included</small><strong>{all.length}</strong><span>Excludes unverified transactions</span></div>
    </div>
    <div className={styles.note}>The CSV includes each project's recorded income and expenses for the selected period. FACKTS Music and Third Culture operating books are separate and not counted as artist project earnings. Member reimbursements, royalty liabilities and actual settlement amounts are not calculated without verified source records.</div>
+   <section className={styles.panel}><div className={styles.panelTop}><h2>Platform and Third Culture operating books</h2><Link href="/finance-office/accounts">Open accounts</Link></div>
+    <p>These are separate books and are not included in the project totals above.</p>
+    <div className={styles.items}>{data.financeBooks.map(b=>{
+     const book=data.books.find((item:any)=>item.slug===b.slug);
+     const value=book?data.bookTotals.get(book.id):null;
+     return <Link className={styles.item} href={"/finance-office/books/"+b.slug} key={b.slug}>
+      <div><strong>{b.name}</strong><small>{data.bookReady?"Posted operating records":"Account setup not approved"}</small></div>
+      <b>{data.bookReady?fmtKES((value?.income||0)-(value?.expense||0)):"Not activated"}</b>
+     </Link>;
+    })}</div>
+   </section>
    <section className={styles.panel}><h2>Project performance</h2>
     <div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Project</th><th>Financial owner</th><th>Money in</th><th>Money out</th><th>Net movement</th></tr></thead>
      <tbody>{data.projects.map((p:any)=>{const t=byProject.get(p.id)||{received:0,spent:0};return <tr key={p.id}>
