@@ -46,10 +46,11 @@ export default function FinancePortalShell({children,email,superAdmin}:{
  const toggleMini=()=>{
   setMiniVisible(x=>{const next=!x;try{localStorage.setItem("fm-finance-mini-visible",next?"1":"0");}catch{}return next;});
  };
- const links=(items:typeof nav)=>items.map(item=><Link key={item.href} href={item.href}
-  aria-current={active===item.href?"page":undefined}
-  className={active===item.href?styles.active:""} title={item.title}>
-   <span className={styles.linkLabel}>{item.title}</span>
+ const links=(items:typeof nav,showIcons=false,selected=active)=>items.map(item=><Link key={item.href} href={item.href}
+  aria-current={selected===item.href?"page":undefined}
+  aria-label={item.title}
+  className={selected===item.href?styles.active:""} title={item.title}>
+   <span className={styles.linkLabel}>{showIcons?"●":item.title}</span>
  </Link>);
  return <div className={styles.shell+" "+(collapsed?styles.collapsed:"")}>
   <aside className={styles.sidebar} aria-label="Finance portal sidebar">
@@ -59,7 +60,7 @@ export default function FinancePortalShell({children,email,superAdmin}:{
       aria-label={collapsed?"Expand Finance sidebar":"Collapse Finance sidebar"} title={collapsed?"Expand menu":"Collapse menu"}
       onClick={toggleSidebar}>{collapsed?"›":"‹"}</button>
    </div>
-   <nav className={styles.links} aria-label="Finance portal navigation">{links(nav)}</nav>
+   <nav className={styles.links} aria-label="Finance portal navigation">{links(nav,collapsed)}</nav>
    <div className={styles.foot}>
     {!collapsed&&<span>Signed in as {email}</span>}
     {superAdmin&&!collapsed&&<Link href="/admin">Open Super Admin Control Room</Link>}
@@ -81,7 +82,8 @@ export default function FinancePortalShell({children,email,superAdmin}:{
    <div className={styles.body}>{children}</div>
    <div className={styles.mobileDock}>
     {miniVisible?<nav className={styles.mobileNav} aria-label="Finance portal mobile navigation">
-      {links(nav.filter(x=>["/finance-office","/finance-office/platform","/finance-office/accounts","/finance-office/payments"].includes(x.href)))}
+      {links(nav.filter(x=>["/finance-office","/finance-office/platform","/finance-office/accounts","/finance-office/payments"].includes(x.href)),false,
+        active==="/finance-office/payment-requests"||active==="/finance-office/fan-payments"?"/finance-office/payments":active)}
       <button type="button" className={styles.miniToggle} aria-label="Collapse Finance mini bar"
        onClick={toggleMini}>⌄<small>Hide</small></button>
      </nav>:

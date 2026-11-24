@@ -5,7 +5,8 @@ import {requireControlRoomPermission} from "../../../../lib/controlRoom";
 import {financeWritesEnabled} from "../../../../lib/financeBackoffice";
 import {FINANCE_REQUEST_TYPES} from "../../../../lib/financePaymentRequests";
 import {loadFinanceOfficeData,fmtKES,formatDate} from "../../../../lib/financeOfficeData";
-import {createFinancePaymentRequest,cancelFinancePaymentRequest} from "./actions";
+import {cancelFinancePaymentRequest} from "./actions";
+import FinancePaymentRequestForm from "../../../../components/FinancePaymentRequestForm";
 import styles from "../../financeUi.module.css";
 export const metadata={title:"Create Payment Requests | FACKTS Music Finance"};
 export default async function PaymentRequests({searchParams}:{
@@ -36,27 +37,7 @@ export default async function PaymentRequests({searchParams}:{
    <section className={styles.panel}>
     <div className={styles.panelTop}><div><h2>New request</h2><p>Select a category, recipient and amount. The description tells the payer exactly what the request covers.</p></div>
     <span className={styles.status}>No checkout enabled</span></div>
-    <form action={createFinancePaymentRequest} className={styles.financeForm}>
-     <label>Reason for payment<select name="purpose_code" required disabled={!enabled}>
-       {FINANCE_REQUEST_TYPES.map(item=><option key={item.code} value={item.code}>{item.name}</option>)}
-     </select></label>
-     <label>Receiving account<select name="receiver_scope" disabled={!enabled} required>
-       <option value="fackts_music">FACKTS Music business</option><option value="project">Specific artist / project</option>
-     </select></label>
-     <label className={styles.formWide}>Project or artist account (required when project is receiver)<select name="project_id" disabled={!enabled}>
-       <option value="">FACKTS Music business / no project</option>
-       {data.projects.filter((p:any)=>p.status==="active").map((p:any)=><option key={p.id} value={p.id}>{p.name}</option>)}
-     </select></label>
-     <label>Amount, KES<input name="amount_kes" type="number" min="3" max="1000000" step="1" placeholder="e.g. 150" required disabled={!enabled}/></label>
-     <label>Payment frequency<select name="recurrence" required disabled={!enabled}>
-       <option value="one_time">One-time</option><option value="monthly">Monthly (plan approval required)</option><option value="yearly">Yearly (plan approval required)</option>
-     </select></label>
-     <label className={styles.formWide}>Purpose and details<textarea name="description" required minLength={5} maxLength={400} disabled={!enabled}
-       placeholder="What is this person paying for? Include the service, access or contribution terms."/></label>
-     <label>Payer email (optional)<input name="payer_email" type="email" maxLength={254} disabled={!enabled}/></label>
-     <label>Request expiry (optional)<input name="expiry_date" type="date" disabled={!enabled}/></label>
-     <button type="submit" disabled={!enabled}>Save payment-request draft</button>
-    </form>
+    <FinancePaymentRequestForm enabled={enabled} projects={data.projects.filter((p:any)=>p.status==="active").map((p:any)=>({id:p.id,name:p.name}))}/>
     <p>Recurring requests do not create automatic deductions. Fan and artist support cannot be activated before the correct beneficiary, revenue splits and refund terms are approved.</p>
    </section>
    <section className={styles.panel}><div className={styles.panelTop}><h2>Payment-request register</h2><span>{ready?rows.length:"Not installed"}</span></div>

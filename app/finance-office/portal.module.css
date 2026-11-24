@@ -76,3 +76,5 @@
  .miniToggle small{display:block;font-size:10px}
  .restoreMini{display:block;margin:0 11px max(10px,env(safe-area-inset-bottom)) auto;padding:10px 13px;border-radius:25px;border:1px solid #ff6a00;background:#181818;color:#fff;font-weight:850;font-size:12px;pointer-events:auto;box-shadow:0 2px 15px #0005}
 }
+
+.collapsed .links .linkLabel{font-size:18px;line-height:1}
