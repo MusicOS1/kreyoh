@@ -75,7 +75,9 @@ export const WORKSPACES: WorkspaceConfig[] = [
       ['Beat Library', '/beats'],
       ['Upload to project', '/tracks?upload=1#upload-track'],
       ['Sessions', '/studio-sessions'],
-      ['Public releases', '/billboard/submit'],
+      ['Releases & fan support', '/billboard/submit'],
+      ['Finance & earnings', '/finance'],
+      ['Payments & links', '/payments'],
     ]),
   },
   {
