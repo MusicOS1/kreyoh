@@ -98,3 +98,13 @@
 .financeForm button:disabled{opacity:.55;cursor:not-allowed}
 .financeForm :is(input,select,textarea,button):focus-visible{outline:2px solid #ff6a00;outline-offset:2px}
 @media(max-width:740px){.financeForm{grid-template-columns:1fr}.financeForm .formWide{grid-column:auto}.financeForm input,.financeForm select,.financeForm textarea{font-size:16px}}
+
+/* Prevent a wide internal table/card from dragging the entire phone canvas horizontally. */
+.root,.root > *, .grid4, .grid2, .panel, .panelTop, .stat,.note{min-width:0;max-width:100%}
+.root{width:100%;overflow-x:clip}
+.root :is(p,h1,h2,h3,small,strong){overflow-wrap:anywhere}
+.panelTop>a,.head>a,.head .button,.head .buttonSecondary{min-width:0;max-width:100%;overflow-wrap:anywhere;white-space:normal}
+.tableWrap{max-width:100%;min-width:0;overflow-x:auto;overscroll-behavior-x:contain}
+.quick{min-width:0}
+.quick a{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+@media(max-width:740px){.root{gap:14px}.root .panel{width:100%}.root .note{font-size:12px}.root .stat strong{line-height:1.3}}
