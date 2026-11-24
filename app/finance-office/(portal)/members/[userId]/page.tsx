@@ -15,13 +15,13 @@ export default async function CultureMemberDetail({params}:{
  const payments=data.transactions.filter((r:any)=>r.member_user_id===userId);
  return <main className={styles.root}>
   <header className={styles.head}><div><span className={styles.eyebrow}>THIRD CULTURE / MEMBER ACCOUNT</span>
-   <h1>{member.name}</h1><p>{member.email||"No email"} · {member.memberCode||"Account not yet created"}</p></div>
+   <h1>{member.name}</h1><p>{member.email||"No email"} · {member.memberCode||"Finance ledger not yet created"}</p></div>
    <Link className={styles.buttonSecondary} href="/finance-office/members">All members</Link></header>
   <div className={styles.grid4}>
    <div className={styles.stat}><small>Posted contributions</small><strong>{fmtKES(member.received)}</strong><span>{member.payments} confirmed record(s)</span></div>
    <div className={styles.stat}><small>Monthly fee setting</small><strong>{member.monthlyFee===null?"Not set":fmtKES(member.monthlyFee)}</strong><span>Does not calculate debt</span></div>
    <div className={styles.stat}><small>Historic allocation record</small><strong>{member.allocated===null?"Not set":fmtKES(member.allocated)}</strong><span>Not artist earnings or payable money</span></div>
-   <div className={styles.stat}><small>Account status</small><strong>{member.accountId?member.needsReconciliation?"Check records":"Active":"Setup needed"}</strong><span>{member.lastPayment?"Last posted "+formatDate(member.lastPayment):"No payments posted"}</span></div>
+   <div className={styles.stat}><small>Account status</small><strong>{member.accountId?member.needsReconciliation?"Check records":"Active":"Record missing"}</strong><span>{member.lastPayment?"Last posted "+formatDate(member.lastPayment):"No payments posted"}</span></div>
   </div>
   {!member.accountId&&<section className={styles.panel}>
     <h2>Set up this member's finance account</h2><p>This person is already an active Third Culture project member. A Finance leader can create their bookkeeping account once writes are approved; no monthly debt or balance will be assumed.</p>

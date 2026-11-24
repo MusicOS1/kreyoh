@@ -30,7 +30,7 @@ export default async function OperatingBook({params,searchParams}:{
    <h1>{def.name}</h1><p>{def.caption}. This is a separate manual operating ledger and is not a wallet, bank account or artist payout account.</p>
    <div className={styles.actions}><Link className={styles.secondary} href="/finance-office">All finance accounts</Link></div>
   </header>
-  {!available?<div className={styles.callout} role="status">This operating book has not been activated in the database. The reviewed finance migration creates the FACKTS Music and Third Culture books. No account balance or financial data has been assumed.</div>:
+  {!available?<div className={styles.callout} role="status">This operating ledger has not yet been created in the database. Finance will be able to record income and costs here only after the reviewed finance migration is approved. This does not mean the organisation has no money or that any Paystack payments failed.</div>:
    entryR.error?<div className={styles.callout} role="alert">Operating entries could not be loaded. Totals are withheld. Try again.</div>:<>
    <div className={styles.grid}>
     <article className={styles.card}><span className={styles.kicker}>CONFIRMED RECORDS</span><h3>{fmt(totals.income)}</h3><p>Money in marked as recorded in this book (not bank-verified deposits).</p></article>

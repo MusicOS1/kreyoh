@@ -7,6 +7,7 @@ import PublicNavigation from "../../../components/PublicNavigation";
 import PublicFooter from "../../../components/PublicFooter";
 import "../../streaming-public.css";
 import MixtapeArtistStage from "../../../components/MixtapeArtistStage";
+import FanPaymentPoint from "../../../components/FanPaymentPoint";
 import { creatorDisplayName } from "../../../lib/profileIdentity";
 import {creditedToArtist,releaseHasArtist} from "../../../lib/releaseArtistMatch";
 import { createAdminClient } from "../../../lib/supabase/admin";
@@ -35,6 +36,7 @@ export default async function PublicCreatorPage({params}:{params:Promise<{userId
      location={profile.location} genres={profile.skills_genres||[]}
      actions={<ReleaseAudienceActions artistId={profile.id} userId={sessionUser?.id} following={Boolean(follow)}/>}
    />
+  <FanPaymentPoint artistName={name}/>
   <nav className="fm-mixtape-profile-nav" aria-label="Artist profile sections"><a href="#artist-music">Music</a><a href="#artist-story">About</a><a href="#artist-credits">Credits</a></nav>
   <section id="artist-music" className="fm-creator-published panel" aria-label="Official FACKTS releases"><div className="creator-section-heading"><span className="eyebrow">RELEASED ON FACKTS MUSIC</span><h2>Music</h2></div>
     {verifiedReleases.length?<div className="fm-creator-published-list">{verifiedReleases.map(song=><article key={song.id}>

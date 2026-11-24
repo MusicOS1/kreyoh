@@ -15,9 +15,9 @@ export default async function AccountsPage(){
     <span className={styles.eyebrow}>{def.slug==="fackts_music_platform"?"PLATFORM":"ORGANISATION"}</span>
     <h2>{def.name}</h2><p>{def.caption}</p>
     <div className={styles.stat}><small>{data.bookReady?"Net recorded movement":"Ledger setup"}</small>
-     <strong>{data.bookReady?fmtKES((amount?.income||0)-(amount?.expense||0)):"Not activated"}</strong>
-     <span>{data.bookReady?"Not a bank balance":"Operating-book migration not yet approved"}</span></div>
-    <Link className={styles.button} href={"/finance-office/books/"+def.slug}>Open account</Link>
+     <strong>{data.bookReady?fmtKES((amount?.income||0)-(amount?.expense||0)):"Setup pending"}</strong>
+     <span>{data.bookReady?"Not a bank balance":"The operating ledger has not been created in the database. This does not mean the organisation has no money."}</span></div>
+    <Link className={styles.button} href={"/finance-office/books/"+def.slug}>{data.bookReady?"Open account":"See setup details"}</Link>
    </article>;
   })}</section>
   <section className={styles.panel} id="projects"><div className={styles.panelTop}><div><h2>Music project accounts</h2>
