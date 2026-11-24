@@ -84,7 +84,7 @@ export async function loadFinanceOfficeData(){
  const posted=rows.filter(row=>row.verified&&row.currency==="KES");
  const totalIn=posted.filter(row=>row.kind==="income").reduce((acc,row)=>acc+row.amount,0);
  const totalOut=posted.filter(row=>row.kind==="expense").reduce((acc,row)=>acc+row.amount,0);
- return {projects:list,ownerById,rows,invoices:invoices.data||[],totals,books:bookList,bookReady,bookTotals,
+ return {projects:list,ownerById,rows,invoices:invoices.data||[],totals,books:bookList,bookReady,bookDataAvailable:!books.error&&!entries.error,bookTotals,
    financeBooks:FINANCE_BOOKS,TUKO_PROJECT_ID,totalIn,totalOut,
    memberTransactions:memberships.data||[],bookEntries:entries.data||[]};
 }

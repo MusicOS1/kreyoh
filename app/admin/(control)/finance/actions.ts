@@ -45,7 +45,8 @@ export async function recordFinanceBookEntry(formData:FormData){
  if(auditError)console.error("finance-entry-audit-failure",auditError.code);
  revalidatePath("/finance-office");
  revalidatePath("/finance-office/books/"+slug);
- redirect("/finance-office/books/"+slug+"?created=1");
+ if(slug==="fackts_music_platform")revalidatePath("/finance-office/platform");
+ redirect(slug==="fackts_music_platform"?"/finance-office/platform?created=1":"/finance-office/books/"+slug+"?created=1");
 }
 export async function postFinanceBookEntry(formData:FormData){
  const actor=await requireControlRoomPermission("finance");
@@ -64,6 +65,7 @@ export async function postFinanceBookEntry(formData:FormData){
   metadata:{book_slug:slug}});
  if(auditError)console.error("finance-post-audit-failure",auditError.code);
  revalidatePath("/finance-office");revalidatePath("/finance-office/books/"+slug);
+ if(slug==="fackts_music_platform")revalidatePath("/finance-office/platform");
 }
 export async function createCentralServiceInvoice(formData:FormData){
  const actor=await requireControlRoomPermission("finance");

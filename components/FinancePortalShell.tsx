@@ -6,7 +6,9 @@ export default function FinancePortalShell({children,email,superAdmin}:{
 }){
  const nav=[
   {title:"Overview",href:"/finance-office"},
+  {title:"FACKTS business finance",href:"/finance-office/platform"},
   {title:"Accounts",href:"/finance-office/accounts"},
+  {title:"Partner: Third Culture",href:"/finance-office/partners/third-culture"},
   {title:"Third Culture members",href:"/finance-office/members"},
   {title:"Transactions",href:"/finance-office/transactions"},
   {title:"Bills & expenses",href:"/finance-office/bills"},
@@ -33,9 +35,9 @@ export default function FinancePortalShell({children,email,superAdmin}:{
    <div className={styles.body}>{children}</div>
    <nav className={styles.mobileNav} aria-label="Finance portal mobile navigation">
     <Link href="/finance-office">Overview</Link>
-    <Link href="/finance-office/accounts">Accounts</Link>
+    <Link href="/finance-office/platform">FACKTS</Link>
     <Link href="/finance-office/transactions">Activity</Link>
-    <Link href="/finance-office/members">Members</Link>
+    <Link href="/finance-office/accounts">Accounts</Link>
    </nav>
   </div>
  </div>;

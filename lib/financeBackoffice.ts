@@ -3,8 +3,11 @@
 export const TUKO_PROJECT_ID="3bbead35-ed53-4507-9943-ff6255b0f1ce";
 export const FINANCE_BOOKS=[
  {slug:"fackts_music_platform",name:"FACKTS Music platform",caption:"Platform operations and service costs"},
- {slug:"third_culture",name:"Third Culture",caption:"Organisation finances, separate from FACKTS Music"},
+ {slug:"third_culture",name:"Third Culture · partner",caption:"Temporary external partner engagement; kept separate from the permanent FACKTS Music business"},
 ] as const;
+// A managed partner project is never a FACKTS-owned artist roster or its business revenue.
+export const THIRD_CULTURE_PARTNER={name:"Third Culture",projectId:TUKO_PROJECT_ID,relationship:"temporary_external_partner" as const};
+export const isThirdCulturePartnerProject=(projectId:string)=>projectId===TUKO_PROJECT_ID;
 export type ProjectFinanceRow={id:string;name:string;code?:string|null;owner_id?:string|null};
 type AmountRow={project_id:string;amount:number|string|null;currency?:string|null};
 type Revenue=AmountRow&{payment_status?:string|null;revenue_source?:string|null};
