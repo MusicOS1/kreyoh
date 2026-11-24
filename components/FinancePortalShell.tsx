@@ -46,11 +46,24 @@ export default function FinancePortalShell({children,email,superAdmin}:{
  const toggleMini=()=>{
   setMiniVisible(x=>{const next=!x;try{localStorage.setItem("fm-finance-mini-visible",next?"1":"0");}catch{}return next;});
  };
+ const iconByPage:Record<string,string>={
+  "/finance-office":"⌂",
+  "/finance-office/platform":"₭",
+  "/finance-office/accounts":"▣",
+  "/finance-office/partners/third-culture":"◇",
+  "/finance-office/members":"♙",
+  "/finance-office/transactions":"⇄",
+  "/finance-office/bills":"▤",
+  "/finance-office/payments":"↗",
+  "/finance-office/payment-requests":"+",
+  "/finance-office/fan-payments":"♡",
+  "/finance-office/reports":"▥",
+ };
  const links=(items:typeof nav,showIcons=false,selected=active)=>items.map(item=><Link key={item.href} href={item.href}
   aria-current={selected===item.href?"page":undefined}
   aria-label={item.title}
   className={selected===item.href?styles.active:""} title={item.title}>
-   <span className={styles.linkLabel}>{showIcons?"●":item.title}</span>
+   <span className={styles.linkLabel}>{showIcons?iconByPage[item.href]||"•":item.title}</span>
  </Link>);
  return <div className={styles.shell+" "+(collapsed?styles.collapsed:"")}>
   <aside className={styles.sidebar} aria-label="Finance portal sidebar">

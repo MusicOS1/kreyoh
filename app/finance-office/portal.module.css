@@ -5,7 +5,7 @@
 .brand span{color:#ff6a00}.brand small{font-family:"DM Sans",Arial,sans-serif;font-weight:750;font-size:12px;color:#e4e4e6}
 .links{display:grid;gap:9px}.links a{display:flex;align-items:center;min-height:46px;padding:11px 12px;border-radius:9px;text-decoration:none;color:#f5f5f5;font-size:14px;font-weight:750;border:1px solid transparent}
 .links a:hover,.links a:focus-visible{background:#2a1b12;border-color:#ff6a00;color:#fff}
-.links a:first-child{background:#25180e;color:#ffbb88;border:1px solid #ff6a006b}
+
 .foot{margin-top:auto;display:grid;gap:13px;padding:16px 2px 4px}
 .foot span{font-size:12px;color:#e2e2e5;overflow-wrap:anywhere}
 .foot a{color:#ffbd8b;font-size:12px;text-decoration:underline}
@@ -28,18 +28,18 @@
 .login button{background:#ff6a00;color:#0b0b0b;border:0;border-radius:9px;min-height:49px;font:inherit;font-weight:900;cursor:pointer}
 .login a{color:#ffb881;font-size:13px}
 .error{padding:13px;border:1px solid #ff9b74;background:#402018;border-radius:9px;color:#fff;font-size:13px}
-@media(max-width:800px){.shell{display:block}.sidebar{display:none}.top{padding:16px;min-height:72px}.top strong{font-size:17px}.top p{font-size:11px}.body{padding:12px 12px 90px}.mobileNav{position:fixed;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));left:0;right:0;bottom:0;z-index:60;background:#0b0b0b;border-top:1px solid #777;padding:8px 5px max(8px,env(safe-area-inset-bottom));gap:4px}.mobileNav a{min-height:49px;display:grid;place-items:center;color:#fff;text-decoration:none;font-size:12px;font-weight:800;text-align:center;border-radius:7px}.mobileNav a:first-child{color:#ff9a4b;background:#23160e}}
+@media(max-width:800px){.shell{display:block}.sidebar{display:none}.top{padding:16px;min-height:72px}.top strong{font-size:17px}.top p{font-size:11px}.body{padding:12px 12px 90px}.mobileNav{position:fixed;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));left:0;right:0;bottom:0;z-index:60;background:#0b0b0b;border-top:1px solid #777;padding:8px 5px max(8px,env(safe-area-inset-bottom));gap:4px}.mobileNav a{min-height:49px;display:grid;place-items:center;color:#fff;text-decoration:none;font-size:12px;font-weight:800;text-align:center;border-radius:7px}}
 
 /* The Finance Office is a bright, readable workspace with a dark navigation rail. */
 .shell{background:#f6f6f6}.main{background:#f6f6f6}
 .body{color:#171717}
 .top{background:#fff;border-bottom:1px solid #d6d6d6;color:#151515}
 .top strong{color:#111}.top p{color:#454545}.top a{color:#a54100}
-.links a:first-child{background:#20150e;color:#ffb786}
+
 @media(max-width:800px){.top{background:#fff}.top strong{color:#141414}}
 
 .mobileLinks{display:none}
-@media(max-width:800px){.mobileLinks{display:flex;gap:8px;overflow-x:auto;white-space:nowrap;background:#fff;border-bottom:1px solid #ddd;padding:8px 13px;scrollbar-width:thin}.mobileLinks a{display:inline-flex;align-items:center;flex:none;min-height:38px;padding:9px 12px;border:1px solid #c7c7c7;border-radius:20px;color:#222;font-weight:800;font-size:12px;text-decoration:none}.mobileLinks a:first-child{background:#fff0e6;border-color:#ff6a00;color:#a64000}}
+@media(max-width:800px){.mobileLinks{display:flex;gap:8px;overflow-x:auto;white-space:nowrap;background:#fff;border-bottom:1px solid #ddd;padding:8px 13px;scrollbar-width:thin}.mobileLinks a{display:inline-flex;align-items:center;flex:none;min-height:38px;padding:9px 12px;border:1px solid #c7c7c7;border-radius:20px;color:#222;font-weight:800;font-size:12px;text-decoration:none}}
 
 /* Finance navigation is controlled by the current route, not the first link. */
 .shell{min-width:0;max-width:100%;width:100%;overflow-x:clip}
@@ -52,11 +52,11 @@
 .collapsed .sideHead{justify-content:center}
 .collapsed .links a{padding:8px 3px;min-height:47px;text-align:center;justify-content:center}
 .collapsed .linkLabel{font-size:9px;line-height:1.2;overflow-wrap:anywhere}
-.links a:first-child{background:transparent;color:#f5f5f5;border-color:transparent}
+
 .links a.active,.links a[aria-current="page"]{background:#ff6a0025;color:#ffbd8b;border:1px solid #ff6a00}
-.mobileNav a:first-child{color:#fff;background:transparent}
+
 .mobileNav a.active,.mobileNav a[aria-current="page"]{background:#ff6a0025;color:#ffbd8b}
-.mobileLinks a:first-child{color:#252525;background:#fff;border-color:#c7c7c7}
+
 .mobileLinks a.active,.mobileLinks a[aria-current="page"]{color:#a63e00;background:#fff0e6;border-color:#ff6a00}
 .mobileTop,.mobileDock{display:none}
 .role{font-size:12px;color:#414141}
