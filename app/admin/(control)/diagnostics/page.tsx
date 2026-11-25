@@ -1,3 +1,4 @@
+import {requireControlRoomPermission} from "../../../../lib/controlRoom";
 import Link from "next/link";
 import { createAdminClient } from "../../../../lib/supabase/admin";
 
@@ -7,6 +8,7 @@ const valueOf = (x: unknown) => typeof x === "string" ? x : "unknown";
 const countBy = (items: string[]) => Object.entries(items.reduce((m: Record<string, number>, item) => { m[item] = (m[item] || 0) + 1; return m; }, {})).sort((a, b) => b[1] - a[1]);
 
 export default async function AdminDiagnostics({ searchParams }: { searchParams: Promise<{ days?: string }> }) {
+  await requireControlRoomPermission("system");
   const params = await searchParams;
   const days = [1, 7, 30].includes(Number(params.days)) ? Number(params.days) : 7;
   const since = new Date(Date.now() - days * 86400000).toISOString();

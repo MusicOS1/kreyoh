@@ -2,7 +2,7 @@
 import {useEffect,useMemo,useState} from 'react';
 import TrackPlaylist,{type PlaylistTrack} from './TrackPlaylist';
 type Saved={name:string;ids:string[]};
-export default function MusicQueue({tracks,storageKey='fackts-public-playlists',itemLabel='songs',...props}:{tracks:PlaylistTrack[];storageKey?:string;itemLabel?:string;resultsVisible?:boolean;showDetailedStats?:boolean;enableRanking?:boolean;votingOpen?:boolean}){
+export default function MusicQueue({tracks,storageKey='fackts-public-playlists',itemLabel='songs',...props}:{tracks:PlaylistTrack[];storageKey?:string;itemLabel?:string;persistenceKey?:string;resultsVisible?:boolean;showDetailedStats?:boolean;enableRanking?:boolean;votingOpen?:boolean}){
  const[lists,setLists]=useState<Saved[]>([]),[selected,setSelected]=useState(''),[name,setName]=useState(''),[chosen,setChosen]=useState<string[]>([]),[notice,setNotice]=useState(''),[editing,setEditing]=useState(false),[search,setSearch]=useState('');
  useEffect(()=>{setSelected('');setEditing(false);try{const value=JSON.parse(localStorage.getItem(storageKey)||'[]');setLists(Array.isArray(value)?value.filter(x=>typeof x.name==='string'&&Array.isArray(x.ids)&&x.ids.every((id:unknown)=>typeof id==='string')).slice(0,20):[]);}catch{setLists([]);}},[storageKey]);
  function save(next:Saved[]){try{localStorage.setItem(storageKey,JSON.stringify(next));setLists(next);setNotice('Playlist saved on this device.');return true;}catch{setNotice('This browser could not save the playlist. Check your storage settings.');return false;}}

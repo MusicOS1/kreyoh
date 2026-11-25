@@ -1,8 +1,10 @@
+import {requireControlRoomPermission} from "../../../../lib/controlRoom";
 import Link from "next/link";
 import { createAdminClient } from "../../../../lib/supabase/admin";
 
 const since = (days: number) => new Date(Date.now() - days * 86400000).toISOString();
 export default async function AdminAnalytics({ searchParams }: { searchParams: Promise<{ range?: string }> }) {
+  await requireControlRoomPermission("intelligence");
   const { range } = await searchParams;
   const days = [7, 30, 90].includes(Number(range)) ? Number(range) : 30;
   const admin = createAdminClient();

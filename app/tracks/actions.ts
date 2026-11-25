@@ -16,8 +16,8 @@ import { uploadResult } from "../../lib/uploadResult";
 const read = (formData: FormData, key: string) =>
   String(formData.get(key) || "").trim();
 
-const trackFileRoles = ["Super Admin", "Project Lead", "A&R", "Producer", "Engineer"];
-const trackCreateRoles = ["Super Admin", "Project Lead", "A&R"];
+const trackFileRoles = ["Super Admin", "Project Lead", "A&R", "Artist", "Producer", "Engineer"];
+const trackCreateRoles = ["Super Admin", "Project Lead", "A&R", "Artist"];
 const trackAssetKinds = ["demo", "rough_mix", "mix", "master", "stems", "reference"];
 const trackStatuses = ["in_development", "revision", "in_studio", "mixing", "mastering", "release_ready", "complete"];
 const trackCreditRoles = new Set([
@@ -42,7 +42,7 @@ async function requireTrackCreationAccess() {
     throw new Error("Project access required.");
   }
   if (!hasAnyRole(workspace.roles, trackCreateRoles)) {
-    throw new Error("Only Project Lead, A&R or Super Admin can register a new track.");
+    throw new Error("An active Artist, Project Lead, A&R or Super Admin role is required to register a track.");
   }
   return workspace;
 }

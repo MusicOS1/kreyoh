@@ -1,3 +1,4 @@
+import {requireControlRoomPermission} from "../../../../../lib/controlRoom";
 import AdminPasswordResetForm from "../../../../../components/AdminPasswordResetForm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -7,6 +8,7 @@ import { addUsersToManagedProject, removeManagedMember, restoreManagedMember, up
 const first = (value: any) => Array.isArray(value) ? value[0] : value;
 
 export default async function AdminUserProfile({ params }: { params: Promise<{ userId: string }> }) {
+  await requireControlRoomPermission("people");
   const { userId } = await params;
   const admin = createAdminClient();
   const [{ data: user }, { data: projects = [] }, { data: roles = [] }, { data: events = [] }, { count: uploads }, { count: claims }, { count: tasks }] = await Promise.all([

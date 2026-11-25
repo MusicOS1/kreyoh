@@ -1,3 +1,4 @@
+import {requireControlRoomPermission} from "../../../../lib/controlRoom";
 import { createAdminClient } from "../../../../lib/supabase/admin";
 
 const first = (value: any) => Array.isArray(value) ? value[0] : value;
@@ -5,6 +6,7 @@ const nice = (value: string) => value.replaceAll("_", " ").replace(/\b\w/g, char
 const categoryMap: Record<string, string[]> = { projects: ["projects", "project"], beats: ["beats", "music", "engagement", "collaboration"], sessions: ["sessions", "session"], files: ["files", "file"], admin: ["admin", "system"] };
 
 export default async function AdminActivity({ searchParams }: { searchParams: Promise<{ category?: string; user?: string; project?: string; from?: string; to?: string }> }) {
+  await requireControlRoomPermission("intelligence");
   const params = await searchParams;
   const category = params.category || "all";
   const admin = createAdminClient();

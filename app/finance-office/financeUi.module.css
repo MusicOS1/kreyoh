@@ -1,0 +1,115 @@
+.root{font-family:"DM Sans",Arial,sans-serif;color:#161616;min-width:0;display:grid;gap:18px}
+.root *{box-sizing:border-box}
+.root :is(h1,h2,h3){font-family:"Gotham","DM Sans",Arial,sans-serif;letter-spacing:-.02em;color:#111}
+.head{display:flex;align-items:start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.head h1{font-size:clamp(27px,3vw,36px);line-height:1.1;margin:4px 0 8px}
+.head p{font-size:14px;margin:0;color:#4e4e4e;line-height:1.55;max-width:780px}
+.eyebrow{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:#ad4500;font-weight:900}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill,.button,.buttonSecondary,.select{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:9px 13px;font:inherit;font-size:13px;font-weight:850;border-radius:9px;white-space:normal}
+.pill{background:#fff;border:1px solid #adadad;color:#181818;text-decoration:none}
+.pillActive{background:#ff6a00;border:1px solid #ff6a00;color:#080808}
+.button{background:#ff6a00;border:1px solid #ff6a00;color:#080808;text-decoration:none}
+.buttonSecondary{background:#fff;border:1px solid #969696;color:#252525;text-decoration:none}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.stat,.panel{min-width:0;background:#fff;border:1px solid #d5d5d5;border-radius:15px;padding:18px}
+.stat{display:grid;gap:9px;border-top:3px solid #ff6a00}
+.stat small{font-size:12px;color:#484848;font-weight:800}
+.stat strong{font-family:"Gotham","DM Sans",Arial,sans-serif;font-size:clamp(19px,2.2vw,26px);color:#121212;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.stat span{font-size:11px;color:#555;line-height:1.5}
+.panel{padding:20px;display:grid;align-content:start;gap:14px}
+.panel h2{font-size:19px;margin:0}
+.panel h3{font-size:15px;margin:0}
+.panel p{font-size:13px;color:#515151;line-height:1.55;margin:0}
+.panelTop{display:flex;justify-content:space-between;align-items:start;gap:12px;flex-wrap:wrap}
+.panelTop a,.smallLink{color:#b34400;font-size:12px;font-weight:850;text-decoration:underline;text-underline-offset:3px}
+.items{display:grid;gap:0}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:13px 2px;border-bottom:1px solid #e2e2e2;text-decoration:none;color:#121212}
+.item:last-child{border-bottom:0}
+.item strong{display:block;color:#161616;font-size:13px;line-height:1.35}
+.item small{color:#555;display:block;font-size:11px;margin-top:4px}
+.item b{font-size:13px;text-align:right;white-space:nowrap}
+.tableWrap{overflow-x:auto;background:white;border:1px solid #d7d7d7;border-radius:14px}
+.table{width:100%;border-collapse:collapse;min-width:680px}
+.table :is(td,th){padding:13px 15px;border-bottom:1px solid #e0e0e0;text-align:left;vertical-align:middle;font-size:12px;color:#252525}
+.table tr:last-child td{border-bottom:0}
+.table th{background:#f0f0f0;color:#282828;text-transform:uppercase;font-size:10px;letter-spacing:.04em;white-space:nowrap}
+.table td strong{display:block;font-size:13px;color:#111}
+.table td small{display:block;font-size:11px;color:#585858;margin-top:4px}
+.table a{font-weight:850;color:#ac4200;text-decoration:underline;text-underline-offset:2px}
+.moneyIn{color:#12703a!important;font-weight:850}
+.moneyOut{color:#a8342e!important;font-weight:850}
+.status{display:inline-flex;background:#ececec;padding:5px 8px;border-radius:30px;color:#333;font-size:11px;font-weight:750;text-transform:capitalize}
+.statusGood{background:#e1f4e7;color:#165b32}
+.note{background:#fff6ed;color:#663009;border:1px solid #e4c4aa;border-radius:12px;padding:14px 17px;font-size:12px;line-height:1.6}
+.note strong{color:#572603}
+.empty{background:#fff;padding:17px;border:1px dashed #bbb;border-radius:12px;font-size:13px;color:#444}
+.chart{min-width:0;display:grid;gap:16px}
+.chartLegend{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:#444}
+.chartLegend span{display:flex;align-items:center;gap:8px}
+.inDot,.outDot{display:inline-block;width:10px;height:10px;border-radius:3px;background:#ff6a00}
+.outDot{background:#232323}
+.chartBars{height:230px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;align-items:end;border-bottom:1px solid #bbb}
+.chartGroup{height:100%;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:end;gap:7px}
+.barPair{height:calc(100% - 22px);width:100%;display:flex;align-items:end;justify-content:center;gap:5px}
+.inBar,.outBar{display:block;width:min(28px,35%);border-radius:6px 6px 0 0;min-width:2px;background:#ff6a00}
+.outBar{background:#262626}
+.chartGroup small{font-size:11px;font-weight:750;color:#333;min-height:15px}
+.searchForm{display:flex;gap:8px;flex-wrap:wrap;align-items:end}
+.searchForm label{display:grid;gap:5px;font-size:12px;font-weight:800;color:#222;min-width:160px;flex:1}
+.searchForm input,.searchForm select{min-height:45px;padding:10px 12px;font:inherit;font-size:14px;background:#fff;border:1px solid #a0a0a0;border-radius:9px;color:#171717;max-width:100%}
+.searchForm button{min-height:45px;border-radius:8px;padding:9px 15px;background:#ff6a00;color:#080808;border:1px solid #ff6a00;font-weight:850;cursor:pointer}
+.quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.quick a{display:flex;align-items:center;gap:9px;padding:14px;border:1px solid #dadada;background:#fafafa;text-decoration:none;font-size:13px;font-weight:850;color:#242424;border-radius:10px}
+.quick a:hover{border-color:#ff6a00;background:#fff4ec}
+.root :is(a,button,select,input):focus-visible{outline:3px solid #ff6a00;outline-offset:2px}
+@media(max-width:1120px){.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:740px){.grid2{grid-template-columns:1fr}.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}.panel{padding:15px}.stat{padding:14px}.stat strong{font-size:20px}.chartBars{height:175px}.searchForm{display:grid}.quick{grid-template-columns:1fr}}
+@media(max-width:410px){.grid4{grid-template-columns:1fr 1fr;gap:8px}.stat{padding:12px}.stat strong{font-size:17px}.stat small{font-size:11px}}
+
+.searchForm input[type=checkbox]{width:17px;height:17px;min-height:unset;accent-color:#ff6a00;margin-right:8px;vertical-align:middle}
+.searchForm button:disabled{opacity:.55;cursor:not-allowed}
+
+/* The member directory uses real stacked cards on a phone: no cut-off names or sideways table reading. */
+.mobileMemberList{display:none}.memberDesktopTable{display:block;max-width:100%}
+@media(max-width:740px){
+ .memberDesktopTable{display:none}
+ .mobileMemberList{display:grid;gap:12px;min-width:0}
+ .mobileMemberCard{min-width:0;display:grid;gap:13px;background:#fafafa;border:1px solid #d2d2d2;border-radius:12px;padding:16px}
+ .mobileMemberTop{min-width:0;display:flex;gap:10px;align-items:start;justify-content:space-between;flex-wrap:wrap}
+ .mobileMemberTop>div{min-width:0;flex:1 1 170px}
+ .mobileMemberTop strong{font-size:17px;display:block;color:#101010;overflow-wrap:anywhere}
+ .mobileMemberTop small,.mobileMemberCard>small{display:block;color:#505050;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+ .mobileMemberFacts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;border-top:1px solid #e0e0e0;border-bottom:1px solid #e0e0e0;padding:13px 0}
+ .mobileMemberFacts div{display:grid;gap:5px;min-width:0}
+ .mobileMemberFacts span{font-size:11px;color:#555}
+ .mobileMemberFacts strong{font-size:14px;color:#161616;overflow-wrap:anywhere}
+ .mobileMemberCard>a{width:100%;white-space:normal;text-align:center}
+}
+
+/* Permanent FACKTS Music operating ledger: large, readable income/expense forms. */
+.financeForm{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.financeForm label{display:grid;min-width:0;gap:7px;font-size:13px;font-weight:800;color:#242424}
+.financeForm input,.financeForm select,.financeForm textarea{width:100%;min-height:46px;border:1px solid #929292;border-radius:9px;background:#fff;color:#111;font:inherit;font-size:14px;padding:11px;max-width:100%}
+.financeForm textarea{min-height:80px;resize:vertical}
+.financeForm .formWide{grid-column:1/-1}
+.financeForm button{grid-column:1/-1;min-height:47px;background:#ff6a00;border:1px solid #ff6a00;color:#0b0b0b;font-weight:900;border-radius:9px}
+.financeForm button:disabled{opacity:.55;cursor:not-allowed}
+.financeForm :is(input,select,textarea,button):focus-visible{outline:2px solid #ff6a00;outline-offset:2px}
+@media(max-width:740px){.financeForm{grid-template-columns:1fr}.financeForm .formWide{grid-column:auto}.financeForm input,.financeForm select,.financeForm textarea{font-size:16px}}
+
+/* Prevent a wide internal table/card from dragging the entire phone canvas horizontally. */
+.root,.root > *, .grid4, .grid2, .panel, .panelTop, .stat,.note{min-width:0;max-width:100%}
+.root{width:100%;overflow-x:clip}
+.root :is(p,h1,h2,h3,small,strong){overflow-wrap:anywhere}
+.panelTop>a,.head>a,.head .button,.head .buttonSecondary{min-width:0;max-width:100%;overflow-wrap:anywhere;white-space:normal}
+.tableWrap{max-width:100%;min-width:0;overflow-x:auto;overscroll-behavior-x:contain}
+.quick{min-width:0}
+.quick a{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+@media(max-width:740px){.root{gap:14px}.root .panel{width:100%}.root .note{font-size:12px}.root .stat strong{line-height:1.3}}
+
+/* Contrasting text on orange CTA buttons, including links inside section headers. */
+.root a.button,.root .panelTop a.button,.root .head a.button{color:#0b0b0b!important;text-decoration:none}
+.root a.buttonSecondary{color:#262626}
+.root .panelTop a.buttonSecondary{text-decoration:none}

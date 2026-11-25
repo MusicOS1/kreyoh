@@ -115,3 +115,9 @@
 }
 @media(max-width:375px){.metric{align-items:flex-start;flex-direction:column}.metricIcon{width:30px;min-width:30px;height:30px}.heroContent{padding-top:140px}.heroContent h2{font-size:26px}}
 @media(prefers-reduced-motion:reduce){.page *{scroll-behavior:auto!important;transition:none!important}}
+
+/* Artist insights period filter: same workspace, compact on phones. */
+.periodFilter{display:flex;gap:4px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+.periodFilter a{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 10px;border-radius:8px;border:1px solid #ffffff30;color:#A1A1AA;text-decoration:none;font-size:11px;font-weight:700}
+.periodFilter a[aria-current="page"]{background:#FF6A001d;border-color:#FF6A00;color:#fff}
+@media(max-width:375px){.periodFilter{justify-content:flex-start}}

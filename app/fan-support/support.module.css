@@ -1,0 +1,13 @@
+.page{background:#0b0b0b;color:#fff;max-width:1200px;margin:0 auto;padding:35px clamp(16px,4vw,44px) 90px;font-family:"DM Sans",Arial,sans-serif;min-height:65vh}
+.page *{box-sizing:border-box}.hero{display:grid;gap:13px;max-width:760px;margin-bottom:28px}.hero>span,.grid article>span{font-size:11px;letter-spacing:.1em;font-weight:900;color:#ff9b55}
+.page h1,.page h2{font-family:"Gotham","DM Sans",Arial,sans-serif;color:#fff;line-height:1.2}.hero h1{font-size:clamp(32px,7vw,53px);margin:0}
+.page p{font-size:14px;line-height:1.65;color:#e4e4e4;margin:0}
+.hero strong{display:inline-flex;align-items:center;background:#2b1a0e;border:1px solid #ff6a00;border-radius:10px;padding:12px 14px;color:#ffb57c;width:fit-content}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.grid article,.info{background:#181818;border:1px solid #555;border-radius:14px;padding:20px;display:grid;gap:13px;align-content:start}
+.grid article h2,.info h2{margin:0;font-size:21px}
+.grid article div{border:1px solid #747474;padding:11px;color:#ddd;font-size:12px;border-radius:9px;margin-top:6px}
+.info{margin-top:20px}.info div{display:flex;flex-wrap:wrap;gap:12px}
+.info a{display:inline-flex;align-items:center;justify-content:center;padding:11px 16px;min-height:44px;border-radius:9px;color:#080808;background:#ff6a00;text-decoration:none;font-weight:850;font-size:13px}
+.info a:focus-visible{outline:3px solid #fff;outline-offset:3px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.page{padding-top:21px}}

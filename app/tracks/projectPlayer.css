@@ -126,3 +126,14 @@
     border-top:1px solid #ffffff0d;
   }
 }
+
+/* Selected project recording navigator and clear empty state. */
+.fackts-tracks-page #project-player,.fackts-tracks-page #project-tracks{scroll-margin-top:94px}
+.fackts-tracks-page .project-listening-empty{padding:20px;border:1px dashed #ffffff36;border-radius:12px;background:#171717}
+.fackts-tracks-page .project-listening-empty strong{font-size:16px;color:#fff}
+.fackts-tracks-page .project-listening-empty p{color:#A1A1AA;line-height:1.5;font-size:13px}
+.fackts-tracks-page .project-listening-empty a{color:#FF6A00;font-weight:700}
+.fackts-tracks-page .project-tracks-directory{margin:24px 0 12px}
+.fackts-tracks-page .project-directory-heading h2{font-family:"Gotham","DM Sans",sans-serif;font-size:clamp(21px,3vw,28px);margin:0 0 7px}
+.fackts-tracks-page .project-directory-heading p{color:#A1A1AA;font-size:13px;margin:0 0 16px}
+@media(max-width:760px){.fackts-tracks-page .project-listening-empty{padding:14px}}

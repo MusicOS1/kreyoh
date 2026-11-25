@@ -461,7 +461,7 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
   return {
     config,
     identity,
-    canCreateTrack: workspace.roles.some(role => ['Super Admin','Admin','Project Lead','A&R'].includes(role)),
+    canCreateTrack: workspace.roles.some(role => ['Super Admin','Admin','Project Lead','A&R','Artist'].includes(role)),
     canUploadBeat: Boolean(projectIds.length) && workspace.roles.some(role => ['Super Admin','Project Lead','A&R','Producer'].includes(role)),
     canScheduleSession: workspace.roles.some(role => ['Super Admin','Admin','Project Lead','A&R','Manager','Project Coordinator','Engineer'].includes(role)),
     projectIds,
@@ -472,6 +472,7 @@ export async function loadWorkspaceDashboard(kind: WorkspaceKind) {
     projects: (workspace.activeProjects as any[]).filter((project) =>
       projectIds.includes(project?.id),
     ),
+    availableProjects:(workspace.activeProjects as any[]).filter(item=>permittedIds.includes(item?.id)),
     profile: workspace.profile,
   };
 }

@@ -10,20 +10,23 @@ import EcosystemShell from './EcosystemShell';
 import ArtistHomePremium from './ArtistHomePremium';
 import styles from './WorkspaceDashboard.module.css';
 export default async function WorkspaceDashboard({
-  kind,
+  kind, insightDays=30,
 }: {
   kind: WorkspaceKind;
+  insightDays?:7|30|90;
 }) {
-  const { config, identity, projectIds, sections, metrics, projects, profile,trackRows,tracksUnavailable,canCreateTrack,canScheduleSession,canUploadBeat,hasProjects } =
+  const { config, identity, projectIds, sections, metrics, projects, profile,trackRows,tracksUnavailable,canCreateTrack,canScheduleSession,canUploadBeat,hasProjects,availableProjects } =
     await loadWorkspaceDashboard(kind);
   // Artist Home is a single entry point. Only real, artist-owned data is shown.
   if (kind === 'artist') {
     const selectedProject=projects.find(item=>item.id===projectIds[0])||null;
     return <EcosystemShell active={kind}>
       <ArtistHomePremium
+        insightDays={insightDays}
         identity={identity}
         profile={profile}
         project={selectedProject}
+        availableProjects={availableProjects}
         hasProjects={hasProjects}
         canCreateTrack={canCreateTrack}
         canScheduleSession={canScheduleSession}

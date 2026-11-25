@@ -3,7 +3,7 @@ on:
   push:
     branches: [feat/session2-professional-onboarding, feat/session3-creative-production, feat/session4-release-audience]
   pull_request:
-    branches: [main, feat/phase2-unified-workspaces, feat/session2-professional-onboarding, feat/session3-creative-production]
+    branches: [main, feat/artist-fan-journey-preview-20261123, feat/phase2-unified-workspaces, feat/session2-professional-onboarding, feat/session3-creative-production]
 jobs:
   checks:
     name: Tests and TypeScript
