@@ -39,7 +39,7 @@ export default async function FinanceReports({searchParams}:{
    <section className={styles.panel}><h2>Project performance</h2>
     <div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Project</th><th>Financial owner</th><th>Money in</th><th>Money out</th><th>Net movement</th></tr></thead>
      <tbody>{data.projects.map((p:any)=>{const t=byProject.get(p.id)||{received:0,spent:0};return <tr key={p.id}>
-      <td><strong>{p.name}</strong><small>{p.code}</small></td>
+      <td><Link href={"/finance-office/reports/detail?project="+encodeURIComponent(p.id)}><strong>{p.name}</strong></Link><small>{p.code} · Full report</small></td>
       <td>{p.id===data.TUKO_PROJECT_ID?"Third Culture":data.ownerById.get(p.owner_id)||"Owner to confirm"}</td>
       <td className={styles.moneyIn}>{fmtKES(t.received)}</td><td className={styles.moneyOut}>{fmtKES(t.spent)}</td>
       <td>{fmtKES(t.received-t.spent)}</td>

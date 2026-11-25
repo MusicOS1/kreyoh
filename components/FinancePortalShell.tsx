@@ -59,7 +59,7 @@ export default function FinancePortalShell({children,email,superAdmin}:{
   "/finance-office/fan-payments":"♡",
   "/finance-office/reports":"▥",
  };
- const links=(items:typeof nav,showIcons=false,selected=active)=>items.map(item=><Link key={item.href} href={item.href}
+ const links=(items:typeof nav,showIcons=false,selected=active)=>items.map(item=><Link key={item.href} href={item.href==="/finance-office/reports"&&active==="/finance-office/partners/third-culture"?"/finance-office/reports/detail":item.href}
   aria-current={selected===item.href?"page":undefined}
   aria-label={item.title}
   className={selected===item.href?styles.active:""} title={item.title}>

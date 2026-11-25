@@ -13,7 +13,7 @@ export default async function ThirdCulturePartnerFinance(){
  return <main className={styles.root}>
   <header className={styles.head}><div><span className={styles.eyebrow}>PARTNER WORK / SEPARATE ENGAGEMENT</span>
    <h1>Third Culture</h1><p>External partner engagement managed during TUKO WATU WENGI. Not a FACKTS Music subsidiary, an owned artist roster or the ongoing FACKTS Music business.</p></div>
-   <Link className={styles.buttonSecondary} href="/finance-office/platform">FACKTS business finance</Link>
+   <div className={styles.pills}><Link className={styles.button} href="/finance-office/reports/detail">Reports</Link><Link className={styles.buttonSecondary} href="/finance-office/platform">FACKTS business finance</Link></div>
   </header>
   <div className={styles.note}><strong>Temporary collaboration.</strong> The free Third Culture arrangement will end as agreed, with no automatic renewal or new project. FACKTS Music will continue operating with its own team and artists and may support other artists commercially. Historical Third Culture records stay separate for accountability.</div>
   <div className={styles.grid4}>
@@ -32,7 +32,7 @@ export default async function ThirdCulturePartnerFinance(){
   </section>
   <section className={styles.panel}><h2>When the partnership finishes</h2>
    <p>Close off the project accounts using verified records and the agreed partnership terms. Keep receipts and reports available for review. Do not automatically move Third Culture members, collections, royalties or ownership into the FACKTS Music business.</p>
-   <div className={styles.quick}><Link href="/finance-office/reports">Project reports</Link><Link href="/finance-office/platform">Permanent FACKTS finances</Link></div>
+   <div className={styles.quick}><Link href="/finance-office/reports/detail">Full transaction report</Link><Link href="/finance-office/platform">Permanent FACKTS finances</Link></div>
   </section>
  </main>;
 }
