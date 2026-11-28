@@ -19,21 +19,31 @@ export async function chart(){
  if(!releases.length)return releases;
  // Explicit, independently verified performer links. No ownership data is exposed to fans.
  // Old schemas without this table still show the legacy catalogue safely.
- const [attributions,counts]=await Promise.all([
-  admin.from("music_catalogue_attributions")
-   .select("release_id,credited_artist_profile_id").in("release_id",releases.map(r=>r.id))
-   .eq("credit_verified",true).not("credited_artist_profile_id","is",null),
-  admin.rpc("public_release_play_counts",{p_release_ids:releases.map(r=>r.id)})
- ]);
- if(counts.error)console.error("Public play counts unavailable",counts.error);
- const linked=new Map((attributions.error?[]:attributions.data||[]).map(l=>[l.release_id,l.credited_artist_profile_id]));
- const playCounts=new Map((counts.error?[]:counts.data||[]).map((row:{release_id:string;plays:number|string})=>[row.release_id,Number(row.plays)]));
- // A missing RPC never becomes an invented zero; a release without sessions genuinely has 0 plays.
+ const linked=new Map<string,string>();
+ const playCounts=new Map<string,number>();
+ let countsAvailable=true;
+ // Keep the UUID list inside a normal request URL and below PostgREST's row limit.
+ const batchSize=100;
+ for(let offset=0;offset<releases.length;offset+=batchSize){
+  const ids=releases.slice(offset,offset+batchSize).map(release=>release.id);
+  const [attributions,counts]=await Promise.all([
+   admin.from("music_catalogue_attributions")
+    .select("release_id,credited_artist_profile_id").in("release_id",ids)
+    .eq("credit_verified",true).not("credited_artist_profile_id","is",null),
+   admin.rpc("public_release_play_counts",{p_release_ids:ids})
+  ]);
+  for(const row of attributions.data||[])linked.set(row.release_id,row.credited_artist_profile_id);
+  if(counts.error){
+   if(countsAvailable)console.error("Public play counts unavailable",counts.error);
+   countsAvailable=false;
+  }
+  for(const row of counts.data||[])playCounts.set(row.release_id,Number(row.plays));
+ }
  const enriched=releases.map(release=>({...release,
-  plays:counts.error?null:playCounts.get(release.id)||0,
+  plays:countsAvailable?(playCounts.get(release.id)??0):null,
   attributed_artist_profile_id:linked.get(release.id)||undefined}));
  // Listening is the primary FACKTS chart signal; weekly votes break ties.
- return counts.error?enriched:enriched.sort((a,b)=>(b.plays||0)-(a.plays||0)||
+ return !countsAvailable?enriched:enriched.sort((a,b)=>(b.plays||0)-(a.plays||0)||
   b.votes-a.votes||b.release_at.localeCompare(a.release_at));
 }
 export function currentChartWeek(){

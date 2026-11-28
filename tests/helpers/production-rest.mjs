@@ -1,8 +1,8 @@
 import {mockSupabase} from './mock-supabase.mjs';
 import {pid,lead,engineer,artist,outsider} from './production-database.mjs';
 export function productionRest(db,options={}){
- const users=[[lead,'lead'],[engineer,'engineer'],[artist,'artist'],[outsider,'outsider']].map(([id,name])=>({id,aud:'authenticated',role:'authenticated',email:name+'@example.test',created_at:new Date().toISOString(),email_confirmed_at:new Date().toISOString(),app_metadata:{provider:'email',providers:['email']},user_metadata:{full_name:'Test '+name,creator_types:['Fan']}}));
- const tables=new Set(['profiles','projects','project_members','member_roles','roles','tracks','project_assets','project_tasks','platform_events','activity_log','notifications','track_contributors','track_split_plans','track_splits','track_rights_checks','track_operational_issues','studio_sessions','session_participants','production_uploads','beats','beat_claims','session_contributions','project_budgets','project_expenses','revenue_records','commercial_opportunities','project_membership_accounts','project_membership_transactions','project_updates','project_documents','beat_assignments','beat_interests',...(options.releases?['music_releases','music_weekly_chart','release_review_events','fan_music_library','music_votes','music_release_comments']:[])]);
+ const users=[[lead,'lead'],[engineer,'engineer'],[artist,'artist'],[outsider,'outsider'],...(options.extraUsers||[])].map(([id,name])=>({id,aud:'authenticated',role:'authenticated',email:name+'@example.test',created_at:new Date().toISOString(),email_confirmed_at:new Date().toISOString(),app_metadata:{provider:'email',providers:['email']},user_metadata:{full_name:'Test '+name,creator_types:['Fan']}}));
+ const tables=new Set([...(options.extraTables||[]),'profiles','projects','project_members','member_roles','roles','tracks','project_assets','project_tasks','platform_events','activity_log','notifications','track_contributors','track_split_plans','track_splits','track_rights_checks','track_operational_issues','studio_sessions','session_participants','production_uploads','beats','beat_claims','session_contributions','project_budgets','project_expenses','revenue_records','commercial_opportunities','project_membership_accounts','project_membership_transactions','project_updates','project_documents','beat_assignments','beat_interests',...(options.releases?['music_releases','music_weekly_chart','release_review_events','fan_music_library','music_votes','music_release_comments']:[])]);
  let rejectRegistration=false,sessionOutage=false;
  function matches(row,url){return [...url.searchParams].every(([key,value])=>{
   if(['select','order','limit','offset','on_conflict'].includes(key))return true;
@@ -10,6 +10,9 @@ export function productionRest(db,options={}){
    if(value.includes('.ilike.'))return value.slice(1,-1).split(',').some(part=>{const [column,,pattern]=part.split('.');return String(row[column]||'').toLowerCase().includes(pattern.replaceAll('%','').toLowerCase());});
    return row.visibility==='project'||row.visibility==='public'||value.includes('uploaded_by.eq.'+row.uploaded_by);
   }
+  if(value==='is.null')return row[key]==null;
+  if(value==='not.is.null')return row[key]!=null;
+  if(value.startsWith('gte.')||value.startsWith('lte.')){const stamp=new Date(row[key]).valueOf(),bound=new Date(value.slice(4)).valueOf();return row[key]!=null && (value.startsWith('gte.')?stamp>=bound:stamp<=bound);}
   if(value.startsWith('eq.'))return String(row[key])===value.slice(3);
   if(value.startsWith('neq.'))return String(row[key])!==value.slice(4);
   if(value.startsWith('in.('))return value.slice(4,-1).split(',').includes(String(row[key]));
@@ -18,6 +21,7 @@ export function productionRest(db,options={}){
  });}
  const mock=mockSupabase({users,handleRest:async({req,res,url,body,send,table})=>{
   if(!url.pathname.startsWith('/rest/v1/'))return false;
+  if(options.extraRest && await options.extraRest({req,url,body,send,table}))return true;
   if(options.releases && table==='control_room_admins'){let rows=(await db.query('select * from control_room_admins')).rows.filter(r=>matches(r,url));send(200,req.headers.accept?.includes('application/vnd.pgrst.object+json')?rows[0]||null:rows);return true;}
   if(options.releases && url.pathname.includes('/rpc/')){const b=JSON.parse(body);try{let result;
    if(table==='release_mutate')result=await db.query('select release_mutate($1,$2,$3,$4,$5,$6) result',[b.p_actor,b.p_action,b.p_release,b.p_revision,b.p_data,b.p_request]);

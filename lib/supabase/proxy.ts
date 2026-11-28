@@ -13,6 +13,10 @@ const PUBLIC_ROUTES = [
   "/",
   "/about",
   "/listen",
+  "/privacy",
+  "/terms",
+  "/copyright",
+  "/finance-office/login",
   "/contact",
   "/partner",
   "/login",
@@ -32,6 +36,8 @@ const PUBLIC_ROUTES = [
   "/api/payments/verify",
   "/payments/complete",
   "/api/listening",
+  // Guest play intake validates origin, session and release in its own handler.
+  "/api/music/plays",
   "/admin/login",
   "/admin/access-unavailable",
 ];
@@ -43,7 +49,7 @@ function isPublicRoute(
     PUBLIC_ROUTES.includes(pathname) ||
     pathname === "/billboard" ||
     /^\/billboard\/[0-9a-f-]{36}$/i.test(pathname) ||
-    /^\/api\/releases\/[0-9a-f-]{36}\/media$/i.test(pathname) ||
+    /^\/api\/releases\/[0-9a-f-]{36}\/(?:media|comments)$/i.test(pathname) ||
     pathname === "/creators" ||
     pathname.startsWith("/creators/") ||
     /^\/payments\/pay\/[0-9a-f-]{36}$/i.test(pathname)

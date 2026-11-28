@@ -1,0 +1,7 @@
+{
+  "git": {
+    "deploymentEnabled": {
+      "kre-5-isolated-sweep": false
+    }
+  }
+}
