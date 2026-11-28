@@ -22,7 +22,7 @@ export default function AdminGrantAccessForm({userId,name,permissions}:{
  const [selected,setSelected]=useState<string[]>(permissions.filter(p=>p!=="all"));
  const [preset,setPreset]=useState("custom");
  const hint=PRESETS.find(item=>item.id===preset)?.hint||"";
- return <form action={action} className="control-admin-grant-form">
+ return <form action={action} onReset={event=>event.preventDefault()} className="control-admin-grant-form">
   <input type="hidden" name="user_id" value={userId}/>
   <input type="hidden" name="active" value="true"/>
   <p>Granting Control Room access to <strong>{name}</strong>.
@@ -42,8 +42,9 @@ export default function AdminGrantAccessForm({userId,name,permissions}:{
     {PERMISSIONS.map(([key,label])=><label key={key}>
       <input type="checkbox" name="permissions" value={key}
         checked={selected.includes(key)} onChange={event=>{
+          const checked=event.currentTarget.checked;
           setPreset("custom");
-          setSelected(old=>event.target.checked?[...old,key]:old.filter(p=>p!==key));
+          setSelected(old=>checked?[...old,key]:old.filter(p=>p!==key));
         }}/>
       <span>{label}</span>
     </label>)}

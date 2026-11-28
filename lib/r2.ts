@@ -44,11 +44,20 @@ function readR2Config(): R2Config {
 }
 
 function createR2Client(config: R2Config, multipart = false) {
+  // The local acceptance storage service uses the repository's synthetic credentials.
+  const localStorage = !process.env.VERCEL && process.env.FACKTS_LOCAL_STORAGE === 'true'
+    && config.accountId === '0'.repeat(32) && config.accessKeyId === '0'.repeat(32)
+    && config.secretAccessKey === '0'.repeat(64) && config.bucket === 'fixture';
+  const localPort = Number(process.env.FACKTS_R2_TEST_PORT || 54340);
+  if (localStorage && (!Number.isInteger(localPort) || localPort < 1 || localPort > 65535)) {
+    throw new Error('Invalid local fixture port.');
+  }
   return new S3Client({
     region: "auto",
     // The presigner has no browser part body; never sign an empty CRC32 for it.
     ...(multipart ? { requestChecksumCalculation: "WHEN_REQUIRED" as const } : {}),
-    endpoint: `https://${config.accountId}.r2.cloudflarestorage.com`,
+    endpoint: localStorage ? `http://127.0.0.1:${localPort}` : `https://${config.accountId}.r2.cloudflarestorage.com`,
+    forcePathStyle: localStorage,
     credentials: {
       accessKeyId: config.accessKeyId,
       secretAccessKey: config.secretAccessKey,

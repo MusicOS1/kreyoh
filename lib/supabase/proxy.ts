@@ -13,6 +13,10 @@ const PUBLIC_ROUTES = [
   "/",
   "/about",
   "/listen",
+  "/privacy",
+  "/terms",
+  "/copyright",
+  "/finance-office/login",
   "/contact",
   "/partner",
   "/login",
@@ -32,6 +36,8 @@ const PUBLIC_ROUTES = [
   "/api/payments/verify",
   "/payments/complete",
   "/api/listening",
+  // Guest play intake validates origin, session and release in its own handler.
+  "/api/music/plays",
   "/admin/login",
   "/admin/access-unavailable",
 ];
@@ -43,7 +49,7 @@ function isPublicRoute(
     PUBLIC_ROUTES.includes(pathname) ||
     pathname === "/billboard" ||
     /^\/billboard\/[0-9a-f-]{36}$/i.test(pathname) ||
-    /^\/api\/releases\/[0-9a-f-]{36}\/media$/i.test(pathname) ||
+    /^\/api\/releases\/[0-9a-f-]{36}\/(?:media|comments)$/i.test(pathname) ||
     pathname === "/creators" ||
     pathname.startsWith("/creators/") ||
     /^\/payments\/pay\/[0-9a-f-]{36}$/i.test(pathname)
@@ -115,6 +121,8 @@ export async function updateSession(
     result.headers.set("Cache-Control", "private, no-store");
     return result;
   }
+  // Public GETs without auth credentials need no remote token validation. Private routes and signed-in sessions keep the existing checks.
+  if ((request.method==="GET"||request.method==="HEAD") && isPublicRoute(pathname) && !request.headers.has("authorization") && !request.cookies.getAll().some(c=>/^sb-.+-auth-token(?:\.\d+)?$/.test(c.name))) return finish();
   function unavailable() {
     return finish(new NextResponse(authRecoveryHtml, { status: 503, headers: { "Content-Type": "text/html; charset=utf-8", "Retry-After": "5" } }));
   }

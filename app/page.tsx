@@ -1,3 +1,4 @@
+import {Suspense} from "react";
 import localFont from "next/font/local";
 import approved from "./ApprovedHomepage.module.css";
 import type { Metadata } from "next";
@@ -110,14 +111,11 @@ const systems = [
 const flow = ["IDEA", "BEAT", "BUILD", "STUDIO", "REVIEW", "RELEASE READY"];
 
 export default async function PublicHomePage() {
-  const [creators, covers] = await Promise.all([getPublicCreators(), publicHeroCovers()]);
-  const featured = creators.slice(0, 6);
-  const ticker = creators.length ? [...creators, ...creators] : [];
-  const interviews = creators.filter((creator) => creator.interviewUrl).slice(0, 3);
+  const covers = await publicHeroCovers();
 
   return (
     <main className={`public-site fm-v3-site ${approved.homepage} ${bodyFont.variable} ${displayFont.variable}`}>
-      <PublicNavigation homepage />
+      <Suspense fallback={<div style={{minHeight:64}} aria-hidden="true"/>}><PublicNavigation homepage /></Suspense>
 
       <section className="fm-v3-hero fm-cover-hero" id="top">
         <HeroCoverWall covers={covers} source="curated" />
@@ -129,8 +127,8 @@ export default async function PublicHomePage() {
             Hear independent releases, meet the artists behind them, and follow the sounds you love. Your next favourite starts here.
           </p>
           <div className="fm-v3-hero-actions">
-            <Link href="/listen" className="fm-v3-btn fm-v3-btn-primary">Explore the music <ArrowUpRight size={16} /></Link>
-            <Link href="/creators" className="fm-v3-btn fm-v3-btn-ghost">Meet the creators <ArrowUpRight size={16} /></Link>
+            <Link prefetch={false} href="/listen" className="fm-v3-btn fm-v3-btn-primary">Explore the music <ArrowUpRight size={16} /></Link>
+            <Link prefetch={false} href="/creators" className="fm-v3-btn fm-v3-btn-ghost">Meet the creators <ArrowUpRight size={16} /></Link>
           </div>
           <div className="fm-v3-hero-foot">
             <span>Built in Nairobi</span>
@@ -141,17 +139,32 @@ export default async function PublicHomePage() {
 
       </section>
 
+      <Suspense fallback={null}><HomepageDetails /></Suspense>
+      <PublicFooter />
+    </main>
+  );
+}
+
+async function HomepageDetails(){
+  const creators=await getPublicCreators();
+  const featured=creators.slice(0,6);
+  const ticker=creators.length?[...creators,...creators]:[];
+  const interviews=creators.filter(creator=>creator.interviewUrl).slice(0,3);
+  return <>
       <section className="fm-v3-ticker-section" aria-label="FACKTS Music creator network">
         <div className="fm-v3-ticker-label">LIVE ON FACKTS MUSIC</div>
         {ticker.length ? (
           <div className="fm-v3-ticker-window">
             <div className="fm-v3-ticker-track">
-              {ticker.map((creator, index) => (
-                <Link href={`/creators/${encodeURIComponent(creator.slug)}`} key={`${creator.id}-${index}`} className="fm-v3-ticker-item">
-                  {creator.avatar ? <img src={creator.avatar} alt="" /> : <span className="fm-v3-ticker-dot" />}
+              {ticker.map((creator, index) => {
+                const content = <>
+                  {creator.avatar ? <img src={creator.avatar} loading="lazy" decoding="async" alt="" /> : <span className="fm-v3-ticker-dot" />}
                   <strong>{creator.name}</strong><small>{creator.role}</small>
-                </Link>
-              ))}
+                </>;
+                // The second sequence exists only to maintain the animation loop.
+                if (index >= creators.length) return <span key={`${creator.id}-${index}`} className="fm-v3-ticker-item fm-v3-ticker-copy" aria-hidden="true">{content}</span>;
+                return <Link prefetch={false} href={`/creators/${encodeURIComponent(creator.slug)}`} key={`${creator.id}-${index}`} className="fm-v3-ticker-item">{content}</Link>;
+              })}
             </div>
           </div>
         ) : (
@@ -178,14 +191,14 @@ export default async function PublicHomePage() {
       <section className="fm-v3-section fm-v3-creators">
         <div className="fm-v3-section-head fm-v3-section-head-creators">
           <div><span className="fm-v3-eyebrow">PUBLIC CREATOR NETWORK</span><h2>Real people.<br />Real creative identities.</h2></div>
-          <div><p>Public creator profiles come directly from FACKTS Music — not placeholder cards.</p><Link href="/creators" className="fm-v3-text-link">Explore all creators <ArrowUpRight size={14} /></Link></div>
+          <div><p>Public creator profiles come directly from FACKTS Music — not placeholder cards.</p><Link prefetch={false} href="/creators" className="fm-v3-text-link">Explore all creators <ArrowUpRight size={14} /></Link></div>
         </div>
 
         <div className="fm-v3-creator-grid">
           {featured.length ? featured.map((creator, index) => (
-            <Link href={`/creators/${encodeURIComponent(creator.slug)}`} className="fm-v3-creator-card" key={creator.id}>
+            <Link prefetch={false} href={`/creators/${encodeURIComponent(creator.slug)}`} className="fm-v3-creator-card" key={creator.id}>
               <div className="fm-v3-creator-photo">
-                {(creator.hero || creator.avatar) ? <img src={creator.hero || creator.avatar} alt={creator.name} /> : <span>{creator.name.slice(0,2).toUpperCase()}</span>}
+                {(creator.hero || creator.avatar) ? <img loading="lazy" decoding="async" src={creator.hero || creator.avatar} alt={creator.name} /> : <span>{creator.name.slice(0,2).toUpperCase()}</span>}
                 <div className="fm-v3-creator-photo-shade" />
                 <span className="fm-v3-creator-index">{String(index + 1).padStart(2, "0")}</span>
                 <span className="fm-v3-creator-role">{creator.role}</span>
@@ -203,7 +216,7 @@ export default async function PublicHomePage() {
       </section>
 
       <section className="fm-v3-project-001">
-        <div className="fm-v3-project-image"><img src="/branding/fackts-monnokid-workspace.jpg" alt="FACKTS Music studio work" /><div /></div>
+        <div className="fm-v3-project-image"><img loading="lazy" decoding="async" src="/branding/fackts-monnokid-workspace.jpg" srcSet="/branding/studio-640.webp 640w, /branding/studio-1280.webp 1280w" sizes="(max-width: 760px) 100vw, 55vw" alt="FACKTS Music studio work" /><div /></div>
         <div className="fm-v3-project-copy">
           <span className="fm-v3-eyebrow">PROJECT 001 · FOUNDING IMPLEMENTATION</span>
           <h2>Built inside the work, not outside it.</h2>
@@ -230,7 +243,7 @@ export default async function PublicHomePage() {
           <div className="fm-v3-watch-grid">
             {interviews.map((creator) => (
               <a href={creator.interviewUrl} target="_blank" rel="noreferrer" className="fm-v3-watch-card" key={creator.id}>
-                <div><img src={creator.hero || creator.avatar || "/branding/fackts-creative-community.jpg"} alt=""/><span className="fm-v3-play">▶</span></div>
+                <div><img loading="lazy" decoding="async" src={creator.hero || creator.avatar || "/branding/fackts-creative-community.jpg"} alt=""/><span className="fm-v3-play">▶</span></div>
                 <span>{creator.name}</span>
                 <h3>{creator.interviewTitle || `Meet ${creator.name}`}</h3>
                 <small>Watch conversation ↗</small>
@@ -245,7 +258,5 @@ export default async function PublicHomePage() {
         <div><p>Partner around creator development, project infrastructure, studio activity, discovery, live experiences and cultural storytelling.</p><Link href="/partner" className="fm-v3-btn fm-v3-btn-primary">Partner with FACKTS Music <ArrowUpRight size={16}/></Link></div>
       </section>
 
-      <PublicFooter />
-    </main>
-  );
+    </>;
 }

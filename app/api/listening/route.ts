@@ -1,10 +1,13 @@
-import {chart,viewer} from "../../../lib/community";
+import {viewer} from "../../../lib/community";
+import {readAllRows} from "../../../lib/recordReads";
 import {createAdminClient} from "../../../lib/supabase/admin";
 export const dynamic="force-dynamic";
 // Only published, currently playable releases. Private project queues never use this endpoint.
 export async function GET() {
  try{
-  const releases=await chart();
+  const result=await readAllRows(()=>createAdminClient().from("music_weekly_chart").select("id,title,artist_name,has_cover").order("release_at",{ascending:false}).order("id"));
+  if(result.error)throw Error("Queue unavailable");
+  const releases=result.data||[];
   let savedIds:string[]=[];
   try{
    const user=await viewer();

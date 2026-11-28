@@ -13,8 +13,10 @@ const photography = [
 /** Decorative artwork only. The root player remains the sole music transport. */
 export default function HeroCoverWall({ covers, source = 'releases' }: { covers: string[]; source?: 'releases' | 'curated' }) {
   const wall = useRef<HTMLDivElement>(null);
+  const [showArtwork,setShowArtwork]=useState(false);
   const [paused, setPaused] = useState(false), [inView, setInView] = useState(false);
   const [foreground, setForeground] = useState(true), [reduced, setReduced] = useState(false);
+  useEffect(()=>{const timer=window.setTimeout(()=>setShowArtwork(true),500);return()=>window.clearTimeout(timer);},[]);
   useEffect(() => {
     const media = matchMedia('(prefers-reduced-motion: reduce)');
     const motion = () => setReduced(media.matches);
@@ -34,7 +36,7 @@ export default function HeroCoverWall({ covers, source = 'releases' }: { covers:
         <div className={styles.track}>
           {[0, 1].map(copy => <div className={styles.group} key={copy}>
             {Array.from({ length: 4 }, (_, tile) => <div className={styles.cover} key={tile}>
-              <img src={images[(lane * 4 + tile) % images.length]} alt="" width={280} height={280} decoding="async" fetchPriority="low" loading={copy === 0 && tile < 2 ? 'eager' : 'lazy'} draggable={false} />
+              {(showArtwork || (lane===1 && copy===0 && tile===0)) && <img src={images[(lane * 4 + tile) % images.length]} alt="" width={280} height={280} decoding="async" fetchPriority="low" loading="lazy" draggable={false} />}
             </div>)}
           </div>)}
         </div>

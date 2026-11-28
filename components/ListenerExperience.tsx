@@ -119,7 +119,8 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
    setItemNotices(old=>({...old,[key]:message}));setNotice(message);return false;
   }finally{libraryRequests.current.delete(key);setPendingItems(new Set(libraryRequests.current));}
  }
- function play(r:Release){playSong(r.id);}
+ function playById(id:string){playSong(id,releases,library.filter(item=>item.kind==="saved").map(item=>item.item_id));}
+ function play(r:Release){playById(r.id);}
  async function remember(id:string){if(!userId||remembered.current.has(id))return;remembered.current.add(id);try{const result=await backgroundInteraction<{ok:boolean}>('library',{kind:'recent',id,enabled:true});if(result.ok)setLibrary(old=>[{kind:'recent',item_id:id,label:'',track_ids:[],updated_at:new Date().toISOString()},...old.filter(x=>x.kind!=='recent'||x.item_id!==id)]);else remembered.current.delete(id);}catch{remembered.current.delete(id);}}
  const tabs=userId?['For You','Artists','Albums & EPs','Shows','Billboard','My Library','Following','Recently played']:['For You','Artists','Albums & EPs','Shows','Billboard'];
  const selectTab=(value:string)=>{if(value==="Billboard"){window.location.assign("/billboard");return;}setTab(value);setQuery('');setArtistFocusId(null);};
@@ -186,7 +187,7 @@ export default function ListenerExperience({releases,userId,name,initialTab='For
      <section className={"fm-discover-feature-zone"+(artworkOfWeek?" with-artwork":"")} aria-label="Discover featured music">
       <div className="fm-discover-artist-feature">
        <div className="fm-discover-feature-label"><span aria-hidden="true"/> IN THE SPOTLIGHT</div>
-       {hero?<ConfiguredFanHero hero={hero} fallbackImage={featured}/>:<StreamArtistHero artist={spotlightArtist} track={firstSpotlightTrack} onPlay={id=>playSong(id)}
+       {hero?<ConfiguredFanHero hero={hero} fallbackImage={featured}/>:<StreamArtistHero artist={spotlightArtist} track={firstSpotlightTrack} onPlay={playById}
         onOpen={openArtist} onFollow={id=>void change("following",id,!has("following",id))}
         following={Boolean(spotlightArtist&&has("following",spotlightArtist.id))}
         followPending={Boolean(spotlightArtist&&followPending(spotlightArtist.id))}

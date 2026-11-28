@@ -4,9 +4,16 @@ export function mockProductionR2(){
  const server=http.createServer(async(req,res)=>{
   const url=new URL(req.url,'http://localhost');const key=decodeURIComponent(url.pathname);const upload=url.searchParams.get('uploadId');
   const xml=(body,status=200)=>{res.writeHead(status,{'Content-Type':'application/xml'});res.end(body);};
-  res.setHeader('Access-Control-Allow-Origin','*');res.setHeader('Access-Control-Allow-Headers','*');res.setHeader('Access-Control-Expose-Headers','ETag');
+  res.setHeader('Access-Control-Allow-Origin','*');res.setHeader('Access-Control-Allow-Headers','*');res.setHeader('Access-Control-Allow-Methods','GET, HEAD, PUT, POST, DELETE, OPTIONS');res.setHeader('Access-Control-Expose-Headers','ETag');
   if(req.method==='OPTIONS'){res.writeHead(204);res.end();return;}
   requests.push({method:req.method,key,upload,part:url.searchParams.get('partNumber')});
+  if(req.method==='HEAD' && /^\/fixture\/?$/.test(key)){res.writeHead(200);return res.end();}
+  if(req.method==='PUT' && !upload && !req.headers['x-amz-copy-source'] && key.startsWith('/fixture/')){
+   const chunks=[];let size=0;
+   for await(const chunk of req){size+=chunk.length;if(size>10*1024**2)return xml('<Error><Code>EntityTooLarge</Code></Error>',413);chunks.push(chunk);}
+   const bytes=Buffer.concat(chunks),etag='"'+createHash('md5').update(bytes).digest('hex')+'"';
+   objects.set(key,{bytes,size,type:req.headers['content-type'],etag});res.writeHead(200,{ETag:etag});return res.end();
+  }
   if(req.method==='POST'&&url.searchParams.has('uploads')){
    const id=crypto.randomUUID();transfers.set(id,{key,type:req.headers['content-type'],parts:new Map()});return xml(`<InitiateMultipartUploadResult><Bucket>fixture</Bucket><Key>${key}</Key><UploadId>${id}</UploadId></InitiateMultipartUploadResult>`);
   }

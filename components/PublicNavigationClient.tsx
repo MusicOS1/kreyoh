@@ -52,7 +52,7 @@ export default function PublicNavigationClient({ identity: initialIdentity }: { 
       <Link href="/" className={styles.brand} aria-label="FACKTS Music home" onClick={close}><FacktsMusicLogo size={36} showTagline={false} /></Link>
       <nav className={styles.desktop} aria-label="Public navigation">
         <div className={styles.links}>{links.map(([label, href]) => <div className={styles.navItem} key={href}>
-          <Link href={href} onClick={close} aria-current={pathname === href ? 'page' : undefined}>{label}</Link>
+          <Link prefetch={false} href={href} onClick={close} aria-current={pathname === href ? 'page' : undefined}>{label}</Link>
           {href === '/listen' && <button ref={trigger} type="button" className={styles.chevron} aria-label="Explore music menu" aria-expanded={explore} aria-controls="fm-explore-panel" onKeyDown={event => {
             if (event.key === 'ArrowDown' || (event.key === 'Tab' && !event.shiftKey && explore)) {
               event.preventDefault();
@@ -73,7 +73,7 @@ export default function PublicNavigationClient({ identity: initialIdentity }: { 
       <Link className={styles.feature} href="/about" onClick={close}><img src="/branding/fackts-creative-community.jpg" alt="" /><div><span className={styles.eyebrow}>THE FACKTS COMMUNITY</span><h2><span>More than<br />a listening room.</span></h2><p>Meet the creative world around the music.</p><span className={styles.featureCta}>Step inside <ArrowUpRight size={17} /></span></div></Link>
     </nav>}
     {open && <nav id="fm-public-mobile-menu" className={styles.mobile} aria-label="Mobile navigation">
-      <p className={styles.eyebrow}>MUSIC. PEOPLE. POSSIBILITY.</p><div className={styles.mobileLinks}>{links.map(([label, href]) => <Link href={href} key={href} onClick={close} aria-current={pathname === href ? 'page' : undefined}>{label}<ArrowUpRight size={17} /></Link>)}</div>
+      <p className={styles.eyebrow}>MUSIC. PEOPLE. POSSIBILITY.</p><div className={styles.mobileLinks}>{links.map(([label, href]) => <Link prefetch={false} href={href} key={href} onClick={close} aria-current={pathname === href ? 'page' : undefined}>{label}<ArrowUpRight size={17} /></Link>)}</div>
       <div className={styles.mobileMusic}><Link href="/billboard" onClick={close}><DiscIcon size={18} />Billboard</Link><Link href="/home" onClick={close}><BriefcaseIcon size={18} />Your workspace</Link></div>
       <div className={styles.mobileAccount}>{accountLinks}</div>
     </nav>}

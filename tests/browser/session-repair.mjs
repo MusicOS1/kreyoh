@@ -8,7 +8,7 @@ import {mockSupabase,releaseId,secondId,userId} from '../helpers/mock-supabase.m
 const {server,state}=mockSupabase();
 await new Promise(resolve=>server.listen(54329,'127.0.0.1',resolve));
 const origin='http://localhost:3100';
-const child=spawn(process.execPath,['node_modules/next/dist/bin/next','dev','--webpack','--port','3100','--hostname','127.0.0.1'],{env:{...process.env,NEXT_PUBLIC_SUPABASE_URL:'http://127.0.0.1:54329',NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'local-test-publishable-key',SUPABASE_SERVICE_ROLE_KEY:'local-test-service-key',NEXT_PUBLIC_SITE_URL:origin,NEXT_TELEMETRY_DISABLED:'1',LOCAL_DEMO_DATA:'true'},stdio:['ignore','pipe','pipe']});
+const child=spawn(process.execPath,['node_modules/next/dist/bin/next',...(process.env.AUDIT_PRODUCTION==='1'?['start']:['dev','--webpack']),'--port','3100','--hostname','127.0.0.1'],{env:{...process.env,NEXT_PUBLIC_SUPABASE_URL:'http://127.0.0.1:54329',NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'local-test-publishable-key',SUPABASE_SERVICE_ROLE_KEY:'local-test-service-key',NEXT_PUBLIC_SITE_URL:origin,NEXT_TELEMETRY_DISABLED:'1',LOCAL_DEMO_DATA:'true'},stdio:['ignore','pipe','pipe']});
 let logs='';child.stdout.on('data',chunk=>{logs+=chunk;process.stdout.write(chunk)});child.stderr.on('data',chunk=>{logs+=chunk;process.stderr.write(chunk)});
 let browser;
 const report=[],browserErrors=[];const screenshotDir=process.env.SCREENSHOT_DIR||'/tmp/kreyoh-phase2-screenshots';
@@ -52,7 +52,7 @@ try{
  await mkdir(screenshotDir,{recursive:true});
  const cookies=await browser.cookies();assert.ok(cookies.some(c=>/-auth-token(?:\.\d+)?$/.test(c.name)&&c.expires>Date.now()/1000+86400));pass('Auth cookies persist beyond browser session');
  await browser.close();browser=await chromium.launchPersistentContext(profile,{...options,...devices['Pixel 7'],viewport:{width:390,height:844}});await media(browser);page=await browser.newPage();page.setDefaultTimeout(12000);page.setDefaultNavigationTimeout(45000);
- await page.goto(origin+'/fan');await page.locator('.fs-track-cover').first().click();
+ await page.goto(origin+'/fan?tab=For%20You');await page.locator('.fs-track-cover').first().click();
  const audio=page.locator('.global-listening-player audio');await audio.waitFor({state:"attached"});await page.waitForFunction(()=>document.querySelector('.global-listening-player audio')?.readyState>=3);
  await audio.evaluate(element=>{element.currentTime=24;});await page.waitForFunction(()=>document.querySelector('.global-listening-player audio')?.currentTime>=23);await page.getByRole('button',{name:'Pause',exact:true}).click();
  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('fm-listening:11111111-1111-4111-8111-111111111111:published'))?.position>=23);
@@ -114,7 +114,7 @@ try{
  await page.getByRole('button',{name:'+ Follow artist',exact:true}).waitFor();
  assert.ok(!state.library.some(item=>item.kind==='following'));
  pass('Follow and unfollow a public artist without releases; following persists after reload');
- await page.goto(origin+'/fan');await page.waitForLoadState('networkidle');
+ await page.goto(origin+'/fan?tab=For%20You');await page.waitForLoadState('networkidle');
  let delayedLike;
  await page.route('**/api/interactions/library',route=>{if(route.request().postDataJSON().kind==='saved')delayedLike=route;else void route.continue();});
  await page.getByRole('button',{name:'Like Test song 1',exact:true}).click();
@@ -149,14 +149,14 @@ try{
  state.creator=true;state.hasProject=true;
  await page.goto(origin+'/fan');await page.waitForLoadState('networkidle');
  for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});await page.getByRole('link',{name:'Artist workspace',exact:true}).waitFor();await overflow(page,'Artist shortcut '+width);}
- await page.getByRole('link',{name:'Artist workspace',exact:true}).click();await page.waitForURL('**/workspaces/artist');await page.getByRole('heading',{name:'Make your next move.',exact:true}).waitFor();
+ await page.getByRole('link',{name:'Artist workspace',exact:true}).click();await page.waitForURL('**/workspaces/artist');await page.getByRole('heading',{name:'Artist home',exact:true}).waitFor();
  pass('Artist workspace shortcut is visible at mobile and desktop widths and opens without login');
  await page.setViewportSize({width:390,height:844});
- await page.goto(origin+'/home');await page.getByRole('heading',{name:'Make your next move.',exact:true}).waitFor();
+ await page.goto(origin+'/home');await page.getByRole('heading',{name:'Artist home',exact:true}).waitFor();
  await page.goto(origin+'/member-dashboard');await page.waitForLoadState('networkidle');assert.ok(!(await page.url()).includes('/login'));
  assert.equal((await browser.cookies()).find(c=>c.name==='fackts_project_id')?.value,undefined);
  await page.goto(origin+'/projects');const projectButton=page.getByRole('button',{name:'Enter project',exact:true});
- await projectButton.first().click();await page.waitForURL('**/member-dashboard');assert.equal((await browser.cookies()).find(c=>c.name==='fackts_project_id')?.value,'66666666-6666-4666-8666-666666666666');await page.reload();assert.equal((await browser.cookies()).find(c=>c.name==='fackts_project_id')?.value,'66666666-6666-4666-8666-666666666666');pass('Selected project persists across refresh with active membership');
+ await projectButton.first().click();await page.waitForURL('**/production');assert.equal((await browser.cookies()).find(c=>c.name==='fackts_project_id')?.value,'66666666-6666-4666-8666-666666666666');await page.reload();assert.equal((await browser.cookies()).find(c=>c.name==='fackts_project_id')?.value,'66666666-6666-4666-8666-666666666666');pass('Selected project persists across refresh with active membership');
  for(const route of ['/home','/projects','/tracks','/billboard/submit','/messages','/fan/profile']){
   await page.goto(origin+route);await page.waitForLoadState('networkidle');assert.equal(await page.getByRole('heading',{name:'We couldn’t load this page.'}).count(),0,route);await overflow(page,route+' mobile');
  }
@@ -183,7 +183,10 @@ try{
  await browser.setOffline(true);await page.goto(origin+'/projects?offline-test=1');await page.getByRole('heading',{name:'You’re offline.'}).waitFor();assert.equal(await page.locator('input[type=password]').count(),0);await browser.setOffline(false);await page.getByRole('button',{name:'Try again',exact:true}).click();await page.waitForURL('**/projects?offline-test=1');await page.waitForLoadState('networkidle');pass('Service worker offline navigation recovers exact URL without showing login');
  state.outage=true;const unavailable=await page.goto(origin+'/projects');assert.equal(unavailable.status(),503);await page.getByRole('heading',{name:'Let’s reconnect.'}).waitFor();assert.ok((await browser.cookies()).some(c=>/-auth-token(?:\.\d+)?$/.test(c.name)&&c.value));state.outage=false;await page.getByRole('button',{name:'Try again',exact:true}).click();await page.waitForLoadState('networkidle');assert.ok(!(await page.url()).includes('/login'));pass('Auth outage shows recovery and retains session');
  state.types=['Artist','Producer','Engineer','Videographer','Songwriter'];state.roles=['Artist','Producer','Engineer','A&R','Manager','Project Lead','Studio Owner'];state.hasProject=true;
- await page.goto(origin+'/fan');await page.waitForLoadState('networkidle');
+ await page.goto(origin+'/fan?tab=For%20You');await page.waitForLoadState('networkidle');
+ // Start a listening session before measuring its dock after the offline recovery.
+ if(!await page.locator('.global-listening-player').isVisible())await page.getByRole('button',{name:'Play Test song 1',exact:true}).first().click();
+ await page.locator('.global-listening-player').waitFor();
  await page.setViewportSize({width:1440,height:1000});assert.ok((await page.locator('.global-listening-player').boundingBox()).height<150,'Desktop player must stay compact');await page.mouse.move(10,10);await page.screenshot({path:path.join(screenshotDir,'ListeningDesktop.png'),fullPage:false,scale:'css'});
  await page.setViewportSize({width:390,height:844});await page.screenshot({path:path.join(screenshotDir,'ListeningMobile.png'),fullPage:false,scale:'css'});
  for(const kind of ['artist','producer','engineer','ar','visual','manager','coordinator','creative','studio']){

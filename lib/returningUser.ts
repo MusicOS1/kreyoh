@@ -1,4 +1,5 @@
 import {cache} from 'react';
+import {cookies} from 'next/headers';
 import {professionalIdentityTypes} from './professionalIdentity';
 import {createClient} from './supabase/server';
 import {createAdminClient} from './supabase/admin';
@@ -19,6 +20,8 @@ export async function loadIdentityForUser(user:{id:string;email?:string}):Promis
 }
 export const returningUser=cache(async()=>{
  if(!process.env.NEXT_PUBLIC_SUPABASE_URL||!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)return null;
+ const cookieStore=await cookies();
+ if(!cookieStore.getAll().some(c=>/^sb-.+-auth-token(?:\.\d+)?$/.test(c.name)))return null;
  const {data:{user},error}=await (await createClient()).auth.getUser();
  if(error||!user)return null;
  try{return await loadIdentityForUser(user);}catch{return null;}

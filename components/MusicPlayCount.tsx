@@ -15,7 +15,8 @@ export default function MusicPlayCount({id,count}:{id:string;count?:number|null}
   window.addEventListener("fm-qualified-play",update);
   return()=>window.removeEventListener("fm-qualified-play",update);
  },[id]);
- return <span className="fm-music-play-count" aria-label={value===null?"Plays unavailable":value+" recorded plays"}>
-  {value===null?"Plays unavailable":value.toLocaleString()+" plays"}
+ const unit=value===1?"play":"plays";
+ return <span className="fm-music-play-count" aria-label={value===null?"Plays unavailable":value+" recorded "+unit}>
+  {value===null?"Plays unavailable":value.toLocaleString()+" "+unit}
  </span>;
 }
